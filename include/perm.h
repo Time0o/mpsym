@@ -41,7 +41,7 @@ public:
        _perm[i] = i + 1u;
   }
 
-  Perm(std::vector<unsigned> perm)
+  Perm(std::vector<unsigned> const &perm)
     : _n(*std::max_element(perm.begin(), perm.end())), _perm(perm) {
 #ifndef NDEBUG
     assert(("explicit permutation description has correct length",
@@ -61,7 +61,7 @@ public:
 #endif
   }
 
-  Perm(unsigned n, std::vector<std::vector<unsigned>> cycles) : _n(n) {
+  Perm(unsigned n, std::vector<std::vector<unsigned>> const &cycles) : _n(n) {
     assert(_n > 0u);
 
     if (cycles.size() == 0u) {
