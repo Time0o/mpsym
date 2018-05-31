@@ -1,6 +1,7 @@
 #ifndef _GUARD_PERM_H
 #define _GUARD_PERM_H
 
+#include <algorithm>
 #include <cassert>
 #include <initializer_list>
 #include <vector>
@@ -12,80 +13,94 @@
 namespace CGTL
 {
 
-template<unsigned N> class Perm;
+class Perm
+{
+friend Perm operator*(Perm const &lhs, Perm const &rhs) {
+  bool left_larger = lhs.size() >= rhs.size();
+  Perm result(left_larger ? lhs : rhs);
 
-template <unsigned M1, unsigned M2, unsigned MAX = std::max(M1, M2)>
-Perm<MAX> operator*(Perm<M1> const &lhs, Perm<M2> const &rhs) {
-  Perm<MAX> result;
-
-  if (MAX == M1) {
-    for (unsigned i = 0u; i < M2; ++i)
+  if (left_larger) {
+    for (unsigned i = 0u; i < rhs.size(); ++i)
       result._perm[i] = lhs[rhs[i + 1]];
-
-    for(unsigned j = M2; j < M1; ++j)
-       result._perm[j] = lhs[j + 1];
   } else {
-    for (unsigned i = 0u; i < M2; ++i) {
+    for (unsigned i = 0u; i < rhs.size(); ++i) {
       unsigned tmp = rhs[i + 1];
-      result._perm[i] = (tmp <= M1) ? lhs[tmp] : tmp;
+      if (tmp <= lhs.size())
+        result._perm[i] = lhs[tmp];
     }
   }
 
   return result;
 }
 
-template<unsigned N>
-class Perm
-{
-template <unsigned M1, unsigned M2, unsigned MAX>
-friend Perm<MAX> operator*(Perm<M1> const &lhs, Perm<M2> const &rhs);
-
 public:
-  Perm() : _perm(N) {
-    for (unsigned i = 0u; i < N; ++i)
+  typedef unsigned size_type;
+
+  Perm(unsigned n = 0u) : _n(n), _perm(n) {
+    for (unsigned i = 0u; i < _n; ++i)
        _perm[i] = i + 1;
   }
 
-  template<unsigned M>
-  Perm(Perm<M> const &old) {
-    static_assert(N >= M, "can not narrow down permutation");
-
-    for (unsigned i = 1u; i <= std::min(N, M); ++i)
-      _perm.push_back(old[i]);
-
-    if (N > M) {
-      for (unsigned j = M + 1; j <= N; ++j)
-        _perm.push_back(j);
-    }
-  }
-
-  Perm(std::vector<unsigned> cycle) : Perm() {
+  Perm(std::vector<unsigned> perm)
+    : _n(*std::max_element(perm.begin(), perm.end())), _perm(perm) {
 #ifndef NDEBUG
-    assert(("cycle implausibly long", cycle.size() <= N));
+    assert(("explicit permutation description has correct length",
+            perm.size() == _n));
 
-    {
-      std::set<unsigned> tmp(cycle.begin(), cycle.end());
+    if (_n == 0u)
+      return;
 
-      assert(("cycle contains element > N", *tmp.rbegin() <= N));
-      assert(("cycle contains duplicate elements", tmp.size() == cycle.size()));
-    }
+    std::set<unsigned> tmp(perm.begin(), perm.end());
+
+    assert(("explicit permutation description does not contain duplicate elements",
+            tmp.size() == perm.size()));
+
+    bool full_range = (*tmp.begin() == 1u) && (*tmp.rbegin() == _n);
+    assert(("explicit permutation description contains all elements from 1 to N",
+            full_range));
 #endif
-    for (size_t i = 1u; i < cycle.size(); ++i) {
-       (*this)[cycle[i - 1]] = cycle[i];
-    }
-    (*this)[cycle.back()] = cycle[0];
   }
 
-  Perm(std::vector<std::vector<unsigned>> cycles) {
-    Perm<N> result(cycles.back());
-    for (auto i = cycles.rbegin() + 1; i != cycles.rend(); ++i)
-      result = Perm(*i) * result;
+  Perm(unsigned n, std::vector<std::vector<unsigned>> cycles) : _n(n) {
+    assert(n > 0u);
 
-    _perm = result._perm;
+    if (cycles.size() == 0u) {
+      for (unsigned i = 0u; i < _n; ++i)
+        _perm.push_back(i + 1);
+
+    } else if (cycles.size() == 1u) {
+      std::vector<unsigned> const &cycle = cycles[0];
+#ifndef NDEBUG
+      assert(("cycle has plausible length", cycle.size() <= _n));
+
+      std::set<unsigned> tmp(cycle.begin(), cycle.end());
+      assert(("cycle does not contain elements > N", *tmp.rbegin() <= _n));
+      assert(("cycle does not contain duplicate elements",
+              tmp.size() == cycle.size()));
+#endif
+
+      for (unsigned i = 0u; i < _n; ++i)
+        _perm.push_back(i + 1);
+
+      for (size_t i = 1u; i < cycle.size(); ++i) {
+        unsigned tmp = cycle[i];
+        assert(("cycle element <= N", tmp <= _n));
+        (*this)[cycle[i - 1]] = tmp;
+      }
+
+      (*this)[cycle.back()] = cycle[0];
+
+    } else {
+      Perm result(n, { cycles.back() });
+      for (auto i = cycles.rbegin() + 1; i != cycles.rend(); ++i)
+        result = Perm(_n, { *i }) * result;
+
+      _perm = result._perm;
+    }
   }
 
   unsigned const& operator[](unsigned const i) const {
-    assert(("permutation index out of range", i > 0u && i <= N));
+    assert(("permutation index valid", i > 0u && i <= _n));
     return _perm[i - 1];
   }
 
@@ -93,7 +108,19 @@ public:
     return const_cast<unsigned&>(static_cast<const Perm*>(this)->operator[](i));
   }
 
+  unsigned size() const { return _n; }
+
+  Perm& extend(unsigned m) {
+    assert(("permutation not narrowed", m >= _n));
+
+    for (unsigned i = _n + 1u; i <= m; ++i)
+      _perm.push_back(i);
+
+    return *this;
+  }
+
 private:
+  unsigned _n;
   std::vector<unsigned> _perm;
 };
 
