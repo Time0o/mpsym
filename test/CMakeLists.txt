@@ -8,7 +8,7 @@ foreach(testsource ${testsources})
   string(REPLACE ".cc" "" test "${test}")
 
   add_executable("${test}" "${testsource}")
-  target_link_libraries("${test}" gtest_main)
+  target_link_libraries("${test}" gmock_main)
   target_link_libraries("${test}" cgtl)
   add_test(NAME "${test}" COMMAND "${test}")
 endforeach()

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <unordered_set>
 #include <vector>
 
 #ifndef NDEBUG
@@ -121,6 +122,19 @@ public:
 private:
   unsigned _n;
   std::vector<unsigned> _perm;
+};
+
+class PermGroup
+{
+public:
+  PermGroup(unsigned n, std::vector<Perm> const &generators)
+    : _n(n), _generators(generators) {}
+
+  std::unordered_set<unsigned> orbit(unsigned alpha) const;
+
+private:
+  unsigned _n;
+  std::vector<Perm> _generators;
 };
 
 }

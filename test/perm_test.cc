@@ -1,8 +1,10 @@
 #include <sstream>
 #include <vector>
 
+#include "gmock/gmock.h"
 #include "perm.h"
-#include "gtest/gtest.h"
+
+using testing::UnorderedElementsAre;
 
 static ::testing::AssertionResult perm_equal(
   std::vector<unsigned> const &expected, cgtl::Perm const &perm)
@@ -85,4 +87,35 @@ TEST(PermTest, CanMultiplyPerms)
      << "Left multiplying larger permutation produces result of correct size.";
   EXPECT_TRUE(perm_equal({ 4, 5, 3, 1, 2, 6 }, perm_mult3))
      << "Left multiplying larger permutation produces correct result.";
+}
+
+TEST(PermGroupTest, CanCalculateOrbit)
+{
+  cgtl::Perm perm1(5, { { 1, 2, 3, 4, 5 } });
+  cgtl::PermGroup pg1(5, { perm1 });
+
+  for (int i = 1; i <= 5; ++i) {
+    EXPECT_THAT(pg1.orbit(i), UnorderedElementsAre(1, 2, 3, 4, 5))
+      << "Symmetric group only produces 'complete' orbits.";
+  }
+
+  cgtl::Perm perm3(5, { { 1, 2 } });
+  cgtl::Perm perm4(5, { { 2, 3 } });
+  cgtl::PermGroup pg2(5, { perm3, perm4 });
+
+  EXPECT_THAT(pg2.orbit(1), UnorderedElementsAre(1, 2, 3))
+      << "Orbit correct.";
+  EXPECT_THAT(pg2.orbit(2), UnorderedElementsAre(1, 2, 3))
+      << "Orbit correct.";
+  EXPECT_THAT(pg2.orbit(3), UnorderedElementsAre(1, 2, 3))
+      << "Orbit correct.";
+  EXPECT_THAT(pg2.orbit(4), UnorderedElementsAre(4))
+      << "Orbit correct.";
+  EXPECT_THAT(pg2.orbit(5), UnorderedElementsAre(5))
+      << "Orbit correct.";
+}
+
+int main(int argc, char** argv) {
+  ::testing::InitGoogleMock(&argc, argv);
+  return RUN_ALL_TESTS();
 }

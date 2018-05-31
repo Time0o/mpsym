@@ -2,15 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project(CGTL)
 
-### Build the Library ##########################################################
-
-set(SRC "source")
-set(INC "include")
-
-add_library(cgtl "${INC}/perm.h")
-set_target_properties(cgtl PROPERTIES LINKER_LANGUAGE CXX)
-
-### Build Tests ################################################################
+### Download Google Test #######################################################
 
 string(CONCAT GTEST_CMAKE
   "cmake_minimum_required(VERSION 3.0)\n"
@@ -55,5 +47,9 @@ add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
                  ${CMAKE_BINARY_DIR}/googletest-build
                  EXCLUDE_FROM_ALL)
 
-enable_testing()
+################################################################################
+
+add_subdirectory(source)
 add_subdirectory(test)
+
+enable_testing()
