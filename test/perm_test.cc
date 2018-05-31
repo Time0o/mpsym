@@ -14,7 +14,7 @@ static ::testing::AssertionResult perm_equal(
   std::stringstream err;
   err << "Permutation differs:\n";
 
-  for (unsigned i = 0u; i < perm.size(); ++i) {
+  for (unsigned i = 0u; i < perm.n(); ++i) {
     if (perm[i + 1] != expected[i]) {
       success = false;
       err << "@ index " << i + 1 << ":"
@@ -38,7 +38,7 @@ TEST(PermTest, CanConstructPerm)
   }
 
   cgtl::Perm perm_explicit({ 1, 3, 4, 5, 2 });
-  EXPECT_EQ(5u, perm_explicit.size())
+  EXPECT_EQ(5u, perm_explicit.n())
     << "Explicit construction produces permutation of correct size.";
   EXPECT_TRUE(perm_equal({ 1, 3, 4, 5, 2 }, perm_explicit))
     << "Explicit construction produces correct permutation.";
@@ -77,13 +77,13 @@ TEST(PermTest, CanMultiplyPerms)
   cgtl::Perm perm4(6, { { 4, 1, 5, 2 } });
 
   cgtl::Perm perm_mult2 = perm3 * perm4;
-  EXPECT_EQ(6u, perm_mult2.size())
+  EXPECT_EQ(6u, perm_mult2.n())
      << "Right multiplying larger permutation produces result of correct size.";
   EXPECT_TRUE(perm_equal({ 5, 4, 3, 2, 1, 6 }, perm_mult2))
      << "Right multiplying larger permutation produces correct result.";
 
   cgtl::Perm perm_mult3 = perm4 * perm3;
-  EXPECT_EQ(6u, perm_mult3.size())
+  EXPECT_EQ(6u, perm_mult3.n())
      << "Left multiplying larger permutation produces result of correct size.";
   EXPECT_TRUE(perm_equal({ 4, 5, 3, 1, 2, 6 }, perm_mult3))
      << "Left multiplying larger permutation produces correct result.";

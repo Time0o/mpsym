@@ -16,16 +16,16 @@ namespace cgtl
 class Perm
 {
 friend Perm operator*(Perm const &lhs, Perm const &rhs) {
-  bool left_larger = lhs.size() >= rhs.size();
+  bool left_larger = lhs.n() >= rhs.n();
   Perm result(left_larger ? lhs : rhs);
 
   if (left_larger) {
-    for (unsigned i = 0u; i < rhs.size(); ++i)
+    for (unsigned i = 0u; i < rhs.n(); ++i)
       result._perm[i] = lhs[rhs[i + 1u]];
   } else {
-    for (unsigned i = 0u; i < rhs.size(); ++i) {
+    for (unsigned i = 0u; i < rhs.n(); ++i) {
       unsigned tmp = rhs[i + 1u];
-      if (tmp <= lhs.size())
+      if (tmp <= lhs.n())
         result._perm[i] = lhs[tmp];
     }
   }
@@ -34,8 +34,6 @@ friend Perm operator*(Perm const &lhs, Perm const &rhs) {
 }
 
 public:
-  typedef unsigned size_type;
-
   Perm(unsigned n = 0u) : _n(n), _perm(n) {
     for (unsigned i = 0u; i < _n; ++i)
        _perm[i] = i + 1u;
@@ -108,7 +106,7 @@ public:
     return const_cast<unsigned&>(static_cast<const Perm*>(this)->operator[](i));
   }
 
-  unsigned size() const { return _n; }
+  unsigned n() const { return _n; }
 
   Perm& extend(unsigned m) {
     assert(("permutation not narrowed", m >= _n));
@@ -131,6 +129,8 @@ public:
     : _n(n), _generators(generators) {}
 
   std::unordered_set<unsigned> orbit(unsigned alpha) const;
+
+  unsigned n() const { return _n; }
 
 private:
   unsigned _n;
