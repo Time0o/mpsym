@@ -10,7 +10,7 @@
 #include <set>
 #endif
 
-namespace CGTL
+namespace cgtl
 {
 
 class Perm
