@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <initializer_list>
 #include <vector>
 
 #ifndef NDEBUG
