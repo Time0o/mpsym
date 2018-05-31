@@ -21,10 +21,10 @@ friend Perm operator*(Perm const &lhs, Perm const &rhs) {
 
   if (left_larger) {
     for (unsigned i = 0u; i < rhs.size(); ++i)
-      result._perm[i] = lhs[rhs[i + 1]];
+      result._perm[i] = lhs[rhs[i + 1u]];
   } else {
     for (unsigned i = 0u; i < rhs.size(); ++i) {
-      unsigned tmp = rhs[i + 1];
+      unsigned tmp = rhs[i + 1u];
       if (tmp <= lhs.size())
         result._perm[i] = lhs[tmp];
     }
@@ -38,7 +38,7 @@ public:
 
   Perm(unsigned n = 0u) : _n(n), _perm(n) {
     for (unsigned i = 0u; i < _n; ++i)
-       _perm[i] = i + 1;
+       _perm[i] = i + 1u;
   }
 
   Perm(std::vector<unsigned> perm)
@@ -62,11 +62,11 @@ public:
   }
 
   Perm(unsigned n, std::vector<std::vector<unsigned>> cycles) : _n(n) {
-    assert(n > 0u);
+    assert(_n > 0u);
 
     if (cycles.size() == 0u) {
       for (unsigned i = 0u; i < _n; ++i)
-        _perm.push_back(i + 1);
+        _perm.push_back(i + 1u);
 
     } else if (cycles.size() == 1u) {
       std::vector<unsigned> const &cycle = cycles[0];
@@ -80,18 +80,18 @@ public:
 #endif
 
       for (unsigned i = 0u; i < _n; ++i)
-        _perm.push_back(i + 1);
+        _perm.push_back(i + 1u);
 
       for (size_t i = 1u; i < cycle.size(); ++i) {
         unsigned tmp = cycle[i];
         assert(("cycle element <= N", tmp <= _n));
-        (*this)[cycle[i - 1]] = tmp;
+        (*this)[cycle[i - 1u]] = tmp;
       }
 
       (*this)[cycle.back()] = cycle[0];
 
     } else {
-      Perm result(n, { cycles.back() });
+      Perm result(_n, { cycles.back() });
       for (auto i = cycles.rbegin() + 1; i != cycles.rend(); ++i)
         result = Perm(_n, { *i }) * result;
 
@@ -101,7 +101,7 @@ public:
 
   unsigned const& operator[](unsigned const i) const {
     assert(("permutation index valid", i > 0u && i <= _n));
-    return _perm[i - 1];
+    return _perm[i - 1u];
   }
 
   unsigned& operator[](unsigned const i) {
