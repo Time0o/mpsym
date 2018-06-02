@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.6)
 
 project(CGTL)
 
@@ -47,7 +47,7 @@ add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
                  ${CMAKE_BINARY_DIR}/googletest-build
                  EXCLUDE_FROM_ALL)
 
-################################################################################
+### Add subdirectories #########################################################
 
 add_subdirectory(source)
 add_subdirectory(test)

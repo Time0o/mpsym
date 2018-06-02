@@ -2,8 +2,10 @@
 #include <vector>
 
 #include "gmock/gmock.h"
+#include "dbg.h"
 #include "perm.h"
 
+using testing::ElementsAre;
 using testing::UnorderedElementsAre;
 
 static ::testing::AssertionResult perm_equal(
@@ -11,15 +13,21 @@ static ::testing::AssertionResult perm_equal(
 {
   bool success = true;
 
+  if (perm.degree() != expected.size()) {
+    return ::testing::AssertionFailure()
+      << "Permutation has incorrect degree (expected " << expected.size()
+      << " but got " << perm.degree();
+  }
+
   std::stringstream err;
   err << "Permutation differs:\n";
 
-  for (int i = 0; i < perm.n(); ++i) {
-    if (perm[i + 1] != expected[i]) {
+  for (unsigned i = 0u; i < perm.degree(); ++i) {
+    if (perm[i + 1u] != expected[i]) {
       success = false;
-      err << "@ index " << i + 1 << ":"
+      err << "@ index " << i + 1u << ":"
           << " expected " << expected[i]
-          << " but got " << perm[i + 1] << '\n';
+          << " but got " << perm[i + 1u] << '\n';
     }
   }
 
@@ -31,88 +39,129 @@ static ::testing::AssertionResult perm_equal(
 
 TEST(PermTest, CanConstructPerm)
 {
-  cgtl::Perm perm_id(10);
-  for (unsigned i = 1; i <= 10; ++i) {
-    EXPECT_EQ(i, perm_id[i])
-      << "Default constructor produces identity permutation.";
-  }
+  cgtl::Perm perm;
+  ASSERT_EQ(0u, perm.degree())
+    << "Default construction produces permutation of correct degree.";
+  EXPECT_TRUE(perm_equal({}, perm))
+    << "Default construction produces identity permutation.";
+
+  cgtl::Perm perm_id(5);
+  ASSERT_EQ(5u, perm_id.degree())
+    << "Identity construction produces permutation of correct degree.";
+  EXPECT_TRUE(perm_equal({1, 2, 3, 4, 5}, perm_id))
+    << "Identity construction produces identity permutation.";
 
   cgtl::Perm perm_explicit({1, 3, 4, 5, 2});
-  EXPECT_EQ(5u, perm_explicit.n())
-    << "Explicit construction produces permutation of correct size.";
+  EXPECT_EQ(5u, perm_explicit.degree())
+    << "Explicit construction produces permutation of correct degree.";
   EXPECT_TRUE(perm_equal({1, 3, 4, 5, 2}, perm_explicit))
     << "Explicit construction produces correct permutation.";
 
   cgtl::Perm perm_empty_cycle(6, {});
+  ASSERT_EQ(6u, perm_empty_cycle.degree())
+    << "No-cycles construction produces permutation of correct degree.";
   EXPECT_TRUE(perm_equal({1, 2, 3, 4, 5, 6}, perm_empty_cycle))
     << "No-cycles construction produces correct permutation.";
 
   cgtl::Perm perm_single_cycle(6, {{3, 2, 5}});
+  ASSERT_EQ(6u, perm_single_cycle.degree())
+    << "Single-cycle construction produces permutation of correct degree.";
   EXPECT_TRUE(perm_equal({1, 5, 2, 4, 3, 6}, perm_single_cycle))
     << "Single-cycle construction produces correct permutation.";
 
   cgtl::Perm perm_multi_cycles(6, {{6, 2, 4}, {2, 5, 4}, {3, 2, 5} });
-  EXPECT_TRUE(perm_equal({1, 6, 5, 4, 3, 2}, perm_multi_cycles))
+  ASSERT_EQ(6u, perm_multi_cycles.degree())
+    << "Multi-cycle construction produces permutation of correct degree.";
+  EXPECT_TRUE(perm_equal({1, 5, 2, 6, 4, 3}, perm_multi_cycles))
     << "Multi-cycle construction produces correct permutation.";
 }
 
-TEST(PermTest, CanExtendPerm)
+TEST(PermTest, CanInvertPerm)
 {
-  cgtl::Perm perm(3, {{1, 2}});
+  cgtl::Perm perm({3, 2, 4, 1});
 
-  EXPECT_TRUE(perm_equal({2, 1, 3, 4, 5, 6}, perm.extend(6)))
-    << "Extending permutation works.";
+  EXPECT_TRUE(perm_equal({4, 2, 1, 3}, ~perm))
+    << "Inverting permutation works.";
 }
 
 TEST(PermTest, CanMultiplyPerms)
 {
+  cgtl::Perm perm0(7, {{1, 2, 4}});
+  perm0 *= cgtl::Perm(7, {{4, 5}});
+
+  EXPECT_TRUE(perm_equal({2, 5, 3, 1, 4, 6, 7}, perm0))
+    << "Multiplying plus assigning permutation produces correct result.";
+
   cgtl::Perm perm1(6, {{2, 5, 4}});
   cgtl::Perm perm2(6, {{3, 2, 5}});
 
   cgtl::Perm perm_mult1 = perm1 * perm2;
-  EXPECT_TRUE(perm_equal({1, 4, 5, 2, 3, 6}, perm_mult1))
+  EXPECT_TRUE(perm_equal({1, 3, 2, 5, 4, 6}, perm_mult1))
     << "Multiplying permutations produces correct result.";
+}
 
-  cgtl::Perm perm3(3, {{1, 2}});
-  cgtl::Perm perm4(6, {{4, 1, 5, 2}});
+TEST(PermTest, PermStringRepresentation)
+{
+  cgtl::Perm perm1({2, 3, 1, 5, 4});
+  std::stringstream ss1;
+  ss1 << perm1;
 
-  cgtl::Perm perm_mult2 = perm3 * perm4;
-  EXPECT_EQ(6u, perm_mult2.n())
-     << "Right multiplying larger permutation produces result of correct size.";
-  EXPECT_TRUE(perm_equal({5, 4, 3, 2, 1, 6}, perm_mult2))
-     << "Right multiplying larger permutation produces correct result.";
+  EXPECT_EQ("(1 2 3)(4 5)", ss1.str())
+    << "Correct permutation string representation.";
 
-  cgtl::Perm perm_mult3 = perm4 * perm3;
-  EXPECT_EQ(6u, perm_mult3.n())
-     << "Left multiplying larger permutation produces result of correct size.";
-  EXPECT_TRUE(perm_equal({4, 5, 3, 1, 2, 6}, perm_mult3))
-     << "Left multiplying larger permutation produces correct result.";
+  cgtl::Perm perm2({1, 5, 3, 6, 2, 7, 4, 8});
+  std::stringstream ss2;
+  ss2 << perm2;
+
+  EXPECT_EQ("(2 5)(4 6 7)", ss2.str())
+    << "Permutation string representation ignores single element cycles.";
+
+  cgtl::Perm perm3({1, 2, 3});
+  std::stringstream ss3;
+  ss3 << perm3;
+
+  EXPECT_EQ("()", ss3.str())
+    << "Identity permutation string representation correct.";
 }
 
 TEST(PermGroupTest, CanCalculateOrbit)
 {
-  cgtl::Perm perm1(5, {{1, 2, 3, 4, 5}});
-  cgtl::PermGroup pg1(5, {perm1});
+  cgtl::Perm perm1(5, {{1, 2, 5}});
+  cgtl::Perm perm2(5, {{1, 4}, {3, 5}});
+  cgtl::PermGroup pg(5, {perm1, perm2});
 
-  for (int i = 1; i <= 5; ++i) {
-    EXPECT_THAT(pg1.orbit(i), UnorderedElementsAre(1, 2, 3, 4, 5))
-      << "Symmetric group only produces 'complete' orbits.";
+  cgtl::SchreierTree st(5);
+  std::vector<unsigned> orbit = cgtl::PermGroup::orbit(1, {perm1, perm2}, st);
+
+  ASSERT_THAT(orbit, UnorderedElementsAre(1, 2, 3, 4, 5))
+    << "Orbit elements correct.";
+
+  std::vector<std::vector<unsigned>> expected_transversals {
+    {1, 2, 3, 4, 5}, {2, 5, 3, 4, 1}, {3, 4, 5, 1, 2}, {4, 2, 5, 1, 3},
+    {5, 1, 3, 4, 2}
+  };
+
+  for (unsigned i = 1u; i <= 5u; ++i) {
+    EXPECT_TRUE(perm_equal(expected_transversals[i - 1u], st.transversal(i)))
+      << "Transversal for " << i << " correct.";
   }
+}
 
-  cgtl::Perm perm3(5, {{1, 2 }});
-  cgtl::Perm perm4(5, {{2, 3 }});
-  cgtl::PermGroup pg2(5, {perm3, perm4});
+TEST(PermGroupTest, SchreierSimsWorks)
+{
+  std::vector<unsigned> base;
+  std::vector<cgtl::Perm> generators {cgtl::Perm(5, {{1, 2, 4, 3}}),
+                                      cgtl::Perm(5, {{1, 2, 5, 4}})};
 
-  EXPECT_THAT(pg2.orbit(1), UnorderedElementsAre(1, 2, 3))
-      << "Orbit correct.";
-  EXPECT_THAT(pg2.orbit(2), UnorderedElementsAre(1, 2, 3))
-      << "Orbit correct.";
-  EXPECT_THAT(pg2.orbit(3), UnorderedElementsAre(1, 2, 3))
-      << "Orbit correct.";
-  EXPECT_THAT(pg2.orbit(4), UnorderedElementsAre(4))
-      << "Orbit correct.";
-  EXPECT_THAT(pg2.orbit(5), UnorderedElementsAre(5))
-      << "Orbit correct.";
+  cgtl::PermGroup::schreier_sims(base, generators);
+
+  EXPECT_THAT(base, ElementsAre(1, 2))
+    << "Base correct.";
+
+  EXPECT_THAT(generators, UnorderedElementsAre(
+    cgtl::Perm(5, {{1, 2, 4, 3}}), cgtl::Perm(5, {{1, 2, 5, 4}}),
+    cgtl::Perm(5, {{2, 5}, {3, 4}}), cgtl::Perm(5, {{2, 3, 5, 4}})))
+      << "Strong generating set correct.";
 }
 
 int main(int argc, char** argv) {

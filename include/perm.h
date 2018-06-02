@@ -1,142 +1,84 @@
 #ifndef _GUARD_PERM_H
 #define _GUARD_PERM_H
 
-#include <algorithm>
-#include <cassert>
-#include <unordered_set>
+#include <map>
 #include <vector>
-
-#ifndef NDEBUG
-#include <set>
-#endif
 
 namespace cgtl
 {
 
 class Perm
 {
-friend Perm operator*(Perm const &lhs, Perm const &rhs) {
-  bool left_larger = lhs.n() >= rhs.n();
-  Perm result(left_larger ? lhs : rhs);
-
-  if (left_larger) {
-    for (unsigned i = 0u; i < rhs.n(); ++i)
-      result._perm[i] = lhs[rhs[i + 1u]];
-  } else {
-    for (unsigned i = 0u; i < rhs.n(); ++i) {
-      unsigned tmp = rhs[i + 1u];
-      if (tmp <= lhs.n())
-        result._perm[i] = lhs[tmp];
-    }
-  }
-
-  return result;
-}
-
 public:
-  Perm(unsigned n = 0u) : _n(n), _perm(n) {
-    for (unsigned i = 0u; i < _n; ++i)
-       _perm[i] = i + 1u;
-  }
+  Perm() : _n(0), _perm(0) {};
+  Perm(unsigned degree);
+  Perm(std::vector<unsigned> const &perm);
+  Perm(unsigned n, std::vector<std::vector<unsigned>> const &cycles);
 
-  Perm(std::vector<unsigned> const &perm)
-    : _n(*std::max_element(perm.begin(), perm.end())), _perm(perm) {
-#ifndef NDEBUG
-    assert(("explicit permutation description has correct length",
-            perm.size() == _n));
+  unsigned const& operator[](unsigned const i) const;
+  Perm operator~() const;
+  bool operator==(Perm const &rhs) const;
+  bool operator!=(Perm const &rhs) const;
+  Perm& operator*=(Perm const &rhs);
 
-    if (_n == 0u)
-      return;
-
-    std::set<unsigned> tmp(perm.begin(), perm.end());
-
-    assert(("explicit permutation description does not contain duplicate elements",
-            tmp.size() == perm.size()));
-
-    bool full_range = (*tmp.begin() == 1u) && (*tmp.rbegin() == _n);
-    assert(("explicit permutation description contains all elements from 1 to N",
-            full_range));
-#endif
-  }
-
-  Perm(unsigned n, std::vector<std::vector<unsigned>> const &cycles) : _n(n) {
-    assert(_n > 0u);
-
-    if (cycles.size() == 0u) {
-      for (unsigned i = 0u; i < _n; ++i)
-        _perm.push_back(i + 1u);
-
-    } else if (cycles.size() == 1u) {
-      std::vector<unsigned> const &cycle = cycles[0];
-#ifndef NDEBUG
-      assert(("cycle has plausible length", cycle.size() <= _n));
-
-      std::set<unsigned> tmp(cycle.begin(), cycle.end());
-      assert(("cycle does not contain elements > N", *tmp.rbegin() <= _n));
-      assert(("cycle does not contain duplicate elements",
-              tmp.size() == cycle.size()));
-#endif
-
-      for (unsigned i = 0u; i < _n; ++i)
-        _perm.push_back(i + 1u);
-
-      for (size_t i = 1u; i < cycle.size(); ++i) {
-        unsigned tmp = cycle[i];
-        assert(("cycle element <= N", tmp <= _n));
-        (*this)[cycle[i - 1u]] = tmp;
-      }
-
-      (*this)[cycle.back()] = cycle[0];
-
-    } else {
-      Perm result(_n, { cycles.back() });
-      for (auto i = cycles.rbegin() + 1; i != cycles.rend(); ++i)
-        result = Perm(_n, { *i }) * result;
-
-      _perm = result._perm;
-    }
-  }
-
-  unsigned const& operator[](unsigned const i) const {
-    assert(("permutation index valid", i > 0u && i <= _n));
-    return _perm[i - 1u];
-  }
-
-  unsigned& operator[](unsigned const i) {
-    return const_cast<unsigned&>(static_cast<const Perm*>(this)->operator[](i));
-  }
-
-  unsigned n() const { return _n; }
-
-  Perm& extend(unsigned m) {
-    assert(("permutation not narrowed", m >= _n));
-
-    for (unsigned i = _n + 1u; i <= m; ++i)
-      _perm.push_back(i);
-
-    return *this;
-  }
+  unsigned degree() const { return _n; }
+  bool id() const;
 
 private:
   unsigned _n;
   std::vector<unsigned> _perm;
 };
 
+std::ostream& operator<<(std::ostream& stream, const Perm &perm);
+Perm operator*(Perm const &lhs, Perm const &rhs);
+
+struct SchreierTree
+{
+  SchreierTree(unsigned degree) : _degree(degree) {}
+
+  void create_root(unsigned root) { _root = root; }
+
+  void create_edge(unsigned origin, unsigned destination, Perm const &perm) {
+    _edges[origin] = destination;
+    _labels[origin] = perm;
+  }
+
+  Perm transversal(unsigned origin) const;
+
+  bool contains(unsigned node) const {
+    return (node == _root) || (_edges.find(node) != _edges.end());
+  }
+
+private:
+  unsigned _degree;
+  unsigned _root;
+  std::map<unsigned, unsigned> _edges;
+  std::map<unsigned, Perm> _labels;
+};
+
 class PermGroup
 {
 public:
-  PermGroup(unsigned n, std::vector<Perm> const &generators)
-    : _n(n), _generators(generators) {}
+  PermGroup(unsigned degree, std::vector<Perm> const &generators)
+    : _n(degree), _generators(generators) {}
 
-  std::unordered_set<unsigned> orbit(unsigned alpha) const;
+  static std::vector<unsigned> orbit(unsigned alpha,
+    std::vector<Perm> const &generators, SchreierTree &st);
 
-  unsigned n() const { return _n; }
+  static std::pair<Perm, unsigned> strip(Perm const &perm,
+    std::vector<unsigned> const &base, std::vector<Perm> const &generators,
+    std::vector<SchreierTree> const &sts);
+
+  static void schreier_sims(std::vector<unsigned> &base,
+    std::vector<Perm> &generators);
+
+  unsigned degree() const { return _n; }
 
 private:
   unsigned _n;
   std::vector<Perm> _generators;
 };
 
-}
+} // namespace cgtl
 
 #endif // _GUARD_PERM_H
