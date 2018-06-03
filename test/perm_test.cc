@@ -8,6 +8,7 @@
 
 using testing::ElementsAre;
 using testing::UnorderedElementsAre;
+using testing::UnorderedElementsAreArray;
 
 static unsigned factorial(unsigned x)
 {
@@ -242,4 +243,47 @@ TEST(PermGroupTest, CanGenerateRandomElement)
     EXPECT_TRUE(a4.is_element(a4.random_element()))
       << "Randomly generated group element is actually inside group.";
   }
+}
+
+TEST(PermGroupTest, CanIterateElements)
+{
+  cgtl::PermGroup a4 = cgtl::PermGroup::alternating(4);
+
+  std::vector<cgtl::Perm> expected_members = {
+    cgtl::Perm(4),
+    cgtl::Perm(4, {{2, 3, 4}}),
+    cgtl::Perm(4, {{2, 4, 3}}),
+    cgtl::Perm(4, {{1, 2}, {3, 4}}),
+    cgtl::Perm(4, {{1, 2, 3}}),
+    cgtl::Perm(4, {{1, 2, 4}}),
+    cgtl::Perm(4, {{1, 3, 2}}),
+    cgtl::Perm(4, {{1, 3, 4}}),
+    cgtl::Perm(4, {{1, 3}, {2, 4}}),
+    cgtl::Perm(4, {{1, 4, 2}}),
+    cgtl::Perm(4, {{1, 4, 3}}),
+    cgtl::Perm(4, {{1, 4}, {2, 3}})
+  };
+
+  std::vector<cgtl::Perm> actual_members1;
+
+  for (cgtl::Perm const &p : a4)
+    actual_members1.push_back(p);
+
+  EXPECT_THAT(actual_members1, UnorderedElementsAreArray(expected_members))
+    << "Iteration produces every element exactly once (ranged for).";
+
+  std::vector<cgtl::Perm> actual_members2;
+
+  for (cgtl::PermGroup::const_iterator it = a4.begin(); it != a4.end(); it++) {
+    EXPECT_EQ(4u, it->degree())
+      << "Iterator dereferencing works correctly.";
+
+    EXPECT_TRUE(it == it && it != a4.end())
+      << "Iterator comparison works correctly.";
+
+    actual_members2.push_back(*it);
+  }
+
+  EXPECT_THAT(actual_members2, UnorderedElementsAreArray(expected_members))
+    << "Iteration produces every element exactly once (explicit iterator).";
 }

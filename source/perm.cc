@@ -488,4 +488,67 @@ Perm PermGroup::random_element()
   return result;
 }
 
+PermGroup::const_iterator::const_iterator(
+  std::vector<SchreierTree> schreier_trees) : _end(false)
+{
+  for (auto const &st : schreier_trees) {
+    _state.push_back(0u);
+    _transversals.push_back(st.transversals(st.orbit()));
+    _current_factors.push_back(_transversals.back()[0]);
+  }
+
+  update_result();
+}
+
+PermGroup::const_iterator PermGroup::const_iterator::operator++()
+{
+  PermGroup::const_iterator pre(*this);
+  next_state();
+  return pre;
+}
+
+bool PermGroup::const_iterator::operator==(
+  PermGroup::const_iterator const &rhs) const
+{
+  if (_end != rhs._end)
+    return false;
+
+  if (_end && rhs._end)
+    return true;
+
+  for (unsigned i = 0u; i < _state.size(); ++i) {
+    if (_state[i] != rhs._state[i])
+      return false;
+  }
+  return true;
+}
+
+void PermGroup::const_iterator::next_state()
+{
+  for (unsigned i = 0u; i < _state.size(); ++i) {
+    _state[i]++;
+    if (_state[i] == _transversals[i].size())
+      _state[i] = 0u;
+
+    _current_factors[i] = _transversals[i][_state[i]];
+
+    if (i == _state.size() - 1u && _state[i] == 0u) {
+      _end = true;
+      break;
+    }
+
+    if (_state[i] != 0u)
+      break;
+  }
+
+  update_result();
+}
+
+void PermGroup::const_iterator::update_result()
+{
+  _current_result = _current_factors[0];
+  for (unsigned j = 1u; j < _current_factors.size(); ++j)
+    _current_result *= _current_factors[j];
+}
+
 } // namespace cgtl

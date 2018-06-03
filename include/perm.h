@@ -59,6 +59,31 @@ private:
 class PermGroup
 {
 public:
+  class const_iterator
+  {
+  public:
+    const_iterator() : _end(true) {};
+    const_iterator(std::vector<SchreierTree> schreier_trees);
+
+    const_iterator operator++();
+    const_iterator operator++(int) { next_state(); return *this; }
+    Perm const & operator*() const { return _current_result; }
+    Perm const * operator->() const { return &_current_result; }
+    bool operator==(const_iterator const &rhs) const;
+    bool operator!=(const_iterator const &rhs) const { return !((*this) == rhs); }
+
+  private:
+    void next_state();
+    void update_result();
+
+    std::vector<unsigned> _state;
+    bool _end;
+
+    std::vector<std::vector<Perm>> _transversals;
+    std::vector<Perm> _current_factors;
+    Perm _current_result;
+  };
+
   PermGroup(unsigned degree, std::vector<Perm> const &generators);
 
   static PermGroup symmetric(unsigned degree);
@@ -74,6 +99,9 @@ public:
 
   static void schreier_sims(std::vector<unsigned> &base,
     std::vector<Perm> &generators, std::vector<SchreierTree> &schreier_trees);
+
+  const_iterator begin() const { return const_iterator(_schreier_trees); }
+  const_iterator end() const { return const_iterator(); }
 
   unsigned degree() const { return _n; }
   unsigned order() const { return _order; }
