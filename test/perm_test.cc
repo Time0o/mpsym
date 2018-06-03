@@ -41,38 +41,26 @@ static ::testing::AssertionResult perm_equal(
 TEST(PermTest, CanConstructPerm)
 {
   cgtl::Perm perm;
-  ASSERT_EQ(1u, perm.degree())
-    << "Default construction produces permutation of correct degree.";
   EXPECT_TRUE(perm_equal({1}, perm))
     << "Default construction produces identity permutation.";
 
   cgtl::Perm perm_id(5);
-  ASSERT_EQ(5u, perm_id.degree())
-    << "Identity construction produces permutation of correct degree.";
   EXPECT_TRUE(perm_equal({1, 2, 3, 4, 5}, perm_id))
     << "Identity construction produces identity permutation.";
 
   cgtl::Perm perm_explicit({1, 3, 4, 5, 2});
-  EXPECT_EQ(5u, perm_explicit.degree())
-    << "Explicit construction produces permutation of correct degree.";
   EXPECT_TRUE(perm_equal({1, 3, 4, 5, 2}, perm_explicit))
     << "Explicit construction produces correct permutation.";
 
   cgtl::Perm perm_empty_cycle(6, {});
-  ASSERT_EQ(6u, perm_empty_cycle.degree())
-    << "No-cycles construction produces permutation of correct degree.";
   EXPECT_TRUE(perm_equal({1, 2, 3, 4, 5, 6}, perm_empty_cycle))
     << "No-cycles construction produces correct permutation.";
 
   cgtl::Perm perm_single_cycle(6, {{3, 2, 5}});
-  ASSERT_EQ(6u, perm_single_cycle.degree())
-    << "Single-cycle construction produces permutation of correct degree.";
   EXPECT_TRUE(perm_equal({1, 5, 2, 4, 3, 6}, perm_single_cycle))
     << "Single-cycle construction produces correct permutation.";
 
-  cgtl::Perm perm_multi_cycles(6, {{6, 2, 4}, {2, 5, 4}, {3, 2, 5} });
-  ASSERT_EQ(6u, perm_multi_cycles.degree())
-    << "Multi-cycle construction produces permutation of correct degree.";
+  cgtl::Perm perm_multi_cycles(6, {{6, 2, 4}, {2, 5, 4}, {3, 2, 5}});
   EXPECT_TRUE(perm_equal({1, 5, 2, 6, 4, 3}, perm_multi_cycles))
     << "Multi-cycle construction produces correct permutation.";
 }
