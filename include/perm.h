@@ -44,6 +44,7 @@ struct SchreierTree
   }
 
   Perm transversal(unsigned origin) const;
+  std::vector<Perm> transversals(std::vector<unsigned> const &origins) const;
 
   bool contains(unsigned node) const {
     return (node == _root) || (_edges.find(node) != _edges.end());

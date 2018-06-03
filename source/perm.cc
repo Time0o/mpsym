@@ -194,6 +194,16 @@ Perm SchreierTree::transversal(unsigned origin) const
   return result;
 }
 
+std::vector<Perm> SchreierTree::transversals(
+  std::vector<unsigned> const &origins) const
+{
+  std::vector<Perm> result;
+  for (unsigned o : origins)
+    result.push_back(transversal(o));
+
+  return result;
+}
+
 std::vector<unsigned> PermGroup::orbit(unsigned alpha,
   std::vector<Perm> const &generators, SchreierTree &st)
 {
@@ -305,6 +315,8 @@ void PermGroup::schreier_sims(std::vector<unsigned> &base,
   for (unsigned i = 0u; i < base.size(); ++i) {
     Dbg(Dbg::DBG) << "S(" << (i + 1u) << ") = " << strong_generators[i];
     Dbg(Dbg::DBG) << "O(" << (i + 1u) << ") = " << fundamental_orbits[i];
+    Dbg(Dbg::DBG) << "U(" << (i + 1u) << ") = "
+                  << schreier_trees[i].transversals(fundamental_orbits[i]);
   }
 
   unsigned i = base.size();
@@ -355,18 +367,21 @@ top:
           Dbg(Dbg::DBG) << "Updating strong generators:";
 
           for (unsigned j = i; j < strip_level; ++ j) {
-            if (strong_generators.size() <= j)
-              strong_generators.push_back({strip_perm});
-            else
-              strong_generators[j].push_back(strip_perm);
+            if (strong_generators.size() <= j) {
+              strong_generators.push_back({});
+              fundamental_orbits.push_back({});
+              schreier_trees.push_back(SchreierTree(degree));
+            }
+
+            strong_generators[j].push_back(strip_perm);
+
+            fundamental_orbits[j] =
+              orbit(base[j], strong_generators[j], schreier_trees[j]);
 
             Dbg(Dbg::DBG) << "S(" << (j + 1u) << ") = " << strong_generators[j];
-
-            schreier_trees.push_back(SchreierTree(degree));
-            fundamental_orbits.push_back(
-              orbit(base[j], strong_generators[j], schreier_trees[j]));
-
             Dbg(Dbg::DBG) << "O(" << (j + 1u) << ") = " << fundamental_orbits[j];
+            Dbg(Dbg::DBG) << "U(" << (j + 1u) << ") = "
+                          << schreier_trees[j].transversals(fundamental_orbits[j]);
           }
 
           i = strip_level;
