@@ -6,12 +6,10 @@
 
 namespace cgtl
 {
-
 class Perm
 {
 public:
-  Perm() : _n(0), _perm(0) {};
-  Perm(unsigned degree);
+  Perm(unsigned degree = 1);
   Perm(std::vector<unsigned> const &perm);
   Perm(unsigned n, std::vector<std::vector<unsigned>> const &cycles);
 
@@ -62,6 +60,11 @@ class PermGroup
 {
 public:
   PermGroup(unsigned degree, std::vector<Perm> const &generators);
+
+  static PermGroup trivial();
+  static PermGroup symmetric(unsigned degree);
+  static PermGroup cyclic(unsigned degree);
+  static PermGroup alternating(unsigned degree);
 
   static std::vector<unsigned> orbit(unsigned alpha,
     std::vector<Perm> const &generators, SchreierTree &st);

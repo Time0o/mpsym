@@ -220,6 +220,50 @@ PermGroup::PermGroup(unsigned degree, std::vector<Perm> const &generators)
   schreier_sims(_base, _strong_generating_set, _schreier_trees);
 }
 
+PermGroup PermGroup::trivial()
+{
+  return PermGroup(1u, {Perm(1u)});
+}
+
+PermGroup PermGroup::symmetric(unsigned degree)
+{
+  assert(degree > 0u);
+
+  if (degree == 1u)
+    return trivial();
+
+  std::vector<unsigned> gen;
+  for (unsigned i = 1u; i <= degree; ++i)
+    gen.push_back(i);
+
+  return PermGroup(degree, {Perm(degree, {{1, 2}}), Perm(degree, {gen})});
+}
+
+PermGroup PermGroup::cyclic(unsigned degree)
+{
+  assert(degree > 0u);
+
+  if (degree == 1u)
+    return trivial();
+
+  std::vector<unsigned> gen;
+  for (unsigned i = 1u; i <= degree; ++i)
+    gen.push_back(i);
+
+  return PermGroup(degree, {Perm(degree, {gen})});
+}
+
+PermGroup PermGroup::alternating(unsigned degree)
+{
+  assert(degree > 2u);
+
+  std::vector<std::vector<unsigned>> gen;
+  for (unsigned i = 3u; i <= degree; ++i)
+    gen.push_back({1, 2, i});
+
+  return PermGroup(degree, {Perm(degree, gen)});
+}
+
 std::vector<unsigned> PermGroup::orbit(unsigned alpha,
   std::vector<Perm> const &generators, SchreierTree &st)
 {

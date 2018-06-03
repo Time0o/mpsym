@@ -41,9 +41,9 @@ static ::testing::AssertionResult perm_equal(
 TEST(PermTest, CanConstructPerm)
 {
   cgtl::Perm perm;
-  ASSERT_EQ(0u, perm.degree())
+  ASSERT_EQ(1u, perm.degree())
     << "Default construction produces permutation of correct degree.";
-  EXPECT_TRUE(perm_equal({}, perm))
+  EXPECT_TRUE(perm_equal({1}, perm))
     << "Default construction produces identity permutation.";
 
   cgtl::Perm perm_id(5);
