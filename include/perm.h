@@ -76,6 +76,7 @@ public:
     std::vector<Perm> &generators, std::vector<SchreierTree> &schreier_trees);
 
   unsigned degree() const { return _n; }
+  unsigned order() const { return _order; }
   std::vector<unsigned> base() const { return _base; };
   std::vector<Perm> strong_generating_set() const { return _strong_generating_set; };
   std::vector<SchreierTree> schreier_trees() const { return _schreier_trees; };
@@ -84,6 +85,7 @@ public:
 
 private:
   unsigned _n;
+  unsigned _order;
   std::vector<unsigned> _base;
   std::vector<Perm> _strong_generating_set;
   std::vector<SchreierTree> _schreier_trees;

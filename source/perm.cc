@@ -218,6 +218,10 @@ PermGroup::PermGroup(unsigned degree, std::vector<Perm> const &generators)
   : _n(degree), _strong_generating_set(generators)
 {
   schreier_sims(_base, _strong_generating_set, _schreier_trees);
+
+  _order = 1u;
+  for (auto const &st : _schreier_trees)
+    _order *= st.orbit().size();
 }
 
 PermGroup PermGroup::symmetric(unsigned degree)
