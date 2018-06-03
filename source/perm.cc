@@ -253,11 +253,11 @@ PermGroup PermGroup::alternating(unsigned degree)
 {
   assert(degree > 2u);
 
-  std::vector<std::vector<unsigned>> gen;
+  std::vector<Perm> gens;
   for (unsigned i = 3u; i <= degree; ++i)
-    gen.push_back({1, 2, i});
+    gens.push_back(Perm(degree, {{1, 2, i}}));
 
-  return PermGroup(degree, {Perm(degree, gen)});
+  return PermGroup(degree, gens);
 }
 
 std::vector<unsigned> PermGroup::orbit(unsigned alpha,

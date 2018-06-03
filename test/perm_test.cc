@@ -9,6 +9,15 @@
 using testing::ElementsAre;
 using testing::UnorderedElementsAre;
 
+static unsigned factorial(unsigned x)
+{
+  unsigned result = 1u;
+  while (x > 1u)
+    result *= x--;
+
+  return result;
+}
+
 static ::testing::AssertionResult perm_equal(
   std::vector<unsigned> const &expected, cgtl::Perm const &perm)
 {
@@ -153,6 +162,31 @@ TEST(PermGroupTest, SchreierSimsWorks)
     cgtl::Perm(5, {{1, 2, 4, 3}}), cgtl::Perm(5, {{1, 2, 5, 4}}),
     cgtl::Perm(5, {{2, 5}, {3, 4}}), cgtl::Perm(5, {{2, 3, 5, 4}})))
       << "Strong generating set correct.";
+}
+
+TEST(PermGroupTest, CanObtainDegree)
+{
+  cgtl::PermGroup pg(10u, {cgtl::Perm(10u)});
+  EXPECT_EQ(10u, pg.degree())
+    << "Permutation group degree set correctly.";
+}
+
+TEST(PermGroupTest, CanObtainOrder)
+{
+  for (unsigned i = 1u; i <= 10u; ++i) {
+    EXPECT_EQ(factorial(i), cgtl::PermGroup::symmetric(i).order())
+      << "Order set correctly for symmetric group S" << i;
+  }
+
+  for (unsigned i = 1u; i <= 10u; ++i) {
+    EXPECT_EQ(i, cgtl::PermGroup::cyclic(i).order())
+      << "Order set correctly for cyclic group Z" << i;
+  }
+
+  for (unsigned i = 3u; i <= 10u; ++i) {
+    EXPECT_EQ(factorial(i) / 2, cgtl::PermGroup::alternating(i).order())
+      << "Order set correctly for alternating group A" << i;
+  }
 }
 
 TEST(PermGroupTest, CanTestMembership)
