@@ -154,7 +154,9 @@ TEST(PermGroupTest, SchreierSimsWorks)
   std::vector<cgtl::Perm> generators {cgtl::Perm(5, {{1, 2, 4, 3}}),
                                       cgtl::Perm(5, {{1, 2, 5, 4}})};
 
-  cgtl::PermGroup::schreier_sims(base, generators);
+  std::vector<cgtl::SchreierTree> dummy;
+
+  cgtl::PermGroup::schreier_sims(base, generators, dummy);
 
   EXPECT_THAT(base, ElementsAre(1, 2))
     << "Base correct.";
@@ -163,4 +165,52 @@ TEST(PermGroupTest, SchreierSimsWorks)
     cgtl::Perm(5, {{1, 2, 4, 3}}), cgtl::Perm(5, {{1, 2, 5, 4}}),
     cgtl::Perm(5, {{2, 5}, {3, 4}}), cgtl::Perm(5, {{2, 3, 5, 4}})))
       << "Strong generating set correct.";
+}
+
+TEST(PermGroupTest, CanTestMembership)
+{
+  // alternating group A4 (order 12)
+  cgtl::Perm gen1(4, {{1, 2, 3}});
+  cgtl::Perm gen2(4, {{1, 2}, {3, 4}});
+  cgtl::PermGroup a4(4, {gen1, gen2});
+
+  std::vector<cgtl::Perm> expected_members = {
+    cgtl::Perm(4),
+    cgtl::Perm(4, {{2, 3, 4}}),
+    cgtl::Perm(4, {{2, 4, 3}}),
+    cgtl::Perm(4, {{1, 2}, {3, 4}}),
+    cgtl::Perm(4, {{1, 2, 3}}),
+    cgtl::Perm(4, {{1, 2, 4}}),
+    cgtl::Perm(4, {{1, 3, 2}}),
+    cgtl::Perm(4, {{1, 3, 4}}),
+    cgtl::Perm(4, {{1, 3}, {2, 4}}),
+    cgtl::Perm(4, {{1, 4, 2}}),
+    cgtl::Perm(4, {{1, 4, 3}}),
+    cgtl::Perm(4, {{1, 4}, {2, 3}})
+  };
+
+  std::vector<cgtl::Perm> expected_non_members = {
+    cgtl::Perm(4, {{3, 4}}),
+    cgtl::Perm(4, {{2, 3}}),
+    cgtl::Perm(4, {{2, 4}}),
+    cgtl::Perm(4, {{1, 2}}),
+    cgtl::Perm(4, {{1, 2, 3, 4}}),
+    cgtl::Perm(4, {{1, 2, 4, 3}}),
+    cgtl::Perm(4, {{1, 3, 4, 2}}),
+    cgtl::Perm(4, {{1, 3}}),
+    cgtl::Perm(4, {{1, 3, 2, 4}}),
+    cgtl::Perm(4, {{1, 4, 3, 2}}),
+    cgtl::Perm(4, {{1, 4}}),
+    cgtl::Perm(4, {{1, 4, 2, 3}})
+  };
+
+  for (cgtl::Perm const &perm : expected_members) {
+    EXPECT_TRUE(a4.is_member(perm))
+      << "Membership test correctly identifies group member " << perm;
+  }
+
+  for (cgtl::Perm const &perm : expected_non_members) {
+    EXPECT_FALSE(a4.is_member(perm))
+      << "Membership test correctly rejects non group member " << perm;
+  }
 }

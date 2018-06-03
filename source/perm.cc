@@ -180,6 +180,16 @@ bool Perm::id() const
   return true;
 }
 
+std::vector<unsigned> SchreierTree::orbit() const
+{
+  std::vector<unsigned> orbit {_root};
+
+  for (auto const &node : _edges)
+    orbit.push_back(node.first);
+
+  return orbit;
+}
+
 Perm SchreierTree::transversal(unsigned origin) const
 {
   Perm result(_degree);
@@ -202,6 +212,12 @@ std::vector<Perm> SchreierTree::transversals(
     result.push_back(transversal(o));
 
   return result;
+}
+
+PermGroup::PermGroup(unsigned degree, std::vector<Perm> const &generators)
+  : _n(degree), _strong_generating_set(generators)
+{
+  schreier_sims(_base, _strong_generating_set, _schreier_trees);
 }
 
 std::vector<unsigned> PermGroup::orbit(unsigned alpha,
@@ -259,7 +275,7 @@ std::pair<Perm, unsigned> PermGroup::strip(Perm const &perm,
 }
 
 void PermGroup::schreier_sims(std::vector<unsigned> &base,
-  std::vector<Perm> &generators)
+  std::vector<Perm> &generators, std::vector<SchreierTree> &schreier_trees)
 {
   assert(generators.size() > 0u && "generator set not empty");
 
@@ -289,7 +305,7 @@ void PermGroup::schreier_sims(std::vector<unsigned> &base,
 
   std::vector<std::vector<Perm>> strong_generators(base.size());
   std::vector<std::vector<unsigned>> fundamental_orbits(base.size());
-  std::vector<SchreierTree> schreier_trees(base.size(), SchreierTree(degree));
+  schreier_trees.resize(base.size(), SchreierTree(degree));
 
   // calculate initial strong generator sets
   for (unsigned i = 0u; i < base.size(); ++i) {
@@ -395,6 +411,25 @@ top:
   generators.clear();
   for (auto const &gens : strong_generators)
     generators.insert(generators.end(), gens.begin(), gens.end());
+}
+
+bool PermGroup::is_member(Perm const &perm)
+{
+  Dbg(Dbg::DBG) << "Performing membership test for " << perm << " in:";
+  Dbg(Dbg::DBG) << (*this);
+
+  auto strip_result =
+    strip(perm, _base, _strong_generating_set, _schreier_trees);
+
+  Dbg(Dbg::TRACE) << "Strip returned " << std::get<0>(strip_result) << ", "
+                  << std::get<1>(strip_result);
+
+  bool ret = (std::get<1>(strip_result) == _base.size() + 1) &&
+             (std::get<0>(strip_result).id());
+
+  Dbg(Dbg::DBG) << (ret ? "=> Member" : "=> No Member");
+
+  return ret;
 }
 
 } // namespace cgtl

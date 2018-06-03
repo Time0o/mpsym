@@ -43,6 +43,7 @@ struct SchreierTree
     _labels[origin] = perm;
   }
 
+  std::vector<unsigned> orbit() const;
   Perm transversal(unsigned origin) const;
   std::vector<Perm> transversals(std::vector<unsigned> const &origins) const;
 
@@ -60,8 +61,7 @@ private:
 class PermGroup
 {
 public:
-  PermGroup(unsigned degree, std::vector<Perm> const &generators)
-    : _n(degree), _generators(generators) {}
+  PermGroup(unsigned degree, std::vector<Perm> const &generators);
 
   static std::vector<unsigned> orbit(unsigned alpha,
     std::vector<Perm> const &generators, SchreierTree &st);
@@ -71,13 +71,20 @@ public:
     std::vector<SchreierTree> const &sts);
 
   static void schreier_sims(std::vector<unsigned> &base,
-    std::vector<Perm> &generators);
+    std::vector<Perm> &generators, std::vector<SchreierTree> &schreier_trees);
 
   unsigned degree() const { return _n; }
+  std::vector<unsigned> base() const { return _base; };
+  std::vector<Perm> strong_generating_set() const { return _strong_generating_set; };
+  std::vector<SchreierTree> schreier_trees() const { return _schreier_trees; };
+
+  bool is_member(Perm const &perm);
 
 private:
   unsigned _n;
-  std::vector<Perm> _generators;
+  std::vector<unsigned> _base;
+  std::vector<Perm> _strong_generating_set;
+  std::vector<SchreierTree> _schreier_trees;
 };
 
 } // namespace cgtl
