@@ -191,10 +191,7 @@ TEST(PermGroupTest, CanObtainOrder)
 
 TEST(PermGroupTest, CanTestMembership)
 {
-  // alternating group A4 (order 12)
-  cgtl::Perm gen1(4, {{1, 2, 3}});
-  cgtl::Perm gen2(4, {{1, 2}, {3, 4}});
-  cgtl::PermGroup a4(4, {gen1, gen2});
+  cgtl::PermGroup a4 = cgtl::PermGroup::alternating(4);
 
   std::vector<cgtl::Perm> expected_members = {
     cgtl::Perm(4),
@@ -227,12 +224,22 @@ TEST(PermGroupTest, CanTestMembership)
   };
 
   for (cgtl::Perm const &perm : expected_members) {
-    EXPECT_TRUE(a4.is_member(perm))
+    EXPECT_TRUE(a4.is_element(perm))
       << "Membership test correctly identifies group member " << perm;
   }
 
   for (cgtl::Perm const &perm : expected_non_members) {
-    EXPECT_FALSE(a4.is_member(perm))
+    EXPECT_FALSE(a4.is_element(perm))
       << "Membership test correctly rejects non group member " << perm;
+  }
+}
+
+TEST(PermGroupTest, CanGenerateRandomElement)
+{
+  cgtl::PermGroup a4 = cgtl::PermGroup::alternating(4);
+
+  for (unsigned i = 0u; i < 1000u; ++i) {
+    EXPECT_TRUE(a4.is_element(a4.random_element()))
+      << "Randomly generated group element is actually inside group.";
   }
 }

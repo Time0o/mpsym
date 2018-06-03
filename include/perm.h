@@ -81,7 +81,8 @@ public:
   std::vector<Perm> strong_generating_set() const { return _strong_generating_set; };
   std::vector<SchreierTree> schreier_trees() const { return _schreier_trees; };
 
-  bool is_member(Perm const &perm);
+  bool is_element(Perm const &perm);
+  Perm random_element();
 
 private:
   unsigned _n;

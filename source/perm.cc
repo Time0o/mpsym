@@ -1,4 +1,6 @@
 #include <cassert>
+#include <ctime>
+#include <random>
 #include <set>
 #include <utility>
 #include <vector>
@@ -453,7 +455,7 @@ top:
     generators.insert(generators.end(), gens.begin(), gens.end());
 }
 
-bool PermGroup::is_member(Perm const &perm)
+bool PermGroup::is_element(Perm const &perm)
 {
   Dbg(Dbg::DBG) << "Performing membership test for " << perm << " in:";
   Dbg(Dbg::DBG) << (*this);
@@ -470,6 +472,20 @@ bool PermGroup::is_member(Perm const &perm)
   Dbg(Dbg::DBG) << (ret ? "=> Member" : "=> No Member");
 
   return ret;
+}
+
+Perm PermGroup::random_element()
+{
+  static std::default_random_engine gen(time(0));
+
+  Perm result(_n);
+  for (auto const &st : _schreier_trees) {
+    std::vector<unsigned> orbit = st.orbit();
+    std::uniform_int_distribution<> d(0u, orbit.size() - 1u);
+    result *= st.transversal(orbit[d(gen)]);
+  }
+
+  return result;
 }
 
 } // namespace cgtl
