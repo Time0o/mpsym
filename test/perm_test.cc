@@ -2,8 +2,9 @@
 #include <vector>
 
 #include "gmock/gmock.h"
-#include "dbg.h"
 #include "perm.h"
+
+#include "main.cc"
 
 using testing::ElementsAre;
 using testing::UnorderedElementsAre;
@@ -162,9 +163,4 @@ TEST(PermGroupTest, SchreierSimsWorks)
     cgtl::Perm(5, {{1, 2, 4, 3}}), cgtl::Perm(5, {{1, 2, 5, 4}}),
     cgtl::Perm(5, {{2, 5}, {3, 4}}), cgtl::Perm(5, {{2, 3, 5, 4}})))
       << "Strong generating set correct.";
-}
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleMock(&argc, argv);
-  return RUN_ALL_TESTS();
 }
