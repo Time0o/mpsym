@@ -2,6 +2,7 @@
 #define _GUARD_DBG_H
 
 #include <cstring>
+#include <string>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -36,20 +37,8 @@ public:
 
   Dbg& operator<<(cgtl::PermGroup const &pg) {
     _buf << "Permutation Group\n";
-    (*this) << header_indent() << "Base: "
-            << pg.base() << '\n';
-    (*this) << header_indent() << "Strong generating set: "
-            << pg.strong_generating_set() << '\n';
-
-    std::vector<std::vector<unsigned>> orbits;
-    std::vector<std::vector<cgtl::Perm>> transversals;
-    for (auto const &st : pg.schreier_trees()) {
-      orbits.push_back(st.orbit());
-      transversals.push_back(st.transversals(orbits.back()));
-    }
-
-    (*this) << header_indent() << "Orbits: " << orbits << '\n';
-    (*this) << header_indent() << "Transversals: " << transversals;
+    (*this) << "Base: " << pg.bsgs().base() << '\n';
+    (*this) << "Strong generating set: " << pg.bsgs().sgs();
 
     return *this;
   }

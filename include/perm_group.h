@@ -4,36 +4,11 @@
 #include <map>
 #include <vector>
 
+#include "bsgs.h"
 #include "perm.h"
 
 namespace cgtl
 {
-
-struct SchreierTree
-{
-  SchreierTree(unsigned degree) : _degree(degree) {}
-
-  void create_root(unsigned root) { _root = root; }
-
-  void create_edge(unsigned origin, unsigned destination, Perm const &perm) {
-    _edges[origin] = destination;
-    _labels[origin] = perm;
-  }
-
-  std::vector<unsigned> orbit() const;
-  Perm transversal(unsigned origin) const;
-  std::vector<Perm> transversals(std::vector<unsigned> const &origins) const;
-
-  bool contains(unsigned node) const {
-    return (node == _root) || (_edges.find(node) != _edges.end());
-  }
-
-private:
-  unsigned _degree;
-  unsigned _root;
-  std::map<unsigned, unsigned> _edges;
-  std::map<unsigned, Perm> _labels;
-};
 
 class PermGroup
 {
@@ -42,7 +17,7 @@ public:
   {
   public:
     const_iterator() : _end(true) {};
-    const_iterator(std::vector<SchreierTree> schreier_trees);
+    const_iterator(BSGS const &bsgs);
 
     const_iterator operator++();
     const_iterator operator++(int) { next_state(); return *this; }
@@ -69,24 +44,12 @@ public:
   static PermGroup cyclic(unsigned degree);
   static PermGroup alternating(unsigned degree);
 
-  static std::vector<unsigned> orbit(unsigned alpha,
-    std::vector<Perm> const &generators, SchreierTree &st);
-
-  static std::pair<Perm, unsigned> strip(Perm const &perm,
-    std::vector<unsigned> const &base, std::vector<Perm> const &generators,
-    std::vector<SchreierTree> const &sts);
-
-  static void schreier_sims(std::vector<unsigned> &base,
-    std::vector<Perm> &generators, std::vector<SchreierTree> &schreier_trees);
-
-  const_iterator begin() const { return const_iterator(_schreier_trees); }
+  const_iterator begin() const { return const_iterator(_bsgs); }
   const_iterator end() const { return const_iterator(); }
 
   unsigned degree() const { return _n; }
   unsigned order() const { return _order; }
-  std::vector<unsigned> base() const { return _base; };
-  std::vector<Perm> strong_generating_set() const { return _strong_generating_set; };
-  std::vector<SchreierTree> schreier_trees() const { return _schreier_trees; };
+  BSGS bsgs() const { return _bsgs; }
 
   bool is_element(Perm const &perm);
   Perm random_element();
@@ -94,9 +57,7 @@ public:
 private:
   unsigned _n;
   unsigned _order;
-  std::vector<unsigned> _base;
-  std::vector<Perm> _strong_generating_set;
-  std::vector<SchreierTree> _schreier_trees;
+  BSGS _bsgs;
 };
 
 } // namespace cgtl

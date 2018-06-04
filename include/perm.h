@@ -1,6 +1,7 @@
 #ifndef _GUARD_PERM_H
 #define _GUARD_PERM_H
 
+#include <ostream>
 #include <vector>
 
 namespace cgtl

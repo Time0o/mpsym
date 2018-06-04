@@ -20,43 +20,19 @@ static unsigned factorial(unsigned x)
   return result;
 }
 
-TEST(PermGroupTest, CanCalculateOrbit)
-{
-  cgtl::Perm perm1(5, {{1, 2, 5}});
-  cgtl::Perm perm2(5, {{1, 4}, {3, 5}});
-  cgtl::PermGroup pg(5, {perm1, perm2});
-
-  cgtl::SchreierTree st(5);
-  std::vector<unsigned> orbit = cgtl::PermGroup::orbit(1, {perm1, perm2}, st);
-
-  ASSERT_THAT(orbit, UnorderedElementsAre(1, 2, 3, 4, 5))
-    << "Orbit elements correct.";
-
-  std::vector<std::vector<unsigned>> expected_transversals {
-    {1, 2, 3, 4, 5}, {2, 5, 3, 4, 1}, {3, 4, 5, 1, 2}, {4, 2, 5, 1, 3},
-    {5, 1, 3, 4, 2}
-  };
-
-  for (unsigned i = 1u; i <= 5u; ++i) {
-    EXPECT_TRUE(perm_equal(expected_transversals[i - 1u], st.transversal(i)))
-      << "Transversal for " << i << " correct.";
-  }
-}
-
 TEST(PermGroupTest, SchreierSimsWorks)
 {
-  std::vector<unsigned> base;
   std::vector<cgtl::Perm> generators {cgtl::Perm(5, {{1, 2, 4, 3}}),
                                       cgtl::Perm(5, {{1, 2, 5, 4}})};
 
-  std::vector<cgtl::SchreierTree> dummy;
+  cgtl::PermGroup pg(5, generators);
 
-  cgtl::PermGroup::schreier_sims(base, generators, dummy);
+  cgtl::BSGS bsgs = pg.bsgs();
 
-  EXPECT_THAT(base, ElementsAre(1, 2))
+  EXPECT_THAT(bsgs.base(), ElementsAre(1, 2))
     << "Base correct.";
 
-  EXPECT_THAT(generators, UnorderedElementsAre(
+  EXPECT_THAT(bsgs.sgs(), UnorderedElementsAre(
     cgtl::Perm(5, {{1, 2, 4, 3}}), cgtl::Perm(5, {{1, 2, 5, 4}}),
     cgtl::Perm(5, {{2, 5}, {3, 4}}), cgtl::Perm(5, {{2, 3, 5, 4}})))
       << "Strong generating set correct.";
