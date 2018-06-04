@@ -11,22 +11,26 @@ set_target_properties(cgtl PROPERTIES
   COMPILE_FLAGS "-Wall -pedantic -Wextra"
 )
 
-find_program(CLANG_TIDY NAMES "clang-tidy")
+option(ENABLE_CLANG_TIDY "ENABLE_CLANG_TIDY" OFF)
 
-if(CLANG_TIDY)
-  string(CONCAT CLANG_CHECKS
-    "-checks=bugprone-*,"
-    ",cert-*,"
-    "cppcoreguidelines-*,"
-    "misc-*,"
-    "modernize-*,"
-    "performance-*,"
-    "portability*"
-  )
+if(ENABLE_CLANG_TIDY)
+  find_program(CLANG_TIDY NAMES "clang-tidy")
 
-  set(EXEC_CLANG_TIDY "${CLANG_TIDY}" "${CLANG_CHECKS}")
+  if(CLANG_TIDY)
+    string(CONCAT CLANG_CHECKS
+      "-checks=bugprone-*,"
+      ",cert-*,"
+      "cppcoreguidelines-*,"
+      "misc-*,"
+      "modernize-*,"
+      "performance-*,"
+      "portability*"
+    )
 
-  set_target_properties(cgtl PROPERTIES CXX_CLANG_TIDY "${EXEC_CLANG_TIDY}")
-else()
-  message(WARNING "failed to find clang-tidy installation")
+    set(EXEC_CLANG_TIDY "${CLANG_TIDY}" "${CLANG_CHECKS}")
+
+    set_target_properties(cgtl PROPERTIES CXX_CLANG_TIDY "${EXEC_CLANG_TIDY}")
+  else()
+    message(WARNING "failed to find clang-tidy installation")
+  endif()
 endif()
