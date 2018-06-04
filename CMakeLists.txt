@@ -50,6 +50,6 @@ add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
 ### Add subdirectories #########################################################
 
 add_subdirectory(source)
-add_subdirectory(test)
 
 enable_testing()
+add_subdirectory(test/source)

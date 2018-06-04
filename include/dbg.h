@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "perm.h"
+#include "perm_group.h"
 
 class Dbg
 {
