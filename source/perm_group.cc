@@ -56,7 +56,7 @@ PermGroup PermGroup::alternating(unsigned degree)
   return PermGroup(degree, gens);
 }
 
-bool PermGroup::is_element(Perm const &perm)
+bool PermGroup::is_element(Perm const &perm) const
 {
   Dbg(Dbg::DBG) << "Performing membership test for " << perm << " in:";
   Dbg(Dbg::DBG) << (*this);
@@ -74,7 +74,7 @@ bool PermGroup::is_element(Perm const &perm)
   return ret;
 }
 
-Perm PermGroup::random_element()
+Perm PermGroup::random_element() const
 {
   static std::default_random_engine gen(time(0));
 

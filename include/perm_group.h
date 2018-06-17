@@ -51,8 +51,8 @@ public:
   unsigned order() const { return _order; }
   BSGS bsgs() const { return _bsgs; }
 
-  bool is_element(Perm const &perm);
-  Perm random_element();
+  bool is_element(Perm const &perm) const;
+  Perm random_element() const;
 
 private:
   unsigned _n;
