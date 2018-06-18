@@ -1,6 +1,6 @@
 #include <cassert>
-#include <set>
 #include <ostream>
+#include <set>
 #include <vector>
 
 #include "perm.h"
@@ -67,10 +67,10 @@ Perm::Perm(unsigned n, std::vector<std::vector<unsigned>> const &cycles)
     for (size_t i = 1u; i < cycle.size(); ++i) {
       unsigned tmp = cycle[i];
       assert(tmp <= _n && "cycle element <= N");
-      (*this)._perm[cycle[i - 1u] - 1u] = tmp;
+      _perm[cycle[i - 1u] - 1u] = tmp;
     }
 
-    (*this)._perm[cycle.back() - 1u] = cycle[0];
+    _perm[cycle.back() - 1u] = cycle[0];
 
   } else {
     for (auto i = cycles.begin(); i != cycles.end(); ++i)
@@ -86,12 +86,12 @@ unsigned const& Perm::operator[](unsigned const i) const
 
 Perm Perm::operator~() const
 {
-  std::vector<unsigned> perm_inverted(_perm);
+  std::vector<unsigned> inverse(_n);
 
   for (unsigned i = 0u; i < _n; ++i)
-    perm_inverted[_perm[i] - 1u] = i + 1u;
+    inverse[_perm[i] - 1u] = i + 1u;
 
-  return Perm(perm_inverted);
+  return Perm(inverse);
 }
 
 Perm operator*(Perm const &lhs, Perm const &rhs)
