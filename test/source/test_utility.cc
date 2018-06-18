@@ -4,8 +4,9 @@
 #include "gmock/gmock.h"
 #include "perm.h"
 
-::testing::AssertionResult perm_equal(std::vector<unsigned> const &expected,
-  cgtl::Perm const &perm)
+template <typename P>
+static ::testing::AssertionResult _perm_equal(
+  std::vector<unsigned> const &expected, P const &perm)
 {
   bool success = true;
 
@@ -31,4 +32,16 @@
     return ::testing::AssertionFailure() << err.str();
   else
     return ::testing::AssertionSuccess();
+}
+
+::testing::AssertionResult perm_equal(std::vector<unsigned> const &expected,
+  cgtl::Perm const &perm)
+{
+  return _perm_equal<cgtl::Perm>(expected, perm);
+}
+
+::testing::AssertionResult perm_word_equal(std::vector<unsigned> const &expected,
+  cgtl::PermWord const &pw)
+{
+  return _perm_equal<cgtl::PermWord>(expected, pw);
 }
