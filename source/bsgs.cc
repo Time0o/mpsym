@@ -18,6 +18,16 @@ BSGS::BSGS(std::vector<unsigned> const &base, std::vector<Perm> const &generator
     _base_elems.push_back(BaseElem(st));
 }
 
+std::vector<std::vector<unsigned>> BSGS::orbits() const
+{
+  std::vector<std::vector<unsigned>> result;
+
+  for (auto const &st : _schreier_trees)
+    result.push_back(st.nodes());
+
+  return result;
+}
+
 std::pair<Perm, unsigned> BSGS::strip(Perm const &perm) const
 {
   return SchreierSims::strip(perm, _base, _schreier_trees);
