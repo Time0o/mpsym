@@ -37,8 +37,8 @@ public:
 
   Dbg& operator<<(cgtl::PermGroup const &pg) {
     _buf << "Permutation Group\n";
-    (*this) << "Base: " << pg.bsgs().base() << '\n';
-    (*this) << "Strong generating set: " << pg.bsgs().sgs();
+    (*this) << header_indent() << "Base: " << pg.bsgs().base() << '\n';
+    (*this) << header_indent() << "Strong generating set: " << pg.bsgs().sgs();
 
     return *this;
   }
