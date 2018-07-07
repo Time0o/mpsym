@@ -189,3 +189,14 @@ TEST(PermGroupTest, CanIterateElements)
   EXPECT_THAT(actual_members2, UnorderedElementsAreArray(expected_members))
     << "Iteration produces every element exactly once (explicit iterator).";
 }
+
+TEST(PermGroupTest, CanGenerateCorrectGroupElements)
+{
+  EXPECT_TRUE(perm_group_equal({
+      {{1, 2, 3, 4}}, {{1, 3}, {2, 4}}, {{1, 4, 3, 2}}, {{1, 4}, {2, 3}},
+      {{1, 2}, {3, 4}}, {{1, 3}, {2, 4}}
+    }, cgtl::PermGroup(4, {cgtl::Perm(4, {{2, 4}}), cgtl::Perm(4, {{1, 2}, {3, 4}})})))
+    << "D4 group generated correctly.";
+
+  // TODO: add more groups
+}
