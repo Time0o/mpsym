@@ -1,8 +1,15 @@
+#include <boost/algorithm/string/replace.hpp>
 #include <sstream>
 #include <vector>
 
+#include "gmock/gmock-matchers.h"
 #include "gmock/gmock.h"
 #include "perm.h"
+#include "perm_group.h"
+
+using cgtl::Perm;
+using cgtl::PermWord;
+using cgtl::PermGroup;
 
 template <typename P>
 static ::testing::AssertionResult _perm_equal(
@@ -35,13 +42,53 @@ static ::testing::AssertionResult _perm_equal(
 }
 
 ::testing::AssertionResult perm_equal(std::vector<unsigned> const &expected,
-  cgtl::Perm const &perm)
+  Perm const &perm)
 {
-  return _perm_equal<cgtl::Perm>(expected, perm);
+  return _perm_equal<Perm>(expected, perm);
 }
 
 ::testing::AssertionResult perm_word_equal(std::vector<unsigned> const &expected,
-  cgtl::PermWord const &pw)
+  PermWord const &pw)
 {
-  return _perm_equal<cgtl::PermWord>(expected, pw);
+  return _perm_equal<PermWord>(expected, pw);
+}
+
+::testing::AssertionResult perm_group_equal(
+  std::vector<std::vector<std::vector<unsigned>>> const &expected,
+  PermGroup const &pg)
+{
+    unsigned degree = pg.degree();
+
+    std::vector<Perm> expected_elements {Perm(degree)};
+    for (auto const &p : expected) {
+      expected_elements.push_back(Perm(degree, p));
+    }
+
+    std::vector<Perm> actual_elements;
+    for (Perm const &p : pg)
+      actual_elements.push_back(p);
+
+    ::testing::Matcher<std::vector<Perm> const &> matcher(
+      ::testing::UnorderedElementsAreArray(expected_elements));
+
+    ::testing::StringMatchResultListener listener;
+    if (matcher.MatchAndExplain(actual_elements, &listener))
+      return ::testing::AssertionSuccess();
+
+    std::stringstream ss;
+    ss << "\nShould be: ";
+    matcher.DescribeTo(&ss);
+
+    ss << "\nBut is: { ";
+    for (auto i = 0u; i < actual_elements.size(); ++i) {
+      ss << actual_elements[i]
+         << (i == actual_elements.size() - 1u ? "" : ", ");
+    }
+    ss << " },\n";
+    ss << listener.str();
+
+    std::string msg(ss.str());
+    boost::replace_all(msg, "\n", "\n    ");
+
+    return ::testing::AssertionFailure() << msg;
 }
