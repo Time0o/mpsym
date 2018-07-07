@@ -88,15 +88,20 @@ Perm PermGroup::random_element() const
   return result;
 }
 
-PermGroup::const_iterator::const_iterator(BSGS const &bsgs) : _end(false)
+PermGroup::const_iterator::const_iterator(PermGroup const &pg)
+  : _trivial(pg.bsgs().trivial()), _end(false)
 {
-  for (auto const &b : bsgs) {
-    _state.push_back(0u);
-    _transversals.push_back(b.transversals());
-    _current_factors.push_back(_transversals.back()[0]);
-  }
+  if (_trivial) {
+    _current_result = Perm(pg.degree());
+  } else {
+    for (auto const &b : pg.bsgs()) {
+      _state.push_back(0u);
+      _transversals.push_back(b.transversals());
+      _current_factors.push_back(_transversals.back()[0]);
+    }
 
-  update_result();
+    update_result();
+  }
 }
 
 PermGroup::const_iterator PermGroup::const_iterator::operator++()
@@ -124,6 +129,11 @@ bool PermGroup::const_iterator::operator==(
 
 void PermGroup::const_iterator::next_state()
 {
+  if (_trivial) {
+    _end = true;
+    return;
+  }
+
   for (unsigned i = 0u; i < _state.size(); ++i) {
     _state[i]++;
     if (_state[i] == _transversals[i].size())

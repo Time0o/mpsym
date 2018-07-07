@@ -17,7 +17,7 @@ public:
   {
   public:
     const_iterator() : _end(true) {};
-    const_iterator(BSGS const &bsgs);
+    const_iterator(PermGroup const &pg);
 
     const_iterator operator++();
     const_iterator operator++(int) { next_state(); return *this; }
@@ -31,6 +31,7 @@ public:
     void update_result();
 
     std::vector<unsigned> _state;
+    bool _trivial;
     bool _end;
 
     std::vector<std::vector<Perm>> _transversals;
@@ -44,12 +45,13 @@ public:
   static PermGroup cyclic(unsigned degree);
   static PermGroup alternating(unsigned degree);
 
-  const_iterator begin() const { return const_iterator(_bsgs); }
+  const_iterator begin() const { return const_iterator(*this); }
   const_iterator end() const { return const_iterator(); }
 
   unsigned degree() const { return _n; }
   unsigned order() const { return _order; }
   BSGS bsgs() const { return _bsgs; }
+  bool trivial() const { return _bsgs.trivial(); }
 
   bool is_element(Perm const &perm) const;
   Perm random_element() const;

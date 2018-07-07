@@ -9,8 +9,7 @@
 namespace cgtl
 {
 
-BSGS::BSGS(std::vector<unsigned> const &base, std::vector<Perm> const &generators)
-  : _base(base), _sgs(generators)
+BSGS::BSGS(std::vector<Perm> const &generators) : _sgs(generators)
 {
   if (_sgs.size() > 0u) {
     SchreierSims::schreier_sims(_base, _sgs, _schreier_trees);

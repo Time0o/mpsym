@@ -28,8 +28,7 @@ public:
   typedef std::vector<BaseElem>::size_type size_type;
   typedef std::vector<BaseElem>::const_iterator const_iterator;
 
-  BSGS(std::vector<unsigned> const &base, std::vector<Perm> const &generators);
-  BSGS(std::vector<Perm> const &generators) : BSGS({}, generators) {};
+  BSGS(std::vector<Perm> const &generators);
 
   const_iterator begin() const { return _base_elems.begin(); }
   const_iterator end() const { return _base_elems.end(); }
@@ -40,6 +39,7 @@ public:
   std::vector<std::vector<unsigned>> orbits() const;
   size_type size() const { return _base_elems.size(); }
   std::pair<Perm, unsigned> strip(Perm const &perm) const;
+  bool trivial() const { return _sgs.empty(); }
 
 private:
   std::vector<unsigned> _base;
