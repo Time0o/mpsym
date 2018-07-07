@@ -11,7 +11,14 @@ foreach(testsource ${testsources})
   string(REPLACE ".cc" "" test "${test}")
 
   add_executable("${test}" "${testsource}" "${TEST_UTILITY}")
-  target_link_libraries("${test}" gmock_main)
-  target_link_libraries("${test}" cgtl)
+  target_link_libraries("${test}" cgtl gmock_main)
+
+  set_target_properties("${test}" PROPERTIES
+    LINKER_LANGUAGE CXX
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED ON
+    COMPILE_FLAGS "-Wall -pedantic -Wextra"
+  )
+
   add_test(NAME "${test}" COMMAND "${test}")
 endforeach()
