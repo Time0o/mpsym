@@ -13,7 +13,7 @@ class PrRandomizer
 {
 public:
   PrRandomizer(std::vector<Perm> const &generators,
-    unsigned n_generators = 11, unsigned iterations = 100);
+    unsigned n_generators = 10, unsigned iterations = 20);
 
   Perm next();
 
