@@ -47,6 +47,10 @@ TEST(PermGroupTest, CanObtainDegree)
 
 TEST(PermGroupTest, CanObtainOrder)
 {
+  cgtl::PermGroup id(10u, {});
+  EXPECT_EQ(1u, id.order())
+    << "Order set correctly for trivial permutation group.";
+
   for (unsigned i = 1u; i <= 10u; ++i) {
     EXPECT_EQ(factorial(i), cgtl::PermGroup::symmetric(i).order())
       << "Order set correctly for symmetric group S" << i;
@@ -116,6 +120,31 @@ TEST(PermGroupTest, CanGenerateRandomElement)
     EXPECT_TRUE(a4.is_element(a4.random_element()))
       << "Randomly generated group element is actually inside group.";
   }
+}
+
+TEST(PermGroupTest, CanIterateTrivialGroup)
+{
+  cgtl::PermGroup id = cgtl::PermGroup(4, {});
+
+  std::vector<cgtl::Perm> actual_members1;
+  for (cgtl::Perm const &p : id)
+    actual_members1.push_back(p);
+
+  ASSERT_EQ(1u, actual_members1.size())
+    << "Iterating trivial permutation group yields one element (ranged for).";
+
+  EXPECT_TRUE(perm_equal({1, 2, 3, 4}, actual_members1[0]))
+    << "Iterating trivial permutation group yields identity permutatio (ranged for)..";
+
+  std::vector<cgtl::Perm> actual_members2;
+  for (cgtl::PermGroup::const_iterator it = id.begin(); it != id.end(); it++)
+    actual_members2.push_back(*it);
+
+  ASSERT_EQ(1u, actual_members2.size())
+    << "Iterating trivial permutation group yields one element (explicit iterator).";
+
+  EXPECT_TRUE(perm_equal({1, 2, 3, 4}, actual_members2[0]))
+    << "Iterating trivial permutation group yields identity permutation (explicit iterator).";
 }
 
 TEST(PermGroupTest, CanIterateElements)

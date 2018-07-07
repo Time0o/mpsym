@@ -12,10 +12,12 @@ namespace cgtl
 BSGS::BSGS(std::vector<unsigned> const &base, std::vector<Perm> const &generators)
   : _base(base), _sgs(generators)
 {
-  SchreierSims::schreier_sims(_base, _sgs, _schreier_trees);
+  if (_sgs.size() > 0u) {
+    SchreierSims::schreier_sims(_base, _sgs, _schreier_trees);
 
-  for (auto const &st : _schreier_trees)
-    _base_elems.push_back(BaseElem(st));
+    for (auto const &st : _schreier_trees)
+      _base_elems.push_back(BaseElem(st));
+  }
 }
 
 std::vector<std::vector<unsigned>> BSGS::orbits() const
