@@ -1,14 +1,18 @@
+#include <sstream>
+#include <utility>
 #include <vector>
 
 #include "gmock/gmock.h"
 #include "perm.h"
 #include "perm_group.h"
+#include "schreier_sims.h"
 #include "test_utility.h"
 
 #include "test_main.cc"
 
 using cgtl::Perm;
 using cgtl::PermGroup;
+using cgtl::SchreierSims;
 
 using testing::ElementsAre;
 using testing::UnorderedElementsAre;
@@ -21,19 +25,6 @@ static unsigned factorial(unsigned x)
     result *= x--;
 
   return result;
-}
-
-TEST(PermGroupTest, SchreierSimsWorks)
-{
-  PermGroup pg(5, {Perm(5, {{1, 2, 4, 3}}), Perm(5, {{1, 2, 5, 4}})});
-
-  EXPECT_THAT(pg.bsgs().base(), ElementsAre(1, 2))
-    << "Base correct.";
-
-  EXPECT_THAT(pg.bsgs().sgs(), UnorderedElementsAre(
-    Perm(5, {{1, 2, 4, 3}}), Perm(5, {{1, 2, 5, 4}}),
-    Perm(5, {{2, 5}, {3, 4}}), Perm(5, {{2, 3, 5, 4}})))
-      << "Strong generating set correct.";
 }
 
 TEST(PermGroupTest, CanObtainDegree)
@@ -188,13 +179,49 @@ TEST(PermGroupTest, CanIterateElements)
     << "Iteration produces every element exactly once (explicit iterator).";
 }
 
-TEST(PermGroupTest, CanGenerateCorrectGroupElements)
-{
-  EXPECT_TRUE(perm_group_equal({
-      {{1, 2, 3, 4}}, {{1, 3}, {2, 4}}, {{1, 4, 3, 2}}, {{1, 4}, {2, 3}},
-      {{1, 2}, {3, 4}}, {{1, 3}, {2, 4}}
-    }, PermGroup(4, {Perm(4, {{2, 4}}), Perm(4, {{1, 2}, {3, 4}})})))
-    << "D4 group generated correctly.";
+class SchreierSimsVariantTest :
+  public ::testing::TestWithParam<SchreierSims::Variant> {};
 
-  // TODO: add more groups
+// TODO: test more groups
+TEST_P(SchreierSimsVariantTest, CanGenerateCorrectGroupElements)
+{
+  SchreierSims::Variant schreier_var = GetParam();
+
+  typedef std::vector<std::vector<std::vector<unsigned>>> elemset;
+
+  std::vector<std::pair<unsigned, elemset>> groups {
+    {4, {{{2, 4}}, {{1, 2}, {3, 4}}}}
+  };
+
+  std::vector<elemset> expected_elements {
+    {
+      {{1, 2, 3, 4}},
+      {{1, 2}, {3, 4}},
+      {{1, 3}, {2, 4}},
+      {{1, 3}},
+      {{1, 4, 3, 2}},
+      {{1, 4}, {2, 3}},
+      {{2, 4}}
+    }
+  };
+
+  for (auto i = 0u; i < groups.size(); ++i) {
+    unsigned degree = std::get<0>(groups[i]);
+
+    std::vector<Perm> generators;
+    for (auto const &perm : std::get<1>(groups[i]))
+      generators.push_back(Perm(degree, perm));
+
+    std::stringstream ss;
+    ss << "Group generated correctly, generators are: ";
+    for (auto j = 0u; j < generators.size(); ++j)
+      ss << generators[j] << (j == generators.size() - 1u ? "" : ", ");
+
+    EXPECT_TRUE(perm_group_equal(
+      expected_elements[i], PermGroup(degree, generators, schreier_var)))
+      << ss.str();
+  }
 }
+
+INSTANTIATE_TEST_CASE_P(SchreierSimsVariants, SchreierSimsVariantTest,
+  ::testing::Values(SchreierSims::SIMPLE, SchreierSims::RANDOM));
