@@ -159,7 +159,7 @@ void PermGroup::const_iterator::update_result()
 {
   _current_result = _current_factors[0];
   for (unsigned j = 1u; j < _current_factors.size(); ++j)
-    _current_result *= _current_factors[j];
+    _current_result = _current_factors[j] * _current_result;
 }
 
 } // namespace cgtl
