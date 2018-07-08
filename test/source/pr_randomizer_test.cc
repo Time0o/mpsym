@@ -6,7 +6,7 @@
 
 #include "test_main.cc"
 
-#define RANDOMIZER_RUNS 1000
+#define RANDOMIZER_RUNS 10000
 #define RANDOMIZER_EPS_REL 5
 
 using cgtl::Perm;
