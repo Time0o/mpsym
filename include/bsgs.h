@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "perm.h"
+#include "schreier_sims.h"
 #include "schreier_tree.h"
 
 namespace cgtl
@@ -28,7 +29,8 @@ public:
   typedef std::vector<BaseElem>::size_type size_type;
   typedef std::vector<BaseElem>::const_iterator const_iterator;
 
-  BSGS(std::vector<Perm> const &generators);
+  BSGS(std::vector<Perm> const &generators,
+       SchreierSims::Variant schreier_sims_method = SchreierSims::SIMPLE);
 
   const_iterator begin() const { return _base_elems.begin(); }
   const_iterator end() const { return _base_elems.end(); }

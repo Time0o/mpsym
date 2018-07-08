@@ -6,6 +6,7 @@
 
 #include "bsgs.h"
 #include "perm.h"
+#include "schreier_sims.h"
 
 namespace cgtl
 {
@@ -39,7 +40,8 @@ public:
     Perm _current_result;
   };
 
-  PermGroup(unsigned degree, std::vector<Perm> const &generators);
+  PermGroup(unsigned degree, std::vector<Perm> const &generators,
+    SchreierSims::Variant schreier_sims_method = SchreierSims::SIMPLE);
 
   static PermGroup symmetric(unsigned degree);
   static PermGroup cyclic(unsigned degree);

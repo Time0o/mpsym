@@ -8,12 +8,14 @@
 #include "bsgs.h"
 #include "dbg.h"
 #include "perm.h"
+#include "schreier_sims.h"
 
 namespace cgtl
 {
 
-PermGroup::PermGroup(unsigned degree, std::vector<Perm> const &generators)
-  : _n(degree), _bsgs(generators)
+PermGroup::PermGroup(unsigned degree, std::vector<Perm> const &generators,
+  SchreierSims::Variant schreier_sims_method)
+  : _n(degree), _bsgs(generators, schreier_sims_method)
 {
   _order = 1u;
   for (auto const &b : _bsgs)

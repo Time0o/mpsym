@@ -9,10 +9,18 @@
 namespace cgtl
 {
 
-BSGS::BSGS(std::vector<Perm> const &generators) : _sgs(generators)
+BSGS::BSGS(std::vector<Perm> const &generators,
+  SchreierSims::Variant schreier_sims_method) : _sgs(generators)
 {
   if (_sgs.size() > 0u) {
-    SchreierSims::schreier_sims(_base, _sgs, _schreier_trees);
+
+    switch (schreier_sims_method) {
+      case SchreierSims::RANDOM:
+        SchreierSims::schreier_sims_random(_base, _sgs, _schreier_trees);
+        break;
+      default:
+        SchreierSims::schreier_sims(_base, _sgs, _schreier_trees);
+    }
 
     for (auto const &st : _schreier_trees)
       _base_elems.push_back(BaseElem(st));

@@ -13,6 +13,8 @@ namespace cgtl
 class SchreierSims
 {
 public:
+  enum Variant { SIMPLE, RANDOM };
+
   static std::vector<unsigned> orbit(unsigned alpha,
     std::vector<Perm> const &generators, SchreierTree &st);
 
@@ -21,6 +23,10 @@ public:
 
   static void schreier_sims(std::vector<unsigned> &base,
     std::vector<Perm> &generators, std::vector<SchreierTree> &sts);
+
+  static void schreier_sims_random(std::vector<unsigned> &base,
+    std::vector<Perm> &generators, std::vector<SchreierTree> &sts,
+    unsigned w = 10);
 };
 
 } // namespace cgtl
