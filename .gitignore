@@ -1,3 +1,4 @@
+cmake/CodeCoverage.cmake
 debug/*
 !debug/.gitkeep
 tmp
