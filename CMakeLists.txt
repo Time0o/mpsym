@@ -1,55 +1,117 @@
 cmake_minimum_required(VERSION 3.6)
 
-project(CGTL)
 
-### Download Google Test #######################################################
+################################################################################
+# Project Structure
+################################################################################
 
-string(CONCAT GTEST_CMAKE
-  "cmake_minimum_required(VERSION 3.0)\n"
-  "\n"
-  "project(googletest-download NONE)\n"
-  "include(ExternalProject)\n"
-  "\n"
-  "ExternalProject_Add(googletest\n"
-  "  GIT_REPOSITORY    https://github.com/google/googletest.git\n"
-  "  GIT_TAG           master\n"
-  "  SOURCE_DIR        \"\${CMAKE_BINARY_DIR}/googletest-src\"\n"
-  "  BINARY_DIR        \"\${CMAKE_BINARY_DIR}/googletest-build\"\n"
-  "  CONFIGURE_COMMAND \"\"\n"
-  "  BUILD_COMMAND     \"\"\n"
-  "  INSTALL_COMMAND   \"\"\n"
-  "  TEST_COMMAND      \"\"\n"
-  ")")
+project(CGTL "CXX")
+set(MAIN_LIB "cgtl")
 
-set (GTEST_CMAKE_TMPFILE "GTestCMakeList.txt")
+set(CMAKE_SCRIPT_DIR "${PROJECT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH "${CMAKE_SCRIPT_DIR}")
 
-file(WRITE "${GTEST_CMAKE_TMPFILE}" "${GTEST_CMAKE}")
-configure_file("${GTEST_CMAKE_TMPFILE}" googletest-download/CMakeLists.txt)
-file(REMOVE "${GTEST_CMAKE_TMPFILE}")
+set(NAUTY_CONFIG "${CMAKE_SCRIPT_DIR}/GetNauty.cmake")
+set(GTEST_CONFIG "${CMAKE_SCRIPT_DIR}/GetGTest.cmake")
 
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-  RESULT_VARIABLE result
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
+file(DOWNLOAD
+     https://raw.githubusercontent.com/bilke/cmake-modules/master/CodeCoverage.cmake
+     "${CMAKE_SCRIPT_DIR}/CodeCoverage.cmake")
 
-if(result)
-  message(FATAL_ERROR "CMake step for googletest failed: ${result}")
-endif()
+set(SRC_DIR "${PROJECT_SOURCE_DIR}/source")
+set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
 
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
-  RESULT_VARIABLE result
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
+set(TEST_SRC_DIR "${PROJECT_SOURCE_DIR}/test/source")
+set(TEST_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/test/include")
 
-if(result)
-  message(FATAL_ERROR "Build step for googletest failed: ${result}")
-endif()
+set(NAUTY_DIR "${CMAKE_BINARY_DIR}/nauty")
+set(NAUTY_DOWNLOAD_DIR "${NAUTY_DIR}/download")
+set(NAUTY_WORKDIR "${NAUTY_DIR}/workdir")
 
-add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
-                 ${CMAKE_BINARY_DIR}/googletest-build
-                 EXCLUDE_FROM_ALL)
+set(GTEST_DIR "${CMAKE_BINARY_DIR}/gtest")
+set(GTEST_DOWNLOAD_DIR "${GTEST_DIR}/download")
+set(GTEST_SRC_DIR "${GTEST_DIR}/source")
+set(GTEST_BIN_DIR "${GTEST_DIR}/build")
 
-### Add subdirectories #########################################################
 
-add_subdirectory(source)
+################################################################################
+# External Dependencies
+################################################################################
+
+function(add_external_project)
+  set(options NONE)
+  set(args NAME CONFIGFILE WORKDIR)
+  cmake_parse_arguments(Arg "${options}" "${args}" "" "${ARGN}")
+
+  configure_file("${Arg_CONFIGFILE}" "${Arg_WORKDIR}/CMakeLists.txt")
+
+  execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
+    RESULT_VARIABLE result
+    WORKING_DIRECTORY "${Arg_WORKDIR}")
+
+  if(result)
+    message(FATAL_ERROR "CMake step for ${Arg_NAME} failed: ${result}")
+  endif()
+
+  execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+    RESULT_VARIABLE result
+    WORKING_DIRECTORY "${Arg_WORKDIR}")
+
+  if(result)
+    message(FATAL_ERROR "Build step for ${Arg_NAME} failed: ${result}")
+  endif()
+endfunction()
+
+# Boost
+find_package(Boost 1.40 REQUIRED)
+
+# Nauty
+add_external_project(NAME "nauty/traces"
+                     CONFIGFILE "${NAUTY_CONFIG}"
+                     WORKDIR "${NAUTY_DOWNLOAD_DIR}")
+
+# Google Test
+add_external_project(NAME "googletest"
+                     CONFIGFILE "${GTEST_CONFIG}"
+                     WORKDIR "${GTEST_DOWNLOAD_DIR}")
+
+add_subdirectory("${GTEST_SRC_DIR}" "${GTEST_BIN_DIR}" EXCLUDE_FROM_ALL)
+
+
+################################################################################
+# Testing
+################################################################################
 
 enable_testing()
-add_subdirectory(test/source)
+
+# Code coverage
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  include(CodeCoverage)
+
+  set(COVERAGE_TARGET "coverage")
+
+  # TODO
+
+  #file(GLOB_RECURSE COVERAGE_STDLIB_BOOST_EXCLUDES
+  #     "${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES}/*")
+
+  #set(COVERAGE_EXCLUDES "${COVERAGE_STDLIB_BOOST_EXCLUDES}")
+
+  setup_target_for_coverage(NAME "${COVERAGE_TARGET}"
+                            EXECUTABLE "${CMAKE_CTEST_COMMAND}")
+endif()
+
+
+################################################################################
+# Profiling
+################################################################################
+
+# TODO
+
+
+################################################################################
+# Add Subdirectories
+################################################################################
+
+add_subdirectory("${SRC_DIR}")
+add_subdirectory("${TEST_SRC_DIR}")

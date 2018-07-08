@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 
-include_directories("${PROJECT_SOURCE_DIR}/include"
-                    "${PROJECT_SOURCE_DIR}/test/include")
+include_directories("${INCLUDE_DIR}" "${TEST_INCLUDE_DIR}")
 
 set(TEST_UTILITY "test_utility.cc")
 
@@ -10,8 +9,10 @@ foreach(testsource ${testsources})
   get_filename_component(test "${testsource}" NAME)
   string(REPLACE ".cc" "" test "${test}")
 
+  add_test(NAME "${test}" COMMAND "${test}")
+
   add_executable("${test}" "${testsource}" "${TEST_UTILITY}")
-  target_link_libraries("${test}" cgtl gmock_main)
+  target_link_libraries("${test}" "${MAIN_LIB}" gmock_main)
 
   set_target_properties("${test}" PROPERTIES
     LINKER_LANGUAGE CXX
@@ -19,6 +20,4 @@ foreach(testsource ${testsources})
     CXX_STANDARD_REQUIRED ON
     COMPILE_FLAGS "-Wall -pedantic -Wextra"
   )
-
-  add_test(NAME "${test}" COMMAND "${test}")
 endforeach()
