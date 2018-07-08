@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 
-include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories("${INCLUDE_DIR}")
 
 add_library("${MAIN_LIB}"
             "bsgs.cc"
