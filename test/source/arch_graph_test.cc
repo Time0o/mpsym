@@ -194,3 +194,28 @@ TEST_F(ArchGraphTest, CanObtainEdgeAutomorphisms)
     }, ag_tcol.automorphisms(ArchGraph::AUTOM_CHANNELS)))
     << "Channel automorphisms of totally colored architecture graph correct.";
 }
+
+TEST_F(ArchGraphTest, CanObtainTotalAutomorphisms)
+{
+  EXPECT_TRUE(perm_group_equal({
+      {{1, 2, 3, 4}}, {{1, 3}, {2, 4}}, {{1, 4, 3, 2}}, {{1, 4}, {2, 3}},
+      {{1, 2}, {3, 4}}, {{1, 3}}, {{2, 4}}
+    }, ag_nocol.automorphisms(ArchGraph::AUTOM_TOTAL)))
+    << "Total automorphisms of uncolored architecture graph correct.";
+
+  EXPECT_TRUE(perm_group_equal({
+      {{1, 3}, {2, 4}}, {{1, 3}}, {{2, 4}}
+    }, ag_vcol.automorphisms(ArchGraph::AUTOM_TOTAL)))
+    << "Total automorphisms of processor colored architecture graph correct.";
+
+  EXPECT_TRUE(perm_group_equal({
+      {{1, 3}, {2, 4}}, {{1, 4}, {2, 3}}, {{1, 2}, {3, 4}}
+    },
+    ag_ecol.automorphisms(ArchGraph::AUTOM_TOTAL)))
+    << "Total automorphisms of channel colored architecture graph correct.";
+
+  EXPECT_TRUE(perm_group_equal({
+      {{1, 3}, {2, 4}}
+    }, ag_tcol.automorphisms(ArchGraph::AUTOM_TOTAL)))
+    << "Channel automorphisms of totally colored architecture graph correct.";
+}

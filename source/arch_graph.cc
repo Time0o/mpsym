@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/range/iterator_range_core.hpp>
 #include <cassert>
@@ -147,75 +148,86 @@ PermGroup ArchGraph::automorphisms(ArchGraph::Autom at) const
     processor_type_counters.resize(_processor_types.size(), 0u);
   }
 
-  switch (at) {
-  case AUTOM_PROCESSORS:
-    {
-      for (auto e : boost::make_iterator_range(boost::edges(_adj))) {
-        int source = static_cast<int>(boost::source(e, _adj));
-        int target = static_cast<int>(boost::target(e, _adj));
+  if (at == AUTOM_PROCESSORS) {
+    for (auto e : boost::make_iterator_range(boost::edges(_adj))) {
+      int source = static_cast<int>(boost::source(e, _adj));
+      int target = static_cast<int>(boost::target(e, _adj));
 
-        Dbg(Dbg::TRACE) << "Adding edge: " << source << " => " << target;
-        ADDONEEDGE(g, source, target, m);
-      }
-
-      // color vertices
-      for (auto v : boost::make_iterator_range(boost::vertices(_adj))) {
-        processor_type_size_type t = _adj[v].type;
-        vertices_size_type offs =
-          processor_type_offsets[t] + processor_type_counters[t];
-
-        lab[offs] = static_cast<int>(v);
-        ptn[offs] = ++processor_type_counters[t] != _processor_type_instances[t];
-      }
-
-      break;
+      Dbg(Dbg::TRACE) << "Adding edge: " << source << " => " << target;
+      ADDONEEDGE(g, source, target, m);
     }
-  case AUTOM_CHANNELS:
-  case AUTOM_TOTAL:
-    {
-      /* node numbering:
-       *  ...     ...           ...
-       *   |       |             |
-       * (n+1)---(n+2)-- ... --(n+n)
-       *   |       |             |
-       *  (1)-----(2)--- ... ---(n)
-       */
+
+    // color vertices
+    for (auto v : boost::make_iterator_range(boost::vertices(_adj))) {
+      processor_type_size_type t = _adj[v].type;
+      vertices_size_type offs =
+        processor_type_offsets[t] + processor_type_counters[t];
+
+      lab[offs] = static_cast<int>(v);
+      ptn[offs] = ++processor_type_counters[t] != _processor_type_instances[t];
+    }
+
+  } else {
+    /* node numbering:
+     *  ...     ...           ...
+     *   |       |             |
+     * (n+1)---(n+2)-- ... --(n+n)
+     *   |       |             |
+     *  (1)-----(2)--- ... ---(n)
+     */
+    for (int level = 0; level <= cts_log2; ++level) {
+
+      if (level > 0) {
+        for (int v = 0; v < n_orig; ++v) {
+          Dbg(Dbg::TRACE) << "Adding (vertical) edge: " << v + level * n_orig
+                          << " => " << v + (level - 1) * n_orig;
+
+          ADDONEEDGE(g, v + level * n_orig, v + (level - 1) * n_orig, m);
+        }
+      }
+
+      for (auto e : boost::make_iterator_range(boost::edges(_adj))) {
+        int t = static_cast<int>(_adj[e].type) + 1;
+
+        if (t & (1 << level)){
+          int source = static_cast<int>(boost::source(e, _adj));
+          int target = static_cast<int>(boost::target(e, _adj));
+
+          Dbg(Dbg::TRACE) << "Adding (horizontal) edge: "
+                          << source + level * n_orig << " => "
+                          << target + level * n_orig;
+
+          ADDONEEDGE(g, source + level * n_orig, target + level * n_orig, m);
+        }
+        t >>= 1u;
+      }
+    }
+
+    if (at == AUTOM_CHANNELS) {
+      for (int v = 0; v < n; ++v) {
+        lab[v] = v;
+        ptn[v] = (v + 1) % n_orig != 0;
+      }
+    } else if (at == AUTOM_TOTAL) {
       for (int level = 0; level <= cts_log2; ++level) {
+        std::fill(processor_type_counters.begin(),
+                  processor_type_counters.end(), 0u);
 
-        if (level > 0) {
-          for (int i = 0; i < n_orig; ++i) {
-            Dbg(Dbg::TRACE) << "Adding (vertical) edge: " << i + level * n_orig
-                            << " => " << i + (level - 1) * n_orig;
+        for (int v = 0; v < n_orig; ++v) {
+          processor_type_size_type t = _adj[v].type;
+          vertices_size_type offs =
+            processor_type_offsets[t] + processor_type_counters[t];
 
-            ADDONEEDGE(g, i + level * n_orig, i + (level - 1) * n_orig, m);
-          }
-        }
+          lab[offs + level * n_orig] = v + level * n_orig;
 
-        for (auto e : boost::make_iterator_range(boost::edges(_adj))) {
-          int t = static_cast<int>(_adj[e].type) + 1;
-
-          if (t & (1 << level)){
-            int source = static_cast<int>(boost::source(e, _adj));
-            int target = static_cast<int>(boost::target(e, _adj));
-
-            Dbg(Dbg::TRACE) << "Adding (horizontal) edge: "
-                            << source + level * n_orig << " => "
-                            << target + level * n_orig;
-
-            ADDONEEDGE(g, source + level * n_orig, target + level * n_orig, m);
-          }
-          t >>= 1u;
+          ptn[offs + level * n_orig] =
+            ++processor_type_counters[t] != _processor_type_instances[t];
         }
       }
-
-      for (int i = 0; i < n; ++i) {
-        lab[i] = i;
-        ptn[i] = (i + 1) % n_orig != 0;
-      }
-
-      break;
     }
   }
+
+  Dbg(Dbg::TRACE) << "Colored vertices";
 
   // call nauty
   generators.clear();
