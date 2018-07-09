@@ -75,10 +75,19 @@ void ArchGraph::add_channel(ArchGraph::Processor from, ArchGraph::Processor to,
   boost::add_edge(from, to, ep, _adj);
 }
 
-
-PermGroup ArchGraph::processor_automorphisms() const
+PermGroup ArchGraph::automorphisms(ArchGraph::Autom at) const
 {
-  Dbg(Dbg::DBG) << "=== Determining processor automorphisms";
+  switch (at) {
+  case AUTOM_PROCESSORS:
+    Dbg(Dbg::DBG) << "=== Determining processor automorphisms";
+    break;
+  case AUTOM_CHANNELS:
+    Dbg(Dbg::DBG) << "=== Determining channel automorphisms";
+    break;
+  case AUTOM_TOTAL:
+    Dbg(Dbg::DBG) << "=== Determining total automorphisms";
+    break;
+  }
 
   // allocate nauty structures
   DYNALLSTAT(graph, g, g_sz);
@@ -92,8 +101,18 @@ PermGroup ArchGraph::processor_automorphisms() const
 
   statsblk stats;
 
-  size_t n = static_cast<size_t>(boost::num_vertices(_adj));
-  size_t m = SETWORDSNEEDED(n);
+  int n, m, n_orig, cts_log2;
+
+  n = static_cast<int>(boost::num_vertices(_adj));
+  m = SETWORDSNEEDED(n);
+
+  if (at == AUTOM_CHANNELS || at == AUTOM_TOTAL) {
+    int cts = static_cast<int>(_channel_types.size());
+    cts_log2 = 0; while (cts >>= 1) ++cts_log2;
+
+    n_orig = n;
+    n = static_cast<int>(n_orig * (cts_log2 + 1u));
+  }
 
 #ifndef NDBUG
   nauty_check(WORDSIZE, m, n, NAUTYVERSIONID);
@@ -105,42 +124,102 @@ PermGroup ArchGraph::processor_automorphisms() const
   DYNALLOC1(int, orbits, orbits_sz, n, "malloc orbits");
 
   // construct nauty graph
-  Dbg(Dbg::TRACE) << "=== Constructing nauty graph (" << n << " vertices)";
+  if (at == AUTOM_PROCESSORS) {
+    Dbg(Dbg::TRACE) << "=== Constructing nauty graph "
+                    << "(" << n << " vertices)";
+  } else {
+    Dbg(Dbg::TRACE) << "=== Constructing isomorphic vertex colored graph "
+                    << "(" << n << " vertices)";
+  }
 
   EMPTYGRAPH(g, m, n);
 
-  for (auto e : boost::make_iterator_range(boost::edges(_adj))) {
-    int source = static_cast<int>(boost::source(e, _adj));
-    int target = static_cast<int>(boost::target(e, _adj));
+  std::vector<vertices_size_type> processor_type_offsets;
+  std::vector<vertices_size_type> processor_type_counters;
 
-    Dbg(Dbg::TRACE) << "Adding edge: " << source << " => " << target;
-    ADDONEEDGE(g, source, target, m);
+  if (at == AUTOM_PROCESSORS || at == AUTOM_TOTAL) {
+    vertices_size_type offs_accu = 0u;
+    for (processor_type_size_type i = 0u; i < _processor_types.size(); ++i) {
+      processor_type_offsets.push_back(offs_accu);
+      offs_accu += _processor_type_instances[i];
+    }
+
+    processor_type_counters.resize(_processor_types.size(), 0u);
   }
 
-  // color vertices
-  std::vector<vertices_size_type> processor_type_offsets(
-    _processor_types.size(), 0u);
-  std::vector<vertices_size_type> processor_type_counters(
-    _processor_types.size(), 0u);
+  switch (at) {
+  case AUTOM_PROCESSORS:
+    {
+      for (auto e : boost::make_iterator_range(boost::edges(_adj))) {
+        int source = static_cast<int>(boost::source(e, _adj));
+        int target = static_cast<int>(boost::target(e, _adj));
 
-  vertices_size_type offs_accu = 0u;
-  for (processor_type_size_type i = 0u; i < _processor_types.size(); ++i) {
-    processor_type_offsets[i] = offs_accu;
-    offs_accu += _processor_type_instances[i];
-  }
+        Dbg(Dbg::TRACE) << "Adding edge: " << source << " => " << target;
+        ADDONEEDGE(g, source, target, m);
+      }
 
-  for (auto v : boost::make_iterator_range(boost::vertices(_adj))) {
-    processor_type_size_type t = _adj[v].type;
-    vertices_size_type offs =
-      processor_type_offsets[t] + processor_type_counters[t];
+      // color vertices
+      for (auto v : boost::make_iterator_range(boost::vertices(_adj))) {
+        processor_type_size_type t = _adj[v].type;
+        vertices_size_type offs =
+          processor_type_offsets[t] + processor_type_counters[t];
 
-    lab[offs] = static_cast<int>(v);
-    ptn[offs] = ++processor_type_counters[t] != _processor_type_instances[t];
+        lab[offs] = static_cast<int>(v);
+        ptn[offs] = ++processor_type_counters[t] != _processor_type_instances[t];
+      }
+
+      break;
+    }
+  case AUTOM_CHANNELS:
+  case AUTOM_TOTAL:
+    {
+      /* node numbering:
+       *  ...     ...           ...
+       *   |       |             |
+       * (n+1)---(n+2)-- ... --(n+n)
+       *   |       |             |
+       *  (1)-----(2)--- ... ---(n)
+       */
+      for (int level = 0; level <= cts_log2; ++level) {
+
+        if (level > 0) {
+          for (int i = 0; i < n_orig; ++i) {
+            Dbg(Dbg::TRACE) << "Adding (vertical) edge: " << i + level * n_orig
+                            << " => " << i + (level - 1) * n_orig;
+
+            ADDONEEDGE(g, i + level * n_orig, i + (level - 1) * n_orig, m);
+          }
+        }
+
+        for (auto e : boost::make_iterator_range(boost::edges(_adj))) {
+          int t = static_cast<int>(_adj[e].type) + 1;
+
+          if (t & (1 << level)){
+            int source = static_cast<int>(boost::source(e, _adj));
+            int target = static_cast<int>(boost::target(e, _adj));
+
+            Dbg(Dbg::TRACE) << "Adding (horizontal) edge: "
+                            << source + level * n_orig << " => "
+                            << target + level * n_orig;
+
+            ADDONEEDGE(g, source + level * n_orig, target + level * n_orig, m);
+          }
+          t >>= 1u;
+        }
+      }
+
+      for (int i = 0; i < n; ++i) {
+        lab[i] = i;
+        ptn[i] = (i + 1) % n_orig != 0;
+      }
+
+      break;
+    }
   }
 
   // call nauty
   generators.clear();
-  generator_degree = n;
+  generator_degree = (at == AUTOM_PROCESSORS) ? n : n_orig;
 
   densenauty(g, lab, ptn, orbits, &options, &stats, m, n, nullptr);
 
@@ -151,137 +230,18 @@ PermGroup ArchGraph::processor_automorphisms() const
   nauty_free();
 
   if (generators.empty()) {
-    PermGroup ret(n, {Perm(n)});
+    PermGroup ret(generator_degree, {Perm(generator_degree)});
 
     Dbg(Dbg::DBG) << "=== Result";
     Dbg(Dbg::DBG) << "Trivial automorphism group";
     return ret;
 
   } else {
-    PermGroup ret(n, generators);
+    PermGroup ret(generator_degree, generators);
 
     Dbg(Dbg::DBG) << "=== Result";
     Dbg(Dbg::DBG) << ret;
     return ret;
-  }
-}
-
-PermGroup ArchGraph::channel_automorphisms() const
-{
-  Dbg(Dbg::DBG) << "=== Determining channel automorphisms";
-
-  // allocate nauty structures
-  DYNALLSTAT(graph, g, g_sz);
-  DYNALLSTAT(int, lab, lab_sz);
-  DYNALLSTAT(int, ptn, ptn_sz);
-  DYNALLSTAT(int, orbits, orbits_sz);
-
-  static DEFAULTOPTIONS_GRAPH(options);
-  options.defaultptn = FALSE;
-  options.userautomproc = save_generator;
-
-  statsblk stats;
-
-  int cts = static_cast<int>(_channel_types.size());
-  int cts_log2 = 0; while (cts >>= 1) ++cts_log2;
-
-  int n_orig = static_cast<int>(boost::num_edges(_adj));
-  int n = static_cast<int>(n_orig * (cts_log2 + 1u));
-  int m = SETWORDSNEEDED(n);
-
-#ifndef NDBUG
-  nauty_check(WORDSIZE, m, n, NAUTYVERSIONID);
-#endif
-
-  DYNALLOC2(graph, g, g_sz, m, n, "malloc graph");
-  DYNALLOC1(int, lab, lab_sz, n, "malloc lab");
-  DYNALLOC1(int, ptn, ptn_sz, n, "malloc ptn");
-  DYNALLOC1(int, orbits, orbits_sz, n, "malloc orbits");
-
-  // construct nauty graph
-  Dbg(Dbg::TRACE) << "=== Constructing isomorphic vertex colored graph (" << n
-                  << " vertices)";
-
-  EMPTYGRAPH(g, m, n);
-
-  /* node numbering:
-   *  ...     ...           ...
-   *   |       |             |
-   * (n+1)---(n+2)-- ... --(n+n)
-   *   |       |             |
-   *  (1)-----(2)--- ... ---(n)
-   */
-  for (int level = 0; level <= cts_log2; ++level) {
-
-    if (level > 0) {
-      for (int i = 0; i < n_orig; ++i) {
-        Dbg(Dbg::TRACE) << "Adding (vertical) edge: " << i + level * n_orig
-                        << " => " << i + (level - 1) * n_orig;
-
-        ADDONEEDGE(g, i + level * n_orig, i + (level - 1) * n_orig, m);
-      }
-    }
-
-    for (auto e : boost::make_iterator_range(boost::edges(_adj))) {
-      int t = static_cast<int>(_adj[e].type) + 1;
-
-      if (t & (1 << level)){
-        int source = static_cast<int>(boost::source(e, _adj));
-        int target = static_cast<int>(boost::target(e, _adj));
-
-        Dbg(Dbg::TRACE) << "Adding (horizontal) edge: "
-                        << source + level * n_orig << " => "
-                        << target + level * n_orig;
-
-        ADDONEEDGE(g, source + level * n_orig, target + level * n_orig, m);
-      }
-      t >>= 1u;
-    }
-  }
-
-  for (int i = 0; i < n; ++i) {
-    lab[i] = i;
-    ptn[i] = (i + 1) % n_orig != 0;
-  }
-  Dbg(Dbg::TRACE) << "Colored vertices";
-
-  generators.clear();
-  generator_degree = n_orig;
-  densenauty(g, lab, ptn, orbits, &options, &stats, m, n, nullptr);
-
-  DYNFREE(lab, lab_sz);
-  DYNFREE(ptn, ptn_sz);
-  DYNFREE(orbits, orbits_sz);
-  DYNFREE(g, g_sz);
-  nauty_free();
-
-  if (generators.empty()) {
-    PermGroup ret(n_orig, {Perm(n_orig)});
-
-    Dbg(Dbg::DBG) << "=== Result";
-    Dbg(Dbg::DBG) << "Trivial automorphism group";
-    return ret;
-
-  } else {
-    PermGroup ret(n_orig, generators);
-
-    Dbg(Dbg::DBG) << "=== Result";
-    Dbg(Dbg::DBG) << ret;
-    return ret;
-  }
-}
-
-PermGroup ArchGraph::automorphisms(ArchGraph::Autom at) const
-{
-  switch (at) {
-    case AUTOM_PROCESSORS:
-      return processor_automorphisms();
-      break;
-    case AUTOM_CHANNELS:
-      return channel_automorphisms();
-      break;
-    default:
-      throw std::runtime_error("TODO");
   }
 }
 
