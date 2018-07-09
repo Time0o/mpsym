@@ -1,4 +1,3 @@
-#include <boost/algorithm/string/replace.hpp>
 #include <sstream>
 #include <vector>
 
@@ -88,7 +87,17 @@ static ::testing::AssertionResult _perm_equal(
     ss << listener.str();
 
     std::string msg(ss.str());
-    boost::replace_all(msg, "\n", "\n    ");
+
+    int const indent = 4;
+
+    size_t i = 0u;
+    for (;;) {
+      if ((i = msg.find('\n', i)) == std::string::npos)
+        break;
+
+      msg.insert(i + 1, std::string(indent, ' '));
+      i += indent + 1;
+    }
 
     return ::testing::AssertionFailure() << msg;
 }
