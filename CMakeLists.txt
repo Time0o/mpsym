@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
+
+project(CGTL "CXX")
 set (CMAKE_CXX_STANDARD 11)
 
 
@@ -6,7 +8,6 @@ set (CMAKE_CXX_STANDARD 11)
 # Project Structure
 ################################################################################
 
-project(CGTL "CXX")
 set(MAIN_LIB "cgtl")
 
 set(CMAKE_SCRIPT_DIR "${PROJECT_SOURCE_DIR}/cmake")
