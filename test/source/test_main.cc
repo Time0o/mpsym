@@ -1,37 +1,58 @@
+#include <cstdlib>
 #include <cstring>
+#include <getopt.h>
 #include <iostream>
+#include <string>
 
 #include "dbg.h"
 #include "gmock/gmock.h"
 
-static void usage_err(char const *progname)
-{
-  std::cerr << "USAGE: " << progname << " [-v|-vv|-vvv]\n";
-}
+#define USAGE "USAGE: TEST [OPTIONS]\n" \
+              " -h           display this message\n" \
+              " -o TESTCASE  only run the testcase TESTCASE\n" \
+              " -v           increase verbosity, can be passed multiple times\n"
 
 int main(int argc, char** argv) {
-  bool run = true;
+  int verbosity = 0;
 
-  if (argc > 2) {
-     usage_err(argv[0]);
-     run = false;
-  } else if (argc == 2) {
-    if (strcmp(argv[1], "-v") == 0) {
-      Dbg::loglevel = Dbg::INFO;
-    } else if (strcmp(argv[1], "-vv") == 0) {
-      Dbg::loglevel = Dbg::DBG;
-    } else if (strcmp(argv[1], "-vvv") == 0) {
-      Dbg::loglevel = Dbg::TRACE;
-    } else {
-      usage_err(argv[0]);
-      run = false;
+  option const longopts[] {
+    {"help", no_argument, nullptr, 'h'},
+    {"only", required_argument, nullptr, 'o'}
+  };
+
+  int opt, index;
+  while ((opt = getopt_long(argc, argv, "ho:v", longopts, &index)) != -1) {
+    switch(opt) {
+      case 'h':
+        std::cout << USAGE;
+        exit(EXIT_SUCCESS);
+      case 'o':
+        ::testing::GTEST_FLAG(filter) = std::string("*.") + optarg;
+        break;
+      case 'v':
+        ++verbosity;
+        break;
+      case '?':
+        std::cerr << USAGE;
+        exit(EXIT_FAILURE);
     }
   }
 
-  if (run) {
-    ::testing::InitGoogleMock(&argc, argv);
-    return RUN_ALL_TESTS();
+  switch(verbosity) {
+    case 0:
+      Dbg::loglevel = Dbg::WARN;
+      break;
+    case 1:
+      Dbg::loglevel = Dbg::INFO;
+      break;
+    case 2:
+      Dbg::loglevel = Dbg::DBG;
+      break;
+    default:
+      Dbg::loglevel = Dbg::TRACE;
+      break;
   }
 
-  return -1;
+  ::testing::InitGoogleMock(&argc, argv);
+  return RUN_ALL_TESTS();
 }
