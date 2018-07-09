@@ -1,9 +1,10 @@
 #ifndef _GUARD_ARCH_GRAPH_H
 #define _GUARD_ARCH_GRAPH_H
 
-#include <boost/graph/adjacency_list.hpp>
 #include <ostream>
 #include <string>
+
+#include "boost/graph/adjacency_list.hpp"
 
 #include "perm_group.h"
 
