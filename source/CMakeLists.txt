@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.6)
 
 include_directories("${INCLUDE_DIR}")
+include_directories("${NAUTY_WORKDIR}")
 
 add_library("${MAIN_LIB}"
+            "arch_graph.cc"
             "bsgs.cc"
             "dbg.cc"
             "perm.cc"

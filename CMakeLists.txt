@@ -63,7 +63,7 @@ function(add_external_project)
 endfunction()
 
 # Boost
-find_package(Boost 1.40 REQUIRED)
+find_package(Boost 1.40 REQUIRED COMPONENTS graph)
 
 # Nauty
 add_external_project(NAME "nauty/traces"
