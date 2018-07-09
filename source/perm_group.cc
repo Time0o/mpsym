@@ -17,6 +17,11 @@ PermGroup::PermGroup(unsigned degree, std::vector<Perm> const &generators,
   SchreierSims::Variant schreier_sims_method)
   : _n(degree), _bsgs(generators, schreier_sims_method)
 {
+#ifndef NDEBUG
+  for (auto const &gen : generators)
+    assert(gen.degree() == _n && "all elements have same degree as group");
+#endif
+
   _order = 1u;
   for (auto const &b : _bsgs)
     _order *= b.orbit().size();
@@ -60,6 +65,8 @@ PermGroup PermGroup::alternating(unsigned degree)
 
 bool PermGroup::is_element(Perm const &perm) const
 {
+  assert(perm.degree() == _n && "element has same degree as group");
+
   Dbg(Dbg::DBG) << "Performing membership test for " << perm << " in:";
   Dbg(Dbg::DBG) << (*this);
 

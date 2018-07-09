@@ -149,6 +149,8 @@ std::ostream& operator<<(std::ostream& stream, const Perm &perm)
 
 bool Perm::operator==(Perm const &rhs) const
 {
+  assert(rhs.degree() == _n && "comparing permutations of equal degree");
+
   for (unsigned i = 1u; i <= degree(); ++i) {
     if ((*this)[i] != rhs[i])
       return false;
@@ -164,6 +166,8 @@ bool Perm::operator!=(Perm const &rhs) const
 
 Perm& Perm::operator*=(Perm const &rhs)
 {
+  assert(rhs.degree() == _n && "multiplying permutations of equal degree");
+
   for (unsigned i = 0u; i < rhs.degree(); ++i)
     _perm[i] = rhs[(*this)[i + 1u]];
 
