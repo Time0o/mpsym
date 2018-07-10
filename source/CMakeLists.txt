@@ -15,15 +15,20 @@ add_library("${MAIN_LIB}"
 
 target_link_libraries("${MAIN_LIB}" "${NAUTY_WORKDIR}/nauty.a")
 
-set(CGTL_COMPILER_FLAGS "-Wall -pedantic -Wextra")
+set(MAIN_COMPILER_FLAGS "-Wall -pedantic -Wextra")
+set(MAIN_LINK_FLAGS "")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(CGTL_COMPILER_FLAGS "${CGTL_COMPILER_FLAGS} -g -O0 --coverage")
+  target_link_libraries("${MAIN_LIB}" gcov)
+
+  set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O0 --coverage")
+  set(MAIN_LINK_FLAGS "${MAIN_LINK_FLAGS} --coverage")
 endif()
 
 set_target_properties("${MAIN_LIB}" PROPERTIES
   LINKER_LANGUAGE CXX
   CXX_STANDARD 11
   CXX_STANDARD_REQUIRED ON
-  COMPILE_FLAGS "${CGTL_COMPILER_FLAGS}"
+  COMPILE_FLAGS "${MAIN_COMPILER_FLAGS}"
+  LINK_FLAGS "${MAIN_LINK_FLAGS}"
 )

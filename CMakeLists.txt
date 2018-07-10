@@ -16,10 +16,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_SCRIPT_DIR}")
 set(NAUTY_CONFIG "${CMAKE_SCRIPT_DIR}/GetNauty.cmake")
 set(GTEST_CONFIG "${CMAKE_SCRIPT_DIR}/GetGTest.cmake")
 
-file(DOWNLOAD
-     https://raw.githubusercontent.com/bilke/cmake-modules/master/CodeCoverage.cmake
-     "${CMAKE_SCRIPT_DIR}/CodeCoverage.cmake")
-
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/source")
 set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
 
@@ -81,26 +77,47 @@ add_subdirectory("${GTEST_SRC_DIR}" "${GTEST_BIN_DIR}" EXCLUDE_FROM_ALL)
 
 
 ################################################################################
-# Testing
+# Code Coverage
 ################################################################################
 
-enable_testing()
-
-# Code coverage
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  include(CodeCoverage)
+  find_program(GCOV_PATH gcov)
+  find_program(LCOV_PATH  NAMES lcov lcov.bat lcov.exe lcov.perl)
+  find_program(GENHTML_PATH NAMES genhtml genhtml.perl genhtml.bat)
 
-  set(COVERAGE_TARGET "coverage")
+  if(NOT GCOV_PATH)
+    message(FATAL_ERROR "Failed to find gcov")
+  endif()
 
-  # TODO
+  if(NOT LCOV_PATH)
+    message(FATAL_ERROR "Failed to find lcov")
+  endif()
 
-  #file(GLOB_RECURSE COVERAGE_STDLIB_BOOST_EXCLUDES
-  #     "${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES}/*")
+  if(NOT GENHTML_PATH)
+    message(FATAL_ERROR "Failed to find genhtml")
+  endif()
 
-  #set(COVERAGE_EXCLUDES "${COVERAGE_STDLIB_BOOST_EXCLUDES}")
+  set(Coverage_TARGET "coverage")
+  set(Coverage_OUTDIR "coverage")
 
-  setup_target_for_coverage(NAME "${COVERAGE_TARGET}"
-                            EXECUTABLE "${CMAKE_CTEST_COMMAND}")
+  add_custom_target(${Coverage_TARGET}
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+
+    # Cleanup lcov
+    COMMAND ${LCOV_PATH} -z -d . --include "'${PROJECT_SOURCE_DIR}/*'"
+
+    # Run tests
+    COMMAND ${CMAKE_CTEST_COMMAND}
+
+    # Capturing lcov counters and generating report
+    COMMAND ${LCOV_PATH} -c -d . -o "lcov.info" --include "'${PROJECT_SOURCE_DIR}/*'"
+
+    # generate html output
+    COMMAND ${GENHTML_PATH} "lcov.info" -o "${Coverage_OUTDIR}"
+
+    # remove temporary files
+    COMMAND ${CMAKE_COMMAND} -E remove "lcov.base" "lcov.info" "lcov.total"
+  )
 endif()
 
 
@@ -116,4 +133,6 @@ endif()
 ################################################################################
 
 add_subdirectory("${SRC_DIR}")
+
+enable_testing()
 add_subdirectory("${TEST_SRC_DIR}")
