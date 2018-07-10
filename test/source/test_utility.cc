@@ -1,3 +1,5 @@
+#include <cassert>
+#include <cstring>
 #include <sstream>
 #include <vector>
 
@@ -5,6 +7,7 @@
 #include "gmock/gmock.h"
 #include "perm.h"
 #include "perm_group.h"
+#include "test_utility.h"
 
 using cgtl::Perm;
 using cgtl::PermWord;
@@ -52,23 +55,20 @@ static ::testing::AssertionResult _perm_equal(
   return _perm_equal<PermWord>(expected, pw);
 }
 
-::testing::AssertionResult perm_group_equal(
-  std::vector<std::vector<std::vector<unsigned>>> const &expected,
+::testing::AssertionResult perm_group_equal(std::vector<Perm> const &expected,
   PermGroup const &pg)
 {
-    unsigned degree = pg.degree();
-
-    std::vector<Perm> expected_elements {Perm(degree)};
-    for (auto const &p : expected) {
-      expected_elements.push_back(Perm(degree, p));
-    }
+#ifndef NDEBUG
+  for (auto const &p : expected)
+    assert(p.degree() == pg.degree());
+#endif
 
     std::vector<Perm> actual_elements;
     for (Perm const &p : pg)
       actual_elements.push_back(p);
 
     ::testing::Matcher<std::vector<Perm> const &> matcher(
-      ::testing::UnorderedElementsAreArray(expected_elements));
+      ::testing::UnorderedElementsAreArray(expected));
 
     ::testing::StringMatchResultListener listener;
     if (matcher.MatchAndExplain(actual_elements, &listener))
@@ -100,4 +100,55 @@ static ::testing::AssertionResult _perm_equal(
     }
 
     return ::testing::AssertionFailure() << msg;
+}
+
+::testing::AssertionResult perm_group_equal(
+  std::vector<std::vector<std::vector<unsigned>>> const &expected,
+  PermGroup const &pg)
+{
+    unsigned degree = pg.degree();
+
+    std::vector<Perm> expected_elements {Perm(degree)};
+    for (auto const &p : expected) {
+      expected_elements.push_back(Perm(degree, p));
+    }
+
+    return perm_group_equal(expected_elements, pg);
+}
+
+PermGroup verified_group(VerifiedGroup group)
+{
+  static std::map<VerifiedGroup, unsigned> degrees {
+    {D8, 4}
+  };
+
+  static std::map<VerifiedGroup, std::vector<Perm>> generators {
+    {D8,
+      {
+        Perm(4, {{2, 4}}),
+        Perm(4, {{1, 2}, {3, 4}})
+      }
+    }
+  };
+
+  static std::map<VerifiedGroup, std::vector<Perm>> elements {
+    {D8,
+      {
+        Perm(4, {{1, 2, 3, 4}}),
+        Perm(4, {{1, 2}, {3, 4}}),
+        Perm(4, {{1, 3}, {2, 4}}),
+        Perm(4, {{1, 3}}),
+        Perm(4, {{1, 4, 3, 2}}),
+        Perm(4, {{1, 4}, {2, 3}}),
+        Perm(4, {{2, 4}})
+      }
+    }
+  };
+
+  PermGroup ret(degrees[group], generators[group]);
+
+  assert(perm_group_equal(elements[group], ret)
+         && "verified group has correct elements");
+
+  return ret;
 }
