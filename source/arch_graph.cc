@@ -399,14 +399,14 @@ bool ArchGraph::fromlua(std::string const &infile)
   return true;
 }
 
-void ArchGraph::todot(std::string const &outfile) const
+bool ArchGraph::todot(std::string const &outfile) const
 {
   std::ofstream out(outfile);
 
   if (!out.is_open()) {
     Dbg(Dbg::WARN) << "Could not produce dotfile, failed to open file '"
                    << outfile << "'";
-    return;
+    return false;
   }
 
   static char const * const COLORSCHEME = "accent";
@@ -445,6 +445,8 @@ void ArchGraph::todot(std::string const &outfile) const
   }
 
   out << "}\n";
+
+  return true;
 }
 
 }

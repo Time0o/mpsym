@@ -227,3 +227,14 @@ TEST_F(ArchGraphTest, CanLoadFromLua)
   ASSERT_TRUE(ag.fromlua("resources/mcsoc.lua"))
     << "Can load architecture graph from lua description";
 }
+
+TEST_F(ArchGraphTest, CanProduceDotFile)
+{
+  ArchGraph ag;
+
+  ASSERT_TRUE(ag.fromlua("resources/mcsoc.lua"))
+    << "Can load architecture graph from lua description";
+
+  EXPECT_TRUE(ag.todot("resources/mcsoc.dot"))
+    << "Can produce architecture graph dot description";
+}
