@@ -13,7 +13,9 @@ add_library("${MAIN_LIB}"
             "pr_randomizer.cc"
             "schreier_sims.cc")
 
-target_link_libraries("${MAIN_LIB}" "${NAUTY_WORKDIR}/nauty.a")
+target_link_libraries("${MAIN_LIB}"
+                      "${LUA_LIBRARIES}"
+                      "${NAUTY_WORKDIR}/nauty.a")
 
 set(MAIN_COMPILER_FLAGS "-Wall -pedantic -Wextra")
 set(MAIN_LINK_FLAGS "")

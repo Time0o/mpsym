@@ -61,6 +61,7 @@ public:
 
   PermGroup automorphisms(Autom at = AUTOM_TOTAL) const;
 
+  bool fromlua(std::string const &infile);
   void todot(std::string const &outfile) const;
 
 private:

@@ -3,10 +3,18 @@
 #include <fstream>
 #include <ostream>
 #include <string>
+#include <sstream>
+#include <unordered_map>
 #include <vector>
 
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/range/iterator_range_core.hpp"
+
+extern "C" {
+  #include "lua.h"
+  #include "lualib.h"
+  #include "lauxlib.h"
+}
 
 #include "arch_graph.h"
 #include "dbg.h"
@@ -16,31 +24,6 @@
 
 namespace cgtl
 {
-
-static Perm to_perm(int *perm, int degree)
-{
-  std::vector<unsigned> tmp(degree);
-  for (int i = 0; i < degree; ++i)
-    tmp[i] = perm[i] + 1;
-
-  return Perm(tmp);
-}
-
-static int generator_degree;
-static std::vector<Perm> generators;
-
-static void save_generator(int, int *perm, int *, int, int, int)
-{
-  generators.push_back(to_perm(perm, generator_degree));
-}
-
-// free all dynamic memory allocated by a call to nauty
-static void nauty_free()
-{
-  naugraph_freedyn();
-  nautil_freedyn();
-  nauty_freedyn();
-}
 
 ArchGraph::ProcessorType ArchGraph::new_processor_type(std::string label)
 {
@@ -75,6 +58,30 @@ void ArchGraph::add_channel(ArchGraph::Processor from, ArchGraph::Processor to,
 
   EdgeProperty ep {cht};
   boost::add_edge(from, to, ep, _adj);
+}
+
+static int generator_degree;
+static std::vector<Perm> generators;
+
+static Perm to_perm(int *perm, int degree)
+{
+  std::vector<unsigned> tmp(degree);
+  for (int i = 0; i < degree; ++i)
+    tmp[i] = perm[i] + 1;
+
+  return Perm(tmp);
+}
+
+static void save_generator(int, int *perm, int *, int, int, int)
+{
+  generators.push_back(to_perm(perm, generator_degree));
+}
+
+static void nauty_free()
+{
+  naugraph_freedyn();
+  nautil_freedyn();
+  nauty_freedyn();
 }
 
 PermGroup ArchGraph::automorphisms(ArchGraph::Autom at) const
@@ -256,6 +263,140 @@ PermGroup ArchGraph::automorphisms(ArchGraph::Autom at) const
     Dbg(Dbg::DBG) << ret;
     return ret;
   }
+}
+
+static bool lua_parse_err(lua_State *L, std::string const &infile,
+  std::string const &err)
+{
+  Dbg(Dbg::WARN) << "Failed to parse '" << infile << "': " << err;
+
+  lua_close(L);
+  return false;
+}
+
+bool ArchGraph::fromlua(std::string const &infile)
+{
+  int lua_err;
+
+  lua_State *L = luaL_newstate();
+  luaL_openlibs(L);
+
+  lua_err = luaL_loadfile(L, infile.c_str());
+  if (lua_err) {
+    Dbg(Dbg::WARN) << "Failed to open '" << infile << "'";
+    lua_close(L);
+    return false;
+  }
+
+  lua_err = lua_pcall(L, 0, 0, 0);
+  if (lua_err)
+    return lua_parse_err(L, infile, lua_tostring(L, -1));
+
+  std::unordered_map<int, Processor> pes;
+  std::unordered_map<std::string, ProcessorType> pe_types;
+  std::unordered_map<std::string, ChannelType> ch_types;
+
+  // parse 'processors' table
+  if (lua_getglobal(L, "processors") != LUA_TTABLE)
+    return lua_parse_err(L, infile, "no 'processors' table defined");
+
+  lua_pushvalue(L, -1);
+  lua_pushnil(L);
+
+  while (lua_next(L, -2)) {
+    if (!lua_istable(L, -1)) {
+      return lua_parse_err(L, infile, "malformed element in 'processors' table");
+
+    } else {
+      if (!lua_isnumber(L, -2) || !lua_istable(L, -1))
+        return lua_parse_err(L, infile, "malformed element in 'processors' table");
+
+      lua_pushnil(L);
+
+      if (!lua_next(L, -2) || !lua_isnumber(L, -2) || !lua_isnumber(L, -1))
+        return lua_parse_err(L, infile, "malformed element in 'processors' table");
+
+      int pe = lua_tonumber(L, -1);
+      if (pes.find(pe) != pes.end()) {
+        std::stringstream ss;
+        ss <<  "processing element " << pe
+           << " defined twice in 'processors' table";
+        return lua_parse_err(L, infile, ss.str());
+      }
+
+      lua_pop(L, 1);
+
+      if (!lua_next(L, -2) || !lua_isnumber(L, -2) || !lua_isstring(L, -1))
+        return lua_parse_err(L, infile, "malformed element in 'processors' table");
+
+      std::string pe_type(lua_tostring(L, -1));
+      if (pe_types.find(pe_type) == pe_types.end())
+        pe_types[pe_type] = new_processor_type(pe_type);
+
+      pes[pe] = add_processor(pe_types[pe_type]);
+
+      lua_pop(L, 3);
+    }
+  }
+
+  // parse 'channels' table
+  if (lua_getglobal(L, "channels") != LUA_TTABLE)
+    return lua_parse_err(L, infile, "no 'channels' table defined");
+
+  lua_pushvalue(L, -1);
+  lua_pushnil(L);
+
+  while (lua_next(L, -2)) {
+    if (!lua_istable(L, -1)) {
+      return lua_parse_err(L, infile, "malformed element in 'channels' table");
+
+    } else {
+      if (!lua_isnumber(L, -2) || !lua_istable(L, -1))
+        return lua_parse_err(L, infile, "malformed element in 'channels' table");
+
+      lua_pushnil(L);
+
+      if (!lua_next(L, -2) || !lua_isnumber(L, -2) || !lua_isnumber(L, -1))
+        return lua_parse_err(L, infile, "malformed element in 'channels' table");
+
+      int pe1 = lua_tonumber(L, -1);
+      if (pes.find(pe1) == pes.end()) {
+        std::stringstream ss;
+        ss << "processing element  " << pe1
+           << " used in 'channels' table not defined in 'processors' table";
+        return lua_parse_err(L, infile, ss.str());
+      }
+
+      lua_pop(L, 1);
+
+      if (!lua_next(L, -2) || !lua_isnumber(L, -2) || !lua_isnumber(L, -1))
+        return lua_parse_err(L, infile, "malformed element in 'channels' table");
+
+      int pe2 = lua_tonumber(L, -1);
+      if (pes.find(pe2) == pes.end()) {
+        std::stringstream ss;
+        ss << "processing element " << pe2
+           << " used in 'channels' table not defined in 'processors' table";
+        return lua_parse_err(L, infile, ss.str());
+      }
+
+      lua_pop(L, 1);
+
+      if (!lua_next(L, -2) || !lua_isnumber(L, -2) || !lua_isstring(L, -1))
+        return lua_parse_err(L, infile, "malformed element in 'channels' table");
+
+      std::string ch_type(lua_tostring(L, -1));
+      if (ch_types.find(ch_type) == ch_types.end())
+        ch_types[ch_type] = new_channel_type(ch_type);
+
+      add_channel(pes[pe1], pes[pe2], ch_types[ch_type]);
+
+      lua_pop(L, 3);
+    }
+  }
+
+  lua_close(L);
+  return true;
 }
 
 void ArchGraph::todot(std::string const &outfile) const

@@ -219,3 +219,11 @@ TEST_F(ArchGraphTest, CanObtainTotalAutomorphisms)
     }, ag_tcol.automorphisms(ArchGraph::AUTOM_TOTAL)))
     << "Channel automorphisms of totally colored architecture graph correct.";
 }
+
+TEST_F(ArchGraphTest, CanLoadFromLua)
+{
+  ArchGraph ag;
+
+  ASSERT_TRUE(ag.fromlua("resources/mcsoc.lua"))
+    << "Can load architecture graph from lua description";
+}

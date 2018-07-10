@@ -21,6 +21,7 @@ set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
 
 set(TEST_SRC_DIR "${PROJECT_SOURCE_DIR}/test/source")
 set(TEST_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/test/include")
+set(TEST_RESOURCE_DIR "${PROJECT_SOURCE_DIR}/test/resources")
 
 set(NAUTY_DIR "${CMAKE_BINARY_DIR}/nauty")
 set(NAUTY_DOWNLOAD_DIR "${NAUTY_DIR}/download")
@@ -62,6 +63,9 @@ endfunction()
 
 # Boost
 find_package(Boost 1.40 REQUIRED COMPONENTS graph)
+
+#Lua
+find_package(Lua 5.3 REQUIRED)
 
 # Nauty
 add_external_project(NAME "nauty/traces"
