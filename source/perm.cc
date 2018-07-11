@@ -64,7 +64,7 @@ Perm::Perm(unsigned n, std::vector<std::vector<unsigned>> const &cycles)
     assert(tmp.size() == cycle.size() &&
       "cycle does not contain duplicate elements");
 
-    for (size_t i = 1u; i < cycle.size(); ++i) {
+    for (auto i = 1u; i < cycle.size(); ++i) {
       unsigned tmp = cycle[i];
       assert(tmp <= _n && "cycle element <= N");
       _perm[cycle[i - 1u] - 1u] = tmp;

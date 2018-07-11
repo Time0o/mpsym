@@ -1,6 +1,7 @@
 #ifndef _GUARD_ARCH_GRAPH_H
 #define _GUARD_ARCH_GRAPH_H
 
+#include <cstdlib>
 #include <ostream>
 #include <string>
 
@@ -60,7 +61,7 @@ public:
     }
 
   private:
-    size_t _hash;
+    std::size_t _hash;
   };
 
   ProcessorType new_processor_type(std::string label);
@@ -69,10 +70,10 @@ public:
   Processor add_processor(ProcessorType pe);
   void add_channel(ProcessorType pe1, ProcessorType pe2, ChannelType ch);
 
-  size_t num_processors() const {
+  std::size_t num_processors() const {
     return static_cast<size_t>(boost::num_vertices(_adj));
   }
-  size_t num_channels() const {
+  std::size_t num_channels() const {
     return static_cast<size_t>(boost::num_edges(_adj));
   }
 
