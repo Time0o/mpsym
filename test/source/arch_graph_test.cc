@@ -225,7 +225,13 @@ TEST_F(ArchGraphTest, CanLoadFromLua)
   ArchGraph ag;
 
   ASSERT_TRUE(ag.fromlua("resources/mcsoc.lua"))
-    << "Can load architecture graph from lua description";
+    << "Can load architecture graph from lua description.";
+
+  EXPECT_EQ(8u, ag.num_processors())
+    << "Loaded architecture graph has correct number of processors.";
+
+  EXPECT_EQ(64u, ag.num_channels())
+    << "Loaded architecture graph has correct number of channels.";
 }
 
 TEST_F(ArchGraphTest, CanProduceDotFile)
@@ -233,8 +239,8 @@ TEST_F(ArchGraphTest, CanProduceDotFile)
   ArchGraph ag;
 
   ASSERT_TRUE(ag.fromlua("resources/mcsoc.lua"))
-    << "Can load architecture graph from lua description";
+    << "Can load architecture graph from lua description.";
 
   EXPECT_TRUE(ag.todot("resources/mcsoc.dot"))
-    << "Can produce architecture graph dot description";
+    << "Can produce architecture graph dot description.";
 }

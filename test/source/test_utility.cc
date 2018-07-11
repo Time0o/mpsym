@@ -55,97 +55,92 @@ static ::testing::AssertionResult _perm_equal(
   return _perm_equal<PermWord>(expected, pw);
 }
 
-::testing::AssertionResult perm_group_equal(std::vector<Perm> const &expected,
-  PermGroup const &pg)
-{
-#ifndef NDEBUG
-  for (auto const &p : expected)
-    assert(p.degree() == pg.degree());
-#endif
-
-    std::vector<Perm> actual_elements;
-    for (Perm const &p : pg)
-      actual_elements.push_back(p);
-
-    ::testing::Matcher<std::vector<Perm> const &> matcher(
-      ::testing::UnorderedElementsAreArray(expected));
-
-    ::testing::StringMatchResultListener listener;
-    if (matcher.MatchAndExplain(actual_elements, &listener))
-      return ::testing::AssertionSuccess();
-
-    std::stringstream ss;
-    ss << "\nShould be: ";
-    matcher.DescribeTo(&ss);
-
-    ss << "\nBut is: { ";
-    for (auto i = 0u; i < actual_elements.size(); ++i) {
-      ss << actual_elements[i]
-         << (i == actual_elements.size() - 1u ? "" : ", ");
-    }
-    ss << " },\n";
-    ss << listener.str();
-
-    std::string msg(ss.str());
-
-    int const indent = 4;
-
-    size_t i = 0u;
-    for (;;) {
-      if ((i = msg.find('\n', i)) == std::string::npos)
-        break;
-
-      msg.insert(i + 1, std::string(indent, ' '));
-      i += indent + 1;
-    }
-
-    return ::testing::AssertionFailure() << msg;
-}
-
 ::testing::AssertionResult perm_group_equal(
   std::vector<std::vector<std::vector<unsigned>>> const &expected,
   PermGroup const &pg)
 {
-    unsigned degree = pg.degree();
+  unsigned degree = pg.degree();
 
-    std::vector<Perm> expected_elements {Perm(degree)};
-    for (auto const &p : expected) {
-      expected_elements.push_back(Perm(degree, p));
-    }
+  std::vector<Perm> expected_elements {Perm(degree)};
+  for (auto const &p : expected) {
+    expected_elements.push_back(Perm(degree, p));
+  }
 
-    return perm_group_equal(expected_elements, pg);
+  std::vector<Perm> actual_elements;
+  for (Perm const &p : pg)
+    actual_elements.push_back(p);
+
+  ::testing::Matcher<std::vector<Perm> const &> matcher(
+    ::testing::UnorderedElementsAreArray(expected_elements));
+
+  ::testing::StringMatchResultListener listener;
+  if (matcher.MatchAndExplain(actual_elements, &listener))
+    return ::testing::AssertionSuccess();
+
+  std::stringstream ss;
+  ss << "\nShould be: ";
+  matcher.DescribeTo(&ss);
+
+  ss << "\nBut is: { ";
+  for (auto i = 0u; i < actual_elements.size(); ++i) {
+    ss << actual_elements[i]
+       << (i == actual_elements.size() - 1u ? "" : ", ");
+  }
+  ss << " },\n";
+  ss << listener.str();
+
+  std::string msg(ss.str());
+
+  int const indent = 4;
+
+  size_t i = 0u;
+  for (;;) {
+    if ((i = msg.find('\n', i)) == std::string::npos)
+      break;
+
+    msg.insert(i + 1, std::string(indent, ' '));
+    i += indent + 1;
+  }
+
+  return ::testing::AssertionFailure() << msg;
 }
 
 PermGroup verified_group(VerifiedGroup group)
 {
+  typedef std::vector<std::vector<std::vector<unsigned>>> perm_group_element;
+
   static std::map<VerifiedGroup, unsigned> degrees {
     {D8, 4}
   };
 
-  static std::map<VerifiedGroup, std::vector<Perm>> generators {
+  static std::map<VerifiedGroup, perm_group_element> generators {
     {D8,
       {
-        Perm(4, {{2, 4}}),
-        Perm(4, {{1, 2}, {3, 4}})
+        {{{2, 4}}},
+        {{{1, 2}, {3, 4}}}
       }
     }
   };
 
-  static std::map<VerifiedGroup, std::vector<Perm>> elements {
+  static std::map<VerifiedGroup, perm_group_element> elements {
     {D8,
       {
-        Perm(4, {{1, 2, 3, 4}}),
-        Perm(4, {{1, 2}, {3, 4}}),
-        Perm(4, {{1, 3}, {2, 4}}),
-        Perm(4, {{1, 3}}),
-        Perm(4, {{1, 4, 3, 2}}),
-        Perm(4, {{1, 4}, {2, 3}}),
-        Perm(4, {{2, 4}})
+        {{{1, 2, 3, 4}}},
+        {{{1, 2}, {3, 4}}},
+        {{{1, 3}, {2, 4}}},
+        {{{1, 3}}},
+        {{{1, 4, 3, 2}}},
+        {{{1, 4}, {2, 3}}},
+        {{{2, 4}}}
       }
     }
   };
 
-  PermGroup ret(degrees[group], generators[group]);
+  std::vector<Perm> gens;
+  for (auto const &g : generators[group])
+    gens.push_back(Perm(degrees[group], g));
+
+  PermGroup ret(degrees[group], gens);
 
   assert(perm_group_equal(elements[group], ret)
          && "verified group has correct elements");
