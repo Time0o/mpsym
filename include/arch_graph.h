@@ -79,10 +79,8 @@ public:
 
   PermGroup automorphisms(Autom at = AUTOM_TOTAL) const;
 
-  MappingRepresentation mapping_representation(Mapping const &m) const;
   bool mappings_equivalent(Mapping const &m1, Mapping const &m2) const;
-  bool mappings_equivalent(MappingRepresentation const &m1,
-                           MappingRepresentation const &m2) const;
+  MappingRepresentation mapping_representation(Mapping const &m) const;
 
   bool fromlua(std::string const &infile);
   bool todot(std::string const &outfile) const;
