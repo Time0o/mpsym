@@ -28,12 +28,8 @@ class ArchGraph
   typedef traits::vertices_size_type vertices_size_type;
   typedef traits::edges_size_type edges_size_type;
 
-  struct VertexProperty {
-    processor_type_size_type type;
-  };
-  struct EdgeProperty {
-    channel_type_size_type type;
-  };
+  struct VertexProperty { processor_type_size_type type; };
+  struct EdgeProperty { channel_type_size_type type; };
 
   typedef boost::adjacency_list<
     edge_selector, vertex_selector, boost::undirectedS,
@@ -47,7 +43,7 @@ public:
   ChannelType new_channel_type(std::string label);
 
   std::size_t add_processor(ProcessorType pe);
-  void add_channel(ProcessorType pe1, ProcessorType pe2, ChannelType ch);
+  void add_channel(std::size_t pe1, std::size_t pe2, ChannelType ch);
 
   std::size_t num_processors() const;
   std::size_t num_channels() const;
@@ -60,7 +56,6 @@ public:
   bool todot(std::string const &outfile) const;
 
 private:
-
   adjacency_type _adj;
   PermGroup _automorphisms;
 
@@ -86,4 +81,4 @@ private:
 
 }
 
-#endif // _GUARD_ARCH_GRAPH
+#endif // _GUARD_ARCH_GRAPH_H

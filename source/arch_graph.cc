@@ -53,8 +53,7 @@ std::size_t ArchGraph::add_processor(ProcessorType pt)
   return static_cast<std::size_t>(boost::add_vertex(vp, _adj));
 }
 
-void ArchGraph::add_channel(std::size_t from, std::size_t to,
-                            ArchGraph::ChannelType cht)
+void ArchGraph::add_channel(std::size_t from, std::size_t to, ChannelType cht)
 {
   _channel_type_instances[cht]++;
 
