@@ -5,13 +5,14 @@
 #include <ostream>
 #include <string>
 
-#include "boost/functional/hash.hpp"
 #include "boost/graph/adjacency_list.hpp"
 
 #include "perm_group.h"
 
 namespace cgtl
 {
+
+struct TaskMapping;
 
 class ArchGraph
 {
@@ -30,7 +31,6 @@ class ArchGraph
   struct VertexProperty {
     processor_type_size_type type;
   };
-
   struct EdgeProperty {
     channel_type_size_type type;
   };
@@ -40,62 +40,48 @@ class ArchGraph
     VertexProperty, EdgeProperty> adjacency_type;
 
 public:
-  enum Autom { AUTOM_TOTAL, AUTOM_PROCESSORS, AUTOM_CHANNELS };
-
   typedef processor_type_size_type ProcessorType;
   typedef channel_type_size_type ChannelType;
-
-  typedef adjacency_type::vertex_descriptor Processor;
-  typedef adjacency_type::edge_descriptor Channel;
-  typedef std::vector<Processor> Mapping;
-
-  struct MappingRepresentation {
-    MappingRepresentation(Mapping const &m) : _hash(boost::hash_value(m)) {}
-
-    bool operator==(MappingRepresentation const &rhs) {
-      return (rhs._hash == _hash);
-    }
-
-    bool operator!=(MappingRepresentation const &rhs) {
-      return !((*this) == rhs);
-    }
-
-  private:
-    std::size_t _hash;
-  };
 
   ProcessorType new_processor_type(std::string label);
   ChannelType new_channel_type(std::string label);
 
-  Processor add_processor(ProcessorType pe);
+  std::size_t add_processor(ProcessorType pe);
   void add_channel(ProcessorType pe1, ProcessorType pe2, ChannelType ch);
 
-  std::size_t num_processors() const {
-    return static_cast<size_t>(boost::num_vertices(_adj));
-  }
-  std::size_t num_channels() const {
-    return static_cast<size_t>(boost::num_edges(_adj));
-  }
+  std::size_t num_processors() const;
+  std::size_t num_channels() const;
 
-  PermGroup automorphisms(Autom at = AUTOM_TOTAL) const;
-
-  bool mappings_equivalent(Mapping const &m1, Mapping const &m2) const;
-  MappingRepresentation mapping_representation(Mapping const &m) const;
+  PermGroup generate_automorphisms();
+  TaskMapping mapping(std::vector<std::size_t> const &task_assignment) const;
+  bool equivalent(TaskMapping const &tm1, TaskMapping const &tm2) const;
 
   bool fromlua(std::string const &infile);
   bool todot(std::string const &outfile) const;
 
 private:
-  PermGroup processor_automorphisms() const;
-  PermGroup channel_automorphisms() const;
 
   adjacency_type _adj;
+  PermGroup _automorphisms;
 
   std::vector<std::string> _processor_types;
   std::vector<std::string> _channel_types;
 
   std::vector<vertices_size_type> _processor_type_instances;
   std::vector<edges_size_type> _channel_type_instances;
+};
+
+struct TaskMapping {
+  friend class ArchGraph;
+
+  std::vector<std::size_t> get() const { return _mapping; }
+
+private:
+  TaskMapping(std::vector<std::size_t> mapping, std::size_t eq_class)
+    : _mapping(mapping), _eq_class(eq_class) {}
+
+  std::vector<std::size_t> _mapping;
+  std::size_t _eq_class;
 };
 
 }

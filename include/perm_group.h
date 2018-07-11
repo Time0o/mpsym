@@ -40,6 +40,7 @@ public:
     Perm _current_result;
   };
 
+  PermGroup() : PermGroup(1, {}) {}
   PermGroup(unsigned degree, std::vector<Perm> const &generators,
     SchreierSims::Variant schreier_sims_method = SchreierSims::SIMPLE);
 

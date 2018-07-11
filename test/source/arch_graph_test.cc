@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cstdlib>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -13,6 +15,9 @@
 using cgtl::ArchGraph;
 using cgtl::Perm;
 using cgtl::PermGroup;
+using cgtl::TaskMapping;
+
+using testing::UnorderedElementsAreArray;
 
 class ArchGraphTest : public ::testing::Test
 {
@@ -144,80 +149,105 @@ private:
   }
 };
 
-TEST_F(ArchGraphTest, CanObtainVertexAutomorphisms)
+TEST_F(ArchGraphTest, CanObtainAutomorphisms)
 {
   EXPECT_TRUE(perm_group_equal({
       {{1, 2, 3, 4}}, {{1, 3}, {2, 4}}, {{1, 4, 3, 2}}, {{1, 4}, {2, 3}},
       {{1, 2}, {3, 4}}, {{1, 3}}, {{2, 4}}
-    }, ag_nocol.automorphisms(ArchGraph::AUTOM_PROCESSORS)))
-    << "Processor automorphisms of uncolored architecture graph correct.";
+    }, ag_nocol.generate_automorphisms()))
+    << "Automorphisms of uncolored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
       {{1, 3}, {2, 4}}, {{1, 3}}, {{2, 4}}
-    }, ag_vcol.automorphisms(ArchGraph::AUTOM_PROCESSORS)))
-    << "Processor automorphisms of processor colored architecture graph correct.";
-
-  EXPECT_TRUE(perm_group_equal({
-      {{1, 2, 3, 4}}, {{1, 3}, {2, 4}}, {{1, 4, 3, 2}}, {{1, 4}, {2, 3}},
-      {{1, 2}, {3, 4}}, {{1, 3}}, {{2, 4}}
-    }, ag_ecol.automorphisms(ArchGraph::AUTOM_PROCESSORS)))
-    << "Processor automorphisms of channel colored architecture graph correct.";
-
-  EXPECT_TRUE(perm_group_equal({
-      {{1, 3}, {2, 4}}, {{1, 3}}, {{2, 4}}
-    }, ag_vcol.automorphisms(ArchGraph::AUTOM_PROCESSORS)))
-    << "Processor automorphisms of totally colored architecture graph correct.";
-}
-
-TEST_F(ArchGraphTest, CanObtainEdgeAutomorphisms)
-{
-  EXPECT_TRUE(perm_group_equal({
-      {{1, 2, 3, 4}}, {{1, 3}, {2, 4}}, {{1, 4, 3, 2}}, {{1, 4}, {2, 3}},
-      {{1, 2}, {3, 4}}, {{1, 3}}, {{2, 4}}
-    }, ag_nocol.automorphisms(ArchGraph::AUTOM_CHANNELS)))
-    << "Channel automorphisms of uncolored architecture graph correct.";
-
-  EXPECT_TRUE(perm_group_equal({
-      {{1, 2, 3, 4}}, {{1, 3}, {2, 4}}, {{1, 4, 3, 2}}, {{1, 4}, {2, 3}},
-      {{1, 2}, {3, 4}}, {{1, 3}}, {{2, 4}}
-    }, ag_vcol.automorphisms(ArchGraph::AUTOM_CHANNELS)))
-    << "Channel automorphisms of processor colored architecture graph correct.";
+    }, ag_vcol.generate_automorphisms()))
+    << "Automorphisms of processor colored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
       {{1, 3}, {2, 4}}, {{1, 4}, {2, 3}}, {{1, 2}, {3, 4}}
     },
-    ag_ecol.automorphisms(ArchGraph::AUTOM_CHANNELS)))
-    << "Channel automorphisms of channel colored architecture graph correct.";
-
-  EXPECT_TRUE(perm_group_equal({
-      {{1, 3}, {2, 4}}, {{1, 4}, {2, 3}}, {{1, 2}, {3, 4}}
-    }, ag_tcol.automorphisms(ArchGraph::AUTOM_CHANNELS)))
-    << "Channel automorphisms of totally colored architecture graph correct.";
-}
-
-TEST_F(ArchGraphTest, CanObtainTotalAutomorphisms)
-{
-  EXPECT_TRUE(perm_group_equal({
-      {{1, 2, 3, 4}}, {{1, 3}, {2, 4}}, {{1, 4, 3, 2}}, {{1, 4}, {2, 3}},
-      {{1, 2}, {3, 4}}, {{1, 3}}, {{2, 4}}
-    }, ag_nocol.automorphisms(ArchGraph::AUTOM_TOTAL)))
-    << "Total automorphisms of uncolored architecture graph correct.";
-
-  EXPECT_TRUE(perm_group_equal({
-      {{1, 3}, {2, 4}}, {{1, 3}}, {{2, 4}}
-    }, ag_vcol.automorphisms(ArchGraph::AUTOM_TOTAL)))
-    << "Total automorphisms of processor colored architecture graph correct.";
-
-  EXPECT_TRUE(perm_group_equal({
-      {{1, 3}, {2, 4}}, {{1, 4}, {2, 3}}, {{1, 2}, {3, 4}}
-    },
-    ag_ecol.automorphisms(ArchGraph::AUTOM_TOTAL)))
-    << "Total automorphisms of channel colored architecture graph correct.";
+    ag_ecol.generate_automorphisms()))
+    << "Automorphisms of channel colored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
       {{1, 3}, {2, 4}}
-    }, ag_tcol.automorphisms(ArchGraph::AUTOM_TOTAL)))
-    << "Channel automorphisms of totally colored architecture graph correct.";
+    }, ag_tcol.generate_automorphisms()))
+    << "Automorphisms of totally colored architecture graph correct.";
+}
+
+TEST_F(ArchGraphTest, CanTestMappingEquivalence)
+{
+  std::vector<ArchGraph> arch_graphs {ag_nocol, ag_vcol, ag_ecol, ag_tcol};
+
+  typedef std::vector<std::vector<std::size_t>> orbit;
+  std::vector<std::vector<orbit>> expected_orbits {
+    {
+      {{0, 0}, {1, 1}, {2, 2}, {3, 3}},
+      {{0, 1}, {0, 3}, {1, 0}, {1, 2}, {2, 1}, {2, 3}, {3, 0}, {3, 2}},
+      {{0, 2}, {1, 3}, {2, 0}, {3, 1}}
+    },
+    {
+      {{0, 0}, {2, 2}},
+      {{0, 1}, {0, 3}, {2, 1}, {2, 3}},
+      {{0, 2}, {2, 0}},
+      {{1, 0}, {1, 2}, {3, 0}, {3, 2}},
+      {{1, 1}, {3, 3}},
+      {{1, 3}, {3, 1}}
+    },
+    {
+      {{0, 0}, {1, 1}, {2, 2}, {3, 3}},
+      {{0, 1}, {1, 0}, {2, 3}, {3, 2}},
+      {{0, 2}, {1, 3}, {2, 0}, {3, 1}},
+      {{0, 3}, {1, 2}, {2, 1}, {3, 0}}
+    },
+    {
+      {{0, 0}, {2, 2}},
+      {{0, 1}, {2, 3}},
+      {{0, 2}, {2, 0}},
+      {{0, 3}, {2, 1}},
+      {{1, 0}, {3, 2}},
+      {{1, 1}, {3, 3}},
+      {{1, 2}, {3, 0}},
+      {{1, 3}, {3, 1}}
+    },
+  };
+
+  for (auto i = 0u; i < arch_graphs.size(); ++i) {
+    ArchGraph ag = arch_graphs[i];
+    ag.generate_automorphisms();
+
+    std::vector<TaskMapping> task_mappings;
+    for (auto i = 0u; i < ag.num_processors(); ++i) {
+      for (auto j = 0u; j < ag.num_processors(); ++j)
+        task_mappings.push_back(ag.mapping({i, j}));
+    }
+
+    for (auto const &tm1 : task_mappings) {
+      std::stringstream ss; ss << "{ ";
+      for (auto i = 0u; i < tm1.get().size(); ++i)
+        ss << tm1.get()[i] << (i == tm1.get().size() - 1u ? " }" : ", ");
+
+      std::vector<std::vector<std::size_t>> equivalent_assignments;
+      for (auto const &tm2 : task_mappings) {
+        if (ag_nocol.equivalent(tm1, tm2))
+          equivalent_assignments.push_back(tm2.get());
+      }
+
+      bool found_orbit = false;
+      for (auto const &orbit : expected_orbits[i]) {
+        if (std::find(orbit.begin(), orbit.end(), tm1.get()) != orbit.end()) {
+
+          EXPECT_THAT(equivalent_assignments, UnorderedElementsAreArray(orbit))
+            << "Equivalent task mappings for " << ss.str() << " correct.";
+
+          found_orbit = true;
+          break;
+        }
+      }
+
+      EXPECT_TRUE(found_orbit) << "Task mapping " << ss.str()
+                               << " present in some orbit.";
+    }
+  }
 }
 
 TEST_F(ArchGraphTest, CanLoadFromLua)
@@ -225,7 +255,7 @@ TEST_F(ArchGraphTest, CanLoadFromLua)
   ArchGraph ag;
 
   ASSERT_TRUE(ag.fromlua("resources/mcsoc.lua"))
-    << "Can load architecture graph from lua description.";
+    << "Load architecture graph from lua description.";
 
   EXPECT_EQ(8u, ag.num_processors())
     << "Loaded architecture graph has correct number of processors.";
@@ -239,8 +269,8 @@ TEST_F(ArchGraphTest, CanProduceDotFile)
   ArchGraph ag;
 
   ASSERT_TRUE(ag.fromlua("resources/mcsoc.lua"))
-    << "Can load architecture graph from lua description.";
+    << "Load architecture graph from lua description.";
 
   EXPECT_TRUE(ag.todot("resources/mcsoc.dot"))
-    << "Can produce architecture graph dot description.";
+    << "Produce architecture graph dot description.";
 }
