@@ -11,7 +11,9 @@ foreach(testsource ${testsources})
   get_filename_component(test "${testsource}" NAME)
   string(REPLACE ".cc" "" test "${test}")
 
-  add_test(NAME "${test}" COMMAND "${test}")
+  add_test(NAME "${test}"
+           COMMAND "${test}"
+           WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
 
   add_executable("${test}" "${testsource}" "${TEST_UTILITY}")
 

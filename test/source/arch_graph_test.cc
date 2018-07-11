@@ -28,10 +28,10 @@ protected:
     ag_ecol = construct_ecol();
     ag_tcol = construct_tcol();
 
-    ag_nocol.todot("ag_nocol.dot");
-    ag_vcol.todot("ag_vcol.dot");
-    ag_ecol.todot("ag_ecol.dot");
-    ag_tcol.todot("ag_tcol.dot");
+    ag_nocol.todot("resources/ag_nocol.dot");
+    ag_vcol.todot("resources/ag_vcol.dot");
+    ag_ecol.todot("resources/ag_ecol.dot");
+    ag_tcol.todot("resources/ag_tcol.dot");
   }
 
   ArchGraph ag_nocol;
