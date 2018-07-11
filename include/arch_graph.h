@@ -4,6 +4,7 @@
 #include <ostream>
 #include <string>
 
+#include "boost/functional/hash.hpp"
 #include "boost/graph/adjacency_list.hpp"
 
 #include "perm_group.h"
@@ -45,6 +46,22 @@ public:
 
   typedef adjacency_type::vertex_descriptor Processor;
   typedef adjacency_type::edge_descriptor Channel;
+  typedef std::vector<Processor> Mapping;
+
+  struct MappingRepresentation {
+    MappingRepresentation(Mapping const &m) : _hash(boost::hash_value(m)) {}
+
+    bool operator==(MappingRepresentation const &rhs) {
+      return (rhs._hash == _hash);
+    }
+
+    bool operator!=(MappingRepresentation const &rhs) {
+      return !((*this) == rhs);
+    }
+
+  private:
+    size_t _hash;
+  };
 
   ProcessorType new_processor_type(std::string label);
   ChannelType new_channel_type(std::string label);
@@ -60,6 +77,11 @@ public:
   }
 
   PermGroup automorphisms(Autom at = AUTOM_TOTAL) const;
+
+  MappingRepresentation mapping_representation(Mapping const &m) const;
+  bool mappings_equivalent(Mapping const &m1, Mapping const &m2) const;
+  bool mappings_equivalent(MappingRepresentation const &m1,
+                           MappingRepresentation const &m2) const;
 
   bool fromlua(std::string const &infile);
   bool todot(std::string const &outfile) const;
