@@ -14,13 +14,13 @@ using cgtl::PermWord;
 using cgtl::PermGroup;
 
 template <typename P>
-static ::testing::AssertionResult _perm_equal(
+static testing::AssertionResult _perm_equal(
   std::vector<unsigned> const &expected, P const &perm)
 {
   bool success = true;
 
   if (perm.degree() != expected.size()) {
-    return ::testing::AssertionFailure()
+    return testing::AssertionFailure()
       << "Permutation has incorrect degree (expected " << expected.size()
       << " but got " << perm.degree();
   }
@@ -38,24 +38,24 @@ static ::testing::AssertionResult _perm_equal(
   }
 
   if (!success)
-    return ::testing::AssertionFailure() << err.str();
+    return testing::AssertionFailure() << err.str();
   else
-    return ::testing::AssertionSuccess();
+    return testing::AssertionSuccess();
 }
 
-::testing::AssertionResult perm_equal(std::vector<unsigned> const &expected,
+testing::AssertionResult perm_equal(std::vector<unsigned> const &expected,
   Perm const &perm)
 {
   return _perm_equal<Perm>(expected, perm);
 }
 
-::testing::AssertionResult perm_word_equal(std::vector<unsigned> const &expected,
+testing::AssertionResult perm_word_equal(std::vector<unsigned> const &expected,
   PermWord const &pw)
 {
   return _perm_equal<PermWord>(expected, pw);
 }
 
-::testing::AssertionResult perm_group_equal(
+testing::AssertionResult perm_group_equal(
   std::vector<std::vector<std::vector<unsigned>>> const &expected,
   PermGroup const &pg)
 {
@@ -70,12 +70,12 @@ static ::testing::AssertionResult _perm_equal(
   for (Perm const &p : pg)
     actual_elements.push_back(p);
 
-  ::testing::Matcher<std::vector<Perm> const &> matcher(
-    ::testing::UnorderedElementsAreArray(expected_elements));
+  testing::Matcher<std::vector<Perm> const &> matcher(
+    testing::UnorderedElementsAreArray(expected_elements));
 
-  ::testing::StringMatchResultListener listener;
+  testing::StringMatchResultListener listener;
   if (matcher.MatchAndExplain(actual_elements, &listener))
-    return ::testing::AssertionSuccess();
+    return testing::AssertionSuccess();
 
   std::stringstream ss;
   ss << "\nShould be: ";
@@ -102,7 +102,7 @@ static ::testing::AssertionResult _perm_equal(
     i += indent + 1;
   }
 
-  return ::testing::AssertionFailure() << msg;
+  return testing::AssertionFailure() << msg;
 }
 
 PermGroup verified_group(VerifiedGroup group)

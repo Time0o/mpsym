@@ -12,7 +12,7 @@
 using cgtl::Perm;
 using cgtl::PrRandomizer;
 
-class PRRandomizerTest : public ::testing::Test
+class PRRandomizerTest : public testing::Test
 {
 protected:
   std::vector<PrRandomizer> pr_randomizers {
@@ -37,7 +37,7 @@ TEST_F(PRRandomizerTest, CanContructRandomGroupMembers)
 {
   for (auto i = 0u; i < pr_randomizers.size(); ++i) {
     for (int j = 0; j < RANDOMIZER_RUNS; ++j) {
-      EXPECT_THAT(pr_expected[i], ::testing::Contains(pr_randomizers[i].next()))
+      EXPECT_THAT(pr_expected[i], testing::Contains(pr_randomizers[i].next()))
         << "Product replacement randomizer produces group members.";
     }
   }

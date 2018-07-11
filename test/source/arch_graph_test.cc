@@ -19,7 +19,7 @@ using cgtl::TaskMapping;
 
 using testing::UnorderedElementsAreArray;
 
-class ArchGraphTest : public ::testing::Test
+class ArchGraphTest : public testing::Test
 {
 protected:
   void SetUp() {

@@ -180,7 +180,7 @@ TEST(PermGroupTest, CanIterateElements)
 }
 
 class SchreierSimsVariantTest :
-  public ::testing::TestWithParam<SchreierSims::Variant> {};
+  public testing::TestWithParam<SchreierSims::Variant> {};
 
 // TODO: test more groups
 TEST_P(SchreierSimsVariantTest, CanGenerateCorrectGroupElements)
@@ -224,4 +224,4 @@ TEST_P(SchreierSimsVariantTest, CanGenerateCorrectGroupElements)
 }
 
 INSTANTIATE_TEST_CASE_P(SchreierSimsVariants, SchreierSimsVariantTest,
-  ::testing::Values(SchreierSims::SIMPLE, SchreierSims::RANDOM));
+  testing::Values(SchreierSims::SIMPLE, SchreierSims::RANDOM));

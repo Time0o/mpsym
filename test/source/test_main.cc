@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
         std::cout << USAGE;
         exit(EXIT_SUCCESS);
       case 'o':
-        ::testing::GTEST_FLAG(filter) = std::string("*.") + optarg;
+        testing::GTEST_FLAG(filter) = std::string("*.") + optarg;
         break;
       case 'v':
         ++verbosity;
@@ -53,6 +53,6 @@ int main(int argc, char** argv) {
       break;
   }
 
-  ::testing::InitGoogleMock(&argc, argv);
+  testing::InitGoogleMock(&argc, argv);
   return RUN_ALL_TESTS();
 }
