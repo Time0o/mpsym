@@ -8,7 +8,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "boost/functional/hash.hpp"
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/range/iterator_range_core.hpp"
 
@@ -221,15 +220,18 @@ PermGroup ArchGraph::generate_automorphisms()
   return _automorphisms;
 }
 
-TaskMapping ArchGraph::mapping(std::vector<std::size_t> const &mapping) const
+static std::vector<unsigned> min_elem_bruteforce(PermGroup const &ag,
+  std::vector<unsigned> const &tasks)
 {
-  std::vector<std::size_t> min_element(mapping);
+  std::vector<unsigned> min_element(tasks);
 
-  for (Perm const &perm : _automorphisms) {
+  Dbg(Dbg::TRACE) << "=== Performing brute force mapping";
+
+  for (Perm const &perm : ag) {
     bool minimal = true;
 
-    for (auto i = 0u; i < mapping.size(); ++i) {
-      std::size_t permuted = perm[mapping[i] + 1] - 1;
+    for (auto i = 0u; i < tasks.size(); ++i) {
+      unsigned permuted = perm[tasks[i] + 1] - 1;
 
       if (permuted < min_element[i])
         break;
@@ -241,21 +243,71 @@ TaskMapping ArchGraph::mapping(std::vector<std::size_t> const &mapping) const
     }
 
     if (minimal) {
-      for (auto i = 0u; i < mapping.size(); ++i) {
-        min_element[i] = perm[mapping[i] + 1] - 1;
+      for (auto i = 0u; i < tasks.size(); ++i) {
+        min_element[i] = perm[tasks[i] + 1] - 1;
       }
     }
   }
 
   Dbg(Dbg::TRACE) << "Found minimal orbit element: "
-                  << mapping << " => " << min_element;
+                  << tasks << " => " << min_element;
 
-  return TaskMapping(mapping, boost::hash_value(min_element));
+  return min_element;
 }
 
-bool ArchGraph::equivalent(TaskMapping const &tm1, TaskMapping const &tm2) const
+static std::vector<unsigned> min_elem_approx(PermGroup const &ag,
+  std::vector<unsigned> const &tasks)
 {
-  return tm1._eq_class == tm2._eq_class;
+  std::vector<Perm> generators(ag.bsgs().sgs());
+  std::vector<unsigned> min_element(tasks);
+
+  bool stationary, new_minimum;
+
+  Dbg(Dbg::TRACE) << "=== Performing approximate mapping";
+
+  do {
+    stationary = true;
+
+    for (Perm const &gen : generators) {
+      new_minimum = false;
+
+      for (unsigned task : min_element) {
+        unsigned permuted = gen[task + 1] - 1;
+
+        if (permuted < task) {
+          new_minimum = true;
+          break;
+        }
+
+        if (permuted > task)
+          break;
+      }
+
+      if (new_minimum) {
+        for (unsigned &task : min_element)
+          task = gen[task + 1] - 1;
+
+        stationary = false;
+        break;
+      }
+    }
+  } while (!stationary);
+
+  Dbg(Dbg::TRACE) << "Found minimal orbit element: "
+                  << tasks << " => " << min_element;
+
+  return min_element;
+}
+
+TaskMapping ArchGraph::mapping(std::vector<unsigned> const &tasks,
+ MappingVariant mapping_variant) const
+{
+  switch (mapping_variant) {
+    case MAP_APPROX:
+      return TaskMapping(tasks, min_elem_approx(_automorphisms, tasks));
+    default:
+      return TaskMapping(tasks, min_elem_bruteforce(_automorphisms, tasks));
+  }
 }
 
 static bool lua_parse_err(lua_State *L, std::string const &infile,

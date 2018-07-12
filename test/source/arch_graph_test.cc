@@ -178,7 +178,7 @@ TEST_F(ArchGraphTest, CanTestMappingEquivalence)
 {
   std::vector<ArchGraph> arch_graphs {ag_nocol, ag_vcol, ag_ecol, ag_tcol};
 
-  typedef std::vector<std::vector<std::size_t>> orbit;
+  typedef std::vector<std::vector<unsigned>> orbit;
   std::vector<std::vector<orbit>> expected_orbits {
     {
       {{0, 0}, {1, 1}, {2, 2}, {3, 3}},
@@ -222,19 +222,21 @@ TEST_F(ArchGraphTest, CanTestMappingEquivalence)
     }
 
     for (auto const &tm1 : task_mappings) {
-      std::stringstream ss; ss << "{ ";
-      for (auto i = 0u; i < tm1.get().size(); ++i)
-        ss << tm1.get()[i] << (i == tm1.get().size() - 1u ? " }" : ", ");
+      std::vector<unsigned> mapping1(tm1.mapping());
 
-      std::vector<std::vector<std::size_t>> equivalent_assignments;
+      std::stringstream ss; ss << "{ ";
+      for (auto i = 0u; i < mapping1.size(); ++i)
+        ss << mapping1[i] << (i == mapping1.size() - 1u ? " }" : ", ");
+
+      std::vector<std::vector<unsigned>> equivalent_assignments;
       for (auto const &tm2 : task_mappings) {
-        if (ag_nocol.equivalent(tm1, tm2))
-          equivalent_assignments.push_back(tm2.get());
+        if (tm1.equivalence_class() == tm2.equivalence_class())
+          equivalent_assignments.push_back(tm2.mapping());
       }
 
       bool found_orbit = false;
       for (auto const &orbit : expected_orbits[i]) {
-        if (std::find(orbit.begin(), orbit.end(), tm1.get()) != orbit.end()) {
+        if (std::find(orbit.begin(), orbit.end(), tm1.mapping()) != orbit.end()) {
 
           EXPECT_THAT(equivalent_assignments, UnorderedElementsAreArray(orbit))
             << "Equivalent task mappings for " << ss.str() << " correct.";

@@ -36,6 +36,8 @@ class ArchGraph
     VertexProperty, EdgeProperty> adjacency_type;
 
 public:
+  enum MappingVariant { MAP_AUTO, MAP_BRUTEFORCE, MAP_APPROX };
+
   typedef processor_type_size_type ProcessorType;
   typedef channel_type_size_type ChannelType;
 
@@ -49,8 +51,8 @@ public:
   std::size_t num_channels() const;
 
   PermGroup generate_automorphisms();
-  TaskMapping mapping(std::vector<std::size_t> const &task_assignment) const;
-  bool equivalent(TaskMapping const &tm1, TaskMapping const &tm2) const;
+  TaskMapping mapping(std::vector<unsigned> const &tasks,
+    MappingVariant mapping_variant = MAP_AUTO) const;
 
   bool fromlua(std::string const &infile);
   bool todot(std::string const &outfile) const;
@@ -67,16 +69,14 @@ private:
 };
 
 struct TaskMapping {
-  friend class ArchGraph;
+  TaskMapping(std::vector<unsigned> map, std::vector<unsigned> eq)
+    : _mapping(map), _equivalence_class(eq) {}
 
-  std::vector<std::size_t> get() const { return _mapping; }
+  std::vector<unsigned> mapping() const { return _mapping; }
+  std::vector<unsigned> equivalence_class() const { return _equivalence_class; }
 
 private:
-  TaskMapping(std::vector<std::size_t> mapping, std::size_t eq_class)
-    : _mapping(mapping), _eq_class(eq_class) {}
-
-  std::vector<std::size_t> _mapping;
-  std::size_t _eq_class;
+  std::vector<unsigned> _mapping, _equivalence_class;
 };
 
 }
