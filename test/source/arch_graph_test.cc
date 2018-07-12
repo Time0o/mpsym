@@ -28,10 +28,10 @@ protected:
     ag_ecol = construct_ecol();
     ag_tcol = construct_tcol();
 
-    ag_nocol.todot("resources/ag_nocol.dot");
-    ag_vcol.todot("resources/ag_vcol.dot");
-    ag_ecol.todot("resources/ag_ecol.dot");
-    ag_tcol.todot("resources/ag_tcol.dot");
+    ag_nocol.todot(resource_path("ag_nocol.dot"));
+    ag_vcol.todot(resource_path("ag_vcol.dot"));
+    ag_ecol.todot(resource_path("ag_ecol.dot"));
+    ag_tcol.todot(resource_path("ag_tcol.dot"));
   }
 
   ArchGraph ag_nocol;
@@ -254,7 +254,7 @@ TEST_F(ArchGraphTest, CanLoadFromLua)
 {
   ArchGraph ag;
 
-  ASSERT_TRUE(ag.fromlua("resources/mcsoc.lua"))
+  ASSERT_TRUE(ag.fromlua(resource_path("mcsoc.lua")))
     << "Load architecture graph from lua description.";
 
   EXPECT_EQ(8u, ag.num_processors())
@@ -268,7 +268,7 @@ TEST_F(ArchGraphTest, CanProduceDotFile)
 {
   ArchGraph ag;
 
-  ASSERT_TRUE(ag.fromlua("resources/mcsoc.lua"))
+  ASSERT_TRUE(ag.fromlua(resource_path("mcsoc.lua")))
     << "Load architecture graph from lua description.";
 
   EXPECT_TRUE(ag.todot("resources/mcsoc.dot"))

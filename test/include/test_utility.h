@@ -1,6 +1,7 @@
 #ifndef _GUARD_TEST_UTILITY_H
 #define _GUARD_TEST_UTILITY_H
 
+#include <string>
 #include <vector>
 
 #include "gmock/gmock.h"
@@ -20,5 +21,7 @@ testing::AssertionResult perm_group_equal(
   cgtl::PermGroup const &pg);
 
 cgtl::PermGroup verified_perm_group(VerifiedGroup group);
+
+std::string resource_path(std::string const &resource);
 
 #endif // _GUARD_TEST_UTILITY_H

@@ -27,6 +27,10 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(MAIN_LINK_FLAGS "${MAIN_LINK_FLAGS} --coverage")
 endif()
 
+if(CMAKE_BUILD_TYPE STREQUAL "Profile")
+  set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O2")
+endif()
+
 set_target_properties("${MAIN_LIB}" PROPERTIES
   LINKER_LANGUAGE CXX
   CXX_STANDARD 11

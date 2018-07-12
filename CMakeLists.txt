@@ -18,10 +18,16 @@ set(GTEST_CONFIG "${CMAKE_SCRIPT_DIR}/GetGTest.cmake")
 
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/source")
 set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
+set(RESOURCE_DIR "${CMAKE_BINARY_DIR}/resources")
 
 set(TEST_SRC_DIR "${PROJECT_SOURCE_DIR}/test/source")
 set(TEST_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/test/include")
 set(TEST_RESOURCE_DIR "${PROJECT_SOURCE_DIR}/test/resources")
+
+set(PROFILE_SRC_DIR "${PROJECT_SOURCE_DIR}/profile/source")
+set(PROFILE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/profile/include")
+set(PROFILE_RESOURCE_DIR "${PROJECT_SOURCE_DIR}/profile/resources")
+set(PROFILE_BIN_DIR "${CMAKE_BINARY_DIR}/profile/source")
 
 set(NAUTY_DIR "${CMAKE_BINARY_DIR}/nauty")
 set(NAUTY_DOWNLOAD_DIR "${NAUTY_DIR}/download")
@@ -129,7 +135,32 @@ endif()
 # Profiling
 ################################################################################
 
-# TODO
+if(CMAKE_BUILD_TYPE STREQUAL "Profile")
+  find_program(PERF_PATH perf)
+
+  if(NOT PERF_PATH)
+    message(FATAL_ERROR "Failed to find perf")
+  endif()
+
+  set(PROFILE_TARGET "profile")
+  set(PROFILE_OUTDIR "${CMAKE_BINARY_DIR}/perf")
+
+  file(MAKE_DIRECTORY "${PROFILE_OUTDIR}")
+
+  file(GLOB PROFILE_SOURCES "${PROFILE_SRC_DIR}/*_profile.cc")
+  foreach(PROFILE_SOURCE "${PROFILE_SOURCES}")
+    get_filename_component(PROFILE_PROG "${PROFILE_SOURCE}" NAME)
+    string(REPLACE "_profile.cc" "" PROFILE_PROG "${PROFILE_PROG}")
+
+    add_custom_target("${PROFILE_TARGET}_${PROFILE_PROG}"
+      COMMAND ${PERF_PATH} record
+              -e cpu-clock,page-faults "${PROFILE_BIN_DIR}/${PROFILE_PROG}"
+      COMMAND ${PERF_PATH} annotate "--dsos=${PROFILE_PROG}"
+              --stdio > "${PROFILE_OUTDIR}/${PROFILE_PROG}.annotate"
+      COMMAND ${CMAKE_COMMAND} -E remove "perf.data"
+    )
+  endforeach()
+endif()
 
 
 ################################################################################
@@ -140,3 +171,5 @@ add_subdirectory("${SRC_DIR}")
 
 enable_testing()
 add_subdirectory("${TEST_SRC_DIR}")
+
+add_subdirectory("${PROFILE_SRC_DIR}")

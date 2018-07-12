@@ -9,6 +9,8 @@
 #include "perm_group.h"
 #include "test_utility.h"
 
+#define RESOURCE_DIR "resources/test/"
+
 using cgtl::Perm;
 using cgtl::PermWord;
 using cgtl::PermGroup;
@@ -146,4 +148,9 @@ PermGroup verified_group(VerifiedGroup group)
          && "verified group has correct elements");
 
   return ret;
+}
+
+std::string resource_path(std::string const &resource)
+{
+  return RESOURCE_DIR + resource;
 }
