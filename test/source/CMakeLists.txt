@@ -2,24 +2,25 @@ cmake_minimum_required(VERSION 3.6)
 
 include_directories("${INCLUDE_DIR}" "${TEST_INCLUDE_DIR}")
 
+file(GLOB TEST_SOURCES "*_test.cc")
 set(TEST_UTILITY "test_utility.cc")
 
-file(GLOB testsources "*_test.cc")
-file(COPY "${TEST_RESOURCE_DIR}" DESTINATION "${CMAKE_BINARY_DIR}")
+file(GLOB TEST_RESOURCES "${TEST_RESOURCE_DIR}/*")
+file(COPY "${TEST_RESOURCES}" DESTINATION "${RESOURCE_DIR}/test")
 
-foreach(testsource ${testsources})
-  get_filename_component(test "${testsource}" NAME)
-  string(REPLACE ".cc" "" test "${test}")
+foreach(TEST_SOURCE ${TEST_SOURCES})
+  get_filename_component(TEST_PROG "${TEST_SOURCE}" NAME)
+  string(REPLACE "_test.cc" "" TEST_PROG "${TEST_PROG}")
 
-  add_test(NAME "${test}"
-           COMMAND "${test}"
+  add_test(NAME "${TEST_PROG}"
+           COMMAND "${TEST_PROG}"
            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
 
-  add_executable("${test}" "${testsource}" "${TEST_UTILITY}")
+  add_executable("${TEST_PROG}" "${TEST_SOURCE}" "${TEST_UTILITY}")
 
-  target_link_libraries("${test}" "${MAIN_LIB}" gmock_main)
+  target_link_libraries("${TEST_PROG}" "${MAIN_LIB}" gmock_main)
 
-  set_target_properties("${test}" PROPERTIES
+  set_target_properties("${TEST_PROG}" PROPERTIES
     LINKER_LANGUAGE CXX
     CXX_STANDARD 11
     CXX_STANDARD_REQUIRED ON
