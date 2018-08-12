@@ -59,7 +59,12 @@ public:
   bool is_element(Perm const &perm) const;
   Perm random_element() const;
 
+  std::vector<PermGroup> disjoint_decomposition(bool complete = true) const;
+
 private:
+  std::vector<PermGroup> disjoint_decomposition_complete() const;
+  std::vector<PermGroup> disjoint_decomposition_incomplete() const;
+
   unsigned _n;
   unsigned _order;
   BSGS _bsgs;
