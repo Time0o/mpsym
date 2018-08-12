@@ -57,7 +57,7 @@ testing::AssertionResult perm_word_equal(std::vector<unsigned> const &expected,
   return _perm_equal<PermWord>(expected, pw);
 }
 
-testing::AssertionResult perm_group_equal(
+static testing::AssertionResult perm_group_equal(
   std::vector<Perm> const &expected_elements,
   PermGroup const &actual)
 {

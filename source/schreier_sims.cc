@@ -168,7 +168,7 @@ static void schreier_sims_finish(std::vector<unsigned> const &base,
 void SchreierSims::schreier_sims(std::vector<unsigned> &base,
   std::vector<Perm> &generators, std::vector<SchreierTree> &sts)
 {
-  Dbg(Dbg::DBG) << "Executing (random) schreier sims algorithm";
+  Dbg(Dbg::DBG) << "Executing schreier sims algorithm";
 
   // intialize
   std::vector<std::vector<Perm>> strong_generators;
