@@ -184,3 +184,13 @@ bool Perm::id() const
 }
 
 } // namespace cgtl
+
+namespace std
+{
+
+std::size_t hash<cgtl::Perm>::operator()(cgtl::Perm const &perm) const
+{
+  return boost::hash_range(perm._perm.begin(), perm._perm.end());
+}
+
+} // namespace std

@@ -1,8 +1,12 @@
 #ifndef _GUARD_PERM_H
 #define _GUARD_PERM_H
 
+#include <cstddef>
+#include <functional>
 #include <ostream>
 #include <vector>
+
+#include "boost/container_hash/hash.hpp"
 
 namespace cgtl
 {
@@ -10,8 +14,32 @@ namespace cgtl
 class Perm;
 class PermWord;
 
+} // namespace cgtl
+
+namespace std
+{
+
+template<>
+struct hash<cgtl::Perm>
+{
+  std::size_t operator()(cgtl::Perm const &perm) const;
+};
+
+template<>
+struct hash<cgtl::PermWord>
+{
+  std::size_t operator()(cgtl::PermWord const &perm_word) const;
+};
+
+} // namespace std
+
+namespace cgtl
+{
+
 class Perm
 {
+friend std::size_t std::hash<Perm>::operator()(Perm const &perm) const;
+
 public:
   Perm(unsigned degree = 1);
   Perm(std::vector<unsigned> const &perm);
@@ -33,6 +61,8 @@ private:
 
 class PermWord
 {
+friend std::size_t std::hash<PermWord>::operator()(PermWord const &permWord) const;
+
 public:
   PermWord(Perm const &perm);
   PermWord(unsigned degree = 1) : PermWord(Perm(degree)) {};
@@ -61,6 +91,8 @@ Perm operator*(Perm const &lhs, Perm const &rhs);
 
 std::ostream& operator<<(std::ostream& stream, PermWord const &pw);
 PermWord operator*(PermWord const &lhs, PermWord const &rhs);
+
+inline std::size_t hash_value(Perm const &perm) { return std::hash<Perm>()(perm); }
 
 } // namespace cgtl
 

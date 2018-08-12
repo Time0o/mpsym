@@ -1,3 +1,4 @@
+#include <unordered_set>
 #include <vector>
 
 #include "gmock/gmock.h"
@@ -8,6 +9,8 @@
 
 using cgtl::Perm;
 using cgtl::PermWord;
+
+using testing::UnorderedElementsAreArray;
 
 TEST(PermWordTest, CanConstructPermWord)
 {
@@ -102,4 +105,32 @@ TEST(PermWordTest, PermWordStringRepresentation)
 
   EXPECT_EQ("()", ss3.str())
     << "Identity permutation string representation correct.";
+}
+
+TEST(PermWordTest, CanHashPermWord)
+{
+  std::vector<PermWord> perm_words = {
+    PermWord(5, {{1, 2, 3}}),
+    PermWord(5, {{2, 3}, {4, 5}}),
+    PermWord(5, {{1, 2, 3, 4}}),
+    PermWord(5, {{1, 2}}),
+    PermWord(5, {{1, 2, 3}, {4, 5}})
+  };
+
+  std::unordered_set<PermWord> perm_word_set;
+
+  unsigned const repetitions = 10u;
+  for (unsigned i = 0u; i < repetitions; ++i) {
+    for (PermWord const &pw : perm_words)
+      perm_word_set.insert(pw);
+  }
+
+  ASSERT_EQ(perm_words.size(), perm_word_set.size())
+    << "Hashed permutation word set has correct size.";
+
+  std::vector<PermWord>hashed_perm_words(perm_word_set.begin(),
+                                         perm_word_set.end());
+
+  EXPECT_THAT(hashed_perm_words, UnorderedElementsAreArray(perm_words))
+    << "Hashed permutation word set has correct elements.";
 }

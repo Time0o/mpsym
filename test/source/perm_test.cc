@@ -1,3 +1,4 @@
+#include <unordered_set>
 #include <vector>
 
 #include "gmock/gmock.h"
@@ -7,6 +8,8 @@
 #include "test_main.cc"
 
 using cgtl::Perm;
+
+using testing::UnorderedElementsAreArray;
 
 TEST(PermTest, CanConstructPerm)
 {
@@ -81,4 +84,30 @@ TEST(PermTest, PermStringRepresentation)
 
   EXPECT_EQ("()", ss3.str())
     << "Identity permutation string representation correct.";
+}
+
+TEST(PermTest, CanHashPerm)
+{
+  std::vector<Perm> perms = {
+    Perm(5, {{1, 2, 3}}),
+    Perm(5, {{2, 3}, {4, 5}}),
+    Perm(5, {{1, 2, 3, 4}}),
+    Perm(5, {{1, 2}}),
+    Perm(5, {{1, 2, 3}, {4, 5}})
+  };
+
+  std::unordered_set<Perm> permset;
+
+  unsigned const repetitions = 10u;
+  for (unsigned i = 0u; i < repetitions; ++i) {
+    for (Perm const &p : perms)
+      permset.insert(p);
+  }
+
+  ASSERT_EQ(perms.size(), permset.size())
+    << "Hashed permutation set has correct size.";
+
+  std::vector<Perm>hashed_perms(permset.begin(), permset.end());
+  EXPECT_THAT(hashed_perms, UnorderedElementsAreArray(perms))
+    << "Hashed permutation set has correct elements.";
 }

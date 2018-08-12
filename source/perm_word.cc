@@ -83,3 +83,18 @@ Perm PermWord::perm() const
 }
 
 } // namespace cgtl
+
+namespace std
+{
+
+std::size_t hash<cgtl::PermWord>::operator()(
+  cgtl::PermWord const &perm_word) const
+{
+  std::size_t seed = 0u;
+  for (cgtl::Perm const &perm : perm_word._perms)
+    boost::hash_combine(seed, perm);
+
+  return seed;
+}
+
+} // namespace std
