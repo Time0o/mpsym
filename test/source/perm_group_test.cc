@@ -136,6 +136,36 @@ TEST(PermGroupTest, CanIterateTrivialGroup)
     << "Iterating trivial permutation group yields identity permutation (explicit iterator).";
 }
 
+TEST(PermGroupTest, CanIterateSimplestNonTrivialGroup)
+{
+  PermGroup pg = PermGroup(4, {Perm(4, {{1, 2}})});
+
+  std::vector<Perm> expected_members = {
+    Perm(4),
+    Perm(4, {{1, 2}})
+  };
+
+  std::vector<Perm> actual_members1;
+  for (Perm const &p : pg)
+    actual_members1.push_back(p);
+
+  ASSERT_EQ(expected_members.size(), actual_members1.size())
+    << "Iterating simplest non-trivial permutation group yields two element (ranged for).";
+
+  EXPECT_THAT(actual_members1, UnorderedElementsAreArray(expected_members))
+    << "Iterating simplest non-trivial permutation group yields correct permutation (ranged for)..";
+
+  std::vector<Perm> actual_members2;
+  for (PermGroup::const_iterator it = pg.begin(); it != pg.end(); it++)
+    actual_members2.push_back(*it);
+
+  ASSERT_EQ(expected_members.size(), actual_members2.size())
+    << "Iterating simplest non-trivial permutation group yields two element (explicit iterator).";
+
+  EXPECT_THAT(actual_members2, UnorderedElementsAreArray(expected_members))
+    << "Iterating simplest non-trivial permutation group yields correct permutation (explicit iterator).";
+}
+
 TEST(PermGroupTest, CanIterateElements)
 {
   PermGroup a4 = PermGroup::alternating(4);
