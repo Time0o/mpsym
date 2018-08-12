@@ -123,7 +123,7 @@ TEST(PermGroupTest, CanIterateTrivialGroup)
     << "Iterating trivial permutation group yields one element (ranged for).";
 
   EXPECT_TRUE(perm_equal({1, 2, 3, 4}, actual_members1[0]))
-    << "Iterating trivial permutation group yields identity permutatio (ranged for)..";
+    << "Iterating trivial permutation group yields identity permutation (ranged for)..";
 
   std::vector<Perm> actual_members2;
   for (PermGroup::const_iterator it = id.begin(); it != id.end(); it++)
