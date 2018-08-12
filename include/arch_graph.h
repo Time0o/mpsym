@@ -12,7 +12,16 @@
 namespace cgtl
 {
 
-struct TaskMapping;
+struct TaskMapping {
+  TaskMapping(std::vector<unsigned> map, std::vector<unsigned> eq)
+    : _mapping(map), _equivalence_class(eq) {}
+
+  std::vector<unsigned> mapping() const { return _mapping; }
+  std::vector<unsigned> equivalence_class() const { return _equivalence_class; }
+
+private:
+  std::vector<unsigned> _mapping, _equivalence_class;
+};
 
 class ArchGraph
 {
@@ -66,17 +75,6 @@ private:
 
   std::vector<vertices_size_type> _processor_type_instances;
   std::vector<edges_size_type> _channel_type_instances;
-};
-
-struct TaskMapping {
-  TaskMapping(std::vector<unsigned> map, std::vector<unsigned> eq)
-    : _mapping(map), _equivalence_class(eq) {}
-
-  std::vector<unsigned> mapping() const { return _mapping; }
-  std::vector<unsigned> equivalence_class() const { return _equivalence_class; }
-
-private:
-  std::vector<unsigned> _mapping, _equivalence_class;
 };
 
 }
