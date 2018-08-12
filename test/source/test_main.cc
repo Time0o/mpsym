@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
         std::cout << USAGE;
         exit(EXIT_SUCCESS);
       case 'o':
-        testing::GTEST_FLAG(filter) = std::string("*.") + optarg;
+        testing::GTEST_FLAG(filter) = std::string("*") + optarg + "*";
         break;
       case 'v':
         ++verbosity;
