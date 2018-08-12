@@ -16,9 +16,16 @@ testing::AssertionResult perm_equal(std::vector<unsigned> const &expected,
 testing::AssertionResult perm_word_equal(std::vector<unsigned> const &expected,
   cgtl::PermWord const &pw);
 
+testing::AssertionResult perm_group_equal(cgtl::PermGroup const &expected,
+                                          cgtl::PermGroup const &actual);
+
+testing::AssertionResult perm_group_equal(
+  std::vector<cgtl::Perm> const &expected_elemens,
+  cgtl::PermGroup const &actual);
+
 testing::AssertionResult perm_group_equal(
   std::vector<std::vector<std::vector<unsigned>>> const &expected,
-  cgtl::PermGroup const &pg);
+  cgtl::PermGroup const &actual);
 
 cgtl::PermGroup verified_perm_group(VerifiedGroup group);
 

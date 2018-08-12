@@ -58,19 +58,12 @@ testing::AssertionResult perm_word_equal(std::vector<unsigned> const &expected,
 }
 
 testing::AssertionResult perm_group_equal(
-  std::vector<std::vector<std::vector<unsigned>>> const &expected,
-  PermGroup const &pg)
+  std::vector<Perm> const &expected_elements,
+  PermGroup const &actual)
 {
-  unsigned degree = pg.degree();
-
-  std::vector<Perm> expected_elements {Perm(degree)};
-  for (auto const &p : expected) {
-    expected_elements.push_back(Perm(degree, p));
-  }
-
   std::vector<Perm> actual_elements;
-  for (Perm const &p : pg)
-    actual_elements.push_back(p);
+  for (Perm const &perm : actual)
+    actual_elements.push_back(perm);
 
   testing::Matcher<std::vector<Perm> const &> matcher(
     testing::UnorderedElementsAreArray(expected_elements));
@@ -105,6 +98,30 @@ testing::AssertionResult perm_group_equal(
   }
 
   return testing::AssertionFailure() << msg;
+}
+
+testing::AssertionResult perm_group_equal(PermGroup const &expected,
+                                          PermGroup const &actual)
+{
+  std::vector<Perm> expected_elements;
+  for (Perm const &perm : expected)
+    expected_elements.push_back(perm);
+
+  return perm_group_equal(expected_elements, actual);
+}
+
+testing::AssertionResult perm_group_equal(
+  std::vector<std::vector<std::vector<unsigned>>> const &expected_elements,
+  PermGroup const &actual)
+{
+  unsigned degree = actual.degree();
+
+  std::vector<Perm> expected_perms {Perm(degree)};
+  for (auto const &perm : expected_elements) {
+    expected_perms.push_back(Perm(degree, perm));
+  }
+
+  return perm_group_equal(expected_perms, actual);
 }
 
 PermGroup verified_group(VerifiedGroup group)
