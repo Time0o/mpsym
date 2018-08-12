@@ -1,5 +1,6 @@
 #include <cassert>
 #include <set>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -151,9 +152,13 @@ static void schreier_sims_finish(std::vector<unsigned> const &base,
   std::vector<Perm> &generators,
   std::vector<std::vector<Perm>> const &strong_generators)
 {
-  generators.clear();
+  std::unordered_set<Perm> unique_generators;
+
   for (auto const &gens : strong_generators)
-    generators.insert(generators.end(), gens.begin(), gens.end());
+    unique_generators.insert(gens.begin(), gens.end());
+
+  generators = std::vector<Perm>(unique_generators.begin(),
+                                 unique_generators.end());
 
   Dbg(Dbg::DBG) << "=== Result";
   Dbg(Dbg::DBG) << "B = " << base;
