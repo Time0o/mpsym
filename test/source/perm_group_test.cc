@@ -259,6 +259,7 @@ INSTANTIATE_TEST_CASE_P(SchreierSimsVariants, SchreierSimsVariantTest,
 class DisjointSubgroupProductTest :
   public testing::TestWithParam<bool> {};
 
+// TODO: test more groups
 TEST_P(DisjointSubgroupProductTest, CanFindDisjointSubgroupProduct)
 {
   PermGroup permgroup(14,
@@ -341,4 +342,4 @@ TEST_P(DisjointSubgroupProductTest, CanFindDisjointSubgroupProduct)
 }
 
 INSTANTIATE_TEST_CASE_P(DisjointSubgroupProductVariants,
-  DisjointSubgroupProductTest, testing::Values(/*true,*/ false)); // TODO
+  DisjointSubgroupProductTest, testing::Values(true, false));
