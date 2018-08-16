@@ -270,5 +270,5 @@ TEST_F(ArchGraphTest, CanProduceDotFile)
 {
   ArchGraph ag = ArchGraph::fromlua(resource_path("mcsoc.lua"));
 
-  ag.todot("resources/mcsoc.dot");
+  ag.todot(resource_path("mcsoc.dot"));
 }
