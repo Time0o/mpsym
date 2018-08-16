@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <ostream>
+#include <stdexcept>
 #include <string>
 #include <sstream>
 #include <unordered_map>
@@ -46,6 +47,8 @@ ArchGraph::ChannelType ArchGraph::new_channel_type(std::string const &label)
 
 std::size_t ArchGraph::add_processor(ProcessorType pt)
 {
+  _automorphisms_valid = false;
+
   _processor_type_instances[pt]++;
 
   VertexProperty vp {pt};
@@ -54,6 +57,8 @@ std::size_t ArchGraph::add_processor(ProcessorType pt)
 
 void ArchGraph::add_channel(std::size_t from, std::size_t to, ChannelType cht)
 {
+  _automorphisms_valid = false;
+
   _channel_type_instances[cht]++;
 
   EdgeProperty ep {cht};
@@ -94,7 +99,7 @@ static void nauty_free()
   nauty_freedyn();
 }
 
-PermGroup ArchGraph::generate_automorphisms()
+void ArchGraph::complete()
 {
   Dbg(Dbg::DBG) << "=== Determining architecture graph automorphisms";
 
@@ -217,6 +222,16 @@ PermGroup ArchGraph::generate_automorphisms()
   Dbg(Dbg::DBG) << "=== Result";
   Dbg(Dbg::DBG) << _automorphisms;
 
+  _automorphisms_valid = true;
+}
+
+PermGroup ArchGraph::automorphisms() const
+{
+  if (!_automorphisms_valid) {
+    throw std::logic_error(
+      "requesting automorphisms of uncompleted architecture graph");
+  }
+
   return _automorphisms;
 }
 
@@ -302,6 +317,11 @@ static std::vector<unsigned> min_elem_approx(PermGroup const &ag,
 TaskMapping ArchGraph::mapping(std::vector<unsigned> const &tasks,
  MappingVariant mapping_variant) const
 {
+  if (!_automorphisms_valid) {
+    throw std::logic_error(
+      "requesting mapping from uncompleted architecture graph");
+  }
+
   switch (mapping_variant) {
     case MAP_APPROX:
       return TaskMapping(tasks, min_elem_approx(_automorphisms, tasks));

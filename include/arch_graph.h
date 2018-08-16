@@ -59,7 +59,10 @@ public:
   std::size_t num_processors() const;
   std::size_t num_channels() const;
 
-  PermGroup generate_automorphisms();
+  void complete();
+
+  PermGroup automorphisms() const;
+
   TaskMapping mapping(std::vector<unsigned> const &tasks,
     MappingVariant mapping_variant = MAP_AUTO) const;
 
@@ -69,6 +72,7 @@ public:
 private:
   adjacency_type _adj;
   PermGroup _automorphisms;
+  bool _automorphisms_valid = false;
 
   std::vector<std::string> _processor_types;
   std::vector<std::string> _channel_types;

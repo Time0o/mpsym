@@ -78,7 +78,7 @@ int main()
       ArchGraph ag;
 
       ag.fromlua(path);
-      ag.generate_automorphisms();
+      ag.complete();
 
       unsigned num_tasks = ag.num_processors();
       do {

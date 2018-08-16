@@ -63,6 +63,7 @@ private:
     ag.add_channel(pe3, pe4, c);
     ag.add_channel(pe4, pe1, c);
 
+    ag.complete();
     return ag;
   }
 
@@ -90,6 +91,7 @@ private:
     ag.add_channel(pe3, pe4, c);
     ag.add_channel(pe4, pe1, c);
 
+    ag.complete();
     return ag;
   }
 
@@ -117,6 +119,7 @@ private:
     ag.add_channel(pe3, pe4, c1);
     ag.add_channel(pe4, pe1, c2);
 
+    ag.complete();
     return ag;
   }
 
@@ -145,6 +148,7 @@ private:
     ag.add_channel(pe3, pe4, c1);
     ag.add_channel(pe4, pe1, c2);
 
+    ag.complete();
     return ag;
   }
 };
@@ -154,23 +158,23 @@ TEST_F(ArchGraphTest, CanObtainAutomorphisms)
   EXPECT_TRUE(perm_group_equal({
       {{1, 2, 3, 4}}, {{1, 3}, {2, 4}}, {{1, 4, 3, 2}}, {{1, 4}, {2, 3}},
       {{1, 2}, {3, 4}}, {{1, 3}}, {{2, 4}}
-    }, ag_nocol.generate_automorphisms()))
+    }, ag_nocol.automorphisms()))
     << "Automorphisms of uncolored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
       {{1, 3}, {2, 4}}, {{1, 3}}, {{2, 4}}
-    }, ag_vcol.generate_automorphisms()))
+    }, ag_vcol.automorphisms()))
     << "Automorphisms of processor colored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
       {{1, 3}, {2, 4}}, {{1, 4}, {2, 3}}, {{1, 2}, {3, 4}}
     },
-    ag_ecol.generate_automorphisms()))
+    ag_ecol.automorphisms()))
     << "Automorphisms of channel colored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
       {{1, 3}, {2, 4}}
-    }, ag_tcol.generate_automorphisms()))
+    }, ag_tcol.automorphisms()))
     << "Automorphisms of totally colored architecture graph correct.";
 }
 
@@ -213,7 +217,6 @@ TEST_F(ArchGraphTest, CanTestMappingEquivalence)
 
   for (auto i = 0u; i < arch_graphs.size(); ++i) {
     ArchGraph ag = arch_graphs[i];
-    ag.generate_automorphisms();
 
     std::vector<TaskMapping> task_mappings;
     for (auto i = 0u; i < ag.num_processors(); ++i) {
