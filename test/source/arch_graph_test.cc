@@ -257,10 +257,7 @@ TEST_F(ArchGraphTest, CanTestMappingEquivalence)
 
 TEST_F(ArchGraphTest, CanLoadFromLua)
 {
-  ArchGraph ag;
-
-  ASSERT_TRUE(ag.fromlua(resource_path("mcsoc.lua")))
-    << "Load architecture graph from lua description.";
+  ArchGraph ag = ArchGraph::fromlua(resource_path("mcsoc.lua"));
 
   EXPECT_EQ(8u, ag.num_processors())
     << "Loaded architecture graph has correct number of processors.";
@@ -271,11 +268,7 @@ TEST_F(ArchGraphTest, CanLoadFromLua)
 
 TEST_F(ArchGraphTest, CanProduceDotFile)
 {
-  ArchGraph ag;
+  ArchGraph ag = ArchGraph::fromlua(resource_path("mcsoc.lua"));
 
-  ASSERT_TRUE(ag.fromlua(resource_path("mcsoc.lua")))
-    << "Load architecture graph from lua description.";
-
-  EXPECT_TRUE(ag.todot("resources/mcsoc.dot"))
-    << "Produce architecture graph dot description.";
+  ag.todot("resources/mcsoc.dot");
 }

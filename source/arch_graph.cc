@@ -330,17 +330,20 @@ TaskMapping ArchGraph::mapping(std::vector<unsigned> const &tasks,
   }
 }
 
-static bool lua_parse_err(lua_State *L, std::string const &infile,
+static void lua_parse_err(lua_State *L, std::string const &infile,
   std::string const &err)
 {
   Dbg(Dbg::WARN) << "Failed to parse '" << infile << "': " << err;
 
   lua_close(L);
-  return false;
+
+  throw std::runtime_error("malformed architecture graph description");
 }
 
-bool ArchGraph::fromlua(std::string const &infile)
+ArchGraph ArchGraph::fromlua(std::string const &infile)
 {
+  ArchGraph ag;
+
   int lua_err;
 
   lua_State *L = luaL_newstate();
@@ -349,13 +352,15 @@ bool ArchGraph::fromlua(std::string const &infile)
   lua_err = luaL_loadfile(L, infile.c_str());
   if (lua_err) {
     Dbg(Dbg::WARN) << "Failed to open '" << infile << "'";
+
     lua_close(L);
-    return false;
+
+    throw std::runtime_error("failed to open architecture graph description");
   }
 
   lua_err = lua_pcall(L, 0, 0, 0);
   if (lua_err)
-    return lua_parse_err(L, infile, lua_tostring(L, -1));
+    lua_parse_err(L, infile, lua_tostring(L, -1));
 
   std::unordered_map<int, std::size_t> pes;
   std::unordered_map<std::string, ProcessorType> pe_types;
@@ -363,42 +368,42 @@ bool ArchGraph::fromlua(std::string const &infile)
 
   // parse 'processors' table
   if (lua_getglobal(L, "processors") != LUA_TTABLE)
-    return lua_parse_err(L, infile, "no 'processors' table defined");
+    lua_parse_err(L, infile, "no 'processors' table defined");
 
   lua_pushvalue(L, -1);
   lua_pushnil(L);
 
   while (lua_next(L, -2)) {
     if (!lua_istable(L, -1)) {
-      return lua_parse_err(L, infile, "malformed element in 'processors' table");
+      lua_parse_err(L, infile, "malformed element in 'processors' table");
 
     } else {
       if (!lua_isnumber(L, -2) || !lua_istable(L, -1))
-        return lua_parse_err(L, infile, "malformed element in 'processors' table");
+        lua_parse_err(L, infile, "malformed element in 'processors' table");
 
       lua_pushnil(L);
 
       if (!lua_next(L, -2) || !lua_isnumber(L, -2) || !lua_isnumber(L, -1))
-        return lua_parse_err(L, infile, "malformed element in 'processors' table");
+        lua_parse_err(L, infile, "malformed element in 'processors' table");
 
       int pe = lua_tonumber(L, -1);
       if (pes.find(pe) != pes.end()) {
         std::stringstream ss;
         ss <<  "processing element " << pe
            << " defined twice in 'processors' table";
-        return lua_parse_err(L, infile, ss.str());
+        lua_parse_err(L, infile, ss.str());
       }
 
       lua_pop(L, 1);
 
       if (!lua_next(L, -2) || !lua_isnumber(L, -2) || !lua_isstring(L, -1))
-        return lua_parse_err(L, infile, "malformed element in 'processors' table");
+        lua_parse_err(L, infile, "malformed element in 'processors' table");
 
       std::string pe_type(lua_tostring(L, -1));
       if (pe_types.find(pe_type) == pe_types.end())
-        pe_types[pe_type] = new_processor_type(pe_type);
+        pe_types[pe_type] = ag.new_processor_type(pe_type);
 
-      pes[pe] = add_processor(pe_types[pe_type]);
+      pes[pe] = ag.add_processor(pe_types[pe_type]);
 
       lua_pop(L, 3);
     }
@@ -406,73 +411,71 @@ bool ArchGraph::fromlua(std::string const &infile)
 
   // parse 'channels' table
   if (lua_getglobal(L, "channels") != LUA_TTABLE)
-    return lua_parse_err(L, infile, "no 'channels' table defined");
+    lua_parse_err(L, infile, "no 'channels' table defined");
 
   lua_pushvalue(L, -1);
   lua_pushnil(L);
 
   while (lua_next(L, -2)) {
     if (!lua_istable(L, -1)) {
-      return lua_parse_err(L, infile, "malformed element in 'channels' table");
+      lua_parse_err(L, infile, "malformed element in 'channels' table");
 
     } else {
       if (!lua_isnumber(L, -2) || !lua_istable(L, -1))
-        return lua_parse_err(L, infile, "malformed element in 'channels' table");
+        lua_parse_err(L, infile, "malformed element in 'channels' table");
 
       lua_pushnil(L);
 
       if (!lua_next(L, -2) || !lua_isnumber(L, -2) || !lua_isnumber(L, -1))
-        return lua_parse_err(L, infile, "malformed element in 'channels' table");
+        lua_parse_err(L, infile, "malformed element in 'channels' table");
 
       int pe1 = lua_tonumber(L, -1);
       if (pes.find(pe1) == pes.end()) {
         std::stringstream ss;
         ss << "processing element  " << pe1
            << " used in 'channels' table not defined in 'processors' table";
-        return lua_parse_err(L, infile, ss.str());
+        lua_parse_err(L, infile, ss.str());
       }
 
       lua_pop(L, 1);
 
       if (!lua_next(L, -2) || !lua_isnumber(L, -2) || !lua_isnumber(L, -1))
-        return lua_parse_err(L, infile, "malformed element in 'channels' table");
+        lua_parse_err(L, infile, "malformed element in 'channels' table");
 
       int pe2 = lua_tonumber(L, -1);
       if (pes.find(pe2) == pes.end()) {
         std::stringstream ss;
         ss << "processing element " << pe2
            << " used in 'channels' table not defined in 'processors' table";
-        return lua_parse_err(L, infile, ss.str());
+        lua_parse_err(L, infile, ss.str());
       }
 
       lua_pop(L, 1);
 
       if (!lua_next(L, -2) || !lua_isnumber(L, -2) || !lua_isstring(L, -1))
-        return lua_parse_err(L, infile, "malformed element in 'channels' table");
+        lua_parse_err(L, infile, "malformed element in 'channels' table");
 
       std::string ch_type(lua_tostring(L, -1));
       if (ch_types.find(ch_type) == ch_types.end())
-        ch_types[ch_type] = new_channel_type(ch_type);
+        ch_types[ch_type] = ag.new_channel_type(ch_type);
 
-      add_channel(pes[pe1], pes[pe2], ch_types[ch_type]);
+      ag.add_channel(pes[pe1], pes[pe2], ch_types[ch_type]);
 
       lua_pop(L, 3);
     }
   }
 
   lua_close(L);
-  return true;
+
+  return ag;
 }
 
-bool ArchGraph::todot(std::string const &outfile) const
+void ArchGraph::todot(std::string const &outfile) const
 {
   std::ofstream out(outfile);
 
-  if (!out.is_open()) {
-    Dbg(Dbg::WARN) << "Could not produce dotfile, failed to open file '"
-                   << outfile << "'";
-    return false;
-  }
+  if (!out.is_open())
+    throw std::runtime_error("failed to create architecture dotfile");
 
   static char const * const COLORSCHEME = "accent";
   static const unsigned COLORS = 8;
@@ -510,8 +513,6 @@ bool ArchGraph::todot(std::string const &outfile) const
   }
 
   out << "}\n";
-
-  return true;
 }
 
 }

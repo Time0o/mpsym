@@ -66,8 +66,9 @@ public:
   TaskMapping mapping(std::vector<unsigned> const &tasks,
     MappingVariant mapping_variant = MAP_AUTO) const;
 
-  bool fromlua(std::string const &infile);
-  bool todot(std::string const &outfile) const;
+  void todot(std::string const &outfile) const;
+
+  static ArchGraph fromlua(std::string const &infile);
 
 private:
   adjacency_type _adj;
