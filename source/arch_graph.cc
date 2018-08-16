@@ -227,10 +227,7 @@ void ArchGraph::complete()
 
 PermGroup ArchGraph::automorphisms() const
 {
-  if (!_automorphisms_valid) {
-    throw std::logic_error(
-      "requesting automorphisms of uncompleted architecture graph");
-  }
+  assert(_automorphisms_valid);
 
   return _automorphisms;
 }
@@ -317,10 +314,8 @@ static std::vector<unsigned> min_elem_approx(PermGroup const &ag,
 TaskMapping ArchGraph::mapping(std::vector<unsigned> const &tasks,
  MappingVariant mapping_variant) const
 {
-  if (!_automorphisms_valid) {
-    throw std::logic_error(
-      "requesting mapping from uncompleted architecture graph");
-  }
+  assert(_automorphisms_valid);
+  assert(boost::num_vertices(_adj) > 0u);
 
   switch (mapping_variant) {
     case MAP_APPROX:
