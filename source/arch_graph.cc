@@ -26,7 +26,7 @@ extern "C" {
 namespace cgtl
 {
 
-ArchGraph::ProcessorType ArchGraph::new_processor_type(std::string label)
+ArchGraph::ProcessorType ArchGraph::new_processor_type(std::string const &label)
 {
   auto id = _processor_types.size();
   _processor_types.push_back(label);
@@ -35,7 +35,7 @@ ArchGraph::ProcessorType ArchGraph::new_processor_type(std::string label)
   return id;
 }
 
-ArchGraph::ChannelType ArchGraph::new_channel_type(std::string label)
+ArchGraph::ChannelType ArchGraph::new_channel_type(std::string const &label)
 {
   auto id = _channel_types.size();
   _channel_types.push_back(label);

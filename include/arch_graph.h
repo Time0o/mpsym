@@ -50,8 +50,8 @@ public:
   typedef processor_type_size_type ProcessorType;
   typedef channel_type_size_type ChannelType;
 
-  ProcessorType new_processor_type(std::string label);
-  ChannelType new_channel_type(std::string label);
+  ProcessorType new_processor_type(std::string const &label);
+  ChannelType new_channel_type(std::string const &label);
 
   std::size_t add_processor(ProcessorType pe);
   void add_channel(std::size_t pe1, std::size_t pe2, ChannelType ch);
