@@ -1,9 +1,10 @@
 #ifndef _GUARD_ARCH_GRAPH_H
 #define _GUARD_ARCH_GRAPH_H
 
-#include <cstdlib>
+#include <memory>
 #include <ostream>
 #include <string>
+#include <vector>
 
 #include "boost/graph/adjacency_list.hpp"
 
@@ -23,7 +24,24 @@ private:
   std::vector<unsigned> _mapping, _equivalence_class;
 };
 
-class ArchGraph
+class ArchGraphSystem
+{
+public:
+  enum MappingVariant { MAP_AUTO, MAP_BRUTEFORCE, MAP_APPROX };
+
+  virtual unsigned num_processors() const = 0;
+  virtual unsigned num_channels() const = 0;
+
+  virtual void complete() = 0;
+
+  virtual PermGroup automorphisms() const = 0;
+
+  virtual TaskMapping mapping(
+    std::vector<unsigned> const &tasks, unsigned offset = 0u,
+    MappingVariant mapping_variant = MAP_AUTO) const = 0;
+};
+
+class ArchGraph : public ArchGraphSystem
 {
   typedef boost::vecS vertex_selector;
   typedef boost::vecS edge_selector;
@@ -45,26 +63,25 @@ class ArchGraph
     VertexProperty, EdgeProperty> adjacency_type;
 
 public:
-  enum MappingVariant { MAP_AUTO, MAP_BRUTEFORCE, MAP_APPROX };
-
   typedef processor_type_size_type ProcessorType;
   typedef channel_type_size_type ChannelType;
 
   ProcessorType new_processor_type(std::string const &label);
   ChannelType new_channel_type(std::string const &label);
 
-  std::size_t add_processor(ProcessorType pe);
-  void add_channel(std::size_t pe1, std::size_t pe2, ChannelType ch);
+  unsigned add_processor(ProcessorType pe);
+  void add_channel(unsigned pe1, unsigned pe2, ChannelType ch);
 
-  std::size_t num_processors() const;
-  std::size_t num_channels() const;
+  unsigned num_processors() const override;
+  unsigned num_channels() const override;
 
-  void complete();
+  void complete() override;
 
-  PermGroup automorphisms() const;
+  PermGroup automorphisms() const override;
 
-  TaskMapping mapping(std::vector<unsigned> const &tasks,
-    MappingVariant mapping_variant = MAP_AUTO) const;
+  TaskMapping mapping(
+    std::vector<unsigned> const &tasks, unsigned offset = 0u,
+    MappingVariant mapping_variant = MAP_AUTO) const override;
 
   void todot(std::string const &outfile) const;
 
@@ -80,6 +97,29 @@ private:
 
   std::vector<vertices_size_type> _processor_type_instances;
   std::vector<edges_size_type> _channel_type_instances;
+};
+
+class ArchGraphCluster : public ArchGraphSystem
+{
+public:
+  void add_subsystem(std::shared_ptr<ArchGraphSystem> const &ags);
+
+  unsigned num_processors() const override;
+  unsigned num_channels() const override;
+
+  void complete() override;
+
+  PermGroup automorphisms() const override {
+    throw std::logic_error("not implemented");
+  }
+
+  TaskMapping mapping(
+    std::vector<unsigned> const &tasks, unsigned offset = 0u,
+    MappingVariant mapping_variant = MAP_AUTO) const override;
+
+private:
+  ArchGraph _archgraph;
+  std::vector<std::shared_ptr<ArchGraphSystem>> _subsystems;
 };
 
 }

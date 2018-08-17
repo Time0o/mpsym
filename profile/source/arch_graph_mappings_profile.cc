@@ -82,7 +82,7 @@ int main()
 
       unsigned num_tasks = ag.num_processors();
       do {
-        printf("Comparing mappings (%u task(s) on %zu processors, %d mappings)\n",
+        printf("Comparing mappings (%u task(s) on %u processors, %d mappings)\n",
                num_tasks, ag.num_processors(), RUNS);
 
         long ticks = run(ag, num_tasks, std::get<1>(var));
