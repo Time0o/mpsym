@@ -19,7 +19,8 @@ using cgtl::TaskMapping;
 
 using testing::UnorderedElementsAreArray;
 
-class ArchGraphTest : public testing::Test
+template<typename T>
+class ArchGraphTestBase : public T
 {
 protected:
   void SetUp() {
@@ -153,6 +154,8 @@ private:
   }
 };
 
+class ArchGraphTest : public ArchGraphTestBase<testing::Test>{};
+
 TEST_F(ArchGraphTest, CanObtainAutomorphisms)
 {
   EXPECT_TRUE(perm_group_equal({
@@ -178,7 +181,10 @@ TEST_F(ArchGraphTest, CanObtainAutomorphisms)
     << "Automorphisms of totally colored architecture graph correct.";
 }
 
-TEST_F(ArchGraphTest, CanTestMappingEquivalence)
+class ArchGraphMappingVariantTest :
+  public ArchGraphTestBase<testing::TestWithParam<ArchGraph::MappingVariant>> {};
+
+TEST_P(ArchGraphMappingVariantTest, CanTestMappingEquivalence)
 {
   std::vector<ArchGraph> arch_graphs {ag_nocol, ag_vcol, ag_ecol, ag_tcol};
 
@@ -221,7 +227,7 @@ TEST_F(ArchGraphTest, CanTestMappingEquivalence)
     std::vector<TaskMapping> task_mappings;
     for (auto i = 0u; i < ag.num_processors(); ++i) {
       for (auto j = 0u; j < ag.num_processors(); ++j)
-        task_mappings.push_back(ag.mapping({i, j}));
+        task_mappings.push_back(ag.mapping({i, j}, GetParam()));
     }
 
     for (auto const &tm1 : task_mappings) {
@@ -254,6 +260,9 @@ TEST_F(ArchGraphTest, CanTestMappingEquivalence)
     }
   }
 }
+
+INSTANTIATE_TEST_CASE_P(ArchGraphMappingVariants, ArchGraphMappingVariantTest,
+  testing::Values(ArchGraph::MAP_BRUTEFORCE, ArchGraph::MAP_APPROX));
 
 TEST_F(ArchGraphTest, CanLoadFromLua)
 {
