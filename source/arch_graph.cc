@@ -316,6 +316,8 @@ TaskMapping ArchGraph::mapping(std::vector<unsigned> const &tasks,
 {
   assert(_automorphisms_valid);
   assert(boost::num_vertices(_adj) > 0u);
+  assert(*std::max_element(tasks.begin(), tasks.end())
+         <= boost::num_vertices(_adj) - 1u);
 
   switch (mapping_variant) {
     case MAP_APPROX:
