@@ -3,6 +3,7 @@
 #include <ctime>
 #include <random>
 #include <set>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -98,12 +99,20 @@ Perm PermGroup::random_element() const
   return result;
 }
 
-std::vector<PermGroup> PermGroup::disjoint_decomposition(bool complete) const
+std::vector<PermGroup> PermGroup::disjoint_decomposition(
+  bool complete, bool disjoint_orbit_optimization) const
 {
-  if (complete)
-    return disjoint_decomposition_complete();
-  else
+  if (complete) {
+    return disjoint_decomposition_complete(disjoint_orbit_optimization);
+  } else {
+#ifndef NDEBUG
+    if (disjoint_orbit_optimization) {
+      Dbg(Dbg::WARN)
+        << "Disjoint orbit optimization ignored during incomplete decomposition";
+    }
+#endif
     return disjoint_decomposition_incomplete();
+  }
 }
 
 std::vector<PermGroup> PermGroup::disjoint_decomposition_incomplete() const
@@ -251,11 +260,6 @@ static void debug_orbit_decomposition(std::vector<unsigned> const &orbit_ids,
 static std::vector<PermGroup> disjoint_decomposition_complete_recursive(
   PermGroup const &pg, std::vector<unsigned> const &orbit_ids, unsigned n_orbits)
 {
-  Dbg(Dbg::TRACE) << "Orbit decomposition:";
-#ifndef NDEBUG
-  debug_orbit_decomposition(orbit_ids, n_orbits, pg.degree());
-#endif
-
   // iterate over all possible partitions of the set of all orbits into two sets
   assert(n_orbits < 8 * sizeof(unsigned long long));
 
@@ -425,7 +429,114 @@ static std::vector<PermGroup> disjoint_decomposition_complete_recursive(
   return {pg};
 }
 
-std::vector<PermGroup> PermGroup::disjoint_decomposition_complete() const
+static Perm restrict_permutation(
+  Perm const &perm, std::vector<unsigned> orbit, bool &id)
+{
+  // decompose generator into disjoint cycles
+  std::vector<unsigned> restricted_perm(perm.degree());
+  for (auto i = 1u; i <= perm.degree(); ++i)
+    restricted_perm[i - 1u] = i;
+
+  id = true;
+  for (unsigned o : orbit) {
+    if (perm[o] != o) {
+      restricted_perm[o - 1u] = perm[o];
+      id = false;
+    }
+  }
+
+  return Perm(restricted_perm);
+}
+
+static bool orbits_dependant(PermGroup const &pg,
+  std::vector<unsigned> orbit1, std::vector<unsigned> orbit2)
+{
+  Dbg(Dbg::TRACE) << "Testing whether orbits " << orbit1 << " and " << orbit2
+                  << " are dependant";
+
+  std::unordered_set<Perm> restricted_stabilizers, restricted_elements;
+
+  // TODO: do we need to consider every group element?
+  for (Perm const &perm : pg.bsgs().sgs()) {
+    Dbg(Dbg::TRACE) << "Looking at generators " << perm;
+
+    bool stabilizes = true;
+    for (unsigned o : orbit2) {
+      if (perm[o] != o) {
+        stabilizes = false;
+        break;
+      }
+    }
+
+    if (stabilizes) {
+      Dbg(Dbg::TRACE) << perm << " stabilizes " << orbit2;
+
+      bool id = false;
+      Perm restricted_stabilizer = restrict_permutation(perm, orbit1, id);
+      Dbg(Dbg::TRACE) << "Restricted stabilizer is: " << restricted_stabilizer;
+
+      if (!id)
+        restricted_stabilizers.insert(restricted_stabilizer);
+    }
+
+    bool id = false;
+    Perm restricted_element = restrict_permutation(perm, orbit1, id);
+    Dbg(Dbg::TRACE) << "Restricted group element is: " << restricted_element;
+
+    if (!id)
+      restricted_elements.insert(restricted_element);
+  }
+
+  bool res = restricted_stabilizers.size() < restricted_elements.size();
+  Dbg(Dbg::TRACE) << "Orbits " << (res ? "are" : "are not") << " dependant";
+
+  return res;
+}
+
+static unsigned generate_dependency_classes(
+  PermGroup const &pg, std::vector<unsigned> &orbit_ids, unsigned n_orbits)
+{
+  std::vector<std::vector<unsigned>> orbits(n_orbits);
+  for (auto i = 1u; i <= pg.degree(); ++i)
+    orbits[orbit_ids[i - 1u] - 1u].push_back(i);
+
+  std::vector<std::vector<unsigned>> dependency_classes;
+  unsigned n_dependency_classes = 0u;
+
+  std::vector<bool> processed(n_orbits, false);
+  unsigned n_processed = 0u;
+
+  for (auto i = 0u; i < n_orbits; ++i) {
+    if (processed[i])
+      continue;
+
+    std::vector<unsigned> merge {i + 1u};
+
+    for (auto j = i + 1u; j < n_orbits; ++j) {
+      if (processed[j])
+        continue;
+
+      if (orbits_dependant(pg, orbits[i], orbits[j])) {
+        merge.push_back(j + 1u);
+        processed[j] = true;
+        ++n_processed;
+      }
+    }
+
+    ++n_dependency_classes;
+    for (unsigned &orbit_id : orbit_ids) {
+      if (std::find(merge.begin(), merge.end(), (orbit_id)) != merge.end())
+        orbit_id = n_dependency_classes;
+    }
+
+    processed[i] = true;
+    if (++n_processed == n_orbits)
+      return n_dependency_classes;
+  }
+}
+
+std::vector<PermGroup> PermGroup::disjoint_decomposition_complete(
+  bool disjoint_orbit_optimization) const
 {
   Dbg(Dbg::DBG) << "Finding (complete) disjoint subgroup decomposition for:";
   Dbg(Dbg::DBG) << *this;
@@ -473,10 +584,25 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_complete() const
       break;
   }
 
-  std::vector<PermGroup> decomp = disjoint_decomposition_complete_recursive(
-    *this, orbit_ids, n_orbits);
+  Dbg(Dbg::TRACE) << "Orbit decomposition:";
+#ifndef NDEBUG
+  debug_orbit_decomposition(orbit_ids, n_orbits, _n);
+#endif
 
-  Dbg(Dbg::DBG) << "Disjunct subgroup generators are:";
+  if (disjoint_orbit_optimization) {
+    Dbg(Dbg::TRACE) << "Using dependant orbit optimization";
+    n_orbits = generate_dependency_classes(*this, orbit_ids, n_orbits);
+
+    Dbg(Dbg::TRACE) << "Orbit dependency classes:";
+#ifndef NDEBUG
+    debug_orbit_decomposition(orbit_ids, n_orbits, _n);
+#endif
+  }
+
+  std::vector<PermGroup> decomp =
+    disjoint_decomposition_complete_recursive(*this, orbit_ids, n_orbits);
+
+  Dbg(Dbg::DBG) << "Disjoint subgroup generators are:";
   for (PermGroup const &pg : decomp)
     Dbg(Dbg::DBG) << pg.bsgs().sgs();
 

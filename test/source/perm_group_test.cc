@@ -257,7 +257,7 @@ INSTANTIATE_TEST_CASE_P(SchreierSimsVariants, SchreierSimsVariantTest,
   testing::Values(SchreierSims::SIMPLE, SchreierSims::RANDOM));
 
 class DisjointSubgroupProductTest :
-  public testing::TestWithParam<bool> {};
+  public testing::TestWithParam<std::pair<bool, bool>> {};
 
 // TODO: test more groups
 TEST_P(DisjointSubgroupProductTest, CanFindDisjointSubgroupProduct)
@@ -296,7 +296,9 @@ TEST_P(DisjointSubgroupProductTest, CanFindDisjointSubgroupProduct)
     )
   };
 
-  auto disjoint_subgroups = permgroup.disjoint_decomposition(GetParam());
+  auto flags = GetParam();
+  auto disjoint_subgroups =
+    permgroup.disjoint_decomposition(std::get<0>(flags), std::get<1>(flags));
 
   ASSERT_EQ(expected_disjoint_subgroups.size(), disjoint_subgroups.size())
     << "Correct number of disjoint subgroups generated.";
@@ -341,5 +343,8 @@ TEST_P(DisjointSubgroupProductTest, CanFindDisjointSubgroupProduct)
   }
 }
 
+// TODO
 INSTANTIATE_TEST_CASE_P(DisjointSubgroupProductVariants,
-  DisjointSubgroupProductTest, testing::Values(true, false));
+  DisjointSubgroupProductTest, testing::Values(std::make_pair(false, false),
+                                               std::make_pair(true, false),
+                                               std::make_pair(true, true)));
