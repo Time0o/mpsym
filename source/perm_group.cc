@@ -69,18 +69,10 @@ bool PermGroup::is_element(Perm const &perm) const
 {
   assert(perm.degree() == _n && "element has same degree as group");
 
-  Dbg(Dbg::DBG) << "Performing membership test for " << perm << " in:";
-  Dbg(Dbg::DBG) << (*this);
-
   auto strip_result = _bsgs.strip(perm);
-
-  Dbg(Dbg::TRACE) << "Strip returned " << std::get<0>(strip_result) << ", "
-                  << std::get<1>(strip_result);
 
   bool ret = (std::get<1>(strip_result) == _bsgs.size() + 1) &&
              (std::get<0>(strip_result).id());
-
-  Dbg(Dbg::DBG) << (ret ? "=> Member" : "=> No Member");
 
   return ret;
 }
