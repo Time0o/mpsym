@@ -448,8 +448,7 @@ static bool orbits_dependant(PermGroup const &pg,
 
   std::unordered_set<Perm> restricted_stabilizers, restricted_elements;
 
-  // TODO: do we need to consider every group element?
-  for (Perm const &perm : pg.bsgs().sgs()) {
+  for (Perm const &perm : pg) {
     Dbg(Dbg::TRACE) << "Looking at generators " << perm;
 
     bool stabilizes = true;
