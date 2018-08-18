@@ -343,7 +343,6 @@ TEST_P(DisjointSubgroupProductTest, CanFindDisjointSubgroupProduct)
   }
 }
 
-// TODO
 INSTANTIATE_TEST_CASE_P(DisjointSubgroupProductVariants,
   DisjointSubgroupProductTest, testing::Values(std::make_pair(false, false),
                                                std::make_pair(true, false),
