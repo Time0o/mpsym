@@ -524,6 +524,8 @@ static unsigned generate_dependency_classes(
     if (++n_processed == n_orbits)
       return n_dependency_classes;
   }
+
+  return n_dependency_classes;
 }
 
 std::vector<PermGroup> PermGroup::disjoint_decomposition_complete(
