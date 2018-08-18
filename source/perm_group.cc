@@ -552,9 +552,13 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_complete(
       unsigned y = gen[x];
 
       if (y != x) {
-        if (!orbit_ids[y - 1u])
-          new_orbit_elems.push_back(y);
-        else if (!orbit_id)
+        if (!orbit_ids[y - 1u]) {
+          auto it =
+            std::find(new_orbit_elems.begin(), new_orbit_elems.end(), y);
+
+          if (it == new_orbit_elems.end())
+            new_orbit_elems.push_back(y);
+        } else if (!orbit_id)
           orbit_id = orbit_ids[y - 1u];
       }
     }
