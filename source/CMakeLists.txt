@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.6)
 
-include_directories("${INCLUDE_DIR}")
-include_directories("${NAUTY_WORKDIR}")
+include_directories("${INCLUDE_DIR}"
+                    "${Boost_INCLUDE_DIRS}"
+                    "${LUA_INCLUDE_DIR}"
+                    "${NAUTY_WORKDIR}")
 
 add_library("${MAIN_LIB}"
             "arch_graph.cc"
@@ -14,6 +16,7 @@ add_library("${MAIN_LIB}"
             "schreier_sims.cc")
 
 target_link_libraries("${MAIN_LIB}"
+                      "${Boost_LIBRARIES}"
                       "${LUA_LIBRARIES}"
                       "${NAUTY_WORKDIR}/nauty.a")
 
