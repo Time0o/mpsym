@@ -440,11 +440,11 @@ static Perm restrict_permutation(
   return Perm(restricted_perm);
 }
 
-static bool orbits_dependant(PermGroup const &pg,
+static bool orbits_dependent(PermGroup const &pg,
   std::vector<unsigned> orbit1, std::vector<unsigned> orbit2)
 {
   Dbg(Dbg::TRACE) << "== Testing whether orbits "
-                  << orbit1 << " and " << orbit2 << " are dependant";
+                  << orbit1 << " and " << orbit2 << " are dependent";
 
   std::unordered_set<Perm> restricted_stabilizers, restricted_elements;
 
@@ -479,7 +479,7 @@ static bool orbits_dependant(PermGroup const &pg,
   }
 
   bool res = restricted_stabilizers.size() < restricted_elements.size();
-  Dbg(Dbg::TRACE) << "=> Orbits " << (res ? "are" : "are not") << " dependant";
+  Dbg(Dbg::TRACE) << "=> Orbits " << (res ? "are" : "are not") << " dependent";
 
   return res;
 }
@@ -507,7 +507,7 @@ static unsigned generate_dependency_classes(
       if (processed[j])
         continue;
 
-      if (orbits_dependant(pg, orbits[i], orbits[j])) {
+      if (orbits_dependent(pg, orbits[i], orbits[j])) {
         merge.push_back(j + 1u);
         processed[j] = true;
         ++n_processed;
@@ -585,7 +585,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_complete(
 #endif
 
   if (disjoint_orbit_optimization) {
-    Dbg(Dbg::TRACE) << "=== Using dependant orbit optimization";
+    Dbg(Dbg::TRACE) << "=== Using dependent orbit optimization";
     n_orbits = generate_dependency_classes(*this, orbit_ids, n_orbits);
 
     Dbg(Dbg::TRACE) << "==> Orbits grouped dependency classe unions:";
