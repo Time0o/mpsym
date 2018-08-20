@@ -2,6 +2,8 @@
 #include <utility>
 #include <vector>
 
+#include "boost/container_hash/hash.hpp"
+
 #include "perm.h"
 
 namespace cgtl

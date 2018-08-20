@@ -6,8 +6,6 @@
 #include <ostream>
 #include <vector>
 
-#include "boost/container_hash/hash.hpp"
-
 namespace cgtl
 {
 
