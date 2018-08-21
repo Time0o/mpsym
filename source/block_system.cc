@@ -23,6 +23,11 @@ BlockSystem::BlockSystem(std::vector<unsigned> classes) : _n(classes.size())
       _blocks[block_indices[c - 1u]].push_back(i + 1u);
     }
   }
+
+  for (auto const &block : _blocks) {
+    assert(block.size() == _blocks[0].size() &&
+      "blocks in block system have same size");
+  }
 }
 
 std::vector<unsigned> const& BlockSystem::operator[](unsigned const i) const
