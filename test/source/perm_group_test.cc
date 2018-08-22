@@ -56,6 +56,37 @@ TEST(PermGroupTest, CanObtainOrder)
   }
 }
 
+TEST(PermGroupTest, CanDetermineTrasitivity)
+{
+  PermGroup transitive_group(9,
+    {
+      Perm(9, {{1, 2}}),
+      Perm(9, {{2, 3}}),
+      Perm(9, {{3, 4, 5}}),
+      Perm(9, {{5, 6, 7, 8, 9}})
+    }
+  );
+
+  EXPECT_TRUE(transitive_group.transitive())
+    << "Transitive group correctly identified as such.";
+
+  PermGroup non_transitive_group(14,
+    {
+      Perm(14, {{1, 2}}),
+      Perm(14, {{2, 3}}),
+      Perm(14, {{4, 5}}),
+      Perm(14, {{5, 6}}),
+      Perm(14, {{7, 8}}),
+      Perm(14, {{8, 9}}),
+      Perm(14, {{12, 13}, {1, 4}, {2, 5}, {3, 6}}),
+      Perm(14, {{13, 14}, {4, 7}, {5, 8}, {6, 9}})
+    }
+  );
+
+  EXPECT_FALSE(non_transitive_group.transitive())
+    << "Non-transitive group correctly identified as such.";
+}
+
 TEST(PermGroupTest, CanTestMembership)
 {
   PermGroup a4 = PermGroup::alternating(4);

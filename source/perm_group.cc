@@ -65,6 +65,34 @@ PermGroup PermGroup::alternating(unsigned degree)
   return PermGroup(degree, gens);
 }
 
+bool PermGroup::transitive() const
+{
+  std::vector<int> orbit_indices(_n + 1u, -1);
+  orbit_indices[1] = 0;
+
+  unsigned processed = 1u;
+
+  for (auto i = 1u; i <= _n; ++i) {
+    int orbit_index1 = orbit_indices[i];
+    if (orbit_index1 == -1)
+      return false;
+
+    for (Perm const &gen : _bsgs.sgs()) {
+      unsigned j = gen[i];
+
+      int orbit_index2 = orbit_indices[j];
+      if (orbit_index2 == -1) {
+        orbit_indices[j] = orbit_index1;
+
+        if (++processed == _n)
+          return true;
+      }
+    }
+  }
+
+  return true;
+}
+
 bool PermGroup::is_element(Perm const &perm) const
 {
   assert(perm.degree() == _n && "element has same degree as group");

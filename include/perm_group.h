@@ -55,6 +55,7 @@ public:
   unsigned order() const { return _order; }
   BSGS bsgs() const { return _bsgs; }
   bool trivial() const { return _bsgs.trivial(); }
+  bool transitive() const;
 
   bool is_element(Perm const &perm) const;
   Perm random_element() const;
