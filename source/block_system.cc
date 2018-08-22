@@ -5,6 +5,8 @@
 #include "block_system.h"
 #include "dbg.h"
 #include "perm.h"
+#include "perm_group.h"
+#include "schreier_sims.h"
 
 namespace cgtl
 {
@@ -160,6 +162,40 @@ BlockSystem BlockSystem::minimal(std::vector<Perm> const &generators,
                                         classpath.end()));
 
   Dbg(Dbg::TRACE) << "Resulting block system: " << res;
+
+  return res;
+}
+
+std::vector<BlockSystem> BlockSystem::non_trivial(PermGroup const &pg)
+{
+  auto sgs = pg.bsgs().sgs();
+
+  Dbg(Dbg::DBG) << "Finding all non-trivial block systems for group with generators:";
+  Dbg(Dbg::DBG) << sgs;
+
+  std::vector<Perm> stab1 = pg.bsgs().stabilizers(1);
+  Dbg(Dbg::TRACE) << "G_1 has generators: " << stab1;
+
+  std::vector<std::vector<unsigned>> stab1_orbits = SchreierSims::orbits(stab1);
+  Dbg(Dbg::TRACE) << "Orbit decomposition of G_1 is: " << stab1_orbits;
+
+  std::vector<BlockSystem> res;
+
+  for (auto const &orbit : stab1_orbits) {
+    unsigned repr = orbit[0];
+    if (repr == 1u)
+      continue;
+
+    auto bs = BlockSystem::minimal(sgs, {1, repr});
+
+    if (!bs.trivial()) {
+      Dbg(Dbg::TRACE) << "Found blocksystem: " << bs;
+      res.push_back(bs);
+    }
+  }
+
+  Dbg(Dbg::TRACE) << "Resulting block systems are:";
+  Dbg(Dbg::TRACE) << res;
 
   return res;
 }

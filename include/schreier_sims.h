@@ -15,6 +15,9 @@ class SchreierSims
 public:
   enum Variant { SIMPLE, RANDOM };
 
+  static std::vector<std::vector<unsigned>> orbits(
+    std::vector<Perm> const &generators);
+
   static std::vector<unsigned> orbit(unsigned alpha,
     std::vector<Perm> const &generators, SchreierTree &st);
 

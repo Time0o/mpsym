@@ -38,6 +38,7 @@ public:
 
   std::vector<unsigned> base() const { return _base; }
   std::vector<Perm> sgs() const { return _sgs; }
+  std::vector<Perm> stabilizers(unsigned i) const;
   std::vector<std::vector<unsigned>> orbits() const;
   size_type size() const { return _base_elems.size(); }
   std::pair<Perm, unsigned> strip(Perm const &perm) const;

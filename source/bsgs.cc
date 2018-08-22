@@ -27,6 +27,27 @@ BSGS::BSGS(std::vector<Perm> const &generators,
   }
 }
 
+std::vector<Perm> BSGS::stabilizers(unsigned i) const
+{
+  std::vector<Perm> res;
+  for (Perm const &perm : _sgs) {
+    bool stabilizes = true;
+
+    for (auto j = 1u; j <= i; ++j) {
+      unsigned b = _base[j - 1u];
+      if (perm[b] != b) {
+        stabilizes = false;
+        break;
+      }
+    }
+
+    if (stabilizes)
+      res.push_back(perm);
+  }
+
+  return res;
+}
+
 std::vector<std::vector<unsigned>> BSGS::orbits() const
 {
   std::vector<std::vector<unsigned>> result;

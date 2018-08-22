@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "perm.h"
+#include "perm_group.h"
 
 namespace cgtl
 {
@@ -20,6 +21,7 @@ public:
 
   unsigned degree() const { return _n; }
   unsigned size() const { return static_cast<unsigned>(_blocks.size()); }
+  bool trivial() const { return _blocks.size() == 1u; }
 
   std::vector<unsigned> const& operator[](unsigned const i) const;
   const_iterator begin() const;
@@ -27,6 +29,8 @@ public:
 
   static BlockSystem minimal(std::vector<Perm> const &generators,
                              std::vector<unsigned> const &initial_class);
+
+  static std::vector<BlockSystem> non_trivial(PermGroup const &pg);
 
 private:
   unsigned _n;
