@@ -41,6 +41,7 @@ std::vector<std::vector<unsigned>> SchreierSims::orbits(
       int orbit_index2 = orbit_indices[j];
       if (orbit_index2 == -1) {
         res[orbit_index1].push_back(j);
+        orbit_indices[j] = orbit_index1;
 
         if (++processed == n)
           return res;
