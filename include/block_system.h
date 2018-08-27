@@ -30,9 +30,13 @@ public:
   static BlockSystem minimal(std::vector<Perm> const &generators,
                              std::vector<unsigned> const &initial_class);
 
-  static std::vector<BlockSystem> non_trivial(PermGroup const &pg);
+  static std::vector<BlockSystem> non_trivial(
+    PermGroup const &pg, bool assume_transitivity = false);
 
 private:
+  static std::vector<BlockSystem> non_trivial_transitive(PermGroup const &pg);
+  static std::vector<BlockSystem> non_trivial_non_transitive(PermGroup const &pg);
+
   unsigned _n;
   std::vector<std::vector<unsigned>> _blocks;
 };

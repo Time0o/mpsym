@@ -166,7 +166,31 @@ BlockSystem BlockSystem::minimal(std::vector<Perm> const &generators,
   return res;
 }
 
-std::vector<BlockSystem> BlockSystem::non_trivial(PermGroup const &pg)
+std::vector<BlockSystem> BlockSystem::non_trivial(
+  PermGroup const &pg, bool assume_transitivity)
+{
+  assert((!assume_transitivity || pg.transitive()) &&
+    "transitivity assumption correct");
+
+  bool transitive;
+
+  if (assume_transitivity) {
+    transitive = true;
+    Dbg(Dbg::DBG) << "Assuming transitivity";
+  } else {
+    transitive = pg.transitive();
+    Dbg(Dbg::DBG) << "Group " << (transitive ? " is " : " is not ") << " transitive";
+  }
+
+  if (transitive) {
+    return non_trivial_transitive(pg);
+  } else {
+    return non_trivial_non_transitive(pg);
+  }
+}
+
+std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
+  PermGroup const &pg)
 {
   auto sgs = pg.bsgs().sgs();
 
@@ -198,6 +222,12 @@ std::vector<BlockSystem> BlockSystem::non_trivial(PermGroup const &pg)
   Dbg(Dbg::TRACE) << res;
 
   return res;
+}
+
+std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
+  PermGroup const &pg)
+{
+  throw std::logic_error("not implemented");
 }
 
 std::ostream& operator<<(std::ostream& stream, BlockSystem const &bs)
