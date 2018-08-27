@@ -111,3 +111,49 @@ TEST(PermTest, CanHashPerm)
   EXPECT_THAT(hashed_perms, UnorderedElementsAreArray(perms))
     << "Hashed permutation set has correct elements.";
 }
+
+TEST(PermTest, CanRestrictPerm)
+{
+  struct PermRestriction {
+    PermRestriction(
+      Perm const &perm, std::vector<unsigned> const &domain,
+      Perm const &expected) : perm(perm), domain(domain), expected(expected) {}
+
+    Perm perm;
+    std::vector<unsigned> domain;
+    Perm expected;
+  };
+
+  PermRestriction perm_restrictions[] = {
+    PermRestriction(
+      Perm(4, {{1, 2, 3}}),
+      {1, 2, 3},
+      Perm(4, {{1, 2, 3}})),
+    PermRestriction(
+      Perm(9, {{2, 4}, {3, 5}, {1, 7, 8}}),
+      {2, 3, 4, 5},
+      Perm(9, {{2, 4}, {3, 5}})),
+    PermRestriction(
+      Perm(12, {{6, 3, 2, 1}, {4, 7}, {9, 8}, {10, 11}}),
+      {4, 7, 8, 9, 10, 11},
+      Perm(12, {{4, 7}, {8, 9}, {10, 11}})),
+    PermRestriction(
+      Perm(3, {{1, 2}}),
+      {3},
+      Perm(3)),
+    PermRestriction(
+      Perm(5, {{1, 2, 3}}),
+      {4, 5},
+      Perm(5))
+  };
+
+  for (auto const &pr : perm_restrictions) {
+    bool id;
+
+    EXPECT_EQ(pr.expected, pr.perm.restricted(pr.domain, &id))
+      << "Restricting permutation yields correct result.";
+
+    EXPECT_EQ(pr.expected.id(), id)
+      << "Identitiy flag correctly set during permutation restriction.";
+  }
+}

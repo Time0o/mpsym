@@ -454,25 +454,6 @@ static std::vector<PermGroup> disjoint_decomposition_complete_recursive(
   return {pg};
 }
 
-static Perm restrict_permutation(
-  Perm const &perm, std::vector<unsigned> orbit, bool &id)
-{
-  // decompose generator into disjoint cycles
-  std::vector<unsigned> restricted_perm(perm.degree());
-  for (auto i = 1u; i <= perm.degree(); ++i)
-    restricted_perm[i - 1u] = i;
-
-  id = true;
-  for (unsigned o : orbit) {
-    if (perm[o] != o) {
-      restricted_perm[o - 1u] = perm[o];
-      id = false;
-    }
-  }
-
-  return Perm(restricted_perm);
-}
-
 static bool orbits_dependent(PermGroup const &pg,
   std::vector<unsigned> orbit1, std::vector<unsigned> orbit2)
 {
@@ -496,7 +477,7 @@ static bool orbits_dependent(PermGroup const &pg,
       Dbg(Dbg::TRACE) << perm << " stabilizes " << orbit2;
 
       bool id = false;
-      Perm restricted_stabilizer = restrict_permutation(perm, orbit1, id);
+      Perm restricted_stabilizer(perm.restricted(orbit1, &id));
       Dbg(Dbg::TRACE) << "Restricted stabilizer is: " << restricted_stabilizer;
 
       if (!id)
@@ -504,7 +485,7 @@ static bool orbits_dependent(PermGroup const &pg,
     }
 
     bool id = false;
-    Perm restricted_element = restrict_permutation(perm, orbit1, id);
+    Perm restricted_element(perm.restricted(orbit1, &id));
     Dbg(Dbg::TRACE) << "Restricted group element is: " << restricted_element;
 
     if (!id)

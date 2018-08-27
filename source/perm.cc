@@ -185,6 +185,29 @@ bool Perm::id() const
   return true;
 }
 
+Perm Perm::restricted(std::vector<unsigned> const &domain, bool *id) const
+{
+  // domain must be union of domains of disjoint cycles or behaviour is undefined
+
+  std::vector<unsigned> restricted_perm(_n);
+  for (auto i = 1u; i <= _n; ++i)
+    restricted_perm[i - 1u] = i;
+
+  if (id)
+    *id = true;
+
+  for (unsigned x : domain) {
+    if (_perm[x - 1u] != x) {
+      restricted_perm[x - 1u] = _perm[x - 1u];
+
+      if (id && *id)
+        *id = false;
+    }
+  }
+
+  return Perm(restricted_perm);
+}
+
 } // namespace cgtl
 
 namespace std
