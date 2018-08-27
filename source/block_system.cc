@@ -1,5 +1,5 @@
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 #include <vector>
 
 #include "block_system.h"
@@ -179,7 +179,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial(
     Dbg(Dbg::DBG) << "Assuming transitivity";
   } else {
     transitive = pg.transitive();
-    Dbg(Dbg::DBG) << "Group " << (transitive ? " is " : " is not ") << " transitive";
+    Dbg(Dbg::DBG) << "Group " << (transitive ? "is" : "is not") << " transitive";
   }
 
   if (transitive) {
