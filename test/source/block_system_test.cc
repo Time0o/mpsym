@@ -5,11 +5,13 @@
 #include "block_system.h"
 #include "gmock/gmock.h"
 #include "perm.h"
+#include "perm_group.h"
 
 #include "test_main.cc"
 
 using cgtl::BlockSystem;
 using cgtl::Perm;
+using cgtl::PermGroup;
 
 static std::string block_to_string(std::vector<unsigned> const &block)
 {
@@ -78,4 +80,53 @@ TEST(BlockSystemTest, CanFindMinimalBlockSystem)
   EXPECT_TRUE(block_system_equal({{1, 3, 5}, {2, 4, 6}},
                                  BlockSystem::minimal(generators, {1, 3})))
     << "Minimal blocksystem correctly determined.";
+}
+
+TEST(BlockSystemTest, CanFindAllNonTrivialBlockSystemsForTransientGroup)
+{
+  PermGroup pg(9,
+    {
+      Perm(9, {{1, 2}}),
+      Perm(9, {{1, 3}}),
+      Perm(9, {{1, 4}, {2, 5}, {3, 6}}),
+      Perm(9, {{1, 7}, {2, 8}, {3, 9}}),
+      Perm(9, {{2, 3}}),
+      Perm(9, {{4, 5}}),
+      Perm(9, {{4, 7}, {5, 8}, {6, 9}}),
+      Perm(9, {{5, 6}}),
+      Perm(9, {{7, 8}}),
+      Perm(9, {{7, 9}}),
+      Perm(9, {{8, 9}})
+    }
+  );
+
+  ASSERT_TRUE(pg.transitive())
+    << "Permutation group is actually transitive.";
+
+  auto block_systems(BlockSystem::non_trivial(pg, true));
+
+  ASSERT_EQ(1u, block_systems.size())
+    << "Correct number of block systems found.";
+
+  EXPECT_TRUE(block_system_equal({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}},
+              block_systems[0]))
+    << "Correct block systems determined.";
+}
+
+TEST(BlockSystemTest, CanFindAllNonTrivialBlockSystemsForNonTransientGroup)
+{
+  PermGroup pg(12,
+    {
+      Perm(12, {{1, 2}}),
+      Perm(12, {{2, 3}}),
+      Perm(12, {{4, 5}}),
+      Perm(12, {{5, 6}}),
+      Perm(12, {{7, 8}}),
+      Perm(12, {{8, 9}}),
+      Perm(12, {{1, 4}, {2, 5}, {3, 6}, {10, 11}}),
+      Perm(12, {{4, 7}, {5, 8}, {6, 9}, {11, 12}})
+    }
+  );
+
+  FAIL() << "TODO";
 }
