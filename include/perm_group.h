@@ -60,6 +60,8 @@ public:
   bool is_element(Perm const &perm) const;
   Perm random_element() const;
 
+  std::vector<std::vector<unsigned>> orbits() const;
+
   std::vector<PermGroup> disjoint_decomposition(
     bool complete = true, bool disjoint_orbit_optimization = false) const;
 

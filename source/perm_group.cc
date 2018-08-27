@@ -93,6 +93,11 @@ bool PermGroup::transitive() const
   return true;
 }
 
+std::vector<std::vector<unsigned>> PermGroup::orbits() const
+{
+  return SchreierSims::orbits(_bsgs.sgs());
+}
+
 bool PermGroup::is_element(Perm const &perm) const
 {
   assert(perm.degree() == _n && "element has same degree as group");
