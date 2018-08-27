@@ -381,7 +381,7 @@ static std::vector<PermGroup> disjoint_decomposition_complete_recursive(
         recurse = false;
 
         Dbg(Dbg::TRACE)
-          << "Restricted groups are not a disjunct subgroup decomposition";
+          << "Restricted groups are not a disjoint subgroup decomposition";
 
         break;
       }
@@ -394,7 +394,7 @@ static std::vector<PermGroup> disjoint_decomposition_complete_recursive(
     // recurse for group restricted to orbit partitions
     if (recurse) {
         Dbg(Dbg::TRACE)
-          << "Restricted groups are a disjunct subgroup decomposition, recursing...";
+          << "Restricted groups are a disjoint subgroup decomposition, recursing...";
 
       // compute sizes orbit partition elements
       unsigned n_orbits1 = 0u;
