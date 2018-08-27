@@ -54,6 +54,8 @@ public:
   unsigned degree() const { return _n; }
   bool id() const;
 
+  Perm shifted(unsigned low, unsigned high) const;
+
   Perm restricted(
     std::vector<unsigned> const &domain, bool *id = nullptr) const;
 
