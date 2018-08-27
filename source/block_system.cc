@@ -194,7 +194,9 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
 {
   auto sgs = pg.bsgs().sgs();
 
-  Dbg(Dbg::DBG) << "Finding all non-trivial block systems for group with generators:";
+  Dbg(Dbg::DBG)
+    << "Finding all non-trivial block systems for group with generators:";
+
   Dbg(Dbg::DBG) << sgs;
 
   std::vector<Perm> stab1 = pg.bsgs().stabilizers(1);
