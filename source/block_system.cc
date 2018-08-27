@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cassert>
+#include <utility>
 #include <vector>
 
 #include "block_system.h"
@@ -172,6 +173,9 @@ std::vector<BlockSystem> BlockSystem::non_trivial(
   assert((!assume_transitivity || pg.transitive()) &&
     "transitivity assumption correct");
 
+  Dbg(Dbg::DBG) << "Finding all non-trivial block systems for:";
+  Dbg(Dbg::DBG) << pg;
+
   bool transitive;
 
   if (assume_transitivity) {
@@ -193,11 +197,6 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
   PermGroup const &pg)
 {
   auto sgs = pg.bsgs().sgs();
-
-  Dbg(Dbg::DBG)
-    << "Finding all non-trivial block systems for group with generators:";
-
-  Dbg(Dbg::DBG) << sgs;
 
   std::vector<Perm> stab1 = pg.bsgs().stabilizers(1);
   Dbg(Dbg::TRACE) << "G_1 has generators: " << stab1;
@@ -229,7 +228,61 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
 std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
   PermGroup const &pg)
 {
-  throw std::logic_error("not implemented");
+  auto orbits(pg.orbits());
+  auto gens(pg.bsgs().sgs());
+
+  Dbg(Dbg::TRACE) << "Group has " << orbits.size() << " distinct orbits:";
+#ifndef NDEBUG
+  for (auto const &orbit : orbits)
+    Dbg(Dbg::TRACE) << orbit;
+#endif
+
+  std::vector<std::vector<BlockSystem>> partial_blocksystems(orbits.size());
+
+  for (auto i = 0u; i < orbits.size(); ++i) {
+    // calculate all non trivial block systems for orbit restricted group
+    Dbg(Dbg::TRACE) << "Group generators restricted to " << orbits[i] << ":";
+
+    std::vector<Perm> restricted_gens;
+
+    auto orbit_extremes =
+      std::minmax_element(orbits[i].begin(), orbits[i].end());
+
+    unsigned orbit_low = *std::get<0>(orbit_extremes);
+    unsigned orbit_high = *std::get<1>(orbit_extremes);
+
+    for (auto j = 0u; j < gens.size(); ++j) {
+      bool id;
+      Perm tmp(gens[j].restricted(orbits[i], &id));
+
+      if (!id)
+        restricted_gens.push_back(tmp.shifted(orbit_low, orbit_high));
+    }
+
+    // TODO: could an orbit yield NO generators?
+
+    Dbg(Dbg::TRACE) << restricted_gens;
+
+    auto pg_restricted(PermGroup(orbit_high - orbit_low + 1u, restricted_gens));
+    auto block_systems(non_trivial(pg_restricted, true));
+
+    partial_blocksystems[i] = block_systems;
+
+    // append trivial blocksystem {{x} | x in orbit}
+    std::vector<unsigned> trivial_classes(orbits[i].size());
+    for (auto j = 1u; j <= orbits[i].size(); ++j)
+      trivial_classes[j - 1u] = j;
+
+    partial_blocksystems[i].push_back(BlockSystem(trivial_classes));
+
+    Dbg(Dbg::TRACE) << "yield the following block systems:";
+#ifndef NDEBUG
+    for (auto const &bs : partial_blocksystems)
+      Dbg(Dbg::TRACE) << bs;
+#endif
+  }
+
+  return std::vector<BlockSystem>();
 }
 
 std::ostream& operator<<(std::ostream& stream, BlockSystem const &bs)
