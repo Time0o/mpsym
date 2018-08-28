@@ -115,6 +115,8 @@ BlockSystem BlockSystem::minimal(std::vector<Perm> const &generators,
   Dbg(Dbg::DBG) << "Finding minimal block system for:";
   Dbg(Dbg::DBG) << generators;
 
+  Dbg(Dbg::DBG) << "Initial class is: " << initial_class;
+
   for (auto i = 1u; i <= degree; ++i) {
     classpath[i] = i;
     cardinalities[i] = 1u;
