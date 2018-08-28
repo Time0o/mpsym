@@ -15,7 +15,8 @@
 namespace cgtl
 {
 
-BlockSystem::BlockSystem(std::vector<unsigned> classes) : _n(classes.size())
+BlockSystem::BlockSystem(std::vector<unsigned> const &classes)
+  : _n(classes.size())
 {
   std::vector<int> block_indices(_n, -1);
 

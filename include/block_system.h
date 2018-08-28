@@ -17,7 +17,7 @@ friend std::ostream& operator<<(std::ostream& stream, BlockSystem const &bs);
 public:
   typedef std::vector<std::vector<unsigned>>::const_iterator const_iterator;
 
-  BlockSystem(std::vector<unsigned> classes);
+  BlockSystem(std::vector<unsigned> const &classes);
 
   unsigned degree() const { return _n; }
   unsigned size() const { return static_cast<unsigned>(_blocks.size()); }
