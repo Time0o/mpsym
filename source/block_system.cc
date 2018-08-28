@@ -200,20 +200,32 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
 {
   auto sgs = pg.bsgs().sgs();
 
-  std::vector<Perm> stab1 = pg.bsgs().stabilizers(1);
-  Dbg(Dbg::TRACE) << "G_1 has generators: " << stab1;
+  // TODO: does the first base element HAVE to be one?
+  unsigned first_base_elem = pg.bsgs()[0].elem();
+  Dbg(Dbg::TRACE) << "First base element is: " << first_base_elem;
 
-  std::vector<std::vector<unsigned>> stab1_orbits = SchreierSims::orbits(stab1);
-  Dbg(Dbg::TRACE) << "Orbit decomposition of G_1 is: " << stab1_orbits;
+  std::vector<Perm> stab = pg.bsgs().stabilizers(1);
+
+  if (stab.empty()) {
+    Dbg(Dbg::TRACE)
+      << "No generators stabilizing first base element, no block systems possible";
+
+    return std::vector<BlockSystem>();
+  }
+
+  Dbg(Dbg::TRACE) << "Generators stabilizing first base element: " << stab;
+
+  std::vector<std::vector<unsigned>> stab_orbits = SchreierSims::orbits(stab);
+  Dbg(Dbg::TRACE) << "Orbit decomposition of associated group is: " << stab_orbits;
 
   std::vector<BlockSystem> res;
 
-  for (auto const &orbit : stab1_orbits) {
+  for (auto const &orbit : stab_orbits) {
     unsigned repr = orbit[0];
-    if (repr == 1u)
+    if (repr == first_base_elem)
       continue;
 
-    auto bs = BlockSystem::minimal(sgs, {1, repr});
+    auto bs = BlockSystem::minimal(sgs, {first_base_elem, repr});
 
     if (!bs.trivial()) {
       Dbg(Dbg::TRACE) << "Found blocksystem: " << bs;
@@ -243,8 +255,6 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
 
   for (auto i = 0u; i < orbits.size(); ++i) {
     // calculate all non trivial block systems for orbit restricted group
-    Dbg(Dbg::TRACE) << "Group generators restricted to " << orbits[i] << ":";
-
     std::vector<Perm> restricted_gens;
 
     auto orbit_extremes =
@@ -261,14 +271,23 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
         restricted_gens.push_back(tmp.shifted(orbit_low, orbit_high));
     }
 
-    // TODO: could an orbit yield NO generators?
-
-    Dbg(Dbg::TRACE) << restricted_gens;
+    Dbg(Dbg::TRACE) << "Group generators restricted to " << orbits[i] << ":";
+	Dbg(Dbg::TRACE) << restricted_gens;
 
     auto pg_restricted(PermGroup(orbit_high - orbit_low + 1u, restricted_gens));
     auto block_systems(non_trivial(pg_restricted, true));
 
     partial_blocksystems[i] = block_systems;
+
+    Dbg(Dbg::TRACE) << "=> Resulting non-trivial block systems:";
+#ifndef NDEBUG
+    if (partial_blocksystems[i].size() == 0u) {
+      Dbg(Dbg::TRACE) << "None";
+    } else {
+      for (auto const &bs : partial_blocksystems[i])
+        Dbg(Dbg::TRACE) << bs;
+   }
+#endif
 
     // append trivial blocksystem {{x} | x in orbit}
     std::vector<unsigned> trivial_classes(orbits[i].size());
@@ -276,13 +295,13 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
       trivial_classes[j - 1u] = j;
 
     partial_blocksystems[i].push_back(BlockSystem(trivial_classes));
-
-    Dbg(Dbg::TRACE) << "yield the following block systems:";
-#ifndef NDEBUG
-    for (auto const &bs : partial_blocksystems)
-      Dbg(Dbg::TRACE) << bs;
-#endif
   }
+
+  Dbg(Dbg::TRACE) << "==> Relevant block systems for all group restrictions:";
+#ifndef NDEBUG
+  for (auto const &bs : partial_blocksystems)
+    Dbg(Dbg::TRACE) << bs;
+#endif
 
   return std::vector<BlockSystem>();
 }
