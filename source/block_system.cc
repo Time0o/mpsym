@@ -48,7 +48,7 @@ BlockSystem::const_iterator BlockSystem::end() const
 bool BlockSystem::is_block(std::vector<Perm> const &generators,
                            std::vector<unsigned> const &block)
 {
-  for (auto const &gen : generators) {
+  for (Perm const &gen : generators) {
     bool maps_to_other_block =
       std::find(block.begin(), block.end(), gen[block[0]]) == block.end();
 
