@@ -48,15 +48,19 @@ BlockSystem::const_iterator BlockSystem::end() const
 bool BlockSystem::is_block(std::vector<Perm> const &generators,
                            std::vector<unsigned> const &block)
 {
-  bool gen_maps_to_other_block = false;
+  for (auto const &gen : generators) {
+    bool maps_to_other_block =
+      std::find(block.begin(), block.end(), gen[block[0]]) == block.end();
 
-  for (unsigned x : block) {
-    for (auto const &gen : generators) {
-      if (std::find(block.begin(), block.end(), gen[x]) != block.end()) {
-        if (gen_maps_to_other_block)
+    for (auto i = 0u; i < block.size(); ++i) {
+      unsigned x = block[i];
+
+      if (std::find(block.begin(), block.end(), gen[x]) == block.end()) {
+        if (!maps_to_other_block)
           return false;
       } else {
-        gen_maps_to_other_block = true;
+        if (maps_to_other_block)
+          return false;
       }
     }
   }
