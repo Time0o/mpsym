@@ -90,7 +90,7 @@ bool PermGroup::transitive() const
     }
   }
 
-  return true;
+  throw std::logic_error("unreachable");
 }
 
 std::vector<std::vector<unsigned>> PermGroup::orbits() const
