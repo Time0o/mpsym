@@ -17,6 +17,8 @@ friend std::ostream& operator<<(std::ostream& stream, BlockSystem const &bs);
 public:
   typedef std::vector<std::vector<unsigned>>::const_iterator const_iterator;
 
+  BlockSystem() : _n(0u) {};
+  BlockSystem(unsigned n, std::vector<std::vector<unsigned>> const &blocks);
   BlockSystem(std::vector<unsigned> const &classes);
 
   unsigned degree() const { return _n; }
@@ -29,6 +31,9 @@ public:
 
   static bool is_block(std::vector<Perm> const &generators,
                        std::vector<unsigned> const &block);
+
+  static BlockSystem from_block(std::vector<Perm> const &generators,
+                                std::vector<unsigned> const &block);
 
   static BlockSystem minimal(std::vector<Perm> const &generators,
                              std::vector<unsigned> const &initial_class);

@@ -15,6 +15,10 @@
 namespace cgtl
 {
 
+BlockSystem::BlockSystem(
+  unsigned n, std::vector<std::vector<unsigned>> const &blocks)
+  : _n(n), _blocks(blocks) {}
+
 BlockSystem::BlockSystem(std::vector<unsigned> const &classes)
   : _n(classes.size())
 {
@@ -67,6 +71,50 @@ bool BlockSystem::is_block(std::vector<Perm> const &generators,
   }
 
   return true;
+}
+
+BlockSystem BlockSystem::from_block(std::vector<Perm> const &generators,
+                                    std::vector<unsigned> const &block)
+{
+  assert(is_block(generators, block));
+
+  unsigned n = generators[0].degree();
+  std::vector<unsigned> classes(n + 1u, 0u);
+
+  for (unsigned x : block)
+    classes[x] = 1u;
+
+  std::vector<std::vector<unsigned>> blocks {block};
+
+  unsigned block_idx = 0u;
+  unsigned n_processed = block.size();
+
+  while (block_idx < blocks.size()) {
+    auto current_block(blocks[block_idx]);
+
+    for (Perm const &gen : generators) {
+      unsigned x = blocks[block_idx][0];
+      unsigned y = gen[x];
+
+      if (classes[y] != 0u)
+        continue;
+
+      std::vector<unsigned> next_block(block.size());
+      for (auto i = 0u; i < current_block.size(); ++i) {
+        unsigned tmp = gen[current_block[i]];
+        next_block[i] = tmp;
+        classes[tmp] = blocks.size() + 1u;
+      }
+      blocks.push_back(next_block);
+
+      if ((n_processed += block.size()) == n)
+        return BlockSystem(n, blocks);
+    }
+
+    ++block_idx;
+  }
+
+  throw std::logic_error("unreachable");
 }
 
 BlockSystem BlockSystem::minimal(std::vector<Perm> const &generators,
@@ -427,7 +475,24 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
   std::vector<std::vector<unsigned>> repr_blocks;
   construct_blocks({}, 0u, false, repr_blocks);
 
-  throw std::logic_error("TODO");
+  Dbg(Dbg::TRACE) << "==> Representative blocks found:";
+#ifndef NDEBUG
+  for (auto const &block : repr_blocks)
+    Dbg(Dbg::TRACE) << block;
+#endif
+
+  // construct block systems from block representatives
+  std::vector<BlockSystem> res(repr_blocks.size());
+  for (auto i = 0u; i < repr_blocks.size(); ++i)
+    res[i] = from_block(gens, repr_blocks[i]);
+
+  Dbg(Dbg::TRACE) << "==> Respective block systems:";
+#ifndef NDEBUG
+  for (BlockSystem const &bs : res)
+    Dbg(Dbg::TRACE) << bs;
+#endif
+
+  return res;
 }
 
 std::ostream& operator<<(std::ostream& stream, BlockSystem const &bs)
