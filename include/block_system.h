@@ -27,6 +27,9 @@ public:
   const_iterator begin() const;
   const_iterator end() const;
 
+  static bool is_block(std::vector<Perm> const &generators,
+                       std::vector<unsigned> const &block);
+
   static BlockSystem minimal(std::vector<Perm> const &generators,
                              std::vector<unsigned> const &initial_class);
 

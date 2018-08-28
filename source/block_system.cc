@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cassert>
+#include <functional>
 #include <utility>
 #include <vector>
 
@@ -43,6 +44,25 @@ BlockSystem::const_iterator BlockSystem::begin() const
 
 BlockSystem::const_iterator BlockSystem::end() const
 { return _blocks.end(); }
+
+bool BlockSystem::is_block(std::vector<Perm> const &generators,
+                           std::vector<unsigned> const &block)
+{
+  bool gen_maps_to_other_block = false;
+
+  for (unsigned x : block) {
+    for (auto const &gen : generators) {
+      if (std::find(block.begin(), block.end(), gen[x]) != block.end()) {
+        if (gen_maps_to_other_block)
+          return false;
+      } else {
+        gen_maps_to_other_block = true;
+      }
+    }
+  }
+
+  return true;
+}
 
 BlockSystem BlockSystem::minimal(std::vector<Perm> const &generators,
                                  std::vector<unsigned> const &initial_class)
@@ -261,6 +281,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
 #endif
 
   std::vector<std::vector<BlockSystem>> partial_blocksystems(orbits.size());
+  std::vector<unsigned> domain_offsets(orbits.size());
 
   for (auto i = 0u; i < orbits.size(); ++i) {
     // calculate all non trivial block systems for orbit restricted group
@@ -271,6 +292,8 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
 
     unsigned orbit_low = *std::get<0>(orbit_extremes);
     unsigned orbit_high = *std::get<1>(orbit_extremes);
+
+    domain_offsets[i] = orbit_low - 1u;
 
     for (auto j = 0u; j < gens.size(); ++j) {
       bool id;
@@ -312,7 +335,94 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
     Dbg(Dbg::TRACE) << bs;
 #endif
 
-  return std::vector<BlockSystem>();
+  auto shift_block = [](std::vector<unsigned> const &block, unsigned shift) {
+    std::vector<unsigned> res(block.size());
+
+    for (auto i = 0u; i < block.size(); ++i)
+      res[i] = block[i] + shift;
+
+    return res;
+  };
+
+  std::function<void(
+    std::vector<BlockSystem const *> const &, unsigned,
+    bool, std::vector<std::vector<unsigned>> &)>
+  construct_blocks = [&](
+    std::vector<BlockSystem const *> const &current_blocksystems, unsigned i,
+    bool one_trivial, std::vector<std::vector<unsigned>> &res) {
+
+    if (i == partial_blocksystems.size()) {
+      Dbg(Dbg::TRACE) << "= Considering block system combination:";
+#ifndef NDEBUG
+      for (auto j = 0u; j < current_blocksystems.size(); ++j) {
+        Dbg(Dbg::TRACE) << *current_blocksystems[j]
+                        << " (shifted by " << domain_offsets[j] << ")";
+      }
+#endif
+
+      std::vector<unsigned> current_block =
+        shift_block((*current_blocksystems[0])[0], domain_offsets[0]);
+
+      for (auto j = 1u; j < current_blocksystems.size(); ++j) {
+
+        bool next_block = false;
+
+        BlockSystem const *bs = current_blocksystems[j];
+        for (std::vector<unsigned> const &block : *bs) {
+
+          std::vector<unsigned> shifted_block(
+            shift_block(block, domain_offsets[j]));
+
+          std::vector<unsigned> extended_block(
+            current_block.size() + shifted_block.size());
+
+          auto it = std::set_union(current_block.begin(), current_block.end(),
+                                   shifted_block.begin(), shifted_block.end(),
+                                   extended_block.begin());
+
+          extended_block.resize(it - extended_block.begin());
+
+          if (is_block(gens, extended_block)) {
+            Dbg(Dbg::TRACE) << extended_block << " is a block";
+            current_block = extended_block;
+            next_block = true;
+            break;
+          }
+
+          Dbg(Dbg::TRACE) << extended_block << " is not a block";
+        }
+
+        if (!next_block)
+          return;
+      }
+
+      Dbg(Dbg::TRACE) << "=> Found representative block: " << current_block;
+      res.push_back(current_block);
+
+      return;
+    }
+
+    for (BlockSystem &blocksystem : partial_blocksystems[i]) {
+      if (blocksystem.trivial()) {
+        if (one_trivial)
+          return;
+
+        one_trivial = true;
+      }
+
+      auto extended_blocksystems(current_blocksystems);
+      extended_blocksystems.push_back(&blocksystem);
+
+      construct_blocks(extended_blocksystems, i + 1, one_trivial, res);
+    }
+  };
+
+  Dbg(Dbg::TRACE) << "== Finding block system representatives";
+
+  std::vector<std::vector<unsigned>> repr_blocks;
+  construct_blocks({}, 0u, false, repr_blocks);
+
+  throw std::logic_error("TODO");
 }
 
 std::ostream& operator<<(std::ostream& stream, BlockSystem const &bs)
