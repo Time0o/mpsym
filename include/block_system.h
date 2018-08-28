@@ -21,7 +21,7 @@ public:
 
   unsigned degree() const { return _n; }
   unsigned size() const { return static_cast<unsigned>(_blocks.size()); }
-  bool trivial() const { return _blocks.size() == 1u; }
+  bool trivial() const { return _blocks.size() == 1u || _blocks[0].size() == 1u; }
 
   std::vector<unsigned> const& operator[](unsigned const i) const;
   const_iterator begin() const;
