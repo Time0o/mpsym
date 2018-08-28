@@ -3,6 +3,8 @@
 #include <utility>
 #include <vector>
 
+#include "boost/multiprecision/miller_rabin.hpp"
+
 #include "block_system.h"
 #include "dbg.h"
 #include "perm.h"
@@ -198,6 +200,13 @@ std::vector<BlockSystem> BlockSystem::non_trivial(
 std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
   PermGroup const &pg)
 {
+  if (boost::multiprecision::miller_rabin_test(pg.degree(), 25)) {
+    Dbg(Dbg::TRACE) << "Group degree is probably prime (" << pg.degree()
+                    << ") no non-trivial block systems are possible";
+
+    return std::vector<BlockSystem>();
+  }
+
   auto sgs = pg.bsgs().sgs();
 
   // TODO: does the first base element HAVE to be one?
