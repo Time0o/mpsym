@@ -604,7 +604,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_complete(
     Dbg(Dbg::TRACE) << "=== Using dependent orbit optimization";
     n_orbits = generate_dependency_classes(*this, orbit_ids, n_orbits);
 
-    Dbg(Dbg::TRACE) << "==> Orbits grouped dependency classe unions:";
+    Dbg(Dbg::TRACE) << "==> Grouped dependency class unions:";
 #ifndef NDEBUG
     debug_orbit_decomposition(orbit_ids, n_orbits, _n);
 #endif
