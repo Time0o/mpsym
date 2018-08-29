@@ -6,6 +6,7 @@
 #include "test_main.cc"
 
 using cgtl::pow;
+using cgtl::factorial;
 
 class PowTest :
   public testing::TestWithParam<std::tuple<unsigned, unsigned, unsigned>> {};
@@ -28,3 +29,22 @@ INSTANTIATE_TEST_CASE_P(PowTestInstances, PowTest,
                   std::make_tuple(4u, 5u, 1024u),
                   std::make_tuple(3u, 7u, 2187u),
                   std::make_tuple(5u, 3u, 125u)));
+
+class FactorialTest :
+  public testing::TestWithParam<std::pair<unsigned, unsigned>> {};
+
+TEST_P(FactorialTest, CanObtainIntegerFactorial)
+{
+  auto inst = GetParam();
+  auto in = std::get<0>(inst);
+  auto res = std::get<1>(inst);
+
+  EXPECT_EQ(res, factorial(in))
+    << "Integer power calculated correctly.";
+}
+
+INSTANTIATE_TEST_CASE_P(FactorialTestInstances, FactorialTest,
+  testing::Values(std::make_pair(0u, 1u),
+                  std::make_pair(1u, 1u),
+                  std::make_pair(5u, 120u),
+                  std::make_pair(7u, 5040u)));
