@@ -53,6 +53,36 @@ BlockSystem::const_iterator BlockSystem::begin() const
 BlockSystem::const_iterator BlockSystem::end() const
 { return _blocks.end(); }
 
+PermGroup BlockSystem::block_permuter(std::vector<Perm> const &generators) const
+{
+  unsigned d = static_cast<unsigned>(_blocks.size());
+
+  std::vector<unsigned> block_pointers(generators[0].degree() + 1u);
+
+  for (unsigned i = 0u; i < d; ++i) {
+    for (unsigned x : _blocks[i])
+      block_pointers[x] = i + 1u;
+  }
+
+  std::vector<unsigned> tmp_perm(d);
+  std::vector<Perm> permuter_generators(generators.size());
+
+  for (auto i = 0u; i < generators.size(); ++i) {
+    auto gen = generators[i];
+
+    for (unsigned j = 0u; j < d; ++j) {
+      unsigned x = _blocks[j][0];
+      unsigned y = gen[x];
+
+      tmp_perm[j] = block_pointers[y];
+    }
+
+    permuter_generators[i] = Perm(tmp_perm);
+  }
+
+  return PermGroup(d, permuter_generators);
+}
+
 bool BlockSystem::is_block(std::vector<Perm> const &generators,
                            std::vector<unsigned> const &block)
 {
