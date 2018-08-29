@@ -23,7 +23,7 @@ public:
     std::vector<Perm> transversals() const;
 
   private:
-    SchreierTree const _st;
+    SchreierTree _st;
   };
 
   typedef std::vector<BaseElem>::size_type size_type;
