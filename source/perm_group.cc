@@ -627,10 +627,10 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
   Dbg(Dbg::DBG) << "Finding wreath product decomposition for:";
   Dbg(Dbg::DBG) << *this;
 
-  auto blocksystems = BlockSystem::non_trivial(*this);
+  auto blocksystems(BlockSystem::non_trivial(*this));
   auto gens(_bsgs.sgs());
 
-  for (auto const &bs : blocksystems) {
+  for (BlockSystem const &bs : blocksystems) {
     Dbg(Dbg::TRACE) << "Considering block system: " << bs;
     unsigned d = bs.size();
 
@@ -651,7 +651,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
     }
 
     Dbg(Dbg::TRACE) << "Stabilizers of remaining blocks are:";
-    for (auto i = 1u; i < d; ++i) {
+    for (unsigned i = 1u; i < d; ++i) {
       sigma[i] = BlockSystem::block_stabilizers(gens, bs[i]);
       Dbg(Dbg::TRACE) << bs[i] << " => " << sigma[i];
     }
