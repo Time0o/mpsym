@@ -27,6 +27,36 @@ static unsigned factorial(unsigned x)
   return result;
 }
 
+TEST(PermGroupTest, CanComparePermGroups)
+{
+  PermGroup pg1(5,
+    {
+      Perm(5, {{1, 2}, {3, 4}}),
+      Perm(5, {{1, 4, 2}})
+    }
+  );
+
+  PermGroup pg2(5,
+    {
+      Perm(5, {{1, 2}, {3, 4}}),
+      Perm(5, {{1, 4, 2}}),
+      Perm(5, {{2, 4, 3}})
+    }
+  );
+
+  PermGroup pg3(5,
+    {
+      Perm(5, {{3, 4, 1}})
+    }
+  );
+
+  EXPECT_TRUE(pg1 == pg2 && !(pg1 != pg2))
+    << "Can recognize permutation groups as equal.";
+
+  EXPECT_TRUE(pg1 != pg3 && pg2 != pg3 && !(pg1 == pg3) && !(pg2 == pg3))
+    << "Can recognize permutation groups as unequal.";
+}
+
 TEST(PermGroupTest, CanObtainDegree)
 {
   PermGroup pg(10u, {Perm(10u)});
