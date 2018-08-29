@@ -31,6 +31,26 @@ PermGroup::PermGroup(unsigned degree, std::vector<Perm> const &generators,
     _order *= b.orbit().size();
 }
 
+bool PermGroup::operator==(PermGroup const &rhs) const
+{
+  assert(_n == rhs.degree() && "comparing permutation groups of equal degree");
+
+  if (_order != rhs.order())
+    return false;
+
+  for (Perm const &gen : rhs.bsgs().sgs()) {
+    if (!is_element(gen))
+      return false;
+  }
+
+  return true;
+}
+
+bool PermGroup::operator!=(PermGroup const &rhs) const
+{
+  return !(*this == rhs);
+}
+
 PermGroup PermGroup::symmetric(unsigned degree)
 {
   assert(degree > 0u);

@@ -44,6 +44,9 @@ public:
   PermGroup(unsigned degree, std::vector<Perm> const &generators,
     SchreierSims::Variant schreier_sims_method = SchreierSims::SIMPLE);
 
+  bool operator==(PermGroup const &rhs) const;
+  bool operator!=(PermGroup const &rhs) const;
+
   static PermGroup symmetric(unsigned degree);
   static PermGroup cyclic(unsigned degree);
   static PermGroup alternating(unsigned degree);
