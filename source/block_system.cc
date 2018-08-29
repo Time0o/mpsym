@@ -41,6 +41,9 @@ BlockSystem::BlockSystem(std::vector<unsigned> const &classes)
   }
 }
 
+bool BlockSystem::trivial() const
+{ return _blocks.size() == 1u || _blocks[0].size() == 1u; }
+
 std::vector<unsigned> const& BlockSystem::operator[](unsigned const i) const
 { return _blocks[i]; }
 
