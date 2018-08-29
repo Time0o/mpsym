@@ -448,3 +448,56 @@ INSTANTIATE_TEST_CASE_P(DisjointSubgroupProductVariants,
   DisjointSubgroupProductTest, testing::Values(std::make_pair(false, false),
                                                std::make_pair(true, false),
                                                std::make_pair(true, true)));
+
+TEST(WreathProductTest, CanFindWreathProduct)
+{
+  PermGroup pg(12,
+    {
+      Perm(12, {{1, 2}}),
+      Perm(12, {{2, 3}}),
+      Perm(12, {{4, 5}}),
+      Perm(12, {{5, 6}}),
+      Perm(12, {{7, 8}}),
+      Perm(12, {{8, 9}}),
+      Perm(12, {{1, 4}, {2, 5}, {3, 6}, {10, 11}}),
+      Perm(12, {{4, 7}, {5, 8}, {6, 9}, {11, 12}})
+    }
+  );
+
+  std::vector<PermGroup> decomp = pg.wreath_decomposition();
+
+  PermGroup sigma_k(12,
+    {
+      Perm(12, {{1, 4}, {2, 5}, {3, 6}, {10, 11}}),
+      Perm(12, {{4, 7}, {5, 8}, {6, 9}, {11, 12}})
+    }
+  );
+
+  EXPECT_EQ(sigma_k, decomp[0])
+    << "Block permuter monomorphism image generated correctly.";
+
+  std::vector<PermGroup> sigma_hs {
+    PermGroup(12,
+      {
+        Perm(12, {{1, 2}}),
+        Perm(12, {{2, 3}})
+      }
+    ),
+    PermGroup(12,
+      {
+        Perm(12, {{4, 5}}),
+        Perm(12, {{5, 6}})
+      }
+    ),
+    PermGroup(12,
+      {
+        Perm(12, {{7, 8}}),
+        Perm(12, {{8, 9}})
+      }
+    )
+  };
+
+  std::vector<PermGroup> tmp(decomp.begin() + 1, decomp.end());
+  EXPECT_THAT(tmp, UnorderedElementsAreArray(sigma_hs))
+    << "Permutation representations of block actions generated correctly.";
+}
