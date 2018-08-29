@@ -128,5 +128,15 @@ TEST(BlockSystemTest, CanFindAllNonTrivialBlockSystemsForNonTransientGroup)
     }
   );
 
-  FAIL() << "TODO";
+  ASSERT_FALSE(pg.transitive())
+    << "Permutation group is actually non-transitive.";
+
+  auto block_systems(BlockSystem::non_trivial(pg));
+
+  ASSERT_EQ(1u, block_systems.size())
+    << "Correct number of block systems found.";
+
+  EXPECT_TRUE(block_system_equal({{1, 2, 3, 10}, {4, 5, 6, 11}, {7, 8, 9, 12}},
+              block_systems[0]))
+    << "Correct block systems determined.";
 }
