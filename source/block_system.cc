@@ -236,6 +236,11 @@ BlockSystem BlockSystem::minimal(std::vector<Perm> const &generators,
     }
   }
 
+  for (auto i = 1u; i <= degree; ++i)
+    rep(i);
+
+  Dbg(Dbg::TRACE) << "Final classpath is: " << classpath;
+
   BlockSystem res(std::vector<unsigned>(classpath.begin() + 1,
                                         classpath.end()));
 
