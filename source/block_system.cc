@@ -73,6 +73,34 @@ bool BlockSystem::is_block(std::vector<Perm> const &generators,
   return true;
 }
 
+std::vector<Perm> BlockSystem::block_stabilizers(
+  std::vector<Perm> const &generators, std::vector<unsigned> const &block)
+{
+  std::vector<Perm> res;
+
+  for (Perm const &gen : generators) {
+    bool id = true;
+    bool stabilizes = true;
+
+    for (unsigned x : block) {
+      unsigned y = gen[x];
+
+      if (id && y != x)
+        id = false;
+
+      if (std::find(block.begin(), block.end(), y) == block.end()) {
+        stabilizes = false;
+        break;
+      }
+    }
+
+    if (!id && stabilizes)
+      res.push_back(gen.restricted(block));
+  }
+
+  return res;
+}
+
 BlockSystem BlockSystem::from_block(std::vector<Perm> const &generators,
                                     std::vector<unsigned> const &block)
 {

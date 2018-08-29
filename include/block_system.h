@@ -32,6 +32,9 @@ public:
   static bool is_block(std::vector<Perm> const &generators,
                        std::vector<unsigned> const &block);
 
+  static std::vector<Perm> block_stabilizers(
+    std::vector<Perm> const &generators, std::vector<unsigned> const &block);
+
   static BlockSystem from_block(std::vector<Perm> const &generators,
                                 std::vector<unsigned> const &block);
 
