@@ -17,7 +17,13 @@ namespace cgtl
 
 BlockSystem::BlockSystem(
   unsigned n, std::vector<std::vector<unsigned>> const &blocks)
-  : _n(n), _blocks(blocks) {}
+  : _n(n), _blocks(blocks)
+{
+#ifndef NDEBUG
+  for (auto const &block : _blocks)
+    assert(is_sorted(block.begin(), block.end()));
+#endif
+}
 
 BlockSystem::BlockSystem(std::vector<unsigned> const &classes)
   : _n(classes.size())
