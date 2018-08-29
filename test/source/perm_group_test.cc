@@ -121,7 +121,7 @@ TEST(PermGroupTest, CanTestMembership)
 {
   PermGroup a4 = PermGroup::alternating(4);
 
-  std::vector<Perm> expected_members = {
+  std::vector<Perm> expected_members {
     Perm(4),
     Perm(4, {{2, 3, 4}}),
     Perm(4, {{2, 4, 3}}),
@@ -136,7 +136,7 @@ TEST(PermGroupTest, CanTestMembership)
     Perm(4, {{1, 4}, {2, 3}})
   };
 
-  std::vector<Perm> expected_non_members = {
+  std::vector<Perm> expected_non_members {
     Perm(4, {{3, 4}}),
     Perm(4, {{2, 3}}),
     Perm(4, {{2, 4}}),
@@ -201,7 +201,7 @@ TEST(PermGroupTest, CanIterateSimplestNonTrivialGroup)
 {
   PermGroup pg = PermGroup(4, {Perm(4, {{1, 2}})});
 
-  std::vector<Perm> expected_members = {
+  std::vector<Perm> expected_members {
     Perm(4),
     Perm(4, {{1, 2}})
   };
@@ -231,7 +231,7 @@ TEST(PermGroupTest, CanIterateElements)
 {
   PermGroup a4 = PermGroup::alternating(4);
 
-  std::vector<Perm> expected_members = {
+  std::vector<Perm> expected_members {
     Perm(4),
     Perm(4, {{2, 3, 4}}),
     Perm(4, {{2, 4, 3}}),
