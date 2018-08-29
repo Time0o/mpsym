@@ -21,6 +21,9 @@ public:
   BlockSystem(unsigned n, std::vector<std::vector<unsigned>> const &blocks);
   BlockSystem(std::vector<unsigned> const &classes);
 
+  std::vector<unsigned> classes() const { return _classes; }
+  std::vector<std::vector<unsigned>> blocks() const { return _blocks; }
+
   unsigned degree() const { return _n; }
   unsigned size() const { return static_cast<unsigned>(_blocks.size()); }
   bool trivial() const;
@@ -51,6 +54,7 @@ private:
   static std::vector<BlockSystem> non_trivial_non_transitive(PermGroup const &pg);
 
   unsigned _n;
+  std::vector<unsigned> _classes;
   std::vector<std::vector<unsigned>> _blocks;
 };
 

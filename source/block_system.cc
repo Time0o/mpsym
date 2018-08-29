@@ -17,21 +17,26 @@ namespace cgtl
 
 BlockSystem::BlockSystem(
   unsigned n, std::vector<std::vector<unsigned>> const &blocks)
-  : _n(n), _blocks(blocks)
+  : _n(n), _classes(n), _blocks(blocks)
 {
 #ifndef NDEBUG
   for (auto const &block : _blocks)
     assert(is_sorted(block.begin(), block.end()));
 #endif
+
+  for (auto i = 0u; i < blocks.size(); ++i) {
+    for (unsigned x : blocks[i])
+      _classes[x - 1u] = i + 1u;
+  }
 }
 
 BlockSystem::BlockSystem(std::vector<unsigned> const &classes)
-  : _n(classes.size())
+  : _n(classes.size()), _classes(classes)
 {
   std::vector<int> block_indices(_n, -1);
 
   for (auto i = 0u; i < _n; ++i) {
-    unsigned c = classes[i];
+    unsigned c = _classes[i];
 
     if (block_indices[c - 1u] == -1) {
       _blocks.push_back({i + 1u});
