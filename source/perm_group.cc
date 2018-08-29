@@ -7,10 +7,12 @@
 #include <utility>
 #include <vector>
 
+#include "block_system.h"
 #include "bsgs.h"
 #include "dbg.h"
 #include "perm.h"
 #include "schreier_sims.h"
+#include "util.h"
 
 namespace cgtl
 {
@@ -618,6 +620,48 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_complete(
     Dbg(Dbg::DBG) << pg.bsgs().sgs();
 
   return decomp;
+}
+
+std::vector<PermGroup> PermGroup::wreath_decomposition() const
+{
+  Dbg(Dbg::DBG) << "Finding wreath product decomposition for:";
+  Dbg(Dbg::DBG) << *this;
+
+  auto blocksystems = BlockSystem::non_trivial(*this);
+  auto gens(_bsgs.sgs());
+
+  for (auto const &bs : blocksystems) {
+    Dbg(Dbg::TRACE) << "Considering block system: " << bs;
+    unsigned d = bs.size();
+
+    PermGroup block_permuter = bs.block_permuter(gens);
+    Dbg(Dbg::TRACE) << "Block permuter is:";
+    Dbg(Dbg::TRACE) << block_permuter;
+
+    // TODO: permutation representation...?
+
+    std::vector<std::vector<Perm>> sigma(d);
+
+    sigma[0] = BlockSystem::block_stabilizers(gens, bs[0]);
+    Dbg(Dbg::TRACE) << "Block stabilizer of " << bs[0] << " is: " << sigma[0];
+
+    unsigned tmp = PermGroup(_n, sigma[0]).order();
+    if (_order != pow(tmp, d) * block_permuter.order()) {
+      Dbg(Dbg::TRACE)
+        << "Group order equality not satisfied, skipping block system";
+      continue;
+    }
+
+    Dbg(Dbg::TRACE) << "Stabilizers of remaining blocks are:";
+    for (auto i = 1u; i < d; ++i) {
+      sigma[i] = BlockSystem::block_stabilizers(gens, bs[i]);
+      Dbg(Dbg::TRACE) << bs[i] << " => " << sigma[i];
+    }
+
+    // TODO
+  }
+
+  throw std::logic_error("TODO");
 }
 
 PermGroup::const_iterator::const_iterator(PermGroup const &pg)

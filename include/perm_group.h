@@ -65,6 +65,8 @@ public:
   std::vector<PermGroup> disjoint_decomposition(
     bool complete = true, bool disjoint_orbit_optimization = false) const;
 
+  std::vector<PermGroup> wreath_decomposition() const;
+
 private:
   std::vector<PermGroup> disjoint_decomposition_complete(
     bool disjoint_orbit_optimization = true) const;
