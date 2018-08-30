@@ -248,10 +248,8 @@ void ArchGraph::partial_automorphisms() const // TODO: type
     unsigned limit;
   };
 
-  std::function<
-    void(Domain const &, std::vector<unsigned> const &) > backtrack = [&](
-    Domain const &domain, std::vector<unsigned> const &image) {
-
+  std::function<void(Domain const &, std::vector<unsigned> const &)>
+  backtrack = [&](Domain const &domain, std::vector<unsigned> const &image) {
     std::vector<unsigned> pperm(domain.limit, 0u);
 
     unsigned j = 0u;
