@@ -67,25 +67,7 @@ template<typename T>
 class ArchGraphTestBase : public T
 {
 protected:
-  void SetUp() {
-    ag_nocol = construct_nocol();
-    ag_vcol = construct_vcol();
-    ag_ecol = construct_ecol();
-    ag_tcol = construct_tcol();
-
-    ag_nocol.todot(resource_path("ag_nocol.dot"));
-    ag_vcol.todot(resource_path("ag_vcol.dot"));
-    ag_ecol.todot(resource_path("ag_ecol.dot"));
-    ag_tcol.todot(resource_path("ag_tcol.dot"));
-  }
-
-  ArchGraph ag_nocol;
-  ArchGraph ag_vcol;
-  ArchGraph ag_ecol;
-  ArchGraph ag_tcol;
-
-private:
-  ArchGraph construct_nocol() {
+  ArchGraph ag_nocol() {
     /*
      * 1 -- 1 -- 2  P -- C -- P
      * |         |  |         |
@@ -112,7 +94,7 @@ private:
     return ag;
   }
 
-  ArchGraph construct_vcol() {
+  ArchGraph ag_vcol() {
     /*
      * 1 -- 1 -- 2  P1 -- C -- P2
      * |         |  |          |
@@ -140,7 +122,7 @@ private:
     return ag;
   }
 
-  ArchGraph construct_ecol() {
+  ArchGraph ag_ecol() {
     /*
      * 1 -- 1 -- 2  P -- C1 -- P
      * |         |  |          |
@@ -168,7 +150,7 @@ private:
     return ag;
   }
 
-  ArchGraph construct_tcol() {
+  ArchGraph ag_tcol() {
     /*
      * 1 -- 1 -- 2  P1 -- C1 -- P2
      * |         |  |           |
@@ -196,6 +178,71 @@ private:
     ag.complete();
     return ag;
   }
+
+  ArchGraph ag_grid22() {
+    /*
+     * P1--P2
+     * |   |
+     * P3--P4
+     */
+    ArchGraph ag;
+
+    auto p = ag.new_processor_type("P");
+    auto c = ag.new_channel_type("C");
+
+    auto pe1 = ag.add_processor(p);
+    auto pe2 = ag.add_processor(p);
+    auto pe3 = ag.add_processor(p);
+    auto pe4 = ag.add_processor(p);
+
+    ag.add_channel(pe1, pe2, c);
+    ag.add_channel(pe1, pe3, c);
+    ag.add_channel(pe2, pe4, c);
+    ag.add_channel(pe3, pe4, c);
+
+    ag.complete();
+    return ag;
+  }
+
+  ArchGraph ag_grid33() {
+    /*
+     * P1--P2--P3
+     * |   |   |
+     * P4--P5--P6
+     * |   |   |
+     * P7--P8--P9
+     */
+    ArchGraph ag;
+
+    auto p = ag.new_processor_type("P");
+    auto c = ag.new_channel_type("C");
+
+    auto pe1 = ag.add_processor(p);
+    auto pe2 = ag.add_processor(p);
+    auto pe3 = ag.add_processor(p);
+    auto pe4 = ag.add_processor(p);
+    auto pe5 = ag.add_processor(p);
+    auto pe6 = ag.add_processor(p);
+    auto pe7 = ag.add_processor(p);
+    auto pe8 = ag.add_processor(p);
+    auto pe9 = ag.add_processor(p);
+
+    ag.add_channel(pe1, pe2, c);
+    ag.add_channel(pe1, pe4, c);
+    ag.add_channel(pe2, pe3, c);
+    ag.add_channel(pe2, pe5, c);
+    ag.add_channel(pe3, pe6, c);
+    ag.add_channel(pe4, pe5, c);
+    ag.add_channel(pe4, pe7, c);
+    ag.add_channel(pe5, pe6, c);
+    ag.add_channel(pe5, pe8, c);
+    ag.add_channel(pe6, pe9, c);
+    ag.add_channel(pe7, pe8, c);
+    ag.add_channel(pe8, pe9, c);
+
+    ag.complete();
+    return ag;
+  }
 };
 
 class ArchGraphTest : public ArchGraphTestBase<testing::Test>{};
@@ -205,23 +252,23 @@ TEST_F(ArchGraphTest, CanObtainAutomorphisms)
   EXPECT_TRUE(perm_group_equal({
       {{1, 2, 3, 4}}, {{1, 3}, {2, 4}}, {{1, 4, 3, 2}}, {{1, 4}, {2, 3}},
       {{1, 2}, {3, 4}}, {{1, 3}}, {{2, 4}}
-    }, ag_nocol.automorphisms()))
+    }, ag_nocol().automorphisms()))
     << "Automorphisms of uncolored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
       {{1, 3}, {2, 4}}, {{1, 3}}, {{2, 4}}
-    }, ag_vcol.automorphisms()))
+    }, ag_vcol().automorphisms()))
     << "Automorphisms of processor colored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
       {{1, 3}, {2, 4}}, {{1, 4}, {2, 3}}, {{1, 2}, {3, 4}}
     },
-    ag_ecol.automorphisms()))
+    ag_ecol().automorphisms()))
     << "Automorphisms of channel colored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
       {{1, 3}, {2, 4}}
-    }, ag_tcol.automorphisms()))
+    }, ag_tcol().automorphisms()))
     << "Automorphisms of totally colored architecture graph correct.";
 }
 
@@ -249,8 +296,13 @@ class ArchGraphMappingVariantTest :
 
 TEST_P(ArchGraphMappingVariantTest, CanTestMappingEquivalence)
 {
+  auto ag1(ag_nocol());
+  auto ag2(ag_vcol());
+  auto ag3(ag_ecol());
+  auto ag4(ag_tcol());
+
   std::vector<ArchGraphSystem const *> const arch_graphs {
-    &ag_nocol, &ag_vcol, &ag_ecol, &ag_tcol
+    &ag1, &ag2, &ag3, &ag4
   };
 
   std::vector<std::vector<orbit>> const expected_orbits {
