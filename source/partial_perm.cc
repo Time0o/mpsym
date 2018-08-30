@@ -77,32 +77,40 @@ std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm)
 
     current = pperm[current];
 
-    if (current == 0u || current == first) {
+    bool end_of_chain = current == 0u || current > pperm.dom_max();
+    bool end_of_cycle = current == first;
 
-      if (current == 0u && chain.size() != 0u) {
+    if (!(end_of_chain || end_of_cycle))
+      continue;
+
+    if (end_of_chain) {
+      if (current != 0u)
+        chain.push_back(current);
+
+      if (chain.size() > 1u) {
         stream << '[' << chain[0];
         for (auto i = 1u; i < chain.size(); ++i)
           stream << ' ' << chain[i];
         stream << ']';
-
-      } else if (current == first) {
-        stream << '(' << chain[0];
-        for (auto i = 1u; i < chain.size(); ++i)
-          stream << ' ' << chain[i];
-        stream << ')';
       }
 
-      chain.clear();
+    } else if (end_of_cycle) {
+      stream << '(' << chain[0];
+      for (auto i = 1u; i < chain.size(); ++i)
+        stream << ' ' << chain[i];
+      stream << ')';
+    }
 
-      if (done.size() == pperm.dom_max() - pperm.dom_min() + 1u)
-        return stream;
+    chain.clear();
 
-      for (unsigned i = pperm.dom_min(); i <= pperm.dom_max(); ++i) {
-        if (done.find(i) == done.end()) {
-          first = i;
-          current = i;
-          break;
-        }
+    if (done.size() == pperm.dom_max() - pperm.dom_min() + 1u)
+      return stream;
+
+    for (unsigned i = pperm.dom_min(); i <= pperm.dom_max(); ++i) {
+      if (done.find(i) == done.end()) {
+        first = i;
+        current = i;
+        break;
       }
     }
   }
