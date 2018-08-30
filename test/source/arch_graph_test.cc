@@ -4,8 +4,9 @@
 #include <sstream>
 #include <vector>
 
-#include "arch_graph.h"
 #include "gmock/gmock.h"
+
+#include "arch_graph.h"
 #include "perm.h"
 #include "perm_group.h"
 #include "test_utility.h"

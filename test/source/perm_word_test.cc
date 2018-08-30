@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "gmock/gmock.h"
+
 #include "perm.h"
 #include "test_utility.h"
 

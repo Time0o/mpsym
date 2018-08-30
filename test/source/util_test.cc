@@ -1,6 +1,7 @@
 #include <tuple>
 
 #include "gmock/gmock.h"
+
 #include "util.h"
 
 #include "test_main.cc"

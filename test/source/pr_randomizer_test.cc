@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "gmock/gmock.h"
+
 #include "pr_randomizer.h"
 
 #include "test_main.cc"

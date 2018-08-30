@@ -3,8 +3,9 @@
 #include <sstream>
 #include <vector>
 
-#include "gmock/gmock-matchers.h"
 #include "gmock/gmock.h"
+#include "gmock/gmock-matchers.h"
+
 #include "perm.h"
 #include "perm_group.h"
 #include "test_utility.h"

@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "gmock/gmock.h"
+
 #include "perm.h"
 #include "perm_group.h"
 

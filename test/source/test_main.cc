@@ -4,8 +4,9 @@
 #include <iostream>
 #include <string>
 
-#include "dbg.h"
 #include "gmock/gmock.h"
+
+#include "dbg.h"
 
 #define USAGE "USAGE: TEST [OPTIONS]\n" \
               " -h           display this message\n" \

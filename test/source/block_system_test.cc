@@ -2,8 +2,9 @@
 #include <string>
 #include <vector>
 
-#include "block_system.h"
 #include "gmock/gmock.h"
+
+#include "block_system.h"
 #include "perm.h"
 #include "perm_group.h"
 
