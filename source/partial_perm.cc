@@ -11,6 +11,9 @@ namespace cgtl
 
 PartialPerm::PartialPerm(std::vector<unsigned> const &pperm) : _pperm(pperm)
 {
+  if (pperm.empty())
+    return;
+
   for (auto i = 1u; i <= _pperm.size(); ++i) {
     unsigned im = _pperm[i - 1u];
 
@@ -56,6 +59,11 @@ std::vector<unsigned> PartialPerm::image(
 
 std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm)
 {
+  if (pperm.dom().empty()) {
+    stream << "()";
+    return stream;
+  }
+
   std::set<unsigned> done;
 
   unsigned first, current;
