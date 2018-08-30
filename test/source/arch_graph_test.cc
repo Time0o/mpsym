@@ -274,7 +274,7 @@ TEST_F(ArchGraphTest, CanObtainAutomorphisms)
 
 TEST_F(ArchGraphTest, CanLoadFromLua)
 {
-  ArchGraph ag = ArchGraph::fromlua(resource_path("mcsoc.lua"));
+  ArchGraph ag(ArchGraph::fromlua(resource_path("mcsoc.lua")));
 
   EXPECT_EQ(8u, ag.num_processors())
     << "Loaded architecture graph has correct number of processors.";
@@ -285,7 +285,7 @@ TEST_F(ArchGraphTest, CanLoadFromLua)
 
 TEST_F(ArchGraphTest, CanProduceDotFile)
 {
-  ArchGraph ag = ArchGraph::fromlua(resource_path("mcsoc.lua"));
+  ArchGraph ag(ArchGraph::fromlua(resource_path("mcsoc.lua")));
 
   ag.todot(resource_path("mcsoc.dot"));
 }
@@ -296,10 +296,10 @@ class ArchGraphMappingVariantTest :
 
 TEST_P(ArchGraphMappingVariantTest, CanTestMappingEquivalence)
 {
-  auto ag1(ag_nocol());
-  auto ag2(ag_vcol());
-  auto ag3(ag_ecol());
-  auto ag4(ag_tcol());
+  ArchGraph ag1(ag_nocol());
+  ArchGraph ag2(ag_vcol());
+  ArchGraph ag3(ag_ecol());
+  ArchGraph ag4(ag_tcol());
 
   std::vector<ArchGraphSystem const *> const arch_graphs {
     &ag1, &ag2, &ag3, &ag4
