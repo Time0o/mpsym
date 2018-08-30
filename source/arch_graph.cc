@@ -21,6 +21,7 @@ extern "C" {
 #include "arch_graph.h"
 #include "dbg.h"
 #include "nauty.h"
+#include "partial_perm.h"
 #include "perm.h"
 #include "perm_group.h"
 
@@ -237,23 +238,50 @@ PermGroup ArchGraph::automorphisms() const
 
 void ArchGraph::partial_automorphisms() const // TODO: type
 {
-  typedef std::vector<bool>::size_type limit_type;
+  unsigned n = num_processors();
 
-  std::function<void(std::vector<bool> const &, limit_type)> backtrack = [&](
-    std::vector<bool> const &domain_set, limit_type limit) {
+  struct Domain {
+    Domain(std::vector<bool> const &set, unsigned limit)
+      : set(set), limit(limit) {}
 
-    std::vector<unsigned> domain;
-    for (auto i = 0u; i < limit; ++i) {
-      if (domain_set[i])
-        domain.push_back(static_cast<unsigned>(i) + 1u);
+    std::vector<bool> set;
+    unsigned limit;
+  };
+
+  std::function<
+    void(Domain const &, std::vector<unsigned> const &) > backtrack = [&](
+    Domain const &domain, std::vector<unsigned> const &image) {
+
+    std::vector<unsigned> pperm(domain.limit, 0u);
+
+    unsigned j = 0u;
+    for (unsigned i = 0u; i < domain.limit; ++i) {
+      if (domain.set[i])
+        pperm[i] = image[j++];
     }
-    Dbg(Dbg::TRACE) << domain;
 
-    std::vector<bool> next_domain_set(domain_set);
-    for (auto i = limit; i < domain_set.size(); ++i) {
-      next_domain_set[i] = true;
-      backtrack(next_domain_set, i + 1u);
-      next_domain_set[i] = false;
+    Dbg(Dbg::TRACE) << PartialPerm(pperm);
+
+    // TODO: check if partial automorphism, return if not
+
+    Domain next_domain(domain);
+
+    std::vector<unsigned> next_image(image);
+    next_image.resize(next_image.size() + 1u);
+
+    for (unsigned i = domain.limit; i < n; ++i) {
+      next_domain.set[i] = true;
+      next_domain.limit = i + 1u;
+
+      for (unsigned j = 1u; j <= n; ++j) {
+        if (std::find(image.begin(), image.end(), j) != image.end())
+          continue;
+
+        next_image.back() = j;
+        backtrack(next_domain, next_image);
+      }
+
+      next_domain.set[i] = false;
     }
   };
 
@@ -262,7 +290,7 @@ void ArchGraph::partial_automorphisms() const // TODO: type
   Dbg(Dbg::DBG) << _automorphisms;
 
   Dbg(Dbg::TRACE) << "Considering domains:";
-  backtrack(std::vector<bool>(num_processors(), false), 0u);
+  backtrack(Domain(std::vector<bool>(num_processors(), false), 0u), {});
 }
 
 static std::vector<unsigned> min_elem_bruteforce(
