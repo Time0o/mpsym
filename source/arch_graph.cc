@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <fstream>
+#include <functional>
 #include <ostream>
 #include <stdexcept>
 #include <string>
@@ -232,6 +233,36 @@ PermGroup ArchGraph::automorphisms() const
   assert(_automorphisms_valid);
 
   return _automorphisms;
+}
+
+void ArchGraph::partial_automorphisms() const // TODO: type
+{
+  typedef std::vector<bool>::size_type limit_type;
+
+  std::function<void(std::vector<bool> const &, limit_type)> backtrack = [&](
+    std::vector<bool> const &domain_set, limit_type limit) {
+
+    std::vector<unsigned> domain;
+    for (auto i = 0u; i < limit; ++i) {
+      if (domain_set[i])
+        domain.push_back(static_cast<unsigned>(i) + 1u);
+    }
+    Dbg(Dbg::TRACE) << domain;
+
+    std::vector<bool> next_domain_set(domain_set);
+    for (auto i = limit; i < domain_set.size(); ++i) {
+      next_domain_set[i] = true;
+      backtrack(next_domain_set, i + 1u);
+      next_domain_set[i] = false;
+    }
+  };
+
+  Dbg(Dbg::DBG)
+    << "Finding partial automorphisms for arch graph with automorphism group:";
+  Dbg(Dbg::DBG) << _automorphisms;
+
+  Dbg(Dbg::TRACE) << "Considering domains:";
+  backtrack(std::vector<bool>(num_processors(), false), 0u);
 }
 
 static std::vector<unsigned> min_elem_bruteforce(

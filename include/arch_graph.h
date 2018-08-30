@@ -36,6 +36,8 @@ public:
 
   virtual PermGroup automorphisms() const = 0;
 
+  virtual void partial_automorphisms() const = 0; // TODO: type
+
   virtual TaskMapping mapping(
     std::vector<unsigned> const &tasks, unsigned offset = 0u,
     MappingVariant mapping_variant = MAP_AUTO) const = 0;
@@ -79,6 +81,8 @@ public:
 
   PermGroup automorphisms() const override;
 
+  void partial_automorphisms() const override; // TODO: type
+
   TaskMapping mapping(
     std::vector<unsigned> const &tasks, unsigned offset = 0u,
     MappingVariant mapping_variant = MAP_AUTO) const override;
@@ -110,6 +114,10 @@ public:
   void complete() override;
 
   PermGroup automorphisms() const override {
+    throw std::logic_error("not implemented");
+  }
+
+  void partial_automorphisms() const override { // TODO: type
     throw std::logic_error("not implemented");
   }
 
