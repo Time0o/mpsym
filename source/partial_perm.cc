@@ -64,16 +64,18 @@ std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm)
     return stream;
   }
 
-  std::set<unsigned> done;
+  std::vector<std::vector<unsigned>> chains;
+  std::vector<std::vector<unsigned>> cycles;
 
   unsigned first, current;
   first = current = pperm.dom_min();
 
-  std::vector<unsigned> chain;
+  std::set<unsigned> done;
+  std::vector<unsigned> current_chain;
 
   for (;;) {
     done.insert(current);
-    chain.push_back(current);
+    current_chain.push_back(current);
 
     current = pperm[current];
 
@@ -85,26 +87,15 @@ std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm)
 
     if (end_of_chain) {
       if (current != 0u)
-        chain.push_back(current);
+        current_chain.push_back(current);
 
-      if (chain.size() > 1u) {
-        stream << '[' << chain[0];
-        for (auto i = 1u; i < chain.size(); ++i)
-          stream << ' ' << chain[i];
-        stream << ']';
-      }
+      if (current_chain.size() > 1u)
+        chains.push_back(current_chain);
 
-    } else if (end_of_cycle) {
-      stream << '(' << chain[0];
-      for (auto i = 1u; i < chain.size(); ++i)
-        stream << ' ' << chain[i];
-      stream << ')';
-    }
+    } else if (end_of_cycle)
+      cycles.push_back(current_chain);
 
-    chain.clear();
-
-    if (done.size() == pperm.dom_max() - pperm.dom_min() + 1u)
-      return stream;
+    current_chain.clear();
 
     bool next = false;
     for (unsigned i = pperm.dom_min(); i <= pperm.dom_max(); ++i) {
@@ -118,6 +109,54 @@ std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm)
 
     if (!next)
       break;
+  }
+
+  auto sort_pred_size = [](std::vector<unsigned> const &a,
+                           std::vector<unsigned> const &b) {
+    return a.size() > b.size();
+  };
+
+  std::sort(chains.begin(), chains.end(), sort_pred_size);
+
+  std::vector<std::vector<unsigned>> unique_chains;
+
+  for (auto const &chain : chains) {
+    bool superfluous = false;
+    for (auto const &other : unique_chains) {
+      if (other.size() < chain.size())
+        continue;
+      auto it = std::search(other.begin(), other.end(),
+                            chain.begin(), chain.end());
+
+      if (it != other.end()) {
+        superfluous = true;
+        break;
+      }
+    }
+
+    if (!superfluous)
+      unique_chains.push_back(chain);
+  }
+
+  auto sort_pred_init_elem = [](std::vector<unsigned> const &a,
+                                std::vector<unsigned> const &b) {
+    return a[0] < b[0];
+  };
+
+  std::sort(unique_chains.begin(), unique_chains.end(), sort_pred_init_elem);
+
+  for (auto const &chain : unique_chains) {
+     stream << '[' << chain[0];
+     for (auto i = 1u; i < chain.size(); ++i)
+       stream << ' ' << chain[i];
+     stream << ']';
+  }
+
+  for (auto const &cycle : cycles) {
+    stream << '(' << cycle[0];
+    for (auto i = 1u; i < cycle.size(); ++i)
+      stream << ' ' << cycle[i];
+    stream << ')';
   }
 
   return stream;
