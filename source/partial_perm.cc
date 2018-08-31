@@ -106,14 +106,21 @@ std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm)
     if (done.size() == pperm.dom_max() - pperm.dom_min() + 1u)
       return stream;
 
+    bool next = false;
     for (unsigned i = pperm.dom_min(); i <= pperm.dom_max(); ++i) {
       if (done.find(i) == done.end()) {
+        next = true;
         first = i;
         current = i;
         break;
       }
     }
+
+    if (!next)
+      break;
   }
+
+  return stream;
 }
 
 } // namespace cgtl
