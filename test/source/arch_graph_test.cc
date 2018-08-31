@@ -7,6 +7,7 @@
 #include "gmock/gmock.h"
 
 #include "arch_graph.h"
+#include "partial_perm.h"
 #include "perm.h"
 #include "perm_group.h"
 #include "test_utility.h"
@@ -16,6 +17,7 @@
 using cgtl::ArchGraphSystem;
 using cgtl::ArchGraph;
 using cgtl::ArchGraphCluster;
+using cgtl::PartialPerm;
 using cgtl::Perm;
 using cgtl::PermGroup;
 using cgtl::TaskMapping;
@@ -271,6 +273,23 @@ TEST_F(ArchGraphTest, CanObtainAutomorphisms)
       {{1, 3}, {2, 4}}
     }, ag_tcol().automorphisms()))
     << "Automorphisms of totally colored architecture graph correct.";
+}
+
+TEST_F(ArchGraphTest, CanObtainPartialAutomorphisms)
+{
+  auto ag(ag_grid22());
+  auto pperms(ag.partial_automorphisms());
+
+  std::stringstream ss;
+  for (auto i = 0u; i < pperms.size(); ++i) {
+    ss << pperms[i];
+    if (i != pperms.size() - 1u)
+      ss << ",\n";
+  }
+
+  FAIL() << "TODO: compare with expected semigroup, "
+         << "complete set of partial permutations found is:\n"
+         << ss.str() << "\n(" << pperms.size() << " in total)";
 }
 
 TEST_F(ArchGraphTest, CanLoadFromLua)
