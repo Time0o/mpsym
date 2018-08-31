@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "boost/graph/adjacency_list.hpp"
@@ -236,9 +237,36 @@ PermGroup ArchGraph::automorphisms() const
   return _automorphisms;
 }
 
-void ArchGraph::partial_automorphisms() const // TODO: type
+std::vector<PartialPerm> ArchGraph::partial_automorphisms() const
 {
   unsigned n = num_processors();
+
+  std::function<bool(PartialPerm const &)>
+  is_partial_automorphism = [&](PartialPerm const &pperm) {
+    for (unsigned x : pperm.dom()) {
+      unsigned y = pperm[x];
+      if (_adj[x - 1u].type != _adj[y - 1u].type)
+        return false;
+
+      for (unsigned z : pperm.dom()) {
+        auto edge(boost::edge(x - 1u, z - 1u, _adj));
+        if (!std::get<1>(edge))
+          continue;
+
+        auto edge_perm(boost::edge(y - 1u, z - 1u, _adj));
+        if (!std::get<1>(edge_perm))
+          return false;
+
+        auto edge_type = _adj[std::get<0>(edge)].type;
+        auto edge_perm_type = _adj[std::get<0>(edge_perm)].type;
+
+        if (edge_type != edge_perm_type)
+          return false;
+      }
+    }
+
+    return true;
+  };
 
   struct Domain {
     Domain(std::vector<bool> const &set, unsigned limit)
@@ -248,19 +276,30 @@ void ArchGraph::partial_automorphisms() const // TODO: type
     unsigned limit;
   };
 
-  std::function<void(Domain const &, std::vector<unsigned> const &)>
-  backtrack = [&](Domain const &domain, std::vector<unsigned> const &image) {
-    std::vector<unsigned> pperm(domain.limit, 0u);
+  std::function<void(Domain const &, std::vector<unsigned> const &,
+                     std::vector<PartialPerm> &res)>
+  backtrack = [&](Domain const &domain, std::vector<unsigned> const &image,
+                  std::vector<PartialPerm> &res) {
+
+    std::vector<unsigned> tmp(domain.limit, 0u);
 
     unsigned j = 0u;
     for (unsigned i = 0u; i < domain.limit; ++i) {
       if (domain.set[i])
-        pperm[i] = image[j++];
+        tmp[i] = image[j++];
     }
 
-    Dbg(Dbg::TRACE) << PartialPerm(pperm);
+    PartialPerm pperm(tmp);
+    Dbg(Dbg::TRACE) << "Considering " << pperm << ':';
 
-    // TODO: check if partial automorphism, return if not
+    if (is_partial_automorphism(pperm)) {
+      Dbg(Dbg::TRACE) << "=> Is a partial automorphism";
+      res.push_back(pperm);
+    } else {
+      Dbg(Dbg::TRACE)
+        << "=> Is not a partial automorphism, pruning backtrack tree...";
+      return;
+    }
 
     Domain next_domain(domain);
 
@@ -276,7 +315,7 @@ void ArchGraph::partial_automorphisms() const // TODO: type
           continue;
 
         next_image.back() = j;
-        backtrack(next_domain, next_image);
+        backtrack(next_domain, next_image, res);
       }
 
       next_domain.set[i] = false;
@@ -287,8 +326,10 @@ void ArchGraph::partial_automorphisms() const // TODO: type
     << "Finding partial automorphisms for arch graph with automorphism group:";
   Dbg(Dbg::DBG) << _automorphisms;
 
-  Dbg(Dbg::TRACE) << "Considering domains:";
-  backtrack(Domain(std::vector<bool>(num_processors(), false), 0u), {});
+  std::vector<PartialPerm> res;
+  backtrack(Domain(std::vector<bool>(num_processors(), false), 0u), {}, res);
+
+  return res;
 }
 
 static std::vector<unsigned> min_elem_bruteforce(

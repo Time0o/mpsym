@@ -8,6 +8,7 @@
 
 #include "boost/graph/adjacency_list.hpp"
 
+#include "partial_perm.h"
 #include "perm_group.h"
 
 namespace cgtl
@@ -36,7 +37,7 @@ public:
 
   virtual PermGroup automorphisms() const = 0;
 
-  virtual void partial_automorphisms() const = 0; // TODO: type
+  virtual std::vector<PartialPerm> partial_automorphisms() const = 0;
 
   virtual TaskMapping mapping(
     std::vector<unsigned> const &tasks, unsigned offset = 0u,
@@ -81,7 +82,7 @@ public:
 
   PermGroup automorphisms() const override;
 
-  void partial_automorphisms() const override; // TODO: type
+  std::vector<PartialPerm> partial_automorphisms() const override;
 
   TaskMapping mapping(
     std::vector<unsigned> const &tasks, unsigned offset = 0u,
@@ -117,7 +118,7 @@ public:
     throw std::logic_error("not implemented");
   }
 
-  void partial_automorphisms() const override { // TODO: type
+  std::vector<PartialPerm> partial_automorphisms() const override {
     throw std::logic_error("not implemented");
   }
 
