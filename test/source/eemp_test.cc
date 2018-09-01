@@ -21,8 +21,8 @@ TEST(EEMPTest, CanComputeActionComponents)
     PartialPerm({3, 1, 2})
   };
 
-  std::vector<std::pair<unsigned, unsigned>> schreier_tree;
-  std::vector<std::vector<unsigned>> orbit_graph;
+  EEMP::SchreierTree schreier_tree;
+  EEMP::OrbitGraph orbit_graph;
 
   std::vector<std::vector<unsigned>> action_component =
     EEMP::action_components({1, 2, 3, 4, 5, 6, 7, 8, 9}, generators,
@@ -33,12 +33,12 @@ TEST(EEMPTest, CanComputeActionComponents)
     {4, 6, 8}, {5, 7, 9}, {5}, {}, {3}, {4}, {2}, {6}, {8}, {9}, {7}
   };
 
-  decltype(schreier_tree) expected_schreier_tree {
+  decltype(schreier_tree.data) expected_schreier_tree {
 	{0, 2}, {0, 3}, {1, 1}, {1, 3}, {2, 0}, {2, 1}, {2, 2}, {3, 2}, {3, 3},
     {4, 0}, {5, 2}, {6, 2}, {9, 0}, {9, 1}, {11, 1}
   };
 
-  decltype(orbit_graph) expected_orbit_graph {
+  decltype(orbit_graph.data) expected_orbit_graph {
     {0, 1, 5, 3, 10, 2, 6, 7, 8, 13, 4, 12, 11, 9, 14, 15},
     {0, 3, 6, 1, 7, 2, 5, 10, 8, 14, 11, 15, 4, 9, 13, 12},
     {1, 1, 7, 8, 8, 11, 12, 12, 8, 8, 8, 7, 11, 8, 8, 8},
@@ -48,9 +48,11 @@ TEST(EEMPTest, CanComputeActionComponents)
   ASSERT_THAT(action_component, ElementsAreArray(expected_action_components))
     << "Component of action determined correctly.";
 
-  EXPECT_THAT(schreier_tree, ElementsAreArray(expected_schreier_tree))
+  EXPECT_THAT(schreier_tree.data, ElementsAreArray(expected_schreier_tree))
     << "Schreier tree representation correct.";
 
-  EXPECT_THAT(orbit_graph, ElementsAreArray(expected_orbit_graph))
+  EXPECT_THAT(orbit_graph.data, ElementsAreArray(expected_orbit_graph))
     << "Orbit graph representation correct.";
+
+  // TODO: test schreier tree tracing
 }

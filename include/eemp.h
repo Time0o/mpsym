@@ -12,10 +12,24 @@ namespace cgtl
 class EEMP
 {
 public:
+  struct SchreierTree {
+    unsigned dom_max;
+    std::vector<std::pair<unsigned, unsigned>> data;
+  };
+
+  struct OrbitGraph {
+    unsigned dom_max;
+    std::vector<std::vector<unsigned>> data;
+  };
+
   static std::vector<std::vector<unsigned>> action_components(
-    std::vector<unsigned> const &alpha, std::vector<PartialPerm> const &generators,
-    std::vector<std::pair<unsigned, unsigned>> &schreier_tree,
-    std::vector<std::vector<unsigned>> &orbit_graph);
+    std::vector<unsigned> const &alpha,
+    std::vector<PartialPerm> const &generators,
+    SchreierTree &schreier_tree, OrbitGraph &orbit_graph);
+
+  static PartialPerm schreier_trace(
+    SchreierTree const &schreier_tree, unsigned i,
+    std::vector<PartialPerm> const &generators);
 };
 
 } // namespace cgtl

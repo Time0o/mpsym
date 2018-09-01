@@ -17,8 +17,7 @@ namespace cgtl
 
 std::vector<std::vector<unsigned>> EEMP::action_components(
   std::vector<unsigned> const &alpha, std::vector<PartialPerm> const &generators,
-  std::vector<std::pair<unsigned, unsigned>> &schreier_tree,
-  std::vector<std::vector<unsigned>> &orbit_graph)
+  SchreierTree &schreier_tree, OrbitGraph &orbit_graph)
 {
 #ifndef NDEBUG
   Dbg(Dbg::TRACE) << "Computing component of action of generators:";
@@ -94,7 +93,8 @@ std::vector<std::vector<unsigned>> EEMP::action_components(
 
   // main loop
   std::vector<std::vector<unsigned>> component {alpha};
-  orbit_graph.resize(generators.size());
+  decltype(schreier_tree.data) schreier_tree_data;
+  decltype(orbit_graph.data) orbit_graph_data(generators.size());
 
   unsigned i = 0u, n = 0u;
   while (i < component.size()) {
@@ -114,17 +114,17 @@ std::vector<std::vector<unsigned>> EEMP::action_components(
 
         ++n;
 
-        schreier_tree.push_back(std::make_pair(i, j));
+        schreier_tree_data.push_back(std::make_pair(i, j));
         Dbg(Dbg::TRACE) << "v_" << n << " = " << i;
         Dbg(Dbg::TRACE) << "w_" << n << " = " << j;
 
-        orbit_graph[j].push_back(n);
+        orbit_graph_data[j].push_back(n);
         Dbg(Dbg::TRACE) << "g_" << i << "," << j << " = " << n;
 
       } else {
         Dbg(Dbg::TRACE) << beta_prime << " already processed";
 
-        orbit_graph[j].push_back(id);
+        orbit_graph_data[j].push_back(id);
         Dbg(Dbg::TRACE) << "g_" << i << "," << j << " = " << id;
       }
     }
@@ -139,25 +139,25 @@ std::vector<std::vector<unsigned>> EEMP::action_components(
   // print resulting schreier tree
   ss << "i   |";
   ss << std::setw(cellwidth) << 2u;
-  for (auto i = 1u; i < schreier_tree.size(); ++i)
+  for (auto i = 1u; i < schreier_tree_data.size(); ++i)
     ss << ' ' << std::setw(cellwidth) << i + 2u;
   ss << '\n';
 
   ss << std::string(4u, '-');
-  for (auto i = 0u; i < schreier_tree.size(); ++i)
+  for (auto i = 0u; i < schreier_tree_data.size(); ++i)
     ss << std::string(cellwidth + 1u, '-');
   ss << '\n';
 
   ss << "v_i |";
-  ss << std::setw(cellwidth) << std::get<0>(schreier_tree[0]) + 1u;
-  for (auto i = 1u; i < schreier_tree.size(); ++i)
-    ss << ' ' << std::setw(cellwidth) << std::get<0>(schreier_tree[i]) + 1u;
+  ss << std::setw(cellwidth) << std::get<0>(schreier_tree_data[0]) + 1u;
+  for (auto i = 1u; i < schreier_tree_data.size(); ++i)
+    ss << ' ' << std::setw(cellwidth) << std::get<0>(schreier_tree_data[i]) + 1u;
   ss << '\n';
 
   ss << "w_i |";
-  ss << std::setw(cellwidth) << std::get<1>(schreier_tree[0]) + 1u;
-  for (auto i = 1u; i < schreier_tree.size(); ++i)
-    ss << ' ' << std::setw(cellwidth) << std::get<1>(schreier_tree[i]) + 1u;
+  ss << std::setw(cellwidth) << std::get<1>(schreier_tree_data[0]) + 1u;
+  for (auto i = 1u; i < schreier_tree_data.size(); ++i)
+    ss << ' ' << std::setw(cellwidth) << std::get<1>(schreier_tree_data[i]) + 1u;
   ss << '\n';
 
   Dbg(Dbg::TRACE) << "Resulting 'schreier tree':\n" << ss.str();
@@ -167,32 +167,59 @@ std::vector<std::vector<unsigned>> EEMP::action_components(
   ss.clear();
 
   // print resulting orbit graph
-  auto pad = std::to_string(orbit_graph.size()).length();
+  auto pad = std::to_string(orbit_graph_data.size()).length();
 
   ss << "i   " << std::string(pad, ' ') << " |";
   ss << std::setw(cellwidth) << 1u;
-  for (auto i = 1u; i < orbit_graph[0].size(); ++i)
+  for (auto i = 1u; i < orbit_graph_data[0].size(); ++i)
     ss << ' ' << std::setw(cellwidth) << i + 1u;
   ss << '\n';
 
   ss << std::string(5u + pad, '-');
-  for (auto i = 0u; i < orbit_graph[0].size(); ++i)
+  for (auto i = 0u; i < orbit_graph_data[0].size(); ++i)
     ss << std::string(cellwidth + 1, '-');
   ss << '\n';
 
-  for (auto j = 0u; j < orbit_graph.size(); ++j) {
+  for (auto j = 0u; j < orbit_graph_data.size(); ++j) {
     ss << "g_i," << j << " |";
 
-    ss << std::setw(cellwidth) << orbit_graph[j][0] + 1u;
-    for (auto k = 1u; k < orbit_graph[j].size(); ++k)
-      ss << ' ' << std::setw(cellwidth) << orbit_graph[j][k] + 1u;
+    ss << std::setw(cellwidth) << orbit_graph_data[j][0] + 1u;
+    for (auto k = 1u; k < orbit_graph_data[j].size(); ++k)
+      ss << ' ' << std::setw(cellwidth) << orbit_graph_data[j][k] + 1u;
     ss << '\n';
   }
 
   Dbg(Dbg::TRACE) << "Resulting orbit graph:\n" << ss.str();
 #endif
 
+  schreier_tree.dom_max = dom_max;
+  schreier_tree.data = schreier_tree_data;
+
+  orbit_graph.dom_max = dom_max;
+  orbit_graph.data = orbit_graph_data;
+
   return component;
+}
+
+PartialPerm EEMP::schreier_trace(
+  SchreierTree const &schreier_tree, unsigned i,
+  std::vector<PartialPerm> const &generators)
+{
+  std::vector<unsigned> pperm(schreier_tree.dom_max);
+  for (unsigned i = 0u; i < schreier_tree.dom_max; ++i)
+    pperm[i] = i + 1u;
+
+  PartialPerm res(pperm);
+
+  while (i > 0u) {
+    unsigned v = std::get<0>(schreier_tree.data[i - 1u]);
+    unsigned w = std::get<1>(schreier_tree.data[i - 1u]);
+
+    res = generators[w] * res;
+    i = v;
+  }
+
+  return res;
 }
 
 } // namespace cgtl
