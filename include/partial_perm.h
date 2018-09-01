@@ -10,9 +10,11 @@ namespace cgtl
 class PartialPerm
 {
 public:
+  PartialPerm();
   PartialPerm(std::vector<unsigned> const &pperm);
 
   unsigned operator[](unsigned const i) const;
+  PartialPerm operator~() const;
   bool operator==(PartialPerm const &rhs) const;
   bool operator!=(PartialPerm const &rhs) const;
   PartialPerm& operator*=(PartialPerm const &rhs);

@@ -9,6 +9,8 @@
 namespace cgtl
 {
 
+PartialPerm::PartialPerm() : PartialPerm(std::vector<unsigned>()) {}
+
 PartialPerm::PartialPerm(std::vector<unsigned> const &pperm) : _pperm(pperm)
 {
   if (pperm.empty())
@@ -38,6 +40,27 @@ unsigned PartialPerm::operator[](unsigned const i) const
     return 0u;
 
   return _pperm[i - 1u];
+}
+
+PartialPerm PartialPerm::operator~() const
+{
+  PartialPerm res;
+
+  std::vector<unsigned> inverse(im_max(), 0u);
+  for (unsigned x : _dom) {
+    unsigned y = (*this)[x];
+    inverse[y - 1u] = x;
+  }
+
+  res._pperm = inverse;
+
+  res._dom = _im;
+  res._dom_min = im_min();
+  res._dom_max = im_max();
+
+  res._im = _dom;
+
+  return res;
 }
 
 PartialPerm operator*(PartialPerm const &lhs, PartialPerm const &rhs)

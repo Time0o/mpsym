@@ -59,6 +59,29 @@ TEST(PartialPermTest, CanConstructPartialPerm)
   }
 }
 
+TEST(PartialPermTest, CanInvertPartialPerm)
+{
+  PartialPerm inv(~PartialPerm({0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11}));
+  PartialPerm expected({0, 0, 4, 2, 0, 7, 9, 0, 6, 0, 11});
+
+  ASSERT_EQ(expected, inv)
+    << "Inverting partial permutation produces correct result.";
+
+  ASSERT_EQ(expected.dom(), inv.dom())
+    << "Inverting partial permutation produces correct domain.";
+
+  ASSERT_EQ(expected.im(), inv.im())
+    << "Inverting partial permutation produces correct image.";
+
+  EXPECT_TRUE(expected.dom_min() == inv.dom_min() &&
+              expected.dom_max() == inv.dom_max())
+    << "Inverting partial permutation produces correct domain limits.";
+
+  EXPECT_TRUE(expected.im_min() == inv.im_min() &&
+              expected.im_max() == inv.im_max())
+    << "Inverting partial permutation produces correct image limits.";
+}
+
 TEST(PartialPermTest, CanMultiplyPartialPerms)
 {
   PartialPerm lhs({0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11});
@@ -101,7 +124,7 @@ TEST(PartialPermTest, PartialPermStringRepresentation)
   };
 
   PPermStrRepr pperm_str_reprs[] = {
-    PPermStrRepr(PartialPerm({}),
+    PPermStrRepr(PartialPerm(),
                  "()"),
     PPermStrRepr(PartialPerm({1, 0, 3}),
                  "(1)(3)"),
