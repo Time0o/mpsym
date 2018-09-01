@@ -13,12 +13,12 @@ class EEMP
 {
 public:
   struct SchreierTree {
-    unsigned dom_max;
+    unsigned dom_max; // TODO: eliminate?
     std::vector<std::pair<unsigned, unsigned>> data;
   };
 
   struct OrbitGraph {
-    unsigned dom_max;
+    unsigned dom_max; // TODO: eliminate?
     std::vector<std::vector<unsigned>> data;
   };
 
