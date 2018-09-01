@@ -72,21 +72,21 @@ TEST(PartialPermTest, CanMultiplyPartialPerms)
 
   for (PartialPerm const &pperm : {pperm_mult_assign, pperm_mult}) {
     ASSERT_EQ(expected, pperm)
-      << "Multiplying plus assigning partial permutation produces correct result.";
+      << "Multiplying partial permutations produces correct result.";
 
     ASSERT_EQ(expected.dom(), pperm.dom())
-      << "Multiplying plus assigning partial permutation produces correct domain.";
+      << "Multiplying partial permutations produces correct domain.";
 
     ASSERT_EQ(expected.im(), pperm.im())
-      << "Multiplying plus assigning partial permutation produces correct image.";
+      << "Multiplying partial permutations produces correct image.";
 
     EXPECT_TRUE(expected.dom_min() == pperm.dom_min() &&
                 expected.dom_max() == pperm.dom_max())
-      << "Multiplying plus assigning partial permutation produces correct domain limits.";
+      << "Multiplying partial permutations produces correct domain limits.";
 
     EXPECT_TRUE(expected.im_min() == pperm.im_min() &&
                 expected.im_max() == pperm.im_max())
-      << "Multiplying plus assigning partial permutation produces correct image limits.";
+      << "Multiplying partial permutations produces correct image limits.";
   }
 }
 
