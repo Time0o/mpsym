@@ -11,9 +11,16 @@ using cgtl::EEMP;
 using cgtl::PartialPerm;
 
 using testing::ElementsAreArray;
+using testing::UnorderedElementsAreArray;
 
-TEST(EEMPTest, CanComputeActionComponents)
+class EEMPTest : public testing::Test
 {
+protected:
+  void SetUp() {
+    action_component =
+      EEMP::action_components(alpha, generators, schreier_tree, orbit_graph);
+  }
+
   std::vector<PartialPerm> generators {
     PartialPerm({4, 6, 8, 1, 5, 2, 7, 3, 9}),
     PartialPerm({5, 7, 9, 2, 4, 1, 6, 3, 8}),
@@ -21,13 +28,15 @@ TEST(EEMPTest, CanComputeActionComponents)
     PartialPerm({3, 1, 2})
   };
 
+  std::vector<unsigned> alpha {1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+  std::vector<std::vector<unsigned>> action_component;
   EEMP::SchreierTree schreier_tree;
   EEMP::OrbitGraph orbit_graph;
+};
 
-  std::vector<std::vector<unsigned>> action_component =
-    EEMP::action_components({1, 2, 3, 4, 5, 6, 7, 8, 9}, generators,
-                            schreier_tree, orbit_graph);
-
+TEST_F(EEMPTest, CanComputeActionComponents)
+{
   decltype(action_component) expected_action_components {
 	{1, 2, 3, 4, 5, 6, 7, 8, 9}, {2, 5, 6}, {1, 2, 3}, {1, 4, 7}, {1},
     {4, 6, 8}, {5, 7, 9}, {5}, {}, {3}, {4}, {2}, {6}, {8}, {9}, {7}
@@ -53,6 +62,21 @@ TEST(EEMPTest, CanComputeActionComponents)
 
   EXPECT_THAT(orbit_graph.data, ElementsAreArray(expected_orbit_graph))
     << "Orbit graph representation correct.";
+}
 
-  // TODO: test schreier tree tracing
+TEST_F(EEMPTest, CanTraceSchreierTree)
+{
+  FAIL() << "TODO";
+}
+
+TEST_F(EEMPTest, CanIdentifyStronglyConnectedOrbitGraphComponents)
+{
+  auto components = EEMP::strongly_connected_components(orbit_graph);
+
+  decltype(components) expected_components {
+    {0}, {1, 3}, {2, 5, 6}, {4, 7, 9, 10, 11, 12, 13, 14, 15}, {8}
+  };
+
+  EXPECT_THAT(components, UnorderedElementsAreArray(expected_components))
+    << "Strongly connected components of orbit graph determined correctly.";
 }

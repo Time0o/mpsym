@@ -30,6 +30,9 @@ public:
   static PartialPerm schreier_trace(
     SchreierTree const &schreier_tree, unsigned i,
     std::vector<PartialPerm> const &generators);
+
+  static std::vector<std::vector<unsigned>> strongly_connected_components(
+    OrbitGraph const &orbit_graph);
 };
 
 } // namespace cgtl

@@ -7,6 +7,8 @@
 #include <vector>
 
 #include "boost/container_hash/hash.hpp"
+#include "boost/graph/adjacency_list.hpp"
+#include "boost/graph/strong_components.hpp"
 
 #include "dbg.h"
 #include "eemp.h"
@@ -218,6 +220,32 @@ PartialPerm EEMP::schreier_trace(
     res = generators[w] * res;
     i = v;
   }
+
+  return res;
+}
+
+std::vector<std::vector<unsigned>> EEMP::strongly_connected_components(
+    OrbitGraph const &orbit_graph)
+{
+  boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> g;
+
+  for (auto i = 0u; i < orbit_graph.data[0].size(); ++i)
+    boost::add_vertex(g);
+
+  for (auto i = 0u; i < orbit_graph.data[0].size(); ++i) {
+    for (auto const &row : orbit_graph.data) {
+      auto j = row[i];
+      if (j != i)
+        boost::add_edge(i, j, g);
+    }
+  }
+
+  std::vector<int> component(boost::num_vertices(g));
+  auto num = boost::strong_components(g, &component[0]);
+
+  std::vector<std::vector<unsigned>> res(num);
+  for (auto i = 0u; i < component.size(); ++i)
+    res[component[i]].push_back(i);
 
   return res;
 }
