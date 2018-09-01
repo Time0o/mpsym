@@ -40,21 +40,10 @@ unsigned PartialPerm::operator[](unsigned const i) const
   return _pperm[i - 1u];
 }
 
-std::vector<unsigned> PartialPerm::image(
-  std::vector<unsigned> const &alpha) const
+PartialPerm operator*(PartialPerm const &lhs, PartialPerm const &rhs)
 {
-  std::set<unsigned> res;
-
-  for (unsigned x : alpha) {
-    if (x < _dom_min || x > _dom_max)
-      continue;
-
-    unsigned y = _pperm[x - 1u];
-    if (y != 0u)
-      res.insert(y);
-  }
-
-  return std::vector<unsigned>(res.begin(), res.end());
+  PartialPerm result(lhs);
+  return result *= rhs;
 }
 
 std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm)
@@ -160,6 +149,79 @@ std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm)
   }
 
   return stream;
+}
+
+bool PartialPerm::operator==(PartialPerm const &rhs) const
+{
+  if (rhs.dom_min() != _dom_min || rhs.dom_max() != _dom_max)
+    return false;
+
+  return _pperm == rhs._pperm;
+}
+
+bool PartialPerm::operator!=(PartialPerm const &rhs) const
+{
+  return !(*this == rhs);
+}
+
+PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
+{
+  std::vector<unsigned> dom_new;
+  std::vector<unsigned> im_new;
+
+  for (unsigned x : _dom) {
+    unsigned y = (*this)[x];
+
+    unsigned z;
+    if (y < rhs.dom_min() || y > rhs.dom_max())
+      z = 0u;
+    else
+      z = rhs[y];
+
+    if (z != 0u) {
+      dom_new.push_back(x);
+      im_new.push_back(z);
+    }
+
+    _pperm[x - 1u] = z;
+  }
+
+  _dom = dom_new;
+  _im = im_new;
+
+  std::sort(_im.begin(), _im.end());
+
+  _dom_min = _dom[0];
+  _dom_max = _dom[_dom.size() - 1u];
+
+  decltype(_pperm.size()) reduce = 0u;
+  for (auto i = _pperm.size() - 1u; i > 0u; --i) {
+    if (_pperm[i] != 0u)
+      break;
+
+    ++reduce;
+  }
+
+  _pperm.resize(_pperm.size() - reduce);
+
+  return *this;
+}
+
+std::vector<unsigned> PartialPerm::image(
+  std::vector<unsigned> const &alpha) const
+{
+  std::set<unsigned> res;
+
+  for (unsigned x : alpha) {
+    if (x < _dom_min || x > _dom_max)
+      continue;
+
+    unsigned y = _pperm[x - 1u];
+    if (y != 0u)
+      res.insert(y);
+  }
+
+  return std::vector<unsigned>(res.begin(), res.end());
 }
 
 } // namespace cgtl

@@ -13,6 +13,10 @@ public:
   PartialPerm(std::vector<unsigned> const &pperm);
 
   unsigned operator[](unsigned const i) const;
+  bool operator==(PartialPerm const &rhs) const;
+  bool operator!=(PartialPerm const &rhs) const;
+  PartialPerm& operator*=(PartialPerm const &rhs);
+
   std::vector<unsigned> image(std::vector<unsigned> const &alpha) const;
 
   std::vector<unsigned> dom() const { return _dom; }
@@ -30,6 +34,7 @@ private:
 };
 
 std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm);
+PartialPerm operator*(PartialPerm const &lhs, PartialPerm const &rhs);
 
 } // namespace cgtl
 
