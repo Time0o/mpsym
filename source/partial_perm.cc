@@ -43,7 +43,7 @@ unsigned PartialPerm::operator[](unsigned const i) const
 std::vector<unsigned> PartialPerm::image(
   std::vector<unsigned> const &alpha) const
 {
-  std::vector<unsigned> res;
+  std::set<unsigned> res;
 
   for (unsigned x : alpha) {
     if (x < _dom_min || x > _dom_max)
@@ -51,10 +51,10 @@ std::vector<unsigned> PartialPerm::image(
 
     unsigned y = _pperm[x - 1u];
     if (y != 0u)
-      res.push_back(y);
+      res.insert(y);
   }
 
-  return res;
+  return std::vector<unsigned>(res.begin(), res.end());
 }
 
 std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm)
