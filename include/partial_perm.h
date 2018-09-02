@@ -15,6 +15,8 @@ public:
               std::vector<unsigned> const &im);
   PartialPerm(std::vector<unsigned> const &pperm);
 
+  static PartialPerm id(std::vector<unsigned> const &dom);
+
   unsigned operator[](unsigned const i) const;
   PartialPerm operator~() const;
   bool operator==(PartialPerm const &rhs) const;

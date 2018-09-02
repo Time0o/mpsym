@@ -20,13 +20,18 @@ PartialPerm::PartialPerm(unsigned degree) : _pperm(degree) {
 }
 
 PartialPerm::PartialPerm(std::vector<unsigned> const &dom,
-                         std::vector<unsigned> const &im) : _dom(dom), _im(im)
+                         std::vector<unsigned> const &im) :  _im(im)
 {
-  auto dom_sorted(_dom);
-  std::sort(dom_sorted.begin(), dom_sorted.end());
-
-  assert(_dom.size() == _im.size() &&
+  assert(dom.size() == _im.size() &&
          "partial permutation domain and image have same dimension");
+
+  if (dom.empty()) {
+    update_limits();
+    return;
+  }
+
+  auto dom_sorted(dom);
+  std::sort(dom_sorted.begin(), dom_sorted.end());
 
   assert(*std::lower_bound(dom_sorted.begin(), dom_sorted.end(), 0u) != 0u &&
          "partial permutation domain does not contain 0 elements");
@@ -35,7 +40,7 @@ PartialPerm::PartialPerm(std::vector<unsigned> const &dom,
          "partial permutation domain does not contain duplicate elements");
 
   _pperm = std::vector<unsigned>(dom_sorted.back(), 0u);
-  for (auto i = 0u; i < _dom.size(); ++i)
+  for (auto i = 0u; i < dom.size(); ++i)
     _pperm[dom[i] - 1u] = _im[i];
 
   _dom = dom_sorted;
@@ -71,6 +76,11 @@ PartialPerm::PartialPerm(std::vector<unsigned> const &pperm) : _pperm(pperm)
     "partial permutation image does not contain duplicates");
 
   update_limits();
+}
+
+PartialPerm PartialPerm::id(std::vector<unsigned> const &dom)
+{
+  return PartialPerm(dom, dom);
 }
 
 unsigned PartialPerm::operator[](unsigned const i) const
