@@ -12,7 +12,7 @@ namespace cgtl
 
 Perm::Perm(unsigned degree) : _n(degree), _perm(degree)
 {
-  assert(_n > 0u && "Permutation degree > 0");
+  assert(_n > 0u && "permutation degree > 0");
 
   for (unsigned i = 0u; i < _n; ++i)
      _perm[i] = i + 1u;
