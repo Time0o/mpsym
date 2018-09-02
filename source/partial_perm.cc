@@ -12,6 +12,43 @@ namespace cgtl
 PartialPerm::PartialPerm(unsigned degree) : _pperm(degree) {
   for (unsigned i = 0u; i < degree; ++i)
     _pperm[i] = i + 1u;
+
+  _dom = _pperm;
+  _im = _pperm;
+
+  update_limits();
+}
+
+PartialPerm::PartialPerm(std::vector<unsigned> const &dom,
+                         std::vector<unsigned> const &im) : _dom(dom), _im(im)
+{
+  auto dom_sorted(_dom);
+  std::sort(dom_sorted.begin(), dom_sorted.end());
+
+  assert(_dom.size() == _im.size() &&
+         "partial permutation domain and image have same dimension");
+
+  assert(*std::lower_bound(dom_sorted.begin(), dom_sorted.end(), 0u) != 0u &&
+         "partial permutation domain does not contain 0 elements");
+
+  assert(std::unique(dom_sorted.begin(), dom_sorted.end()) == dom_sorted.end() &&
+         "partial permutation domain does not contain duplicate elements");
+
+  _pperm = std::vector<unsigned>(dom_sorted.back(), 0u);
+  for (auto i = 0u; i < _dom.size(); ++i)
+    _pperm[dom[i] - 1u] = _im[i];
+
+  _dom = dom_sorted;
+
+  std::sort(_im.begin(), _im.end());
+
+  assert(*std::lower_bound(_im.begin(), _im.end(), 0u) != 0u &&
+         "partial permutation image does not contain 0 elements");
+
+  assert(std::unique(_im.begin(), _im.end()) == _im.end() &&
+         "partial permutation image does not contain duplicate elements");
+
+  update_limits();
 }
 
 PartialPerm::PartialPerm(std::vector<unsigned> const &pperm) : _pperm(pperm)
@@ -28,13 +65,12 @@ PartialPerm::PartialPerm(std::vector<unsigned> const &pperm) : _pperm(pperm)
     }
   }
 
-  _dom_min = _dom[0];
-  _dom_max = _dom[_dom.size() - 1u];
-
   std::sort(_im.begin(), _im.end());
 
   assert(std::unique(_im.begin(), _im.end()) == _im.end() &&
     "partial permutation image does not contain duplicates");
+
+  update_limits();
 }
 
 unsigned PartialPerm::operator[](unsigned const i) const
@@ -58,10 +94,12 @@ PartialPerm PartialPerm::operator~() const
   res._pperm = inverse;
 
   res._dom = _im;
-  res._dom_min = im_min();
-  res._dom_max = im_max();
+  res._dom_min = _im_min;
+  res._dom_max = _im_max;
 
   res._im = _dom;
+  res._im_min = _dom_min;
+  res._im_max = _dom_max;
 
   return res;
 }
@@ -217,8 +255,7 @@ PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
 
   std::sort(_im.begin(), _im.end());
 
-  _dom_min = _dom[0];
-  _dom_max = _dom[_dom.size() - 1u];
+  update_limits();
 
   decltype(_pperm.size()) reduce = 0u;
   for (auto i = _pperm.size() - 1u; i > 0u; --i) {
@@ -270,6 +307,22 @@ std::vector<unsigned> PartialPerm::image(
   }
 
   return std::vector<unsigned>(res.begin(), res.end());
+}
+
+void PartialPerm::update_limits() {
+  if (_dom.empty()) {
+    _dom_min = _dom_max = 0u;
+  } else {
+    _dom_min = _dom[0];
+    _dom_max = _dom.back();
+  }
+
+  if (_im.empty()) {
+    _im_min = _im_max = 0u;
+  } else {
+    _im_min = _im[0];
+    _im_max = _im.back();
+  }
 }
 
 } // namespace cgtl

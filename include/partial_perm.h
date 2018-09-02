@@ -11,6 +11,8 @@ class PartialPerm
 {
 public:
   PartialPerm(unsigned degree = 0);
+  PartialPerm(std::vector<unsigned> const &dom,
+              std::vector<unsigned> const &im);
   PartialPerm(std::vector<unsigned> const &pperm);
 
   unsigned operator[](unsigned const i) const;
@@ -24,17 +26,20 @@ public:
   unsigned dom_max() const { return _dom_max; }
 
   std::vector<unsigned> im() const { return _im; }
-  unsigned im_min() const { return _im[0]; }
-  unsigned im_max() const { return _im[_im.size() - 1u]; }
+  unsigned im_min() const { return _im_min; }
+  unsigned im_max() const { return _im_max; }
 
   PartialPerm restricted(std::vector<unsigned> const &domain) const;
 
   std::vector<unsigned> image(std::vector<unsigned> const &alpha) const;
 
 private:
+  void update_limits();
+
   std::vector<unsigned> _pperm;
   std::vector<unsigned> _dom, _im;
   unsigned _dom_min, _dom_max;
+  unsigned _im_min, _im_max;
 };
 
 std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm);
