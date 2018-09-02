@@ -109,13 +109,13 @@ TEST(PartialPermTest, CanInvertPartialPerm)
   PartialPerm inv(~PartialPerm({0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11}));
   PartialPerm expected({0, 0, 4, 2, 0, 7, 9, 0, 6, 0, 11});
 
-  ASSERT_EQ(expected, inv)
+  EXPECT_EQ(expected, inv)
     << "Inverting partial permutation produces correct result.";
 
-  ASSERT_EQ(expected.dom(), inv.dom())
+  EXPECT_EQ(expected.dom(), inv.dom())
     << "Inverting partial permutation produces correct domain.";
 
-  ASSERT_EQ(expected.im(), inv.im())
+  EXPECT_EQ(expected.im(), inv.im())
     << "Inverting partial permutation produces correct image.";
 
   EXPECT_TRUE(expected.dom_min() == inv.dom_min() &&
@@ -139,13 +139,13 @@ TEST(PartialPermTest, CanMultiplyPartialPerms)
   PartialPerm pperm_mult = lhs * rhs;
 
   for (PartialPerm const &pperm : {pperm_mult_assign, pperm_mult}) {
-    ASSERT_EQ(expected, pperm)
+    EXPECT_EQ(expected, pperm)
       << "Multiplying partial permutations produces correct result.";
 
-    ASSERT_EQ(expected.dom(), pperm.dom())
+    EXPECT_EQ(expected.dom(), pperm.dom())
       << "Multiplying partial permutations produces correct domain.";
 
-    ASSERT_EQ(expected.im(), pperm.im())
+    EXPECT_EQ(expected.im(), pperm.im())
       << "Multiplying partial permutations produces correct image.";
 
     EXPECT_TRUE(expected.dom_min() == pperm.dom_min() &&
@@ -220,13 +220,13 @@ TEST(PartialPermTest, CanRestrictPartialPerm)
   for (auto &test : tests) {
     PartialPerm actual(test.pperm.restricted(test.domain));
 
-    ASSERT_EQ(test.expected, actual)
+    EXPECT_EQ(test.expected, actual)
       << "Multiplying partial permutations produces correct result.";
 
-    ASSERT_EQ(test.expected.dom(), actual.dom())
+    EXPECT_EQ(test.expected.dom(), actual.dom())
       << "Multiplying partial permutations produces correct domain.";
 
-    ASSERT_EQ(test.expected.im(), actual.im())
+    EXPECT_EQ(test.expected.im(), actual.im())
       << "Multiplying partial permutations produces correct image.";
 
     EXPECT_TRUE(test.expected.dom_min() == actual.dom_min() &&
