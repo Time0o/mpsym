@@ -10,7 +10,7 @@ namespace cgtl
 class PartialPerm
 {
 public:
-  PartialPerm();
+  PartialPerm(unsigned degree = 0);
   PartialPerm(std::vector<unsigned> const &pperm);
 
   unsigned operator[](unsigned const i) const;
@@ -19,8 +19,6 @@ public:
   bool operator!=(PartialPerm const &rhs) const;
   PartialPerm& operator*=(PartialPerm const &rhs);
 
-  std::vector<unsigned> image(std::vector<unsigned> const &alpha) const;
-
   std::vector<unsigned> dom() const { return _dom; }
   unsigned dom_min() const { return _dom_min; }
   unsigned dom_max() const { return _dom_max; }
@@ -28,6 +26,10 @@ public:
   std::vector<unsigned> im() const { return _im; }
   unsigned im_min() const { return _im[0]; }
   unsigned im_max() const { return _im[_im.size() - 1u]; }
+
+  PartialPerm restricted(std::vector<unsigned> const &domain) const;
+
+  std::vector<unsigned> image(std::vector<unsigned> const &alpha) const;
 
 private:
   std::vector<unsigned> _pperm;

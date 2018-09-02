@@ -9,7 +9,10 @@
 namespace cgtl
 {
 
-PartialPerm::PartialPerm() : PartialPerm(std::vector<unsigned>()) {}
+PartialPerm::PartialPerm(unsigned degree) : _pperm(degree) {
+  for (unsigned i = 0u; i < degree; ++i)
+    _pperm[i] = i + 1u;
+}
 
 PartialPerm::PartialPerm(std::vector<unsigned> const &pperm) : _pperm(pperm)
 {
@@ -228,6 +231,28 @@ PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
   _pperm.resize(_pperm.size() - reduce);
 
   return *this;
+}
+
+PartialPerm PartialPerm::restricted(std::vector<unsigned> const &domain) const
+{
+  std::vector<unsigned> pperm_restricted(_dom_max, 0u);
+  unsigned new_dom_max = 0u;
+
+  for (unsigned x : domain) {
+    if (x < _dom_min || x > _dom_max)
+      continue;
+
+    unsigned y = (*this)[x];
+
+    if (y != 0u) {
+      pperm_restricted[x - 1u] = y;
+      new_dom_max = std::max(new_dom_max, x);
+    }
+  }
+
+  pperm_restricted.resize(new_dom_max);
+
+  return PartialPerm(pperm_restricted);
 }
 
 std::vector<unsigned> PartialPerm::image(

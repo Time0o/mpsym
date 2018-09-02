@@ -148,3 +148,48 @@ TEST(PartialPermTest, PartialPermStringRepresentation)
       << "Correct partial permutation string representation.";
   }
 }
+
+TEST(PartialPermTest, CanRestrictPartialPerm)
+{
+  struct RestrictionTest {
+    RestrictionTest(PartialPerm pperm, std::vector<unsigned> const &domain,
+                    PartialPerm expected)
+      : pperm(pperm), domain(domain), expected(expected) {}
+
+    PartialPerm pperm;
+    std::vector<unsigned> domain;
+    PartialPerm expected;
+  };
+
+  RestrictionTest tests[] = {
+    RestrictionTest(
+      PartialPerm({0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11}),
+      {4, 5, 6, 9, 10},
+      PartialPerm({0, 0, 0, 3, 0, 9, 0, 0, 7})),
+    RestrictionTest(
+      PartialPerm({5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3}),
+      {1, 2, 3, 8, 9},
+      PartialPerm({5, 9, 10}))
+  };
+
+  for (auto &test : tests) {
+    PartialPerm actual(test.pperm.restricted(test.domain));
+
+    ASSERT_EQ(test.expected, actual)
+      << "Multiplying partial permutations produces correct result.";
+
+    ASSERT_EQ(test.expected.dom(), actual.dom())
+      << "Multiplying partial permutations produces correct domain.";
+
+    ASSERT_EQ(test.expected.im(), actual.im())
+      << "Multiplying partial permutations produces correct image.";
+
+    EXPECT_TRUE(test.expected.dom_min() == actual.dom_min() &&
+                test.expected.dom_max() == actual.dom_max())
+      << "Multiplying partial permutations produces correct domain limits.";
+
+    EXPECT_TRUE(test.expected.im_min() == actual.im_min() &&
+                test.expected.im_max() == actual.im_max())
+      << "Multiplying partial permutations produces correct image limits.";
+  }
+}
