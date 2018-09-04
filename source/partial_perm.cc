@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "partial_perm.h"
+#include "perm.h"
 
 namespace cgtl
 {
@@ -300,6 +301,41 @@ PartialPerm PartialPerm::restricted(std::vector<unsigned> const &domain) const
   pperm_restricted.resize(new_dom_max);
 
   return PartialPerm(pperm_restricted);
+}
+
+Perm PartialPerm::to_perm(unsigned degree) const
+{
+  std::vector<unsigned> perm(degree);
+
+  unsigned i;
+  for (i = 1u; i <= degree; ++i) {
+    if (i < _dom_min) {
+      perm[i - 1u] = i;
+    } else if (i > _dom_max) {
+      break;
+    } else {
+      unsigned im = _pperm[i - 1u];
+#ifndef NEBUG
+      if (im == 0u)
+        perm[i - 1u] = i;
+      else if (i > 0u) {
+        auto it = std::find(perm.begin(), perm.begin() + i, im);
+        assert(it == perm.begin() + i &&
+               "partial permutation does not contain chain within domain");
+        perm[i - 1u] = im;
+      }
+#else
+      perm[i] = im == 0u ? i : im;
+#endif
+    }
+  }
+
+  while (i <= degree) {
+    perm[i - 1u] = i;
+    ++i;
+  }
+
+  return Perm(perm);
 }
 
 std::vector<unsigned> PartialPerm::image(

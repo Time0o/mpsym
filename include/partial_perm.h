@@ -4,6 +4,8 @@
 #include <ostream>
 #include <vector>
 
+#include "perm.h"
+
 namespace cgtl
 {
 
@@ -32,6 +34,7 @@ public:
   unsigned im_max() const { return _im_max; }
 
   PartialPerm restricted(std::vector<unsigned> const &domain) const;
+  Perm to_perm(unsigned degree) const;
 
   std::vector<unsigned> image(std::vector<unsigned> const &alpha) const;
 

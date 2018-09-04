@@ -1,15 +1,19 @@
 #include <algorithm>
 #include <string>
 #include <sstream>
+#include <utility>
 #include <vector>
 
 #include "gmock/gmock.h"
 
 #include "partial_perm.h"
+#include "perm.h"
+#include "test_utility.h"
 
 #include "test_main.cc"
 
 using cgtl::PartialPerm;
+using cgtl::Perm;
 
 TEST(PartialPermTest, CanConstructPartialPerm)
 {
@@ -245,5 +249,31 @@ TEST(PartialPermTest, CanRestrictPartialPerm)
     EXPECT_TRUE(test.expected.im_min() == actual.im_min() &&
                 test.expected.im_max() == actual.im_max())
       << "Multiplying partial permutations produces correct image limits.";
+  }
+}
+
+TEST(PartialPermTest, CanConvertPartialPermToPerm)
+{
+  std::vector<std::pair<PartialPerm, Perm>> conversions {
+    {
+      PartialPerm({1, 2}, {2, 1}),
+      Perm(3, {{1, 2}})
+    },
+    {
+      PartialPerm({2, 3, 5}, {3, 2, 5}),
+      Perm(6, {{2, 3}})
+    },
+    {
+      PartialPerm({4, 5, 6, 7, 8, 9}, {4, 7, 8, 5, 9, 6}),
+      Perm(10, {{5, 7}, {6, 8, 9}})
+    }
+  };
+
+  for (auto const &conv : conversions) {
+    PartialPerm const &pperm = std::get<0>(conv);
+    Perm const &perm = std::get<1>(conv);
+
+    EXPECT_EQ(perm, pperm.to_perm(perm.degree()))
+      << "Conversion from partial to 'complete' permutation correct.";
   }
 }
