@@ -256,6 +256,14 @@ TEST(PartialPermTest, CanConvertPartialPermToPerm)
 {
   std::vector<std::pair<PartialPerm, Perm>> conversions {
     {
+      PartialPerm(),
+      Perm()
+    },
+    {
+      PartialPerm(),
+      Perm(10, {})
+    },
+    {
       PartialPerm({1, 2}, {2, 1}),
       Perm(3, {{1, 2}})
     },
