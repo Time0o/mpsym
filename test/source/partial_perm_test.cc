@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <string>
 #include <sstream>
+#include <vector>
 
 #include "gmock/gmock.h"
 
