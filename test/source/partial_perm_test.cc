@@ -207,6 +207,69 @@ TEST(PartialPermTest, PartialPermStringRepresentation)
   }
 }
 
+TEST(PartialPermTest, CanCheckIfPartialPermEmpty)
+{
+  std::vector<PartialPerm> empty_pperms {
+    PartialPerm(),
+    PartialPerm({}),
+    PartialPerm({}, {}),
+    PartialPerm::id({})
+  };
+
+  for (auto const &pperm : empty_pperms) {
+    EXPECT_TRUE(pperm.empty())
+      << "Can identify partial permutation as empty (" << pperm << ").";
+  }
+
+  std::vector<PartialPerm> non_empty_pperms {
+    PartialPerm(1),
+    PartialPerm({1}),
+    PartialPerm({1}, {1}),
+    PartialPerm::id({1})
+  };
+
+  for (auto const &pperm : non_empty_pperms) {
+    EXPECT_FALSE(pperm.empty())
+      << "Can identify partial permutation as non-empty (" << pperm << ").";
+  }
+}
+
+TEST(PartialPermTest, CanCheckIfPartialPermIsId)
+{
+  std::vector<PartialPerm> id_pperms {
+    PartialPerm(),
+    PartialPerm({}),
+    PartialPerm({}, {}),
+    PartialPerm::id({}),
+    PartialPerm(1),
+    PartialPerm({1}),
+    PartialPerm({1}, {1}),
+    PartialPerm::id({1}),
+    PartialPerm(7),
+    PartialPerm({0, 2, 0, 4, 5, 0, 7}),
+    PartialPerm({3, 8, 9}, {3, 8, 9}),
+    PartialPerm::id({5, 7, 8})
+  };
+
+  for (auto const &pperm : id_pperms) {
+    EXPECT_TRUE(pperm.id())
+      << "Can identify partial permutation as identity ( " << pperm << " ).";
+  }
+
+  std::vector<PartialPerm> non_id_pperms {
+    PartialPerm({0, 1}),
+    PartialPerm({1, 3}),
+    PartialPerm({1, 0, 2}),
+    PartialPerm({1}, {2}),
+    PartialPerm({1, 2}, {1, 3})
+  };
+
+  for (auto const &pperm : non_id_pperms) {
+    EXPECT_FALSE(pperm.id())
+      << "Can identify partial permutation as non-identity ( " << pperm << " ).";
+  }
+}
+
 TEST(PartialPermTest, CanRestrictPartialPerm)
 {
   struct RestrictionTest {

@@ -10,7 +10,7 @@
 namespace cgtl
 {
 
-PartialPerm::PartialPerm(unsigned degree) : _pperm(degree) {
+PartialPerm::PartialPerm(unsigned degree) : _pperm(degree), _id(true) {
   for (unsigned i = 0u; i < degree; ++i)
     _pperm[i] = i + 1u;
 
@@ -21,7 +21,7 @@ PartialPerm::PartialPerm(unsigned degree) : _pperm(degree) {
 }
 
 PartialPerm::PartialPerm(std::vector<unsigned> const &dom,
-                         std::vector<unsigned> const &im) :  _im(im)
+                         std::vector<unsigned> const &im) :  _im(im), _id(true)
 {
   assert(dom.size() == _im.size() &&
          "partial permutation domain and image have same dimension");
@@ -41,8 +41,15 @@ PartialPerm::PartialPerm(std::vector<unsigned> const &dom,
          "partial permutation domain does not contain duplicate elements");
 
   _pperm = std::vector<unsigned>(dom_sorted.back(), 0u);
-  for (auto i = 0u; i < dom.size(); ++i)
-    _pperm[dom[i] - 1u] = _im[i];
+  for (auto i = 0u; i < dom.size(); ++i) {
+    unsigned x = dom[i];
+    unsigned y = _im[i];
+
+    if (_id && y != x)
+      _id = false;
+
+    _pperm[x - 1u] = y;
+  }
 
   _dom = dom_sorted;
 
@@ -57,13 +64,16 @@ PartialPerm::PartialPerm(std::vector<unsigned> const &dom,
   update_limits();
 }
 
-PartialPerm::PartialPerm(std::vector<unsigned> const &pperm) : _pperm(pperm)
+PartialPerm::PartialPerm(std::vector<unsigned> const &pperm)
+  : _pperm(pperm), _id(true)
 {
   if (pperm.empty())
     return;
 
   for (auto i = 1u; i <= _pperm.size(); ++i) {
     unsigned im = _pperm[i - 1u];
+    if (_id && im != 0u && im != i)
+      _id = false;
 
     if (im != 0u) {
       _dom.push_back(i);

@@ -33,6 +33,9 @@ public:
   unsigned im_min() const { return _im_min; }
   unsigned im_max() const { return _im_max; }
 
+  bool empty() const { return _pperm.empty(); }
+  bool id() const { return _id; }
+
   PartialPerm restricted(std::vector<unsigned> const &domain) const;
   Perm to_perm(unsigned degree) const;
 
@@ -45,6 +48,7 @@ private:
   std::vector<unsigned> _dom, _im;
   unsigned _dom_min, _dom_max;
   unsigned _im_min, _im_max;
+  bool _id;
 };
 
 std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm);
