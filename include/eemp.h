@@ -1,6 +1,7 @@
 #ifndef _GUARD_EEMP_H
 #define _GUARD_EEMP_H
 
+#include <ostream>
 #include <utility>
 #include <vector>
 
@@ -13,27 +14,35 @@ class EEMP
 {
 public:
   struct SchreierTree {
-    unsigned dom_max; // TODO: eliminate?
     std::vector<std::pair<unsigned, unsigned>> data;
+    unsigned dom_max;
   };
 
   struct OrbitGraph {
-    unsigned dom_max; // TODO: eliminate?
     std::vector<std::vector<unsigned>> data;
   };
 
-  static std::vector<std::vector<unsigned>> action_components(
+  static std::vector<std::vector<unsigned>> action_component(
     std::vector<unsigned> const &alpha,
     std::vector<PartialPerm> const &generators,
     SchreierTree &schreier_tree, OrbitGraph &orbit_graph);
 
+  static std::vector<unsigned> strongly_connected_components(
+    OrbitGraph const &orbit_graph);
+
   static PartialPerm schreier_trace(
-    SchreierTree const &schreier_tree, unsigned i,
+    unsigned x, SchreierTree const &schreier_tree,
     std::vector<PartialPerm> const &generators);
 
-  static std::vector<std::vector<unsigned>> strongly_connected_components(
-    OrbitGraph const &orbit_graph);
+  static std::vector<PartialPerm> schreier_generators(
+    PartialPerm const &x, std::vector<PartialPerm> const &generators);
 };
+
+std::ostream& operator<<(
+  std::ostream& stream, EEMP::SchreierTree const &schreier_tree);
+
+std::ostream& operator<<(
+  std::ostream& stream, EEMP::OrbitGraph const &orbit_graph);
 
 } // namespace cgtl
 
