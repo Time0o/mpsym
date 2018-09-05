@@ -292,6 +292,8 @@ std::vector<PartialPerm> EEMP::r_class_elements(PartialPerm const &x,
 std::vector<PartialPerm> EEMP::r_classes_in_d_class(PartialPerm const &x,
   std::vector<PartialPerm> const &generators, unsigned dom_max)
 {
+  // TODO: traverse tree forwards to avoid generating duplicate elements
+
   std::vector<PartialPerm> inverted_generators(generators.size());
   for (auto i = 0u; i < generators.size(); ++i)
     inverted_generators[i] =  ~generators[i];
@@ -304,21 +306,25 @@ std::vector<PartialPerm> EEMP::r_classes_in_d_class(PartialPerm const &x,
   auto xs(schreier_generators(
     ~x, inverted_generators, dom_max, ac_dom, st_dom, og_dom));
 
+  auto scc(strongly_connected_components(og_dom));
+
   std::vector<int> leaves(st_dom.data.size() + 1u, 1);
   for (auto const &p : st_dom.data)
     leaves[std::get<0>(p)] = 0;
 
-  std::vector<PartialPerm> res;
+  std::vector<PartialPerm> res {x};
 
   std::function<void(unsigned, std::vector<PartialPerm> &)>
   backtrack = [&](unsigned node, std::vector<PartialPerm> &buf) {
     if (node == 0u) {
       // add all partial permutations corresponding to a single path from a
       // leaf of the schreier tree to its root to the result
-      PartialPerm pperm(x);
-      for (auto it = buf.rbegin(); it != buf.rend(); ++it) {
-        pperm = *it * pperm;
-        res.push_back(pperm);
+      if (!buf.empty()) {
+        PartialPerm pperm(x);
+        for (auto it = buf.rbegin(); it != buf.rend(); ++it) {
+          pperm = *it * pperm;
+          res.push_back(pperm);
+        }
       }
 
       return;
@@ -328,7 +334,9 @@ std::vector<PartialPerm> EEMP::r_classes_in_d_class(PartialPerm const &x,
     unsigned parent = std::get<0>(tmp);
     unsigned gen_idx = std::get<1>(tmp);
 
-    buf.push_back(generators[gen_idx]);
+    if (scc[node] == scc[0])
+      buf.push_back(generators[gen_idx]);
+
     backtrack(parent, buf);
   };
 
