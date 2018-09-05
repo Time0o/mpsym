@@ -18,6 +18,7 @@ public:
   PartialPerm(std::vector<unsigned> const &pperm);
 
   static PartialPerm id(std::vector<unsigned> const &dom);
+  static PartialPerm from_perm(Perm const &perm);
 
   unsigned operator[](unsigned const i) const;
   PartialPerm operator~() const;

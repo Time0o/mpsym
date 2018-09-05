@@ -94,6 +94,16 @@ PartialPerm PartialPerm::id(std::vector<unsigned> const &dom)
   return PartialPerm(dom, dom);
 }
 
+PartialPerm PartialPerm::from_perm(Perm const &perm)
+{
+  std::vector<unsigned> pperm(perm.degree());
+
+  for (unsigned i = 1u; i <= perm.degree(); ++i)
+    pperm[i - 1u] = perm[i];
+
+  return PartialPerm(pperm);
+}
+
 unsigned PartialPerm::operator[](unsigned const i) const
 {
   if (i < _dom_min || i > _dom_max)

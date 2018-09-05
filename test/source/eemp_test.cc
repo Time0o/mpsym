@@ -20,6 +20,7 @@ using cgtl::PermGroup;
 using cgtl::expand_partition;
 
 using testing::ElementsAreArray;
+using testing::UnorderedElementsAreArray;
 
 class EEMPTest : public testing::Test
 {
@@ -163,4 +164,25 @@ TEST_F(EEMPTest, CanComputeStabilizerSchreierGenerators)
     EXPECT_TRUE(perm_group_equal(expected_groups[i], sg))
       << "Obtained correct schreier generator generating set.";
   }
+}
+
+TEST_F(EEMPTest, CanObtainRClassElements)
+{
+  auto x(generators[0] * generators[2] * generators[3]);
+  auto r(EEMP::r_class_elements(x, generators, dom_max));
+
+  std::vector<PartialPerm> expected_r_class {
+    PartialPerm({2}, {1}),
+    PartialPerm({2}, {2}),
+    PartialPerm({2}, {3}),
+    PartialPerm({2}, {4}),
+    PartialPerm({2}, {5}),
+    PartialPerm({2}, {6}),
+    PartialPerm({2}, {7}),
+    PartialPerm({2}, {8}),
+    PartialPerm({2}, {9})
+  };
+
+  EXPECT_THAT(r, UnorderedElementsAreArray(expected_r_class))
+    << "Computed R-class elements are correct.";
 }

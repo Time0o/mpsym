@@ -34,7 +34,11 @@ public:
     unsigned x, SchreierTree const &schreier_tree,
     std::vector<PartialPerm> const &generators, unsigned dom_max);
 
+  // TODO: pass schreier tree and orbit graph as arguments
   static PermGroup schreier_generators(PartialPerm const &x,
+    std::vector<PartialPerm> const &generators, unsigned dom_max);
+
+  static std::vector<PartialPerm> r_class_elements(PartialPerm const &x,
     std::vector<PartialPerm> const &generators, unsigned dom_max);
 };
 

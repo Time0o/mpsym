@@ -241,6 +241,33 @@ PermGroup EEMP::schreier_generators(PartialPerm const &x,
   return PermGroup(im_max, res);
 }
 
+std::vector<PartialPerm> EEMP::r_class_elements(PartialPerm const &x,
+  std::vector<PartialPerm> const &generators, unsigned dom_max)
+{
+  SchreierTree st;
+  OrbitGraph og;
+  auto ac(action_component(x.im(), generators, dom_max, st, og));
+  auto sccs(strongly_connected_components(og));
+  auto sx(schreier_generators(x, generators, dom_max));
+
+  std::vector<unsigned> scc;
+  for (unsigned i = 0u; i < sccs.size(); ++i) {
+    if (sccs[i] == sccs[0])
+      scc.push_back(i);
+  }
+
+  std::vector<PartialPerm> res;
+
+  for (unsigned i : scc) {
+    for (Perm const &s : sx) {
+      PartialPerm ui(schreier_trace(i, st, generators, dom_max));
+      res.push_back(x * PartialPerm::from_perm(s) * ui);
+    }
+  }
+
+  return res;
+}
+
 std::vector<unsigned> EEMP::strongly_connected_components(
   OrbitGraph const &orbit_graph)
 {
