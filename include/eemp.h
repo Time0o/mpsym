@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "partial_perm.h"
+#include "perm_group.h"
 
 namespace cgtl
 {
@@ -15,7 +16,6 @@ class EEMP
 public:
   struct SchreierTree {
     std::vector<std::pair<unsigned, unsigned>> data;
-    unsigned dom_max;
   };
 
   struct OrbitGraph {
@@ -24,7 +24,7 @@ public:
 
   static std::vector<std::vector<unsigned>> action_component(
     std::vector<unsigned> const &alpha,
-    std::vector<PartialPerm> const &generators,
+    std::vector<PartialPerm> const &generators, unsigned dom_max,
     SchreierTree &schreier_tree, OrbitGraph &orbit_graph);
 
   static std::vector<unsigned> strongly_connected_components(
@@ -32,10 +32,10 @@ public:
 
   static PartialPerm schreier_trace(
     unsigned x, SchreierTree const &schreier_tree,
-    std::vector<PartialPerm> const &generators);
+    std::vector<PartialPerm> const &generators, unsigned dom_max);
 
-  static std::vector<PartialPerm> schreier_generators(
-    PartialPerm const &x, std::vector<PartialPerm> const &generators);
+  static PermGroup schreier_generators(PartialPerm const &x,
+    std::vector<PartialPerm> const &generators, unsigned dom_max);
 };
 
 std::ostream& operator<<(

@@ -25,8 +25,8 @@ class EEMPTest : public testing::Test
 {
 protected:
   void SetUp() {
-    component = EEMP::action_component(generators[0].im(), generators,
-                                       schreier_tree, orbit_graph);
+    component = EEMP::action_component(
+      generators[0].im(), generators, dom_max, schreier_tree, orbit_graph);
   }
 
   std::vector<PartialPerm> generators {
@@ -35,6 +35,8 @@ protected:
     PartialPerm({0, 5, 0, 0, 6, 2}),
     PartialPerm({3, 1, 2})
   };
+
+  unsigned dom_max = 9u;
 
   std::vector<std::vector<unsigned>> component;
 
@@ -101,7 +103,7 @@ TEST_F(EEMPTest, CanTraceSchreierTree)
     auto c_idx = scc[i][0];
     auto c(component[c_idx]);
 
-    auto pperm(EEMP::schreier_trace(c_idx, schreier_tree, generators));
+    auto pperm(EEMP::schreier_trace(c_idx, schreier_tree, generators, dom_max));
 
     std::stringstream ss;
 
@@ -157,16 +159,8 @@ TEST_F(EEMPTest, CanComputeStabilizerSchreierGenerators)
   };
 
   for (auto i = 0u; i < pperms.size(); ++i) {
-    auto schreier_generators(EEMP::schreier_generators(pperms[i], generators));
-
-    auto const &expected_group = expected_groups[i];
-    unsigned n = expected_group.degree();
-
-    std::vector<Perm> schreier_perms;
-    for (auto const &sg : schreier_generators)
-      schreier_perms.push_back(sg.to_perm(n));
-
-    EXPECT_TRUE(perm_group_equal(expected_group, PermGroup(n, schreier_perms)))
+    auto sg(EEMP::schreier_generators(pperms[i], generators, dom_max));
+    EXPECT_TRUE(perm_group_equal(expected_groups[i], sg))
       << "Obtained correct schreier generator generating set.";
   }
 }

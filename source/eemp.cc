@@ -14,13 +14,16 @@
 #include "dbg.h"
 #include "eemp.h"
 #include "partial_perm.h"
+#include "perm.h"
+#include "perm_group.h"
 #include "util.h"
 
 namespace cgtl
 {
 
 std::vector<std::vector<unsigned>> EEMP::action_component(
-  std::vector<unsigned> const &alpha, std::vector<PartialPerm> const &generators,
+  std::vector<unsigned> const &alpha,
+  std::vector<PartialPerm> const &generators, unsigned dom_max,
   SchreierTree &schreier_tree, OrbitGraph &orbit_graph)
 {
 #ifndef NDEBUG
@@ -34,11 +37,9 @@ std::vector<std::vector<unsigned>> EEMP::action_component(
 
   // compute domain range over all generators
   unsigned dom_min = UINT_MAX;
-  unsigned dom_max = 0u;
-  for (PartialPerm const &gen : generators) {
+  for (PartialPerm const &gen : generators)
     dom_min = std::min(dom_min, gen.dom_min());
-    dom_max = std::max(dom_max, gen.dom_max());
-  }
+
   unsigned dom_range_max = dom_max - dom_min + 1u;
 
   // data structures for efficient component membership testing
@@ -136,7 +137,6 @@ std::vector<std::vector<unsigned>> EEMP::action_component(
   }
 
   schreier_tree.data = schreier_tree_data;
-  schreier_tree.dom_max = dom_max;
 
 #ifndef NDEBUG
   Dbg(Dbg::TRACE) << "Resulting action component";
@@ -155,10 +155,10 @@ std::vector<std::vector<unsigned>> EEMP::action_component(
 
 PartialPerm EEMP::schreier_trace(
   unsigned x, SchreierTree const &schreier_tree,
-  std::vector<PartialPerm> const &generators)
+  std::vector<PartialPerm> const &generators, unsigned dom_max)
 {
-  std::vector<unsigned> pperm(schreier_tree.dom_max);
-  for (unsigned j = 0u; j < schreier_tree.dom_max; ++j)
+  std::vector<unsigned> pperm(dom_max);
+  for (unsigned j = 0u; j < dom_max; ++j)
     pperm[j] = j + 1u;
 
   PartialPerm res(pperm);
@@ -174,17 +174,20 @@ PartialPerm EEMP::schreier_trace(
   return res;
 }
 
-std::vector<PartialPerm> EEMP::schreier_generators(
-  PartialPerm const &x, std::vector<PartialPerm> const &generators)
+PermGroup EEMP::schreier_generators(PartialPerm const &x,
+  std::vector<PartialPerm> const &generators, unsigned dom_max)
 {
   Dbg(Dbg::TRACE) << "Finding schreier generators for Sx where x is: " << x;
 
-  if (x.im().empty())
-    return std::vector<PartialPerm>();
+  auto im(x.im());
+  unsigned im_max = *std::max_element(im.begin(), im.end());
+
+  if (im.empty())
+    return PermGroup();
 
   SchreierTree st;
   OrbitGraph og;
-  auto ac(action_component(x.im(), generators, st, og));
+  auto ac(action_component(im, generators, dom_max, st, og));
 
   auto sccs(strongly_connected_components(og));
 
@@ -202,7 +205,7 @@ std::vector<PartialPerm> EEMP::schreier_generators(
   Dbg(Dbg::TRACE) << "Strongly connected component of x is: " << _scc;
 #endif
 
-  std::vector<PartialPerm> res;
+  std::vector<Perm> res;
 
   for (auto i = 0u; i < scc.size(); ++i) {
     for (auto j = 0u; j < generators.size(); ++j) {
@@ -217,25 +220,25 @@ std::vector<PartialPerm> EEMP::schreier_generators(
                       << j + 1u << '/'
                       << k + 1u;
 
-      PartialPerm ui(schreier_trace(scc[i], st, generators));
-      PartialPerm uk(schreier_trace(k, st, generators));
+      PartialPerm ui(schreier_trace(scc[i], st, generators, dom_max));
+      PartialPerm uk(schreier_trace(k, st, generators, dom_max));
 
       Dbg(Dbg::TRACE) << "where:";
       Dbg(Dbg::TRACE) << "u_i(j) = " << "u_" << scc[i] + 1u << " = " << ui;
       Dbg(Dbg::TRACE) << "x_k = " << "x_" << j + 1u << " = " << generators[j];
       Dbg(Dbg::TRACE) << "~u_l = " << "u_" << k + 1u << " = " << ~uk;
 
-      PartialPerm sg(/*~x * */ui * generators[j] * ~uk); // TODO
-      sg = sg.restricted(x.im());
+      PartialPerm sg(ui * generators[j] * ~uk);
+      sg = sg.restricted(im);
 
       Dbg(Dbg::TRACE) << "=> Schreier generator is: " << sg;
 
       if (!sg.id())
-        res.push_back(sg);
+        res.push_back(sg.to_perm(im_max));
     }
   }
 
-  return res;
+  return PermGroup(im_max, res);
 }
 
 std::vector<unsigned> EEMP::strongly_connected_components(
