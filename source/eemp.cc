@@ -153,6 +153,27 @@ std::vector<std::vector<unsigned>> EEMP::action_component(
   return component;
 }
 
+std::vector<unsigned> EEMP::strongly_connected_components(
+  OrbitGraph const &orbit_graph)
+{
+  boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> g;
+
+  for (auto i = 0u; i < orbit_graph.data[0].size(); ++i)
+    boost::add_vertex(g);
+
+  for (auto i = 0u; i < orbit_graph.data[0].size(); ++i) {
+    for (auto const &row : orbit_graph.data) {
+      auto j = row[i];
+      if (j != i)
+        boost::add_edge(i, j, g);
+    }
+  }
+
+  std::vector<unsigned> component(boost::num_vertices(g));
+  boost::strong_components(g, &component[0]);
+  return component;
+}
+
 PartialPerm EEMP::schreier_trace(
   unsigned x, SchreierTree const &schreier_tree,
   std::vector<PartialPerm> const &generators, unsigned dom_max)
@@ -266,27 +287,6 @@ std::vector<PartialPerm> EEMP::r_class_elements(PartialPerm const &x,
   }
 
   return res;
-}
-
-std::vector<unsigned> EEMP::strongly_connected_components(
-  OrbitGraph const &orbit_graph)
-{
-  boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> g;
-
-  for (auto i = 0u; i < orbit_graph.data[0].size(); ++i)
-    boost::add_vertex(g);
-
-  for (auto i = 0u; i < orbit_graph.data[0].size(); ++i) {
-    for (auto const &row : orbit_graph.data) {
-      auto j = row[i];
-      if (j != i)
-        boost::add_edge(i, j, g);
-    }
-  }
-
-  std::vector<unsigned> component(boost::num_vertices(g));
-  boost::strong_components(g, &component[0]);
-  return component;
 }
 
 std::ostream& operator<<(
