@@ -94,7 +94,6 @@ std::vector<std::vector<unsigned>> EEMP::action_component(
     return false;
   };
 
-
   // main loop
   std::vector<std::vector<unsigned>> component {alpha};
   decltype(schreier_tree.data) schreier_tree_data;
