@@ -45,7 +45,7 @@ protected:
   EEMP::OrbitGraph orbit_graph;
 };
 
-TEST_F(EEMPTest, CanComputeActionComponents)
+TEST_F(EEMPTest, CanComputeActionComponent)
 {
   decltype(component) expected_components {
 	{1, 2, 3, 4, 5, 6, 7, 8, 9}, {2, 5, 6}, {1, 2, 3}, {1, 4, 7}, {1},
