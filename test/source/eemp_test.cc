@@ -26,7 +26,7 @@ class EEMPTest : public testing::Test
 {
 protected:
   void SetUp() {
-    component = EEMP::action_component(
+    action_component = EEMP::action_component(
       generators[0].im(), generators, dom_max, schreier_tree, orbit_graph);
   }
 
@@ -39,7 +39,7 @@ protected:
 
   unsigned dom_max = 9u;
 
-  std::vector<std::vector<unsigned>> component;
+  std::vector<std::vector<unsigned>> action_component;
 
   EEMP::SchreierTree schreier_tree;
   EEMP::OrbitGraph orbit_graph;
@@ -47,7 +47,7 @@ protected:
 
 TEST_F(EEMPTest, CanComputeActionComponent)
 {
-  decltype(component) expected_components {
+  decltype(action_component) expected_action_component {
 	{1, 2, 3, 4, 5, 6, 7, 8, 9}, {2, 5, 6}, {1, 2, 3}, {1, 4, 7}, {1},
     {4, 6, 8}, {5, 7, 9}, {5}, {}, {3}, {4}, {2}, {6}, {8}, {9}, {7}
   };
@@ -64,7 +64,7 @@ TEST_F(EEMPTest, CanComputeActionComponent)
     {2, 4, 2, 9, 9, 8, 8, 8, 8, 11, 8, 4, 8, 8, 8, 8}
   };
 
-  ASSERT_THAT(component, ElementsAreArray(expected_components))
+  ASSERT_THAT(action_component, ElementsAreArray(expected_action_component))
     << "Component of action determined correctly.";
 
   EXPECT_THAT(schreier_tree.data, ElementsAreArray(expected_schreier_tree))
@@ -72,6 +72,36 @@ TEST_F(EEMPTest, CanComputeActionComponent)
 
   EXPECT_THAT(orbit_graph.data, ElementsAreArray(expected_orbit_graph))
     << "Orbit graph representation correct.";
+}
+
+TEST_F(EEMPTest, CanComputeLeftSchreierTree)
+{
+  decltype(action_component) expected_left_action_component {
+	{2}, {6}, {4}, {3}, {7}, {5}, {}, {1}, {8}, {9}
+  };
+
+  decltype(schreier_tree.data) expected_left_schreier_tree {
+	{0, 0}, {0, 1}, {0, 3}, {1, 1}, {1, 2}, {1, 3}, {2, 0}, {3, 0}, {8, 1}
+  };
+
+  PartialPerm x(generators[0] * generators[2] * generators[3]);
+
+  std::vector<PartialPerm> inverted_generators(generators.size());
+  for (auto i = 0u; i < generators.size(); ++i)
+    inverted_generators[i] = ~generators[i];
+
+  EEMP::SchreierTree left_schreier_tree;
+  EEMP::OrbitGraph dummy;
+  auto left_action_component(EEMP::action_component(
+    x.dom(), inverted_generators, dom_max, left_schreier_tree, orbit_graph));
+
+  ASSERT_THAT(left_action_component,
+              ElementsAreArray(expected_left_action_component))
+    << "Component of action determined correctly.";
+
+  EXPECT_THAT(left_schreier_tree.data,
+              ElementsAreArray(expected_left_schreier_tree))
+    << "Schreier tree representation correct.";
 }
 
 TEST_F(EEMPTest, CanIdentifyStronglyConnectedOrbitGraphComponents)
@@ -102,7 +132,7 @@ TEST_F(EEMPTest, CanTraceSchreierTree)
 
   for (auto i = 0u; i < scc.size(); ++i) {
     auto c_idx = scc[i][0];
-    auto c(component[c_idx]);
+    auto c(action_component[c_idx]);
 
     auto pperm(EEMP::schreier_trace(c_idx, schreier_tree, generators, dom_max));
 
@@ -160,7 +190,14 @@ TEST_F(EEMPTest, CanComputeStabilizerSchreierGenerators)
   };
 
   for (auto i = 0u; i < pperms.size(); ++i) {
-    auto sg(EEMP::schreier_generators(pperms[i], generators, dom_max));
+    EEMP::SchreierTree st;
+    EEMP::OrbitGraph og;
+    action_component = EEMP::action_component(
+      pperms[i].im(), generators, dom_max, st, og);
+
+    auto sg(EEMP::schreier_generators(
+      pperms[i], generators, dom_max, action_component, st, og));
+
     EXPECT_TRUE(perm_group_equal(expected_groups[i], sg))
       << "Obtained correct schreier generator generating set.";
   }
@@ -185,4 +222,25 @@ TEST_F(EEMPTest, CanObtainRClassElements)
 
   EXPECT_THAT(r, UnorderedElementsAreArray(expected_r_class))
     << "Computed R-class elements are correct.";
+}
+
+TEST_F(EEMPTest, CanObtainRClassesInDClass)
+{
+  auto x(generators[0] * generators[2] * generators[3]);
+  auto r(EEMP::r_classes_in_d_class(x, generators, dom_max));
+
+  std::vector<PartialPerm> expected_r_class_repr {
+    PartialPerm({2}, {1}),
+    PartialPerm({3}, {1}),
+    PartialPerm({1}, {1}),
+    PartialPerm({6}, {1}),
+    PartialPerm({7}, {1}),
+    PartialPerm({8}, {1}),
+    PartialPerm({4}, {1}),
+    PartialPerm({5}, {1}),
+    PartialPerm({9}, {1})
+  };
+
+  EXPECT_THAT(r, UnorderedElementsAreArray(expected_r_class_repr))
+    << "Computed R-class representatives are correct.";
 }

@@ -1,9 +1,11 @@
 #include <algorithm>
 #include <climits>
 #include <cstddef>
+#include <functional>
 #include <iomanip>
 #include <ostream>
 #include <sstream>
+#include <utility>
 #include <utility>
 #include <vector>
 
@@ -196,7 +198,9 @@ PartialPerm EEMP::schreier_trace(
 }
 
 PermGroup EEMP::schreier_generators(PartialPerm const &x,
-  std::vector<PartialPerm> const &generators, unsigned dom_max)
+  std::vector<PartialPerm> const &generators, unsigned dom_max,
+  std::vector<std::vector<unsigned>> const &action_component,
+  SchreierTree const &schreier_tree, OrbitGraph const &orbit_graph)
 {
   Dbg(Dbg::TRACE) << "Finding schreier generators for Sx where x is: " << x;
 
@@ -206,11 +210,7 @@ PermGroup EEMP::schreier_generators(PartialPerm const &x,
   if (im.empty())
     return PermGroup();
 
-  SchreierTree st;
-  OrbitGraph og;
-  auto ac(action_component(im, generators, dom_max, st, og));
-
-  auto sccs(strongly_connected_components(og));
+  auto sccs(strongly_connected_components(orbit_graph));
 
   std::vector<unsigned> scc;
   for (auto i = 0u; i < sccs.size(); ++i) {
@@ -221,7 +221,7 @@ PermGroup EEMP::schreier_generators(PartialPerm const &x,
 #ifndef NDEBUG
   std::vector<std::vector<unsigned>> _scc(scc.size());
   for (auto i = 0u; i < scc.size(); ++i)
-    _scc[i] = ac[scc[i]];
+    _scc[i] = action_component[scc[i]];
 
   Dbg(Dbg::TRACE) << "Strongly connected component of x is: " << _scc;
 #endif
@@ -231,7 +231,7 @@ PermGroup EEMP::schreier_generators(PartialPerm const &x,
   for (auto i = 0u; i < scc.size(); ++i) {
     for (auto j = 0u; j < generators.size(); ++j) {
 
-      unsigned k = og.data[j][scc[i]];
+      unsigned k = orbit_graph.data[j][scc[i]];
       if (sccs[k] != sccs[0])
         continue;
 
@@ -241,8 +241,8 @@ PermGroup EEMP::schreier_generators(PartialPerm const &x,
                       << j + 1u << '/'
                       << k + 1u;
 
-      PartialPerm ui(schreier_trace(scc[i], st, generators, dom_max));
-      PartialPerm uk(schreier_trace(k, st, generators, dom_max));
+      PartialPerm ui(schreier_trace(scc[i], schreier_tree, generators, dom_max));
+      PartialPerm uk(schreier_trace(k, schreier_tree, generators, dom_max));
 
       Dbg(Dbg::TRACE) << "where:";
       Dbg(Dbg::TRACE) << "u_i(j) = " << "u_" << scc[i] + 1u << " = " << ui;
@@ -269,7 +269,7 @@ std::vector<PartialPerm> EEMP::r_class_elements(PartialPerm const &x,
   OrbitGraph og;
   auto ac(action_component(x.im(), generators, dom_max, st, og));
   auto sccs(strongly_connected_components(og));
-  auto sx(schreier_generators(x, generators, dom_max));
+  auto sx(schreier_generators(x, generators, dom_max, ac, st, og));
 
   std::vector<unsigned> scc;
   for (unsigned i = 0u; i < sccs.size(); ++i) {
@@ -283,6 +283,60 @@ std::vector<PartialPerm> EEMP::r_class_elements(PartialPerm const &x,
     for (Perm const &s : sx) {
       PartialPerm ui(schreier_trace(i, st, generators, dom_max));
       res.push_back(x * PartialPerm::from_perm(s) * ui);
+    }
+  }
+
+  return res;
+}
+
+std::vector<PartialPerm> EEMP::r_classes_in_d_class(PartialPerm const &x,
+  std::vector<PartialPerm> const &generators, unsigned dom_max)
+{
+  std::vector<PartialPerm> inverted_generators(generators.size());
+  for (auto i = 0u; i < generators.size(); ++i)
+    inverted_generators[i] =  ~generators[i];
+
+  SchreierTree st_dom;
+  OrbitGraph og_dom;
+  auto ac_dom(action_component(
+    x.dom(), inverted_generators, dom_max, st_dom, og_dom));
+
+  auto xs(schreier_generators(
+    ~x, inverted_generators, dom_max, ac_dom, st_dom, og_dom));
+
+  std::vector<int> leaves(st_dom.data.size() + 1u, 1);
+  for (auto const &p : st_dom.data)
+    leaves[std::get<0>(p)] = 0;
+
+  std::vector<PartialPerm> res;
+
+  std::function<void(unsigned, std::vector<PartialPerm> &)>
+  backtrack = [&](unsigned node, std::vector<PartialPerm> &buf) {
+    if (node == 0u) {
+      // add all partial permutations corresponding to a single path from a
+      // leaf of the schreier tree to its root to the result
+      PartialPerm pperm(x);
+      for (auto it = buf.rbegin(); it != buf.rend(); ++it) {
+        pperm = *it * pperm;
+        res.push_back(pperm);
+      }
+
+      return;
+    }
+
+    auto tmp(st_dom.data[node - 1u]);
+    unsigned parent = std::get<0>(tmp);
+    unsigned gen_idx = std::get<1>(tmp);
+
+    buf.push_back(generators[gen_idx]);
+    backtrack(parent, buf);
+  };
+
+  // perform a post-order transversal of the schreier tree
+  for (unsigned i = 0u; i < st_dom.data.size() + 1u; ++i) {
+    if (leaves[i]) {
+      std::vector<PartialPerm> buf;
+      backtrack(i, buf);
     }
   }
 
