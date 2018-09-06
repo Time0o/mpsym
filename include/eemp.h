@@ -23,6 +23,7 @@ public:
   };
 
   struct S {
+    S() {};
     S(std::vector<PartialPerm> const &generators);
 
     unsigned dom;
