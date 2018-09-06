@@ -40,7 +40,6 @@ protected:
   unsigned dom_max = 9u;
 
   std::vector<std::vector<unsigned>> action_component;
-
   EEMP::SchreierTree schreier_tree;
   EEMP::OrbitGraph orbit_graph;
 };
