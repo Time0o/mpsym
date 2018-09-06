@@ -331,6 +331,90 @@ std::vector<PartialPerm> EEMP::r_classes_in_d_class(PartialPerm const &x,
   return res;
 }
 
+EEMP::S::S(std::vector<PartialPerm> const &generators) : generators(generators)
+{
+  dom = 0u;
+  for (auto const &gen : generators)
+    dom = std::max(dom, gen.dom_max());
+
+  std::vector<unsigned> alpha(dom);
+  for (unsigned i = 0u; i < dom; ++i)
+    alpha[i] = i + 1u;
+
+  action_component = EEMP::action_component(
+    alpha, generators, dom, schreier_tree, orbit_graph);
+
+  scc = strongly_connected_components(orbit_graph);
+}
+
+EEMP::RClass::RClass(PartialPerm const &x, EEMP::S const &s)
+  : _x(x), _s(s)
+{
+  _action_component = EEMP::action_component(_x.im(), _s.generators, _s.dom,
+    _schreier_tree, _orbit_graph);
+
+  _schreier_generators = EEMP::schreier_generators(_x, _s.generators, _s.dom,
+    _action_component, _schreier_tree, _orbit_graph);
+}
+
+bool EEMP::RClass::is_member(PartialPerm const &y)
+{
+  Dbg(Dbg::TRACE) << "Testing R class membership:";
+  Dbg(Dbg::TRACE) << "y = " << y;
+  Dbg(Dbg::TRACE) << "x = " << _x;
+  Dbg(Dbg::TRACE) << "S ~ " << _s.generators;
+
+  if (y.dom() != _x.dom()) {
+    Dbg(Dbg::TRACE) << "x and y have different domains => no member";
+    return false;
+  }
+
+  auto x_im(_x.im());
+  auto y_im(y.im());
+
+  int ac_idx_x = -1;
+  int ac_idx_y = -1;
+  for (auto i = 0u; i < _s.action_component.size(); ++i) {
+    if (ac_idx_x < 0 && _s.action_component[i] == x_im)
+      ac_idx_x = i;
+
+    if (ac_idx_y < 0 && _s.action_component[i] == y_im)
+      ac_idx_y = i;
+
+    if (ac_idx_x >= 0 && ac_idx_y >= 0)
+      break;
+  }
+
+  assert(ac_idx_x >= 0 && ac_idx_y >= 0);
+
+  if (_s.scc[ac_idx_x] != _s.scc[ac_idx_y]) {
+    Dbg(Dbg::TRACE) << "x and y do not lie in same s.c.c => no member";
+    return false;
+  }
+
+  PartialPerm u;
+  for (auto i = 0u; i < _s.orbit_graph.data.size(); ++i) {
+    if (_s.orbit_graph.data[i][ac_idx_x] == static_cast<unsigned>(ac_idx_y))
+       u = _s.generators[i];
+  }
+
+  assert(!u.empty());
+
+  Dbg(Dbg::TRACE) << "u = " << u;
+
+  unsigned x_im_max = *std::max_element(x_im.begin(), x_im.end());
+  Perm perm(PartialPerm(~_x * y * ~u).to_perm(x_im_max));
+
+  bool res = _schreier_generators.is_element(perm);
+
+  if (res)
+    Dbg(Dbg::TRACE) << perm << "is a member of Sx => member";
+  else
+    Dbg(Dbg::TRACE) << perm << "is not a member of Sx => no member";
+
+  return res;
+}
+
 std::ostream& operator<<(
   std::ostream& stream, EEMP::SchreierTree const &schreier_tree)
 {

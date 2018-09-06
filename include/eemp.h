@@ -22,6 +22,33 @@ public:
     std::vector<std::vector<unsigned>> data;
   };
 
+  struct S {
+    S(std::vector<PartialPerm> const &generators);
+
+    unsigned dom;
+    std::vector<unsigned> alpha;
+    std::vector<PartialPerm> generators;
+    std::vector<std::vector<unsigned>> action_component;
+    SchreierTree schreier_tree;
+    OrbitGraph orbit_graph;
+    std::vector<unsigned> scc;
+  };
+
+  class RClass {
+  public:
+    RClass(PartialPerm const &x, EEMP::S const &s);
+
+    bool is_member(PartialPerm const &s);
+
+  private:
+    PartialPerm _x;
+    EEMP::S _s;
+    std::vector<std::vector<unsigned>> _action_component;
+    EEMP::SchreierTree _schreier_tree;
+    EEMP::OrbitGraph _orbit_graph;
+    PermGroup _schreier_generators;
+  };
+
   static std::vector<std::vector<unsigned>> action_component(
     std::vector<unsigned> const &alpha,
     std::vector<PartialPerm> const &generators, unsigned dom_max,

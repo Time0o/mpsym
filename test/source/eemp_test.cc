@@ -26,8 +26,10 @@ class EEMPTest : public testing::Test
 {
 protected:
   void SetUp() {
+    alpha = generators[0].im();
+
     action_component = EEMP::action_component(
-      generators[0].im(), generators, dom_max, schreier_tree, orbit_graph);
+      alpha, generators, dom_max, schreier_tree, orbit_graph);
   }
 
   std::vector<PartialPerm> generators {
@@ -36,6 +38,8 @@ protected:
     PartialPerm({0, 5, 0, 0, 6, 2}),
     PartialPerm({3, 1, 2})
   };
+
+  std::vector<unsigned> alpha;
 
   unsigned dom_max = 9u;
 
@@ -242,4 +246,24 @@ TEST_F(EEMPTest, CanObtainRClassesInDClass)
 
   EXPECT_THAT(r, UnorderedElementsAreArray(expected_r_class_repr))
     << "Computed R-class representatives are correct.";
+}
+
+TEST_F(EEMPTest, CanTestRShipMembership)
+{
+  PartialPerm y({1, 2, 3}, {5, 7, 9});
+
+  std::pair<PartialPerm, bool> const expected_elem_tests[] = {
+    {generators[2], false},
+    {generators[3], true}
+  };
+
+  EEMP::S s(generators);
+
+  for (auto const &elem_test : expected_elem_tests) {
+    PartialPerm const &x(std::get<0>(elem_test));
+    EEMP::RClass r_class(x, s);
+
+    EXPECT_EQ(std::get<1>(elem_test), r_class.is_member(y))
+      << "Can determine R class membership.";
+  }
 }
