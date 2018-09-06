@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cstddef>
 #include <ostream>
 #include <set>
 #include <vector>
