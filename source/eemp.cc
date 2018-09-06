@@ -292,8 +292,6 @@ std::vector<PartialPerm> EEMP::r_class_elements(PartialPerm const &x,
 std::vector<PartialPerm> EEMP::r_classes_in_d_class(PartialPerm const &x,
   std::vector<PartialPerm> const &generators, unsigned dom_max)
 {
-  // TODO: traverse tree forwards to avoid generating duplicate elements
-
   std::vector<PartialPerm> inverted_generators(generators.size());
   for (auto i = 0u; i < generators.size(); ++i)
     inverted_generators[i] =  ~generators[i];
@@ -308,45 +306,27 @@ std::vector<PartialPerm> EEMP::r_classes_in_d_class(PartialPerm const &x,
 
   auto scc(strongly_connected_components(og_dom));
 
-  std::vector<int> leaves(st_dom.data.size() + 1u, 1);
-  for (auto const &p : st_dom.data)
-    leaves[std::get<0>(p)] = 0;
+  std::vector<std::vector<unsigned>> st_dom_adj(st_dom.data.size() + 1u);
 
-  std::vector<PartialPerm> res {x};
+  for (auto i = 0u; i < st_dom.data.size(); ++i)
+    st_dom_adj[std::get<0>(st_dom.data[i])].push_back(i + 1u);
 
-  std::function<void(unsigned, std::vector<PartialPerm> &)>
-  backtrack = [&](unsigned node, std::vector<PartialPerm> &buf) {
-    if (node == 0u) {
-      // add all partial permutations corresponding to a single path from a
-      // leaf of the schreier tree to its root to the result
-      if (!buf.empty()) {
-        PartialPerm pperm(x);
-        for (auto it = buf.rbegin(); it != buf.rend(); ++it) {
-          pperm = *it * pperm;
-          res.push_back(pperm);
-        }
-      }
+  std::vector<PartialPerm> res;
 
-      return;
+  std::function<void(unsigned, PartialPerm const &)>
+  backtrack = [&](unsigned node, PartialPerm const &pperm) {
+    res.push_back(pperm);
+
+    for (unsigned child : st_dom_adj[node]) {
+      unsigned gen_idx = std::get<1>(st_dom.data[child - 1u]);
+      PartialPerm next_pperm(generators[gen_idx] * pperm);
+
+      if (scc[child] == scc[0])
+        backtrack(child, next_pperm);
     }
-
-    auto tmp(st_dom.data[node - 1u]);
-    unsigned parent = std::get<0>(tmp);
-    unsigned gen_idx = std::get<1>(tmp);
-
-    if (scc[node] == scc[0])
-      buf.push_back(generators[gen_idx]);
-
-    backtrack(parent, buf);
   };
 
-  // perform a post-order transversal of the schreier tree
-  for (unsigned i = 0u; i < st_dom.data.size() + 1u; ++i) {
-    if (leaves[i]) {
-      std::vector<PartialPerm> buf;
-      backtrack(i, buf);
-    }
-  }
+  backtrack(0, x);
 
   return res;
 }
