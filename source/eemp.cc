@@ -331,6 +331,102 @@ std::vector<PartialPerm> EEMP::r_classes_in_d_class(PartialPerm const &x,
   return res;
 }
 
+std::vector<PartialPerm> EEMP::inverse_semigroup_r_class_representatives(
+  EEMP::S const &s)
+{
+  std::vector<std::vector<unsigned>> st_adj(s.schreier_tree.data.size() + 1u);
+  for (auto i = 0u; i < s.schreier_tree.data.size(); ++i)
+    st_adj[std::get<0>(s.schreier_tree.data[i])].push_back(i + 1u);
+
+  std::vector<PartialPerm> res;
+
+  std::function<void(unsigned, PartialPerm const &)>
+  backtrack = [&](unsigned node, PartialPerm const &pperm) {
+    res.push_back(pperm);
+
+    for (unsigned child : st_adj[node]) {
+      unsigned gen_idx = std::get<1>(s.schreier_tree.data[child - 1u]);
+      PartialPerm next_pperm(s.generators[gen_idx] * pperm);
+
+      backtrack(child, next_pperm);
+    }
+  };
+
+  backtrack(0, s.alpha);
+
+  return res;
+}
+
+bool EEMP::is_inverse_semigroup_member(PartialPerm const &y,
+  EEMP::S const &s, PermGroup const &sx)
+{
+  std::vector<PartialPerm> inverted_generators(s.generators.size());
+  for (auto i = 0u; i < s.generators.size(); ++i)
+    inverted_generators[i] = ~s.generators[i];
+
+  SchreierTree left_schreier_tree;
+  OrbitGraph left_orbit_graph;
+  auto left_action_component(
+    action_component(s.alpha, inverted_generators, s.dom,
+                     left_schreier_tree, left_orbit_graph));
+
+  auto y_dom(y.dom());
+  auto y_im(y.im());
+
+  auto right_it = std::find(s.action_component.begin(),
+                            s.action_component.end(), y_im);
+
+  auto left_it = std::find(left_action_component.begin(),
+                           left_action_component.end(), y_dom);
+
+  if (right_it == s.action_component.end() ||
+      left_it == left_action_component.end()) {
+    return false;
+  }
+
+  // find n / alpha_n
+  std::vector<unsigned> alpha_n;
+
+  int _n = -1;
+  for (int i = 0u; i < static_cast<int>(s.scc.size()); ++i) {
+    if (s.action_component[i] == y_im) {
+      alpha_n = s.action_component[i];
+      _n = s.scc[i];
+      break;
+    }
+  }
+
+  assert(_n >= 0);
+
+  unsigned n = static_cast<unsigned>(_n);
+
+  // find u
+  PartialPerm u;
+
+  unsigned y_idx = static_cast<unsigned>(right_it - s.action_component.begin());
+  for (auto i = 0u; i < s.orbit_graph.data.size(); ++i) {
+    if (s.orbit_graph.data[i][n] == y_idx) {
+      u = s.generators[i];
+      break;
+    }
+  }
+
+  assert(!u.empty());
+
+  for (PartialPerm const &x : inverse_semigroup_r_class_representatives(s)) {
+     if (x.im() != alpha_n)
+       continue;
+
+     if (x.dom() != y.dom())
+       continue;
+
+     if (sx.is_element(PartialPerm(~x * y * ~u).to_perm(sx.degree())))
+       return true;
+  }
+
+  return false;
+}
+
 EEMP::S::S(std::vector<PartialPerm> const &generators) : generators(generators)
 {
   dom = 0u;

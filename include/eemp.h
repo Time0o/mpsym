@@ -72,6 +72,12 @@ public:
 
   static std::vector<PartialPerm> r_classes_in_d_class(PartialPerm const &x,
     std::vector<PartialPerm> const &generators, unsigned dom_max);
+
+  static std::vector<PartialPerm> inverse_semigroup_r_class_representatives(
+    S const &s);
+
+  static bool is_inverse_semigroup_member(PartialPerm const &y,
+    EEMP::S const &s, PermGroup const &sx);
 };
 
 std::ostream& operator<<(
