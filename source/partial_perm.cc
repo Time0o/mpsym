@@ -1,8 +1,11 @@
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <ostream>
 #include <set>
 #include <vector>
+
+#include "boost/container_hash/hash.hpp"
 
 #include "partial_perm.h"
 #include "perm.h"
@@ -392,3 +395,14 @@ void PartialPerm::update_limits() {
 }
 
 } // namespace cgtl
+
+namespace std
+{
+
+std::size_t hash<cgtl::PartialPerm>::operator()(
+  cgtl::PartialPerm const &pperm) const
+{
+  return boost::hash_range(pperm._pperm.begin(), pperm._pperm.end());
+}
+
+} // namespace std

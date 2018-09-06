@@ -1,6 +1,7 @@
 #ifndef _GUARD_PARTIAL_PERM_H
 #define _GUARD_PARTIAL_PERM_H
 
+#include <cstddef>
 #include <ostream>
 #include <vector>
 
@@ -9,8 +10,29 @@
 namespace cgtl
 {
 
+class PartialPerm;
+
+} // namespace cgtl
+
+namespace std
+{
+
+template<>
+struct hash<cgtl::PartialPerm>
+{
+  std::size_t operator()(cgtl::PartialPerm const &pperm) const;
+};
+
+} // namespace std
+
+namespace cgtl
+{
+
 class PartialPerm
 {
+friend std::size_t std::hash<PartialPerm>::operator()(
+  PartialPerm const &perm) const;
+
 public:
   PartialPerm(unsigned degree = 0);
   PartialPerm(std::vector<unsigned> const &dom,
