@@ -159,57 +159,6 @@ bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
   return false;
 }
 
-PartialPermInverseSemigroup::SccRepr::SccRepr(unsigned i,
-  EEMP::OrbitGraph const &orbit_graph, std::vector<unsigned> const &scc,
-  PermGroup const &schreier_generators)
-    : i(i), schreier_generators(schreier_generators)
-{
-  // construct s.c.c. subgraph
-  boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> g;
-
-  std::unordered_map<unsigned, unsigned> vertex_map_rev;
-
-  for (unsigned j = 0u; j < scc.size(); ++j) {
-    if (scc[j] == scc[i]) {
-      unsigned v = static_cast<unsigned>(boost::add_vertex(g));
-      vertex_map[j] = v;
-      vertex_map_rev[v] = j;
-    }
-  }
-
-  for (auto const &source : vertex_map) {
-    for (auto const &row : orbit_graph.data) {
-      auto dest(vertex_map.find(row[source.first]));
-      if (dest != vertex_map.end() && (*dest).first != source.first)
-        boost::add_edge((*dest).second, source.second, g);
-    }
-  }
-
-  // find random spanning tree
-  std::vector<unsigned> pred(boost::num_vertices(g));
-
-  std::default_random_engine re;
-
-  boost::random_spanning_tree(
-    g, re, boost::root_vertex(vertex_map[i]).predecessor_map(&pred[0]));
-
-  spanning_tree.data =
-    std::vector<std::pair<unsigned, unsigned>>(pred.size() - 1u);
-
-  for (auto j = 1u; j < pred.size(); ++j) {
-    unsigned child = vertex_map_rev[j];
-    unsigned parent = vertex_map_rev[pred[j]];
-
-    // TODO: use edge properties instead
-    for (unsigned gen = 0u; gen < orbit_graph.data.size(); ++gen) {
-      if (orbit_graph.data[gen][parent] == child) {
-        spanning_tree.data[j - 1u] = std::make_pair(pred[j], gen);
-        break;
-      }
-    }
-  }
-}
-
 void PartialPermInverseSemigroup::adjoin(
   std::vector<PartialPerm> const &generators)
 {
@@ -314,6 +263,57 @@ void PartialPermInverseSemigroup::adjoin(
   _generators.insert(_generators.end(), generators.begin(), generators.end());
 
   // TODO: _ac_dom_set?
+}
+
+PartialPermInverseSemigroup::SccRepr::SccRepr(unsigned i,
+  EEMP::OrbitGraph const &orbit_graph, std::vector<unsigned> const &scc,
+  PermGroup const &schreier_generators)
+    : i(i), schreier_generators(schreier_generators)
+{
+  // construct s.c.c. subgraph
+  boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> g;
+
+  std::unordered_map<unsigned, unsigned> vertex_map_rev;
+
+  for (unsigned j = 0u; j < scc.size(); ++j) {
+    if (scc[j] == scc[i]) {
+      unsigned v = static_cast<unsigned>(boost::add_vertex(g));
+      vertex_map[j] = v;
+      vertex_map_rev[v] = j;
+    }
+  }
+
+  for (auto const &source : vertex_map) {
+    for (auto const &row : orbit_graph.data) {
+      auto dest(vertex_map.find(row[source.first]));
+      if (dest != vertex_map.end() && (*dest).first != source.first)
+        boost::add_edge((*dest).second, source.second, g);
+    }
+  }
+
+  // find random spanning tree
+  std::vector<unsigned> pred(boost::num_vertices(g));
+
+  std::default_random_engine re;
+
+  boost::random_spanning_tree(
+    g, re, boost::root_vertex(vertex_map[i]).predecessor_map(&pred[0]));
+
+  spanning_tree.data =
+    std::vector<std::pair<unsigned, unsigned>>(pred.size() - 1u);
+
+  for (auto j = 1u; j < pred.size(); ++j) {
+    unsigned child = vertex_map_rev[j];
+    unsigned parent = vertex_map_rev[pred[j]];
+
+    // TODO: use edge properties instead
+    for (unsigned gen = 0u; gen < orbit_graph.data.size(); ++gen) {
+      if (orbit_graph.data[gen][parent] == child) {
+        spanning_tree.data[j - 1u] = std::make_pair(pred[j], gen);
+        break;
+      }
+    }
+  }
 }
 
 } // namespace cgtl
