@@ -37,7 +37,8 @@ public:
   static PermGroup schreier_generators(std::vector<unsigned> const &im,
     std::vector<PartialPerm> const &generators, unsigned dom_max,
     std::vector<std::vector<unsigned>> const &action_component,
-    SchreierTree const &schreier_tree, OrbitGraph const &orbit_graph);
+    SchreierTree const &schreier_tree, OrbitGraph const &orbit_graph,
+    std::vector<unsigned> const &sccs);
 
   static std::vector<PartialPerm> r_class_representatives(
     SchreierTree const &schreier_tree,

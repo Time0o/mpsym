@@ -197,17 +197,15 @@ PartialPerm EEMP::schreier_trace(
 PermGroup EEMP::schreier_generators(std::vector<unsigned> const &im,
   std::vector<PartialPerm> const &generators, unsigned dom_max,
   std::vector<std::vector<unsigned>> const &action_component,
-  SchreierTree const &schreier_tree, OrbitGraph const &orbit_graph)
+  SchreierTree const &schreier_tree, OrbitGraph const &orbit_graph,
+  std::vector<unsigned> const &sccs)
 {
   Dbg(Dbg::TRACE) << "Finding schreier generators for Sx for: " << im;
-
-  unsigned im_max = *std::max_element(im.begin(), im.end());
 
   if (im.empty())
     return PermGroup();
 
-  auto tmp(strongly_connected_components(orbit_graph));
-  auto sccs(tmp.second);
+  unsigned im_max = im.back();
 
   std::vector<unsigned> scc;
   for (auto i = 0u; i < sccs.size(); ++i) {

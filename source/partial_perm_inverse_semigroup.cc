@@ -312,8 +312,10 @@ void PartialPermInverseSemigroup::update_scc_representatives()
       auto ac(EEMP::action_component(
         _ac_im[i], _generators, _dom.back(), st, og));
 
+      auto scc(EEMP::strongly_connected_components(og));
+
       auto sg(EEMP::schreier_generators(
-        _ac_im[i], _generators, _dom.back(), ac, st, og));
+        _ac_im[i], _generators, _dom.back(), ac, st, og, scc.second));
 
       _scc_repr[c] = SccRepr(i, _og_im, _scc, sg);
       found_repr[c] = 1;

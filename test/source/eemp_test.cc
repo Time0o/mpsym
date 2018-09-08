@@ -196,8 +196,10 @@ TEST_F(EEMPTest, CanComputeStabilizerSchreierGenerators)
     auto ac(EEMP::action_component(
       pperms[i].im(), gens, dom.back(), st, og));
 
+    auto scc(EEMP::strongly_connected_components(og));
+
     auto sg(EEMP::schreier_generators(
-      pperms[i].im(), gens, dom.back(), ac, st, og));
+      pperms[i].im(), gens, dom.back(), ac, st, og, scc.second));
 
     EXPECT_TRUE(perm_group_equal(expected_groups[i], sg))
       << "Obtained correct schreier generator generating set.";
