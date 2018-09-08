@@ -315,3 +315,22 @@ TEST_F(PartialPermInverseSemigroupTest, CanTestMembership)
       << "Can recognize inverse semigroup non-element (" << pperm << ").";
   }
 }
+
+TEST_F(PartialPermInverseSemigroupTest, CanAdjoinGenerators)
+{
+  PartialPermInverseSemigroup inverse_semigroup;
+
+  inverse_semigroup.adjoin(
+    {PartialPerm({1, 2, 3, 4, 5, 6, 7, 8, 9}, {4, 6, 8, 1, 5, 2, 7, 3, 9})});
+
+  inverse_semigroup.adjoin(
+      {PartialPerm({1, 2, 3, 4, 5, 6, 7, 8, 9}, {5, 7, 9, 2, 4, 1, 6, 3, 8})});
+
+  inverse_semigroup.adjoin(
+      {PartialPerm({2, 5, 6}, {5, 6, 2})});
+
+  inverse_semigroup.adjoin(
+      {PartialPerm({1, 2, 3}, {3, 1, 2})});
+
+  FAIL() << "TODO";
+}

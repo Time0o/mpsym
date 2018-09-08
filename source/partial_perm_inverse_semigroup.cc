@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <functional>
+#include <queue>
 #include <random>
 #include <unordered_set>
 #include <utility>
@@ -210,6 +211,97 @@ PartialPermInverseSemigroup::SccRepr::SccRepr(unsigned i,
       }
     }
   }
+}
+
+void PartialPermInverseSemigroup::adjoin(
+  std::vector<PartialPerm> const &generators)
+{
+  if (_empty) {
+    *this = PartialPermInverseSemigroup(generators);
+    return;
+  }
+
+  Dbg(Dbg::DBG) << "Adjoining generators: " << generators;
+  Dbg(Dbg::DBG) << "to inverse semigroups with generators: " << _generators;
+
+  Dbg(Dbg::TRACE) << "Initial orbit graph:\n" << _og_im;
+  Dbg(Dbg::TRACE) << "Initial Schreier tree:\n" << _st_im;
+
+  unsigned first_new_row = _og_im.data.size();
+  unsigned first_new_node = _og_im.data[0].size();
+  unsigned next_new_node = first_new_node;
+
+  for (auto i = 0u; i < generators.size(); ++i)
+    _og_im.data.push_back(std::vector<unsigned>(_og_im.data[0].size()));
+
+  std::queue<unsigned> node_queue;
+  for (unsigned i = 0u; i < first_new_node; ++i)
+    node_queue.push(i);
+
+  Dbg(Dbg::TRACE) << "=== Extending orbit graph";
+
+  while (!node_queue.empty()) {
+    unsigned node = node_queue.front();
+    node_queue.pop();
+
+    Dbg(Dbg::TRACE) << "== Considering node: " << _ac_im[node];
+
+    // add new column to orbit graph
+    if (node >= _og_im.data[0].size()) {
+      Dbg(Dbg::TRACE) << "Adding new column to orbit graph";
+      for (auto row = 0u; row < _og_im.data.size(); ++row)
+        _og_im.data[row].push_back(0u);
+    }
+
+    // also apply old generators to newly created nodes
+    auto n_gens = generators.size();
+    if (node >= first_new_node)
+      n_gens += _generators.size();
+
+    for (auto i = 0u; i < n_gens; ++i) {
+      PartialPerm gen;
+      unsigned row_idx;
+
+      if (i >= generators.size()) {
+        row_idx = i - generators.size();
+        gen = _generators[row_idx];
+      } else {
+        row_idx = first_new_row + i;
+        gen = generators[i];
+      }
+
+      Dbg(Dbg::TRACE) << "Applying generator: " << gen;
+
+      auto next_node(gen.image(_ac_im[node]));
+      Dbg(Dbg::TRACE) << "=> Next node is: " << next_node;
+
+      auto it(_ac_im_ht.find(next_node));
+      if (it == _ac_im_ht.end()) {
+        Dbg(Dbg::TRACE) << "==> Adding new node/edge to orbit graph";
+        _og_im.data[row_idx][node] = next_new_node;
+        _ac_im.push_back(next_node);
+        _ac_im_ht[next_node] = next_new_node;
+        node_queue.push(next_new_node++);
+      } else {
+        Dbg(Dbg::TRACE) << "==> Adding new edge to orbit graph";
+        _og_im.data[row_idx][node] = (*it).second;
+      }
+    }
+  }
+
+  Dbg(Dbg::TRACE) << "Resulting action component:\n";
+#ifndef NDEBUG
+  for (auto const &c : _ac_im)
+    Dbg(Dbg::TRACE) << c;
+#endif
+  Dbg(Dbg::TRACE) << "Resulting orbit graph:\n" << _og_im;
+  // TODO
+  Dbg(Dbg::TRACE) << "Resulting Schreier tree:\n" << _st_im;
+
+  // TODO
+  _generators.insert(_generators.end(), generators.begin(), generators.end());
+
+  // TODO: _ac_dom_set?
 }
 
 } // namespace cgtl
