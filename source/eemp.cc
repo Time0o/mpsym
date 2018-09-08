@@ -179,11 +179,11 @@ std::pair<unsigned, std::vector<unsigned>> EEMP::strongly_connected_components(
 
 PartialPerm EEMP::schreier_trace(
   unsigned x, SchreierTree const &schreier_tree,
-  std::vector<PartialPerm> const &generators, unsigned dom_max)
+  std::vector<PartialPerm> const &generators, unsigned dom_max, unsigned target)
 {
   PartialPerm res(dom_max);
 
-  while (x > 0u) {
+  while (x != target) {
     unsigned v = std::get<0>(schreier_tree.data[x - 1u]);
     unsigned w = std::get<1>(schreier_tree.data[x - 1u]);
 

@@ -32,7 +32,8 @@ public:
 
   static PartialPerm schreier_trace(
     unsigned x, SchreierTree const &schreier_tree,
-    std::vector<PartialPerm> const &generators, unsigned dom_max);
+    std::vector<PartialPerm> const &generators, unsigned dom_max,
+    unsigned target = 0u);
 
   static PermGroup schreier_generators(std::vector<unsigned> const &im,
     std::vector<PartialPerm> const &generators, unsigned dom_max,
