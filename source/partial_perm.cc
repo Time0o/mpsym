@@ -267,6 +267,8 @@ PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
   std::vector<unsigned> dom_new;
   std::vector<unsigned> im_new;
 
+  _id = true;
+
   for (unsigned x : _dom) {
     unsigned y = (*this)[x];
 
@@ -282,6 +284,9 @@ PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
     }
 
     _pperm[x - 1u] = z;
+
+    if (_id && x != z)
+      _id = false;
   }
 
   _dom = dom_new;

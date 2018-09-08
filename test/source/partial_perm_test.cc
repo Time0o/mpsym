@@ -248,7 +248,8 @@ TEST(PartialPermTest, CanCheckIfPartialPermIsId)
     PartialPerm(7),
     PartialPerm({0, 2, 0, 4, 5, 0, 7}),
     PartialPerm({3, 8, 9}, {3, 8, 9}),
-    PartialPerm::id({5, 7, 8})
+    PartialPerm::id({5, 7, 8}),
+    PartialPerm({1, 2, 3}, {3, 4, 1}) * PartialPerm({1, 4, 3}, {3, 2, 1})
   };
 
   for (auto const &pperm : id_pperms) {
@@ -261,7 +262,9 @@ TEST(PartialPermTest, CanCheckIfPartialPermIsId)
     PartialPerm({1, 3}),
     PartialPerm({1, 0, 2}),
     PartialPerm({1}, {2}),
-    PartialPerm({1, 2}, {1, 3})
+    PartialPerm({1, 2}, {1, 3}),
+    PartialPerm(3) * PartialPerm({1, 2, 3}, {3, 2, 1}),
+    PartialPerm({1, 2, 3}, {3, 2, 1}) * PartialPerm(3)
   };
 
   for (auto const &pperm : non_id_pperms) {
