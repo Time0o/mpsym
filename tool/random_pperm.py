@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+
+import re
+import sys
+
+from argparse import ArgumentParser
+from random import randrange
+from typing import List, Optional, Tuple
+
+
+def rand_pperm(X: List[int],
+               dmin: int = 0,
+               dmax: Optional[int] = None) -> Tuple[List[int], List[int]]:
+    """
+    Generate a random partial permutation.
+
+    :param X: possible elements of the partial permutation's domain and image
+    :param d: size of the partial permutation's domain (and thereby image),
+              if this is `None`, the parameter is chosen at random
+    :returns: a partial permutation represented by the tuple of (ordered) domain
+              and image
+    """
+    dom = []
+    im = []
+
+    if dmax is None:
+        dmax = len(X)
+
+    d = randrange(dmin, dmax + 1)
+
+    dom_remaining = [i for i in range(len(X))]
+    im_remaining = [i for i in range(len(X))]
+
+    while len(dom) < d:
+        i = randrange(0, len(dom_remaining))
+        dom.append(X[dom_remaining[i]])
+        dom_remaining.pop(i)
+
+        j = randrange(0, len(im_remaining))
+        im.append(X[im_remaining[j]])
+        im_remaining.pop(j)
+
+    dom, im = zip(*sorted([[d, i] for d, i in zip(dom, im)]))
+
+    return (dom, im)
+
+
+if __name__ == '__main__':
+    parser = ArgumentParser(description="Generate random partial permutations.")
+
+    parser.add_argument('DOMAIN',
+        help="possible elements of the partial permutation's domain and image"
+             " (in the form of a comma separated list of integers > 0)")
+
+    parser.add_argument('-n', default=1, type=int,
+        help="number of partial permutations to be generated")
+
+    parser.add_argument('--dmin', default=0, type=int,
+        help="minimum domain/image size")
+
+    parser.add_argument('--dmax', default=None, type=int,
+        help="maximum domain/image size")
+
+    parser.add_argument('--sort', action='store_true',
+        help="sort result alphabetically")
+
+    ns = parser.parse_args()
+
+    if re.match(r'([1-9]+,)*([1-9]+)', ns.DOMAIN) is None:
+      print("DOMAIN has invalid format, should be 'x1,x2, ...'", file=sys.stderr)
+      parser.print_help(file=sys.stderr)
+      sys.exit(1)
+
+    X = [int(x) for x in ns.DOMAIN.split(',')]
+
+    if len(set(X)) != len(X):
+      print("DOMAIN contains duplicates", file=sys.stderr)
+      parser.print_help(file=sys.stderr)
+      sys.exit(1)
+
+    res = []
+    for _ in range(ns.n):
+      dom, im = rand_pperm(X, dmin=ns.dmin, dmax=ns.dmax)
+      strlist = lambda l: ', '.join(map(str, l))
+      res.append("PartialPerm({{{}}}, {{{}}})".format(strlist(dom), strlist(im)))
+
+    if ns.sort:
+      res = sorted(res)
+
+    print(',\n'.join(res))
