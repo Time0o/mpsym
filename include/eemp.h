@@ -28,7 +28,7 @@ public:
     SchreierTree &schreier_tree, OrbitGraph &orbit_graph);
 
   static std::pair<unsigned, std::vector<unsigned>>
-  strongly_connected_components( OrbitGraph const &orbit_graph);
+  strongly_connected_components(OrbitGraph const &orbit_graph);
 
   static PartialPerm schreier_trace(
     unsigned x, SchreierTree const &schreier_tree,
