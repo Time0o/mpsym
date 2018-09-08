@@ -43,6 +43,9 @@ public:
 
   void adjoin(std::vector<PartialPerm> const &generators);
 
+  std::vector<PartialPerm> generators() const { return _generators; }
+  bool empty() const { return _empty; }
+
   bool is_element(PartialPerm const &pperm) const;
 
 private:
