@@ -142,32 +142,52 @@ TEST(PartialPermTest, CanInvertPartialPerm)
 
 TEST(PartialPermTest, CanMultiplyPartialPerms)
 {
-  PartialPerm lhs({0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11});
-  PartialPerm rhs({5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3});
-  PartialPerm expected({0, 11, 0, 10, 0, 0, 0, 0, 0, 0, 4});
+  std::tuple<PartialPerm, PartialPerm, PartialPerm> const multiplications[] = {
+    std::make_tuple(
+      PartialPerm(),
+      PartialPerm({5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3}),
+      PartialPerm()
+    ),
+    std::make_tuple(
+      PartialPerm({5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3}),
+      PartialPerm(),
+      PartialPerm()
+    ),
+    std::make_tuple(
+      PartialPerm({0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11}),
+      PartialPerm({5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3}),
+      PartialPerm({0, 11, 0, 10, 0, 0, 0, 0, 0, 0, 4})
+    )
+  };
 
-  PartialPerm pperm_mult_assign(lhs);
-  pperm_mult_assign *= rhs;
+  for (auto const &mult : multiplications) {
+    PartialPerm lhs(std::get<0>(mult));
+    PartialPerm rhs(std::get<1>(mult));
+    PartialPerm expected(std::get<2>(mult));
 
-  PartialPerm pperm_mult = lhs * rhs;
+    PartialPerm pperm_mult_assign(lhs);
+    pperm_mult_assign *= rhs;
 
-  for (PartialPerm const &pperm : {pperm_mult_assign, pperm_mult}) {
-    EXPECT_EQ(expected, pperm)
-      << "Multiplying partial permutations produces correct result.";
+    PartialPerm pperm_mult = lhs * rhs;
 
-    EXPECT_EQ(expected.dom(), pperm.dom())
-      << "Multiplying partial permutations produces correct domain.";
+    for (PartialPerm const &pperm : {pperm_mult_assign, pperm_mult}) {
+      EXPECT_EQ(expected, pperm)
+        << "Multiplying partial permutations produces correct result.";
 
-    EXPECT_EQ(expected.im(), pperm.im())
-      << "Multiplying partial permutations produces correct image.";
+      EXPECT_EQ(expected.dom(), pperm.dom())
+        << "Multiplying partial permutations produces correct domain.";
 
-    EXPECT_TRUE(expected.dom_min() == pperm.dom_min() &&
-                expected.dom_max() == pperm.dom_max())
-      << "Multiplying partial permutations produces correct domain limits.";
+      EXPECT_EQ(expected.im(), pperm.im())
+        << "Multiplying partial permutations produces correct image.";
 
-    EXPECT_TRUE(expected.im_min() == pperm.im_min() &&
-                expected.im_max() == pperm.im_max())
-      << "Multiplying partial permutations produces correct image limits.";
+      EXPECT_TRUE(expected.dom_min() == pperm.dom_min() &&
+                  expected.dom_max() == pperm.dom_max())
+        << "Multiplying partial permutations produces correct domain limits.";
+
+      EXPECT_TRUE(expected.im_min() == pperm.im_min() &&
+                  expected.im_max() == pperm.im_max())
+        << "Multiplying partial permutations produces correct image limits.";
+    }
   }
 }
 

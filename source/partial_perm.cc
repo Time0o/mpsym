@@ -264,6 +264,20 @@ bool PartialPerm::operator!=(PartialPerm const &rhs) const
 
 PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
 {
+  if (_dom.empty())
+    return *this;
+
+  if (rhs.dom().empty()) {
+    _pperm.clear();
+    _dom.clear();
+    _im.clear();
+    update_limits();
+
+    _id = true;
+
+    return *this;
+  }
+
   std::vector<unsigned> dom_new;
   std::vector<unsigned> im_new;
 
