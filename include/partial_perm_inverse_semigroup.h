@@ -49,11 +49,12 @@ private:
   std::vector<unsigned> _dom;
   std::vector<PartialPerm> _generators;
 
-  std::vector<std::vector<unsigned>> _ac_im, _ac_dom;
+  std::vector<std::vector<unsigned>> _ac_im;
+  EEMP::SchreierTree _st_im;
+  EEMP::OrbitGraph _og_im;
+
   std::unordered_map<std::vector<unsigned>, unsigned, VectorHash> _ac_im_ht;
   std::unordered_set<std::vector<unsigned>, VectorHash> _ac_dom_set;
-  EEMP::SchreierTree _st_im, _st_dom;
-  EEMP::OrbitGraph _og_im, _og_dom;
 
   std::vector<unsigned> _scc;
   std::vector<SccRepr> _scc_repr;

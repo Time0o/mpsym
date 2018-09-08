@@ -41,17 +41,18 @@ PartialPermInverseSemigroup::PartialPermInverseSemigroup(
   for (auto i = 0u; i < generators.size(); ++i)
     inverse_generators[i] = ~generators[i];
 
-  _ac_im = EEMP::action_component(
-    _dom, generators, dom_max, _st_im, _og_im);
+  _ac_im = EEMP::action_component(_dom, generators, dom_max, _st_im, _og_im);
 
-  _ac_dom =EEMP::action_component(
-    _dom, inverse_generators, dom_max, _st_dom, _og_dom);
+  EEMP::SchreierTree st_dummy;
+  EEMP::OrbitGraph og_dummy;
+  auto ac_dom(EEMP::action_component(
+    _dom, inverse_generators, dom_max, st_dummy, og_dummy));
 
   for (auto i = 0u; i < _ac_im.size(); ++i)
     _ac_im_ht[_ac_im[i]] = i;
 
   _ac_dom_set = std::unordered_set<std::vector<unsigned>, VectorHash>(
-    _ac_dom.begin(), _ac_dom.end());
+    ac_dom.begin(), ac_dom.end());
 
   auto tmp(EEMP::strongly_connected_components(_og_im));
   unsigned num_scc = tmp.first;
@@ -105,9 +106,8 @@ bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
   auto dom(pperm.dom());
   Dbg(Dbg::TRACE) << "Domain is: " << dom;
 
-  // TODO: remove this?
-  if (std::find(_ac_dom_set.begin(), _ac_dom_set.end(), dom)
-      == _ac_dom_set.end()) {
+  auto it(std::find(_ac_dom_set.begin(), _ac_dom_set.end(), dom));
+  if (it == _ac_dom_set.end()) {
     Dbg(Dbg::TRACE) << "Domain not compatible";
     Dbg(Dbg::DBG) << "==> Not an element";
     return false;
