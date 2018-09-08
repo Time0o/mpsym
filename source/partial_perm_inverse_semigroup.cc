@@ -235,8 +235,9 @@ void PartialPermInverseSemigroup::adjoin(
     _og_im.data.push_back(std::vector<unsigned>(_og_im.data[0].size()));
 
   std::queue<unsigned> node_queue;
-  for (unsigned i = 0u; i < first_new_node; ++i)
-    node_queue.push(i);
+  node_queue.push(0u);
+
+  std::vector<int> visited(_og_im.data[0].size(), 0);
 
   Dbg(Dbg::TRACE) << "=== Extending orbit graph";
 
@@ -253,10 +254,18 @@ void PartialPermInverseSemigroup::adjoin(
         _og_im.data[row].push_back(0u);
     }
 
-    // also apply old generators to newly created nodes
     auto n_gens = generators.size();
-    if (node >= first_new_node)
+    if (node >= first_new_node) {
+      // also apply old generators to newly created nodes
       n_gens += _generators.size();
+    } else {
+      // otherwise make sure to add ALL children to the queue
+      for (auto i = 0u; i < _generators.size(); ++i) {
+        unsigned child = _og_im.data[i][node];
+        if (!visited[child])
+          node_queue.push(child);
+      }
+    }
 
     for (auto i = 0u; i < n_gens; ++i) {
       PartialPerm gen;
@@ -282,11 +291,17 @@ void PartialPermInverseSemigroup::adjoin(
         _ac_im.push_back(next_node);
         _ac_im_ht[next_node] = next_new_node;
         node_queue.push(next_new_node++);
+        visited.push_back(0);
+
+        Dbg(Dbg::TRACE) << "==> Updating Schreier tree";
+        _st_im.data.push_back(std::make_pair(node, row_idx));
       } else {
         Dbg(Dbg::TRACE) << "==> Adding new edge to orbit graph";
         _og_im.data[row_idx][node] = (*it).second;
       }
     }
+
+    visited[node] = 1;
   }
 
   Dbg(Dbg::TRACE) << "Resulting action component:\n";
