@@ -52,9 +52,6 @@ PartialPermInverseSemigroup::PartialPermInverseSemigroup(
   for (auto i = 0u; i < _ac_im.size(); ++i)
     _ac_im_ht[_ac_im[i]] = i;
 
-  _ac_dom_set = std::unordered_set<std::vector<unsigned>, VectorHash>(
-    ac_dom.begin(), ac_dom.end());
-
   auto tmp(EEMP::strongly_connected_components(_og_im));
   unsigned num_scc = tmp.first;
   _scc = tmp.second;
@@ -107,8 +104,8 @@ bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
   auto dom(pperm.dom());
   Dbg(Dbg::TRACE) << "Domain is: " << dom;
 
-  auto it(std::find(_ac_dom_set.begin(), _ac_dom_set.end(), dom));
-  if (it == _ac_dom_set.end()) {
+  auto ac_dom_it(_ac_im_ht.find(dom));
+  if (ac_dom_it == _ac_im_ht.end()) {
     Dbg(Dbg::TRACE) << "Domain not compatible";
     Dbg(Dbg::DBG) << "==> Not an element";
     return false;
