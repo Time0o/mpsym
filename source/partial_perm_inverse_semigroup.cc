@@ -52,28 +52,7 @@ PartialPermInverseSemigroup::PartialPermInverseSemigroup(
   for (auto i = 0u; i < _ac_im.size(); ++i)
     _ac_im_ht[_ac_im[i]] = i;
 
-  auto tmp(EEMP::strongly_connected_components(_og_im));
-  unsigned num_scc = tmp.first;
-  _scc = tmp.second;
-
-  _scc_repr = std::vector<SccRepr>(num_scc);
-  std::vector<int> found_repr(num_scc, 0);
-
-  for (unsigned i = 0u; i < _scc.size(); ++i) {
-    unsigned c = _scc[i];
-    if (!found_repr[c]) {
-      EEMP::SchreierTree st;
-      EEMP::OrbitGraph og;
-      auto ac(EEMP::action_component(
-        _ac_im[i], _generators, _dom.back(), st, og));
-
-      auto sg(EEMP::schreier_generators(
-        _ac_im[i], _generators, _dom.back(), ac, st, og));
-
-      _scc_repr[c] = SccRepr(i, _og_im, _scc, sg);
-      found_repr[c] = 1;
-    }
-  }
+  update_scc_representatives();
 
   _r_class_repr = EEMP::r_class_representatives(_st_im, _generators);
 }
@@ -160,16 +139,71 @@ bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
 }
 
 void PartialPermInverseSemigroup::adjoin(
-  std::vector<PartialPerm> const &generators)
+  std::vector<PartialPerm> const &generators, bool minimize)
 {
+  Dbg(Dbg::DBG) << "Adjoining generators: " << generators;
+  Dbg(Dbg::DBG) << "to inverse semigroups with generators: " << _generators;
+
   if (_empty) {
+    Dbg(Dbg::TRACE) << "==> Creating new inverse semigroup";
     *this = PartialPermInverseSemigroup(generators);
     return;
   }
 
-  Dbg(Dbg::DBG) << "Adjoining generators: " << generators;
-  Dbg(Dbg::DBG) << "to inverse semigroups with generators: " << _generators;
+  Dbg(Dbg::TRACE) << "=== Adjoining new generators";
 
+  if (!minimize) {
+    bool all_elements = true;
+    for (auto const &gen : generators) {
+      if (!is_element(gen)) {
+        all_elements = false;
+        break;
+      }
+    }
+
+    if (all_elements) {
+      Dbg(Dbg::TRACE) << "==> All generators are already elements";
+      return;
+    }
+
+    update_action_component(generators);
+
+    _generators.insert(_generators.end(), generators.begin(), generators.end());
+    Dbg(Dbg::TRACE) << "New generator set is: " << _generators;
+
+  } else {
+    Dbg(Dbg::TRACE) << "Trying to minimize number of generators adjoined";
+
+    for (auto const &gen : generators) {
+      if (is_element(gen)) {
+        Dbg(Dbg::TRACE) << "Skipping " << gen << " (is already an element)";
+        continue;
+      }
+      Dbg(Dbg::TRACE) << "Adjoining " << gen;
+
+      if (gen.dom_max() > _dom.back()) {
+        for (auto i = _dom.size() + 1u; i <= gen.dom_max(); ++i)
+          _dom.push_back(i);
+        Dbg(Dbg::TRACE) << "Extended domain to: " << _dom;
+      }
+
+      update_action_component({gen});
+
+      _generators.push_back(gen);
+      Dbg(Dbg::TRACE) << "New generator set is: " << _generators;
+    }
+  }
+
+  Dbg(Dbg::TRACE) << "Updating s.c.c representatives";
+  update_scc_representatives();
+
+  Dbg(Dbg::TRACE) << "Updating R class representatives";
+  _r_class_repr = EEMP::r_class_representatives(_st_im, _generators);
+}
+
+void PartialPermInverseSemigroup::update_action_component(
+  std::vector<PartialPerm> const &generators)
+{
   Dbg(Dbg::TRACE) << "Initial orbit graph:\n" << _og_im;
   Dbg(Dbg::TRACE) << "Initial Schreier tree:\n" << _st_im;
 
@@ -250,19 +284,41 @@ void PartialPermInverseSemigroup::adjoin(
     visited[node] = 1;
   }
 
-  Dbg(Dbg::TRACE) << "Resulting action component:\n";
+  Dbg(Dbg::TRACE) << "Updating s.c.c representatives";
+
+  Dbg(Dbg::TRACE) << "Resulting action component:";
 #ifndef NDEBUG
   for (auto const &c : _ac_im)
     Dbg(Dbg::TRACE) << c;
 #endif
   Dbg(Dbg::TRACE) << "Resulting orbit graph:\n" << _og_im;
-  // TODO
   Dbg(Dbg::TRACE) << "Resulting Schreier tree:\n" << _st_im;
+}
 
-  // TODO
-  _generators.insert(_generators.end(), generators.begin(), generators.end());
+void PartialPermInverseSemigroup::update_scc_representatives()
+{
+  auto tmp(EEMP::strongly_connected_components(_og_im));
+  unsigned num_scc = tmp.first;
+  _scc = tmp.second;
 
-  // TODO: _ac_dom_set?
+  _scc_repr = std::vector<SccRepr>(num_scc);
+  std::vector<int> found_repr(num_scc, 0);
+
+  for (unsigned i = 0u; i < _scc.size(); ++i) {
+    unsigned c = _scc[i];
+    if (!found_repr[c]) {
+      EEMP::SchreierTree st;
+      EEMP::OrbitGraph og;
+      auto ac(EEMP::action_component(
+        _ac_im[i], _generators, _dom.back(), st, og));
+
+      auto sg(EEMP::schreier_generators(
+        _ac_im[i], _generators, _dom.back(), ac, st, og));
+
+      _scc_repr[c] = SccRepr(i, _og_im, _scc, sg);
+      found_repr[c] = 1;
+    }
+  }
 }
 
 PartialPermInverseSemigroup::SccRepr::SccRepr(unsigned i,

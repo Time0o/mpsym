@@ -41,7 +41,7 @@ public:
   PartialPermInverseSemigroup();
   PartialPermInverseSemigroup(std::vector<PartialPerm> const &generators);
 
-  void adjoin(std::vector<PartialPerm> const &generators);
+  void adjoin(std::vector<PartialPerm> const &generators, bool minimize = true);
 
   std::vector<PartialPerm> generators() const { return _generators; }
   bool empty() const { return _empty; }
@@ -49,6 +49,9 @@ public:
   bool is_element(PartialPerm const &pperm) const;
 
 private:
+  void update_action_component(std::vector<PartialPerm> const &generators);
+  void update_scc_representatives();
+
   bool _empty;
 
   std::vector<unsigned> _dom;
