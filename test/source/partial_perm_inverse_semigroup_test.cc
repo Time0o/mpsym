@@ -305,7 +305,9 @@ TEST_F(PartialPermInverseSemigroupTest, CanTestMembership)
     PartialPerm({5, 6, 8, 9}, {8, 1, 5, 9}),
     PartialPerm({5, 7}, {6, 1}),
     PartialPerm({7, 8, 9}, {3, 1, 9}),
-    PartialPerm({8, 9}, {7, 1})
+    PartialPerm({8, 9}, {7, 1}),
+    PartialPerm({10, 11, 12}, {1, 2, 3}),
+    PartialPerm({1, 2, 3}, {10, 11, 12})
   };
 
   for (PartialPerm const &pperm : expected_non_elements) {
