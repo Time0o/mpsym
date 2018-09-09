@@ -1,5 +1,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://travis-ci.com/Time0o/TUD_computational_group_theory.svg?branch=master)](https://travis-ci.com/Time0o/TUD_computational_group_theory)
+[![Coverage
+status](https://codecov.io/gh/Time0o/TUD_computational_group_theory/branch/master/graph/badge.svg)](https://codecov.io/gh/Time0o/TUD_computational_group_theory?branch=master)
 
 # MPSoC Symmetry Reduction Package #
 
