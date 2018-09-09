@@ -1,23 +1,86 @@
 # TODO: integrate code coverage
 
-branches:
-  only:
-    - master
-
 language: cpp
 
-compiler: g++
+matrix:
+  include:
+    - os: linux
+      compiler:
+        - g++
+      addons:
+        apt:
+          sources:
+            - boost-latest
+          packages:
+            - libboost-dev
+            - libboost-graph-dev
+            - liblua5.2-dev
 
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-      - boost-latest
-    packages:
-      - g++-7
-      - libboost-dev
-      - libboost-graph-dev
-      - liblua5.2-dev
+    - os: linux
+      compiler:
+        - g++
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - boost-latest
+          packages:
+            - g++-5
+            - libboost-dev
+            - libboost-graph-dev
+            - liblua5.2-dev
+      env:
+         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+
+    - os: linux
+      compiler:
+        - g++
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - boost-latest
+          packages:
+            - g++-6
+            - libboost-dev
+            - libboost-graph-dev
+            - liblua5.2-dev
+      env:
+         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+
+    - os: linux
+      compiler:
+        - g++
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - boost-latest
+          packages:
+            - g++-7
+            - libboost-dev
+            - libboost-graph-dev
+            - liblua5.2-dev
+      env:
+         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
+    - os: linux
+      compiler:
+        - clang
+      addons:
+        apt:
+          sources:
+            - boost-latest
+          packages:
+            - clang
+            - libboost-dev
+            - libboost-graph-dev
+            - liblua5.2-dev
+      env:
+         - MATRIX_EVAL="CC=clang && CXX=clang++"
+
+before_install:
+    - eval "${MATRIX_EVAL}"
 
 script:
   - cd debug
