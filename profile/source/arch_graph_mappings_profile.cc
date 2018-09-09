@@ -62,6 +62,7 @@ static long run(ArchGraph const &ag, unsigned num_tasks,
 
 int main()
 {
+/*
   std::vector<std::string> arch_graphs {
     resource_path("mcsoc.lua")
   };
@@ -95,4 +96,5 @@ int main()
     printf("Total execution time (%s): %ld microseconds\n",
            std::get<0>(var), exec_ticks);
   }
+*/
 }

@@ -90,7 +90,7 @@ public:
 
   void todot(std::string const &outfile) const;
 
-  static ArchGraph fromlua(std::string const &infile);
+  //static ArchGraph fromlua(std::string const &infile);
 
 private:
   adjacency_type _adj;

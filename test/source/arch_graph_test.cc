@@ -292,6 +292,7 @@ TEST_F(ArchGraphTest, DISABLED_CanObtainPartialAutomorphisms)
          << ss.str() << "\n(" << pperms.size() << " in total)";
 }
 
+/*
 TEST_F(ArchGraphTest, CanLoadFromLua)
 {
   ArchGraph ag(ArchGraph::fromlua(resource_path("mcsoc.lua")));
@@ -302,13 +303,16 @@ TEST_F(ArchGraphTest, CanLoadFromLua)
   EXPECT_EQ(64u, ag.num_channels())
     << "Loaded architecture graph has correct number of channels.";
 }
+*/
 
+/*
 TEST_F(ArchGraphTest, CanProduceDotFile)
 {
   ArchGraph ag(ArchGraph::fromlua(resource_path("mcsoc.lua")));
 
   ag.todot(resource_path("mcsoc.dot"));
 }
+*/
 
 class ArchGraphMappingVariantTest :
   public ArchGraphTestBase<

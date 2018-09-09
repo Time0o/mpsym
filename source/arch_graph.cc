@@ -463,6 +463,7 @@ TaskMapping ArchGraph::mapping(
   }
 }
 
+/*
 static void lua_parse_err(lua_State *L, std::string const &infile,
   std::string const &err)
 {
@@ -602,6 +603,7 @@ ArchGraph ArchGraph::fromlua(std::string const &infile)
 
   return ag;
 }
+*/
 
 void ArchGraph::todot(std::string const &outfile) const
 {
