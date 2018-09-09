@@ -280,13 +280,13 @@ PartialPerm EEMP::schreier_trace(
   return res;
 }
 
-PermGroup EEMP::schreier_generators(unsigned x,
+PermGroup EEMP::schreier_generators(unsigned i,
   std::vector<PartialPerm> const &generators, unsigned dom_max,
   std::vector<std::vector<unsigned>> const &action_component,
   SchreierTree const &schreier_tree, OrbitGraph const &orbit_graph,
   std::vector<unsigned> const &sccs)
 {
-  auto im(action_component[x]);
+  auto im(action_component[i]);
 
   Dbg(Dbg::TRACE) << "Finding schreier generators for Sx for: " << im;
 
@@ -298,45 +298,45 @@ PermGroup EEMP::schreier_generators(unsigned x,
   unsigned im_max = im.back();
 
   std::vector<unsigned> scc;
-  for (unsigned i = 0u; i < sccs.size(); ++i) {
-    if (sccs[i] == sccs[x])
-      scc.push_back(i);
+  for (unsigned j = 0u; j < sccs.size(); ++j) {
+    if (sccs[j] == sccs[i])
+      scc.push_back(j);
   }
 
 #ifndef NDEBUG
   std::vector<std::vector<unsigned>> _scc(scc.size());
-  for (auto i = 0u; i < scc.size(); ++i)
-    _scc[i] = action_component[scc[i]];
+  for (auto j = 0u; j < scc.size(); ++j)
+    _scc[j] = action_component[scc[j]];
 
   Dbg(Dbg::TRACE) << "Strongly connected component of x is: " << _scc;
 #endif
 
   std::vector<Perm> sg_gens;
 
-  for (auto i = 0u; i < scc.size(); ++i) {
-    for (auto j = 0u; j < generators.size(); ++j) {
+  for (auto j = 0u; j < scc.size(); ++j) {
+    for (auto k = 0u; k < generators.size(); ++k) {
 
-      unsigned k = orbit_graph.data[j][scc[i]];
-      if (sccs[k] != sccs[x])
+      unsigned l = orbit_graph.data[k][scc[j]];
+      if (sccs[l] != sccs[i])
         continue;
 
       Dbg(Dbg::TRACE) << "Found generator for j/i(j)/k/l = "
-                      << i + 1u << '/'
-                      << scc[i] + 1u << '/'
                       << j + 1u << '/'
-                      << k + 1u;
+                      << scc[j] + 1u << '/'
+                      << k + 1u << '/'
+                      << l + 1u;
 
       PartialPerm ui(schreier_trace(
-        scc[i], schreier_tree, generators, dom_max, x));
-      PartialPerm uk(schreier_trace(
-        k, schreier_tree, generators, dom_max, x));
+        scc[j], schreier_tree, generators, dom_max, i));
+      PartialPerm ul(schreier_trace(
+        l, schreier_tree, generators, dom_max, i));
 
       Dbg(Dbg::TRACE) << "where:";
-      Dbg(Dbg::TRACE) << "u_i(j) = " << "u_" << scc[i] + 1u << " = " << ui;
-      Dbg(Dbg::TRACE) << "x_k = " << "x_" << j + 1u << " = " << generators[j];
-      Dbg(Dbg::TRACE) << "~u_l = " << "u_" << k + 1u << " = " << ~uk;
+      Dbg(Dbg::TRACE) << "u_i(j) = " << "u_" << scc[j] + 1u << " = " << ui;
+      Dbg(Dbg::TRACE) << "x_k = " << "x_" << k + 1u << " = " << generators[k];
+      Dbg(Dbg::TRACE) << "~u_l = " << "u_" << l + 1u << " = " << ~ul;
 
-      PartialPerm sg(ui * generators[j] * ~uk);
+      PartialPerm sg(ui * generators[k] * ~ul);
       sg = sg.restricted(im);
 
       Dbg(Dbg::TRACE) << "=> Schreier generator is: " << sg;

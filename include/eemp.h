@@ -39,7 +39,7 @@ public:
     std::vector<PartialPerm> const &generators, unsigned dom_max,
     unsigned target = 0u);
 
-  static PermGroup schreier_generators(unsigned x, // TODO: rename to i
+  static PermGroup schreier_generators(unsigned i,
     std::vector<PartialPerm> const &generators, unsigned dom_max,
     std::vector<std::vector<unsigned>> const &action_component,
     SchreierTree const &schreier_tree, OrbitGraph const &orbit_graph,
