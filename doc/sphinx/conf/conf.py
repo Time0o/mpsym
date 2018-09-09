@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import sphinx_bootstrap_theme
-
 
 # -- Project information -----------------------------------------------------
 
@@ -22,8 +20,6 @@ exclude_patterns = []
 language = None
 pygments_style = 'sphinx'
 
-templates_path = ['_templates']
-
 extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.githubpages',
@@ -34,7 +30,5 @@ mathjax_path = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js'
 
 # -- Options for HTML output -------------------------------------------------
 
-html_theme = 'bootstrap'
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
-html_static_path = ['_static']
+html_theme = 'sphinxdoc'
 htmlhelp_basename = 'MPSoCSymmetryReductionLibrarydoc'

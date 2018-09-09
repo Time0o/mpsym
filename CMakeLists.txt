@@ -40,6 +40,7 @@ set(GTEST_BIN_DIR "${GTEST_DIR}/build")
 
 set(DOC_IN_DIR "${PROJECT_SOURCE_DIR}/doc")
 set(DOC_OUT_DIR "${CMAKE_BINARY_DIR}/doc")
+set(DOC_PUBLISH_DIR "${PROJECT_SOURCE_DIR}/docs")
 set(DOC_DOXYGEN_IN_DIR "${DOC_IN_DIR}/doxygen")
 set(DOC_DOXYGEN_OUT_DIR "${DOC_OUT_DIR}/doxygen")
 set(DOC_IN_SPHINX_DIR "${DOC_IN_DIR}/sphinx")
@@ -138,6 +139,13 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
       add_custom_target(sphinx
         COMMAND "${SPHINX_EXECUTABLE}" -b html
                 "${DOC_IN_SPHINX_DIR}" "${DOC_OUT_SPHINX_DIR}"
+        VERBATIM
+        DEPENDS doxygen
+      )
+
+      add_custom_target(sphinx_publish
+        COMMAND "${SPHINX_EXECUTABLE}" -b html
+                "${DOC_IN_SPHINX_DIR}" "${DOC_PUBLISH_DIR}"
         VERBATIM
         DEPENDS doxygen
       )
