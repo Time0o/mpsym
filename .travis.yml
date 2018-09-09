@@ -14,7 +14,7 @@ addons:
     packages:
       - g++-7
       - libboost-graph-dev
-      - lua5.3
+      - liblua5.2-dev
 
 script:
   - cd debug

@@ -79,7 +79,7 @@ endfunction()
 find_package(Boost 1.40 REQUIRED COMPONENTS graph)
 
 #Lua
-find_package(Lua 5.3 REQUIRED)
+find_package(Lua 5.2 REQUIRED)
 
 # Nauty
 add_external_project(NAME "nauty/traces"
