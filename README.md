@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/Time0o/TUD_computational_group_theory.svg?branch=master)](https://travis-ci.com/Time0o/TUD_computational_group_theory)
+
 # MPSoC Symmetry Reduction Package #
 
 This is an ongoing effort to implement a fast C++ library with a small set of
