@@ -30,6 +30,10 @@ public:
   static std::pair<unsigned, std::vector<unsigned>>
   strongly_connected_components(OrbitGraph const &orbit_graph);
 
+  static SchreierTree scc_spanning_tree(
+    unsigned i, OrbitGraph const &orbit_graph,
+    std::vector<unsigned> const &scc);
+
   static PartialPerm schreier_trace(
     unsigned x, SchreierTree const &schreier_tree,
     std::vector<PartialPerm> const &generators, unsigned dom_max,

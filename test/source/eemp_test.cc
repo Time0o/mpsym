@@ -30,7 +30,8 @@ protected:
       dom, gens, dom.back(), schreier_tree, orbit_graph);
 
     auto tmp(EEMP::strongly_connected_components(orbit_graph));
-    scc = expand_partition(tmp.second);
+    scc = tmp.second;
+    scc_expanded = expand_partition(scc);
   }
 
   std::vector<unsigned> const dom {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -52,7 +53,8 @@ protected:
   std::vector<std::vector<unsigned>> action_component;
   EEMP::SchreierTree schreier_tree;
   EEMP::OrbitGraph orbit_graph;
-  std::vector<std::vector<unsigned>> scc;
+  std::vector<unsigned> scc;
+  std::vector<std::vector<unsigned>> scc_expanded;
 };
 
 TEST_F(EEMPTest, CanComputeActionComponent)
@@ -116,8 +118,16 @@ TEST_F(EEMPTest, CanIdentifyStronglyConnectedOrbitGraphComponents)
     {0}, {1, 3}, {2, 5, 6}, {4, 7, 9, 10, 11, 12, 13, 14, 15}, {8}
   };
 
-  EXPECT_THAT(scc, ElementsAreArray(expected_scc))
+  EXPECT_THAT(scc_expanded, ElementsAreArray(expected_scc))
     << "Strongly connected components of orbit graph determined correctly.";
+}
+
+TEST_F(EEMPTest, CanComputeSccSpanningTrees)
+{
+  EEMP::scc_spanning_tree(0, orbit_graph, scc);
+  EEMP::scc_spanning_tree(1, orbit_graph, scc);
+  EEMP::scc_spanning_tree(2, orbit_graph, scc);
+  EEMP::scc_spanning_tree(4, orbit_graph, scc);
 }
 
 TEST_F(EEMPTest, CanTraceSchreierTree)
@@ -130,8 +140,8 @@ TEST_F(EEMPTest, CanTraceSchreierTree)
     gens[2] * gens[1] * gens[2]
   };
 
-  for (auto i = 0u; i < scc.size(); ++i) {
-    auto c_idx = scc[i][0];
+  for (auto i = 0u; i < scc_expanded.size(); ++i) {
+    auto c_idx = scc_expanded[i][0];
     auto c(action_component[c_idx]);
 
     auto pperm(EEMP::schreier_trace(
@@ -196,10 +206,10 @@ TEST_F(EEMPTest, CanComputeStabilizerSchreierGenerators)
     auto ac(EEMP::action_component(
       pperms[i].im(), gens, dom.back(), st, og));
 
-    auto scc(EEMP::strongly_connected_components(og));
+    auto scc_og(EEMP::strongly_connected_components(og));
 
     auto sg(EEMP::schreier_generators(
-      pperms[i].im(), gens, dom.back(), ac, st, og, scc.second));
+      pperms[i].im(), gens, dom.back(), ac, st, og, scc_og.second));
 
     EXPECT_TRUE(perm_group_equal(expected_groups[i], sg))
       << "Obtained correct schreier generator generating set.";

@@ -4,6 +4,7 @@
 #include <functional>
 #include <iomanip>
 #include <ostream>
+#include <random>
 #include <sstream>
 #include <utility>
 #include <vector>
@@ -11,6 +12,7 @@
 #include "boost/container_hash/hash.hpp"
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/strong_components.hpp"
+#include "boost/graph/random_spanning_tree.hpp"
 
 #include "dbg.h"
 #include "eemp.h"
@@ -174,6 +176,91 @@ std::pair<unsigned, std::vector<unsigned>> EEMP::strongly_connected_components(
   unsigned num = boost::strong_components(g, &component[0]);
 
   return std::make_pair(num, component);
+}
+
+
+EEMP::SchreierTree EEMP::scc_spanning_tree(
+  unsigned i, OrbitGraph const &orbit_graph, std::vector<unsigned> const &scc)
+{
+  static std::default_random_engine re;
+
+  Dbg(Dbg::TRACE) << "Finding spanning tree for s.c.c rooted at node " << i + 1u
+                  << " in orbit graph:\n" << orbit_graph;
+
+  // construct s.c.c. subgraph
+  struct VertexProperty { unsigned i; };
+  struct EdgeProperty { unsigned gen; };
+
+  boost::adjacency_list<
+    boost::vecS, boost::vecS, boost::directedS, VertexProperty, EdgeProperty> g;
+
+  std::vector<unsigned> scc_i;
+  std::vector<unsigned> vertex_map(scc.size(), 0u);
+
+  Dbg(Dbg::TRACE) << "== Constructing temporary subgraph";
+
+  for (unsigned j = 0u; j < scc.size(); ++j) {
+    if (scc[j] == scc[i]) {
+      scc_i.push_back(j);
+
+      unsigned v = boost::add_vertex({j}, g);
+      vertex_map[j] = v + 1u;
+
+      Dbg(Dbg::TRACE) << "Added vertex " << v << " (" << j + 1u << ')';
+    }
+  }
+
+  assert(scc_i[0] == i && "provided representative is first node in s.c.c");
+
+  for (unsigned source : scc_i) {
+    for (unsigned row = 0; row < orbit_graph.data.size(); ++row) {
+      unsigned dest = orbit_graph.data[row][source];
+
+      unsigned source_vertex = vertex_map[source];
+      unsigned dest_vertex = vertex_map[dest];
+
+      if (dest_vertex > 0u && dest_vertex != source_vertex) {
+        boost::add_edge(dest_vertex - 1u, source_vertex - 1u, {row}, g);
+
+        Dbg(Dbg::TRACE) << "Added edge "
+                        << source_vertex - 1u << " => " << dest_vertex - 1u
+                        << " (" << source + 1u << " => " << dest + 1u
+                        << " (" << row + 1u << "))";
+      }
+    }
+  }
+
+  // find random spanning tree
+  SchreierTree spanning_tree;
+
+  std::vector<unsigned> pred(boost::num_vertices(g));
+
+  Dbg(Dbg::TRACE) << "Finding random spanning tree...";
+
+  boost::random_spanning_tree(
+    g, re, boost::root_vertex(vertex_map[i] - 1u).predecessor_map(&pred[0]));
+
+  Dbg(Dbg::TRACE) << "Found spanning tree with predecessor relationships: "
+                  << std::vector<unsigned>(pred.begin() + 1, pred.end());
+
+  // convert into Schreier tree format
+  spanning_tree.data =
+    std::vector<std::pair<unsigned, unsigned>>(scc.size() - 1u);
+
+  for (auto j = 1u; j < pred.size(); ++j) {
+    auto child(boost::vertex(j, g));
+    auto parent(boost::vertex(pred[j], g));
+    auto edge(boost::edge(child, parent, g));
+
+    assert(edge.second && "edge exists");
+
+    spanning_tree.data[g[child].i - 1u] =
+      std::make_pair(g[parent].i, g[edge.first].gen);
+  }
+
+  Dbg(Dbg::TRACE) << "Resulting spanning Schreier tree is:\n" << spanning_tree;
+
+  return spanning_tree;
 }
 
 PartialPerm EEMP::schreier_trace(
