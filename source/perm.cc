@@ -4,7 +4,7 @@
 #include <set>
 #include <vector>
 
-#include "boost/container_hash/hash.hpp"
+#include <boost/container_hash/hash.hpp>
 
 #include "perm.h"
 

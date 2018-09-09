@@ -4,7 +4,7 @@
 #include <utility>
 #include <vector>
 
-#include "boost/multiprecision/miller_rabin.hpp"
+#include <boost/multiprecision/miller_rabin.hpp>
 
 #include "block_system.h"
 #include "dbg.h"

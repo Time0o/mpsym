@@ -15,6 +15,7 @@ addons:
       - boost-latest
     packages:
       - g++-7
+      - libboost-dev
       - libboost-graph-dev
       - liblua5.2-dev
 

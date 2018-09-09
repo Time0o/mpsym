@@ -10,8 +10,8 @@
 #include <utility>
 #include <vector>
 
-#include "boost/graph/adjacency_list.hpp"
-#include "boost/range/iterator_range_core.hpp"
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/range/iterator_range_core.hpp>
 
 extern "C" {
   #include "lua.h"

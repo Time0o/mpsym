@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "boost/graph/adjacency_list.hpp"
+#include <boost/graph/adjacency_list.hpp>
 
 #include "partial_perm.h"
 #include "perm_group.h"
