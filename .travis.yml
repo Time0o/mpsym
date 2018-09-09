@@ -1,3 +1,5 @@
+# TODO: integrate code coverage
+
 branches:
   only:
     - master

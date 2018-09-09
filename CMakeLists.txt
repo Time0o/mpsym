@@ -166,39 +166,46 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   find_program(LCOV_PATH  NAMES lcov lcov.bat lcov.exe lcov.perl)
   find_program(GENHTML_PATH NAMES genhtml genhtml.perl genhtml.bat)
 
+  set(DO_COVERAGE TRUE)
+
   if(NOT GCOV_PATH)
-    message(FATAL_ERROR "Failed to find gcov")
+    set(DO_COVERAGE FALSE)
+    message(WARNING "Failed to find gcov")
   endif()
 
   if(NOT LCOV_PATH)
-    message(FATAL_ERROR "Failed to find lcov")
+    set(DO_COVERAGE FALSE)
+    message(WARNING "Failed to find lcov")
   endif()
 
   if(NOT GENHTML_PATH)
-    message(FATAL_ERROR "Failed to find genhtml")
+    set(DO_COVERAGE FALSE)
+    message(WARNING "Failed to find genhtml")
   endif()
 
-  set(Coverage_TARGET "coverage")
-  set(Coverage_OUTDIR "coverage")
+  if(DO_COVERAGE)
+    set(Coverage_TARGET "coverage")
+    set(Coverage_OUTDIR "coverage")
 
-  add_custom_target(${Coverage_TARGET}
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    add_custom_target(${Coverage_TARGET}
+      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 
-    # Cleanup lcov
-    COMMAND ${LCOV_PATH} -z -d . --include "'${PROJECT_SOURCE_DIR}/*'"
+      # Cleanup lcov
+      COMMAND ${LCOV_PATH} -z -d . --include "'${PROJECT_SOURCE_DIR}/*'"
 
-    # Run tests
-    COMMAND ${CMAKE_CTEST_COMMAND}
+      # Run tests
+      COMMAND ${CMAKE_CTEST_COMMAND}
 
-    # Capturing lcov counters and generating report
-    COMMAND ${LCOV_PATH} -c -d . -o "lcov.info" --include "'${PROJECT_SOURCE_DIR}/*'"
+      # Capturing lcov counters and generating report
+      COMMAND ${LCOV_PATH} -c -d . -o "lcov.info" --include "'${PROJECT_SOURCE_DIR}/*'"
 
-    # generate html output
-    COMMAND ${GENHTML_PATH} "lcov.info" -o "${Coverage_OUTDIR}"
+      # generate html output
+      COMMAND ${GENHTML_PATH} "lcov.info" -o "${Coverage_OUTDIR}"
 
-    # remove temporary files
-    COMMAND ${CMAKE_COMMAND} -E remove "lcov.base" "lcov.info" "lcov.total"
-  )
+      # remove temporary files
+      COMMAND ${CMAKE_COMMAND} -E remove "lcov.base" "lcov.info" "lcov.total"
+    )
+  endif()
 endif()
 
 

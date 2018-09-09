@@ -28,10 +28,12 @@ set(MAIN_COMPILER_FLAGS "-Wall -pedantic -Wextra")
 set(MAIN_LINK_FLAGS "")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_link_libraries("${MAIN_LIB}" gcov)
+  if(DO_COVERAGE)
+    target_link_libraries("${MAIN_LIB}" gcov)
 
-  set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O0 --coverage")
-  set(MAIN_LINK_FLAGS "${MAIN_LINK_FLAGS} --coverage")
+    set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O0 --coverage")
+    set(MAIN_LINK_FLAGS "${MAIN_LINK_FLAGS} --coverage")
+  endif()
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Profile")
