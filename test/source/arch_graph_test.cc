@@ -275,7 +275,7 @@ TEST_F(ArchGraphTest, CanObtainAutomorphisms)
     << "Automorphisms of totally colored architecture graph correct.";
 }
 
-TEST_F(ArchGraphTest, CanObtainPartialAutomorphisms)
+TEST_F(ArchGraphTest, DISABLED_CanObtainPartialAutomorphisms)
 {
   auto ag(ag_grid22());
   auto pperms(ag.partial_automorphisms());
