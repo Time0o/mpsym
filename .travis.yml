@@ -87,3 +87,9 @@ script:
   - cmake -DCMAKE_BUILD_TYPE=Debug ..
   - make all
   - make test
+
+after_success:
+  - mkdir gcov
+  - cd gcov
+  - gcov ../source/CMakeFiles/**/*
+  - bash <(curl -s https://codecov.io/bash)

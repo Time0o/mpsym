@@ -174,18 +174,18 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   endif()
 
   if(NOT LCOV_PATH)
-    set(DO_COVERAGE FALSE)
+    set(LCOV_COVERAGE FALSE)
     message(WARNING "Failed to find lcov")
   endif()
 
   if(NOT GENHTML_PATH)
-    set(DO_COVERAGE FALSE)
+    set(LCOV_COVERAGE FALSE)
     message(WARNING "Failed to find genhtml")
   endif()
 
-  if(DO_COVERAGE)
-    set(Coverage_TARGET "coverage")
-    set(Coverage_OUTDIR "coverage")
+  if(LCOV_COVERAGE)
+    set(Coverage_TARGET "lcov")
+    set(Coverage_OUTDIR "lcov")
 
     add_custom_target(${Coverage_TARGET}
       WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
