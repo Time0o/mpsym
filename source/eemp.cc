@@ -297,8 +297,6 @@ PermGroup EEMP::schreier_generators(unsigned x,
 
   unsigned im_max = im.back();
 
-  Dbg(Dbg::TRACE) << "Finding schreier generators for Sx for: " << im;
-
   std::vector<unsigned> scc;
   for (unsigned i = 0u; i < sccs.size(); ++i) {
     if (sccs[i] == sccs[x])
