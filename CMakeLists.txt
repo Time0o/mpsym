@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 
-project(CGTL "CXX")
+project("MPSoC Symmetry Reduction Library" "CXX")
 set (CMAKE_CXX_STANDARD 11)
 
 
@@ -37,6 +37,13 @@ set(GTEST_DIR "${CMAKE_BINARY_DIR}/gtest")
 set(GTEST_DOWNLOAD_DIR "${GTEST_DIR}/download")
 set(GTEST_SRC_DIR "${GTEST_DIR}/source")
 set(GTEST_BIN_DIR "${GTEST_DIR}/build")
+
+set(DOC_IN_DIR "${PROJECT_SOURCE_DIR}/doc")
+set(DOC_OUT_DIR "${CMAKE_BINARY_DIR}/doc")
+set(DOC_DOXYGEN_IN_DIR "${DOC_IN_DIR}/doxygen")
+set(DOC_DOXYGEN_OUT_DIR "${DOC_OUT_DIR}/doxygen")
+set(DOC_IN_SPHINX_DIR "${DOC_IN_DIR}/sphinx")
+set(DOC_OUT_SPHINX_DIR "${DOC_OUT_DIR}/sphinx")
 
 
 ################################################################################
@@ -84,6 +91,62 @@ add_external_project(NAME "googletest"
                      WORKDIR "${GTEST_DOWNLOAD_DIR}")
 
 add_subdirectory("${GTEST_SRC_DIR}" "${GTEST_BIN_DIR}" EXCLUDE_FROM_ALL)
+
+
+################################################################################
+# Documentation
+################################################################################
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  find_package(Doxygen)
+
+  if(DOXYGEN_FOUND)
+    set(DOXYFILE_IN "${DOC_DOXYGEN_IN_DIR}/Doxyfile")
+    set(DOXYFILE_OUT "${DOC_DOXYGEN_OUT_DIR}/Doxyfile")
+
+    configure_file("${DOXYFILE_IN}" "${DOXYFILE_OUT}" @ONLY)
+
+    message(STATUS "Building documentation")
+
+    add_custom_target(doxygen ALL
+      COMMAND "${DOXYGEN_EXECUTABLE}" "${DOXYFILE_OUT}"
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+      VERBATIM
+    )
+
+    find_program(SPHINX_EXECUTABLE "sphinx-build")
+    if(SPHINX_EXECUTABLE STREQUAL "sphinx-build-NOTFOUND")
+      message(WARNING
+              "Failed to find sphinx, sphinx documentation will not be generated")
+    else()
+      file(COPY "${DOC_IN_SPHINX_DIR}/conf/conf.py"
+           DESTINATION "${DOC_IN_SPHINX_DIR}")
+
+      string(CONCAT BREATHE_EXT
+             "\n\n# Set up breathe\n"
+             "import sys\n"
+             "sys.path.append('${BREATHE_SRC_DIR}')\n"
+             "extensions.append('breathe')\n"
+             "breathe_projects = {\n"
+             "  '${PROJECT_NAME}' : '${DOC_DOXYGEN_OUT_DIR}/xml'\n"
+             "}\n"
+             "breathe_default_project = '${PROJECT_NAME}'\n"
+             "breathe_domain_by_extension = {'h' : 'cpp'}")
+
+      file(APPEND "${DOC_IN_SPHINX_DIR}/conf.py" "${BREATHE_EXT}")
+
+      add_custom_target(sphinx
+        COMMAND "${SPHINX_EXECUTABLE}" -b html
+                "${DOC_IN_SPHINX_DIR}" "${DOC_OUT_SPHINX_DIR}"
+        VERBATIM
+        DEPENDS doxygen
+      )
+    endif()
+  else()
+    message(WARNING
+            "Failed to find doxygen, documentation will not be generated")
+  endif()
+endif()
 
 
 ################################################################################

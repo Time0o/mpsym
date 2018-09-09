@@ -1,4 +1,7 @@
 cmake/CodeCoverage.cmake
+doc/sphinx/conf.py
 debug/*
 !debug/.gitkeep
+release/*
+!release/.gitkeep
 tmp
