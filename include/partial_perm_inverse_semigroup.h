@@ -7,11 +7,10 @@
 #include <utility>
 #include <vector>
 
-#include <boost/container_hash/hash.hpp>
-
 #include "eemp.h"
 #include "partial_perm.h"
 #include "perm_group.h"
+#include "util.h"
 
 namespace cgtl
 {
@@ -20,7 +19,7 @@ class PartialPermInverseSemigroup
 {
   struct VectorHash {
     std::size_t operator()(std::vector<unsigned> const &v) const {
-      return boost::hash_range(v.begin(), v.end());
+      return vector_hash(v);
     }
   };
 

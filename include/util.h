@@ -2,6 +2,7 @@
 #define _GUARD_UTIL_H
 
 #include <algorithm>
+#include <cstddef>
 #include <vector>
 
 namespace cgtl
@@ -33,6 +34,16 @@ T factorial(T x)
     res *= x--;
 
   return res;
+}
+
+template<typename T>
+std::size_t vector_hash(std::vector<T> const &vec) {
+  // see: https://stackoverflow.com/questions/20511347/a-good-hash-function-for-a-vector
+  // boost container hash API is not stable across a sufficient range of versions
+  std::size_t seed = vec.size();
+  for (auto const &x : vec)
+    seed ^= x + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+  return seed;
 }
 
 template<typename T>

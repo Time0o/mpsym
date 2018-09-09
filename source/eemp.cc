@@ -9,7 +9,6 @@
 #include <utility>
 #include <vector>
 
-#include <boost/container_hash/hash.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/strong_components.hpp>
 #include <boost/graph/random_spanning_tree.hpp>
@@ -61,7 +60,7 @@ std::vector<std::vector<unsigned>> action_component(
 
   std::vector<std::vector<ComponentElemId>> elem_ids(dom_max + 1u);
 
-  std::size_t hash = boost::hash_range(alpha.begin(), alpha.end());
+  std::size_t hash = vector_hash(alpha);
   elem_ids[alpha.size()].push_back(ComponentElemId(0u, hash));
 
   // if beta is a component element, set 'id' to it's component index,
@@ -75,7 +74,7 @@ std::vector<std::vector<unsigned>> action_component(
       return true;
     }
 
-    std::size_t beta_hash = boost::hash_range(beta.begin(), beta.end());
+    std::size_t beta_hash = vector_hash(beta);
 
     if (!elem_size_present[size_idx]) {
       contained = false;

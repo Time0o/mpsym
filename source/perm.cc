@@ -4,9 +4,8 @@
 #include <set>
 #include <vector>
 
-#include <boost/container_hash/hash.hpp>
-
 #include "perm.h"
+#include "util.h"
 
 namespace cgtl
 {
@@ -226,7 +225,7 @@ namespace std
 
 std::size_t hash<cgtl::Perm>::operator()(cgtl::Perm const &perm) const
 {
-  return boost::hash_range(perm._perm.begin(), perm._perm.end());
+  return cgtl::vector_hash(perm._perm);
 }
 
 } // namespace std
