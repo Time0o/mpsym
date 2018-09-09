@@ -24,7 +24,10 @@
 namespace cgtl
 {
 
-std::vector<std::vector<unsigned>> EEMP::action_component(
+namespace eemp
+{
+
+std::vector<std::vector<unsigned>> action_component(
   std::vector<unsigned> const &alpha,
   std::vector<PartialPerm> const &generators, unsigned dom_max,
   SchreierTree &schreier_tree, OrbitGraph &orbit_graph)
@@ -156,7 +159,7 @@ std::vector<std::vector<unsigned>> EEMP::action_component(
   return component;
 }
 
-std::pair<unsigned, std::vector<unsigned>> EEMP::strongly_connected_components(
+std::pair<unsigned, std::vector<unsigned>> strongly_connected_components(
   OrbitGraph const &orbit_graph)
 {
   boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> g;
@@ -179,7 +182,7 @@ std::pair<unsigned, std::vector<unsigned>> EEMP::strongly_connected_components(
 }
 
 
-EEMP::SchreierTree EEMP::scc_spanning_tree(
+SchreierTree scc_spanning_tree(
   unsigned i, OrbitGraph const &orbit_graph, std::vector<unsigned> const &scc)
 {
   static std::default_random_engine re;
@@ -263,7 +266,7 @@ EEMP::SchreierTree EEMP::scc_spanning_tree(
   return spanning_tree;
 }
 
-PartialPerm EEMP::schreier_trace(
+PartialPerm schreier_trace(
   unsigned x, SchreierTree const &schreier_tree,
   std::vector<PartialPerm> const &generators, unsigned dom_max, unsigned target)
 {
@@ -280,7 +283,7 @@ PartialPerm EEMP::schreier_trace(
   return res;
 }
 
-PermGroup EEMP::schreier_generators(unsigned i,
+PermGroup schreier_generators(unsigned i,
   std::vector<PartialPerm> const &generators, unsigned dom_max,
   std::vector<std::vector<unsigned>> const &action_component,
   SchreierTree const &schreier_tree, OrbitGraph const &orbit_graph,
@@ -354,7 +357,7 @@ PermGroup EEMP::schreier_generators(unsigned i,
   return res;
 }
 
-std::vector<PartialPerm> EEMP::r_class_representatives(
+std::vector<PartialPerm> r_class_representatives(
   SchreierTree const &schreier_tree, std::vector<PartialPerm> const &generators)
 {
   std::vector<std::vector<unsigned>> st_adj(schreier_tree.data.size() + 1u);
@@ -381,7 +384,7 @@ std::vector<PartialPerm> EEMP::r_class_representatives(
 }
 
 std::ostream& operator<<(
-  std::ostream& stream, EEMP::SchreierTree const &schreier_tree)
+  std::ostream& stream, eemp::SchreierTree const &schreier_tree)
 {
   if (schreier_tree.data.empty()) {
     stream << "empty schreier tree";
@@ -421,7 +424,7 @@ std::ostream& operator<<(
 }
 
 std::ostream& operator<<(
-  std::ostream& stream, EEMP::OrbitGraph const &orbit_graph)
+  std::ostream& stream, eemp::OrbitGraph const &orbit_graph)
 {
   if (orbit_graph.data.empty()) {
     stream << "empty orbit graph";
@@ -453,7 +456,7 @@ std::ostream& operator<<(
     stream << '\n';
   }
 
-  auto tmp(EEMP::strongly_connected_components(orbit_graph));
+  auto tmp(strongly_connected_components(orbit_graph));
   auto scc(expand_partition(tmp.second));
 
   stream << "s.c.c." << std::string(pad - 1u, ' ') << " | {";
@@ -469,5 +472,7 @@ std::ostream& operator<<(
 
   return stream;
 }
+
+} // namespace eemp
 
 } // namespace cgtl

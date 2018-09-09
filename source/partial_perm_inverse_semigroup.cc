@@ -42,11 +42,11 @@ PartialPermInverseSemigroup::PartialPermInverseSemigroup(
   for (auto i = 0u; i < generators.size(); ++i)
     inverse_generators[i] = ~generators[i];
 
-  _ac_im = EEMP::action_component(_dom, generators, dom_max, _st_im, _og_im);
+  _ac_im = eemp::action_component(_dom, generators, dom_max, _st_im, _og_im);
 
-  EEMP::SchreierTree st_dummy;
-  EEMP::OrbitGraph og_dummy;
-  auto ac_dom(EEMP::action_component(
+  eemp::SchreierTree st_dummy;
+  eemp::OrbitGraph og_dummy;
+  auto ac_dom(eemp::action_component(
     _dom, inverse_generators, dom_max, st_dummy, og_dummy));
 
   for (auto i = 0u; i < _ac_im.size(); ++i)
@@ -54,7 +54,7 @@ PartialPermInverseSemigroup::PartialPermInverseSemigroup(
 
   update_scc_representatives();
 
-  _r_class_repr = EEMP::r_class_representatives(_st_im, _generators);
+  _r_class_repr = eemp::r_class_representatives(_st_im, _generators);
 }
 
 bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
@@ -96,7 +96,7 @@ bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
   auto scc_repr(_ac_im[z_n.i]);
   Dbg(Dbg::TRACE) << "s.c.c representative is: " << scc_repr;
 
-  PartialPerm u(EEMP::schreier_trace(i, z_n.spanning_tree,
+  PartialPerm u(eemp::schreier_trace(i, z_n.spanning_tree,
                                      _generators, _dom.back(), z_n.i));
 
   Dbg(Dbg::TRACE) << scc_repr << " * " << u << " = " << im;
@@ -196,7 +196,7 @@ void PartialPermInverseSemigroup::adjoin(
   update_scc_representatives();
 
   Dbg(Dbg::TRACE) << "Updating R class representatives";
-  _r_class_repr = EEMP::r_class_representatives(_st_im, _generators);
+  _r_class_repr = eemp::r_class_representatives(_st_im, _generators);
 }
 
 void PartialPermInverseSemigroup::update_action_component(
@@ -295,7 +295,7 @@ void PartialPermInverseSemigroup::update_action_component(
 
 void PartialPermInverseSemigroup::update_scc_representatives()
 {
-  auto tmp(EEMP::strongly_connected_components(_og_im));
+  auto tmp(eemp::strongly_connected_components(_og_im));
   unsigned num_scc = tmp.first;
   _scc = tmp.second;
 
@@ -305,9 +305,9 @@ void PartialPermInverseSemigroup::update_scc_representatives()
   for (unsigned i = 0u; i < _scc.size(); ++i) {
     unsigned c = _scc[i];
     if (!found_repr[c]) {
-      auto st(EEMP::scc_spanning_tree(i, _og_im, _scc));
+      auto st(eemp::scc_spanning_tree(i, _og_im, _scc));
 
-      auto sg(EEMP::schreier_generators(
+      auto sg(eemp::schreier_generators(
         i, _generators, _dom.back(), _ac_im, st, _og_im, _scc));
 
       _scc_repr[c] = SccRepr(i, st, sg);

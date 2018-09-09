@@ -13,11 +13,17 @@
 
 #include "test_main.cc"
 
-using cgtl::EEMP;
 using cgtl::PartialPerm;
 using cgtl::Perm;
 using cgtl::PermGroup;
 using cgtl::expand_partition;
+
+using cgtl::eemp::OrbitGraph;
+using cgtl::eemp::SchreierTree;
+using cgtl::eemp::action_component;
+using cgtl::eemp::r_class_representatives;
+using cgtl::eemp::scc_spanning_tree;
+using cgtl::eemp::strongly_connected_components;
 
 using testing::ElementsAreArray;
 using testing::UnorderedElementsAreArray;
@@ -26,10 +32,10 @@ class EEMPTest : public testing::Test
 {
 protected:
   void SetUp() {
-    action_component = EEMP::action_component(
+    component = action_component(
       dom, gens, dom.back(), schreier_tree, orbit_graph);
 
-    auto tmp(EEMP::strongly_connected_components(orbit_graph));
+    auto tmp(strongly_connected_components(orbit_graph));
     scc = tmp.second;
     scc_expanded = expand_partition(scc);
   }
@@ -50,9 +56,9 @@ protected:
     ~PartialPerm({3, 1, 2})
   };
 
-  std::vector<std::vector<unsigned>> action_component;
-  EEMP::SchreierTree schreier_tree;
-  EEMP::OrbitGraph orbit_graph;
+  std::vector<std::vector<unsigned>> component;
+  SchreierTree schreier_tree;
+  OrbitGraph orbit_graph;
   std::vector<unsigned> scc;
   std::vector<std::vector<unsigned>> scc_expanded;
 };
@@ -76,7 +82,7 @@ TEST_F(EEMPTest, CanComputeActionComponent)
     {2, 4, 2, 9, 9, 8, 8, 8, 8, 11, 8, 4, 8, 8, 8, 8}
   };
 
-  ASSERT_THAT(action_component, ElementsAreArray(expected_action_component))
+  ASSERT_THAT(component, ElementsAreArray(expected_action_component))
     << "Component of action determined correctly.";
 
   EXPECT_THAT(schreier_tree.data, ElementsAreArray(expected_schreier_tree))
@@ -98,9 +104,9 @@ TEST_F(EEMPTest, CanComputeLeftSchreierTree)
 
   PartialPerm const x(gens[0] * gens[2] * gens[3]);
 
-  EEMP::SchreierTree left_schreier_tree;
-  EEMP::OrbitGraph dummy;
-  auto left_action_component(EEMP::action_component(
+  SchreierTree left_schreier_tree;
+  OrbitGraph dummy;
+  auto left_action_component(action_component(
     x.dom(), inv_gens, dom.back(), left_schreier_tree, orbit_graph));
 
   ASSERT_THAT(left_action_component,
@@ -124,10 +130,10 @@ TEST_F(EEMPTest, CanIdentifyStronglyConnectedOrbitGraphComponents)
 
 TEST_F(EEMPTest, CanComputeSccSpanningTrees)
 {
-  EEMP::scc_spanning_tree(0, orbit_graph, scc);
-  EEMP::scc_spanning_tree(1, orbit_graph, scc);
-  EEMP::scc_spanning_tree(2, orbit_graph, scc);
-  EEMP::scc_spanning_tree(4, orbit_graph, scc);
+  scc_spanning_tree(0, orbit_graph, scc);
+  scc_spanning_tree(1, orbit_graph, scc);
+  scc_spanning_tree(2, orbit_graph, scc);
+  scc_spanning_tree(4, orbit_graph, scc);
 }
 
 TEST_F(EEMPTest, CanTraceSchreierTree)
@@ -142,10 +148,9 @@ TEST_F(EEMPTest, CanTraceSchreierTree)
 
   for (auto i = 0u; i < scc_expanded.size(); ++i) {
     auto c_idx = scc_expanded[i][0];
-    auto c(action_component[c_idx]);
+    auto c(component[c_idx]);
 
-    auto pperm(EEMP::schreier_trace(
-      c_idx, schreier_tree, gens, dom.back()));
+    auto pperm(schreier_trace(c_idx, schreier_tree, gens, dom.back()));
 
     std::stringstream ss;
 
@@ -195,11 +200,10 @@ TEST_F(EEMPTest, CanComputeStabilizerSchreierGenerators)
   };
 
   for (auto i = 0u; i < sizeof(scc_repr) / sizeof(scc_repr[0]); ++i) {
-    EEMP::SchreierTree st(
-      EEMP::scc_spanning_tree(scc_repr[i], orbit_graph, scc));
+    SchreierTree st(scc_spanning_tree(scc_repr[i], orbit_graph, scc));
 
-    auto sg(EEMP::schreier_generators(
-      scc_repr[i], gens, dom.back(), action_component, st, orbit_graph, scc));
+    auto sg(schreier_generators(
+      scc_repr[i], gens, dom.back(), component, st, orbit_graph, scc));
 
     EXPECT_TRUE(perm_group_equal(expected_groups[i], sg))
       << "Obtained correct schreier generator generating set.";
@@ -227,7 +231,7 @@ TEST_F(EEMPTest, CanObtainRClassRepresentatives)
     gens[0] * gens[3] * gens[0] * gens[2] * gens[1]
   };
 
-  auto r_class_repr(EEMP::r_class_representatives(schreier_tree, gens));
+  auto r_class_repr(r_class_representatives(schreier_tree, gens));
 
   EXPECT_THAT(r_class_repr, UnorderedElementsAreArray(expected_r_class_repr))
     << "R class representatives determined correctly.";
