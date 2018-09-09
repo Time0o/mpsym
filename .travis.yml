@@ -1,5 +1,3 @@
-# TODO: test for multiple compiler and boost versions
-
 branches:
   only:
     - master
@@ -8,8 +6,30 @@ language: cpp
 
 compiler: g++
 
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
+      env:
+        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
 before_install:
-  - eval"CC=gcc-7 && CXX=g++-7"
+  - eval "${MATRIX_EVAL}"
 
 script:
   - cd debug
