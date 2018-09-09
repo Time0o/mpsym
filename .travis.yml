@@ -1,0 +1,18 @@
+# TODO: test for multiple compiler and boost versions
+
+branches:
+  only:
+    - master
+
+language: cpp
+
+compiler: g++
+
+before_install:
+  - eval"CC=gcc-7 && CXX=g++-7"
+
+script:
+  - cd debug
+  - cmake -DCMAKE_BUILD_TYPE=Debug ..
+  - make all
+  - make test
