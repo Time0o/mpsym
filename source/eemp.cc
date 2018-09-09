@@ -6,7 +6,6 @@
 #include <ostream>
 #include <sstream>
 #include <utility>
-#include <utility>
 #include <vector>
 
 #include "boost/container_hash/hash.hpp"
