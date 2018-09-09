@@ -280,23 +280,29 @@ PartialPerm EEMP::schreier_trace(
   return res;
 }
 
-PermGroup EEMP::schreier_generators(std::vector<unsigned> const &im,
+PermGroup EEMP::schreier_generators(unsigned x,
   std::vector<PartialPerm> const &generators, unsigned dom_max,
   std::vector<std::vector<unsigned>> const &action_component,
   SchreierTree const &schreier_tree, OrbitGraph const &orbit_graph,
   std::vector<unsigned> const &sccs)
 {
+  auto im(action_component[x]);
+
   Dbg(Dbg::TRACE) << "Finding schreier generators for Sx for: " << im;
 
-  if (im.empty())
+  if (im.empty()) {
+    Dbg(Dbg::TRACE) << "==> Returning empty permutation group";
     return PermGroup();
+  }
 
   unsigned im_max = im.back();
 
+  Dbg(Dbg::TRACE) << "Finding schreier generators for Sx for: " << im;
+
   std::vector<unsigned> scc;
-  for (auto i = 0u; i < sccs.size(); ++i) {
-    if (sccs[i] == sccs[0])
-      scc.push_back(static_cast<unsigned>(i));
+  for (unsigned i = 0u; i < sccs.size(); ++i) {
+    if (sccs[i] == sccs[x])
+      scc.push_back(i);
   }
 
 #ifndef NDEBUG
@@ -307,13 +313,13 @@ PermGroup EEMP::schreier_generators(std::vector<unsigned> const &im,
   Dbg(Dbg::TRACE) << "Strongly connected component of x is: " << _scc;
 #endif
 
-  std::vector<Perm> res;
+  std::vector<Perm> sg_gens;
 
   for (auto i = 0u; i < scc.size(); ++i) {
     for (auto j = 0u; j < generators.size(); ++j) {
 
       unsigned k = orbit_graph.data[j][scc[i]];
-      if (sccs[k] != sccs[0])
+      if (sccs[k] != sccs[x])
         continue;
 
       Dbg(Dbg::TRACE) << "Found generator for j/i(j)/k/l = "
@@ -322,8 +328,10 @@ PermGroup EEMP::schreier_generators(std::vector<unsigned> const &im,
                       << j + 1u << '/'
                       << k + 1u;
 
-      PartialPerm ui(schreier_trace(scc[i], schreier_tree, generators, dom_max));
-      PartialPerm uk(schreier_trace(k, schreier_tree, generators, dom_max));
+      PartialPerm ui(schreier_trace(
+        scc[i], schreier_tree, generators, dom_max, x));
+      PartialPerm uk(schreier_trace(
+        k, schreier_tree, generators, dom_max, x));
 
       Dbg(Dbg::TRACE) << "where:";
       Dbg(Dbg::TRACE) << "u_i(j) = " << "u_" << scc[i] + 1u << " = " << ui;
@@ -336,11 +344,16 @@ PermGroup EEMP::schreier_generators(std::vector<unsigned> const &im,
       Dbg(Dbg::TRACE) << "=> Schreier generator is: " << sg;
 
       if (!sg.id())
-        res.push_back(sg.to_perm(im_max));
+        sg_gens.push_back(sg.to_perm(im_max));
     }
   }
 
-  return PermGroup(im_max, res);
+  PermGroup res(im_max, sg_gens);
+
+  Dbg(Dbg::TRACE) << "==> Returning:";
+  Dbg(Dbg::TRACE) << res;
+
+  return res;
 }
 
 std::vector<PartialPerm> EEMP::r_class_representatives(

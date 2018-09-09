@@ -165,13 +165,7 @@ TEST_F(EEMPTest, CanTraceSchreierTree)
 
 TEST_F(EEMPTest, CanComputeStabilizerSchreierGenerators)
 {
-  PartialPerm const pperms[] = {
-    gens[0],
-    gens[0] * gens[2],
-    gens[0] * gens[3],
-    gens[0] * gens[2] * gens[3],
-    gens[0] * gens[2] * gens[1] * gens[2]
-  };
+  unsigned const scc_repr[] = {0, 1, 2, 4, 8};
 
   PermGroup const expected_groups[] = {
     PermGroup(9,
@@ -200,16 +194,12 @@ TEST_F(EEMPTest, CanComputeStabilizerSchreierGenerators)
     PermGroup()
   };
 
-  for (auto i = 0u; i < sizeof(pperms) / sizeof(pperms[0]); ++i) {
-    EEMP::SchreierTree st;
-    EEMP::OrbitGraph og;
-    auto ac(EEMP::action_component(
-      pperms[i].im(), gens, dom.back(), st, og));
-
-    auto scc_og(EEMP::strongly_connected_components(og));
+  for (auto i = 0u; i < sizeof(scc_repr) / sizeof(scc_repr[0]); ++i) {
+    EEMP::SchreierTree st(
+      EEMP::scc_spanning_tree(scc_repr[i], orbit_graph, scc));
 
     auto sg(EEMP::schreier_generators(
-      pperms[i].im(), gens, dom.back(), ac, st, og, scc_og.second));
+      scc_repr[i], gens, dom.back(), action_component, st, orbit_graph, scc));
 
     EXPECT_TRUE(perm_group_equal(expected_groups[i], sg))
       << "Obtained correct schreier generator generating set.";

@@ -27,12 +27,13 @@ class PartialPermInverseSemigroup
   struct SccRepr {
     SccRepr() {}
     SccRepr(unsigned i,
-            EEMP::OrbitGraph const &orbit_graph,
-            std::vector<unsigned> const &scc,
-            PermGroup const &schreier_generators);
+            EEMP::SchreierTree const &spanning_tree,
+            PermGroup const &schreier_generators)
+      : i(i),
+        spanning_tree(spanning_tree),
+        schreier_generators(schreier_generators) {}
 
     unsigned i;
-    std::map<unsigned, unsigned> vertex_map;
     EEMP::SchreierTree spanning_tree;
     PermGroup schreier_generators;
   };
