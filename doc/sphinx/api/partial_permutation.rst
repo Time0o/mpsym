@@ -1,5 +1,0 @@
-Partial Permutations
-====================
-
-.. toctree::
-   PartialPerm

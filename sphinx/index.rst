@@ -5,4 +5,4 @@ MPSoC Symmetry Reduction Library
    :caption: API REFERENCE:
    :maxdepth: 2
 
-   api/partial_permutation
+   api/library_root
