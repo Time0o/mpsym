@@ -41,7 +41,10 @@ public:
   PartialPermInverseSemigroup();
   PartialPermInverseSemigroup(std::vector<PartialPerm> const &generators);
 
-  void adjoin(std::vector<PartialPerm> const &generators, bool minimize = true);
+  void adjoin(PartialPerm const &generator, bool check_redundancy = false);
+
+  void adjoin(std::vector<PartialPerm> const &generators,
+              bool minimize = false, bool check_redundancy = false);
 
   std::vector<PartialPerm> generators() const { return _generators; }
   bool empty() const { return _empty; }

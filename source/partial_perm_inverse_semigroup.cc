@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cassert>
 #include <functional>
 #include <queue>
 #include <random>
@@ -137,8 +138,17 @@ bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
 }
 
 void PartialPermInverseSemigroup::adjoin(
-  std::vector<PartialPerm> const &generators, bool minimize)
+  PartialPerm const &generator, bool check_redundancy)
 {
+  adjoin({generator}, false, check_redundancy);
+}
+
+void PartialPermInverseSemigroup::adjoin(
+  std::vector<PartialPerm> const &generators,
+  bool minimize, bool check_redundancy)
+{
+  assert(!(minimize && !check_redundancy && "valid parameter combination"));
+
   Dbg(Dbg::DBG) << "Adjoining generators: " << generators;
   Dbg(Dbg::DBG) << "to inverse semigroups with generators: " << _generators;
 
@@ -151,17 +161,19 @@ void PartialPermInverseSemigroup::adjoin(
   Dbg(Dbg::TRACE) << "=== Adjoining new generators";
 
   if (!minimize) {
-    bool all_elements = true;
-    for (auto const &gen : generators) {
-      if (!is_element(gen)) {
-        all_elements = false;
-        break;
+    if (check_redundancy) {
+      bool all_elements = true;
+      for (auto const &gen : generators) {
+        if (!is_element(gen)) {
+          all_elements = false;
+          break;
+        }
       }
-    }
 
-    if (all_elements) {
-      Dbg(Dbg::TRACE) << "==> All generators are already elements";
-      return;
+      if (all_elements) {
+        Dbg(Dbg::TRACE) << "==> All generators are already elements";
+        return;
+      }
     }
 
     update_action_component(generators);
@@ -172,7 +184,9 @@ void PartialPermInverseSemigroup::adjoin(
   } else {
     Dbg(Dbg::TRACE) << "Trying to minimize number of generators adjoined";
 
-    for (auto const &gen : generators) {
+    for (auto j = 0u; j < generators.size(); ++j) {
+      auto const &gen(generators[j]);
+
       if (is_element(gen)) {
         Dbg(Dbg::TRACE) << "Skipping " << gen << " (is already an element)";
         continue;
