@@ -278,18 +278,9 @@ TEST_F(ArchGraphTest, CanObtainAutomorphisms)
 TEST_F(ArchGraphTest, DISABLED_CanObtainPartialAutomorphisms)
 {
   auto ag(ag_grid22());
-  auto pperms(ag.partial_automorphisms());
+  auto partial_perm_inverse_semigroup(ag.partial_automorphisms());
 
-  std::stringstream ss;
-  for (auto i = 0u; i < pperms.size(); ++i) {
-    ss << pperms[i];
-    if (i != pperms.size() - 1u)
-      ss << ",\n";
-  }
-
-  FAIL() << "TODO: compare with expected semigroup, "
-         << "complete set of partial permutations found is:\n"
-         << ss.str() << "\n(" << pperms.size() << " in total)";
+  FAIL() << "TODO";
 }
 
 /*
