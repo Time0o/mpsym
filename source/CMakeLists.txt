@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
 
-message("Boost_INCLUDE_DIR is: ${Boost_INCLUDE_DIR}") # TODO
-
 include_directories("${INCLUDE_DIR}"
                     "${Boost_INCLUDE_DIR}"
                     "${LUA_INCLUDE_DIR}"
