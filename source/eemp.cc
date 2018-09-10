@@ -45,8 +45,6 @@ std::vector<std::vector<unsigned>> action_component(
   for (PartialPerm const &gen : generators)
     dom_min = std::min(dom_min, gen.dom_min());
 
-  unsigned dom_range_max = dom_max - dom_min + 1u;
-
   // data structures for efficient component membership testing
   std::vector<int> elem_size_present(dom_max + 1u, 0);
   elem_size_present[alpha.size()] = true;
@@ -68,14 +66,9 @@ std::vector<std::vector<unsigned>> action_component(
   auto in_component = [&](std::vector<unsigned> const &beta, unsigned &id) {
     bool contained = true;
 
-    auto const size_idx = beta.size();
-    if (size_idx == dom_range_max && elem_size_present[size_idx]) {
-      id = elem_ids[size_idx][0].id;
-      return true;
-    }
-
     std::size_t beta_hash = vector_hash(beta);
 
+    auto const size_idx = beta.size();
     if (!elem_size_present[size_idx]) {
       contained = false;
 

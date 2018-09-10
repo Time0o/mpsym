@@ -202,6 +202,7 @@ void PartialPermInverseSemigroup::adjoin(
 void PartialPermInverseSemigroup::update_action_component(
   std::vector<PartialPerm> const &generators)
 {
+  Dbg(Dbg::TRACE) << "Initial action component:\n" << _ac_im;
   Dbg(Dbg::TRACE) << "Initial orbit graph:\n" << _og_im;
   Dbg(Dbg::TRACE) << "Initial Schreier tree:\n" << _st_im;
 

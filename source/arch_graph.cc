@@ -23,6 +23,7 @@ extern "C" {
 #include "dbg.h"
 #include "nauty.h"
 #include "partial_perm.h"
+#include "partial_perm_inverse_semigroup.h"
 #include "perm.h"
 #include "perm_group.h"
 
@@ -237,7 +238,7 @@ PermGroup ArchGraph::automorphisms() const
   return _automorphisms;
 }
 
-std::vector<PartialPerm> ArchGraph::partial_automorphisms() const
+PartialPermInverseSemigroup ArchGraph::partial_automorphisms() const
 {
   unsigned n = num_processors();
 
@@ -276,11 +277,10 @@ std::vector<PartialPerm> ArchGraph::partial_automorphisms() const
     unsigned limit;
   };
 
-  std::function<void(Domain const &, std::vector<unsigned> const &,
-                     std::vector<PartialPerm> &res)>
-  backtrack = [&](Domain const &domain, std::vector<unsigned> const &image,
-                  std::vector<PartialPerm> &res) {
+  PartialPermInverseSemigroup res;
 
+  std::function<void(Domain const &, std::vector<unsigned> const &)>
+  backtrack = [&](Domain const &domain, std::vector<unsigned> const &image) {
     std::vector<unsigned> tmp(domain.limit, 0u);
 
     unsigned j = 0u;
@@ -294,7 +294,10 @@ std::vector<PartialPerm> ArchGraph::partial_automorphisms() const
 
     if (is_partial_automorphism(pperm)) {
       Dbg(Dbg::TRACE) << "=> Is a partial automorphism";
-      res.push_back(pperm);
+      if (!pperm.id() && !res.is_element(pperm)) {
+        Dbg(Dbg::TRACE) << "==> Adjoining new generator";
+        res.adjoin({pperm});
+      }
     } else {
       Dbg(Dbg::TRACE)
         << "=> Is not a partial automorphism, pruning backtrack tree...";
@@ -315,7 +318,7 @@ std::vector<PartialPerm> ArchGraph::partial_automorphisms() const
           continue;
 
         next_image.back() = j;
-        backtrack(next_domain, next_image, res);
+        backtrack(next_domain, next_image);
       }
 
       next_domain.set[i] = false;
@@ -326,8 +329,7 @@ std::vector<PartialPerm> ArchGraph::partial_automorphisms() const
     << "Finding partial automorphisms for arch graph with automorphism group:";
   Dbg(Dbg::DBG) << _automorphisms;
 
-  std::vector<PartialPerm> res;
-  backtrack(Domain(std::vector<bool>(num_processors(), false), 0u), {}, res);
+  backtrack(Domain(std::vector<bool>(num_processors(), false), 0u), {});
 
   return res;
 }
