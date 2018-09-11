@@ -138,12 +138,6 @@ bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
 }
 
 void PartialPermInverseSemigroup::adjoin(
-  PartialPerm const &generator, bool check_redundancy)
-{
-  adjoin({generator}, false, check_redundancy);
-}
-
-void PartialPermInverseSemigroup::adjoin(
   std::vector<PartialPerm> const &generators,
   bool minimize, bool check_redundancy)
 {
