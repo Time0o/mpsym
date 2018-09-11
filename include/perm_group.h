@@ -40,34 +40,219 @@ public:
     Perm _current_result;
   };
 
+  /** Construct the permutation group \f$\{(1)\}\f$.
+   */
   PermGroup() : PermGroup(1, {}) {}
+
+  /** Construct a permutation group.
+   *
+   * Constructs a permutation group representation from a given set of
+   * generating permutations. The generators and group elements might not be
+   * stored explicitly in the resulting object. Instead some variation of the
+   * *Schreier Sims* algorithm (see \cite holt05, chapter 4.4.2) might be used
+   * to compute a *base* and *strong generating* set for the group which
+   * describes the group completely and can be used to, among others, test
+   * element membership and iterate through all group elements efficiently.
+   *
+   * \param degree the permutation group's *degree*, must be the same as the
+                   degree of all given generators (which in turn implies that
+                   they map from the set \f$\{1, \dots, degree\}\f$ to itself
+                   otherwise this constructor's behaviour is undefined
+   * \param generators a generating set for the permutation group
+   * \sa SchreierSims, BSGS
+   */
   PermGroup(unsigned degree, std::vector<Perm> const &generators,
     SchreierSims::Variant schreier_sims_method = SchreierSims::SIMPLE);
 
+  /** Check two permutation groups for equality.
+   *
+   * Two permutation groups are equal exactly when the contain the same
+   * elements. Although it it possible to use the PermGroup class to represent
+   * permutation groups containing a very large number of elements, this
+   * operation is guaranteed to be performed in \f$O(|bsgs.sgs()|)\f$ time. If
+   * `(*this).degree() != rhs.degree()`, this function's behaviour is undefined.
+   *
+   * \return `true`, if `*this` and `rhs` describe permutation groups containing
+   *         the same elements, else `false`
+   * \sa BSGS
+   */
   bool operator==(PermGroup const &rhs) const;
+
+  /** Check two permutation groups for inequality.
+   *
+   * The result is always equal to `!(*this == rhs)`.
+   *
+   * \return `true`, if `*this` and `rhs` describe permutation groups not
+   *         containing the same elements, else `false`
+   * \sa operator==()
+   */
   bool operator!=(PermGroup const &rhs) const;
 
+  /** Construct a symmetric permutation group
+   *
+   * \return degree degree \f$n\f$ of the resulting group \f$S_n\f$
+   */
   static PermGroup symmetric(unsigned degree);
+
+  /** Construct a cyclic permutation group
+   *
+   * \return degree degree \f$n\f$ of the resulting group \f$C_n\f$
+   */
   static PermGroup cyclic(unsigned degree);
+
+  /** Construct an alternating permutation group
+   *
+   * \return degree degree \f$n\f$ of the resulting group \f$A_n\f$
+   */
   static PermGroup alternating(unsigned degree);
 
+  /** Obtain a constant iterator iterating over this group's elements.
+   *
+   * Note that the permutation group elements might not be stored explicitly
+   * and could instead be constructed by the iterator "on the fly" which means
+   * that storing references or pointers to the partial permutation pointed to
+   * by any iterator iterating over a permutation group will result in
+   * undefined behaviour. The elements are not guaranteed to be returned in any
+   * particular order but every element will returned exactly once and the
+   * elements will be returned in the same order on subsequent iterations
+   * through the permutation group (this is not necessarily true for other
+   * permutation which are equal to this one in the context of `operator==`).
+   *
+   * \return a constant iterator pointing to some element in this permutation
+   *         group, incrementing it will yield all other group members exactly
+   *         once (in no particular order) until end() is reached.
+   */
   const_iterator begin() const { return const_iterator(*this); }
+
+  /** Obtain a contant iterator signifying a permutation group's "end".
+   *
+   * \return a contant iterator signifying a permutation group's "end"
+   */
   const_iterator end() const { return const_iterator(); }
 
+  /** Obtain a permutation group's *degree*.
+   *
+   * A permutation group's degree is the positive integer \f$n\f$ such that
+   * all its elements map from the set \f$\{1, \dots, n\}\f$ to itself.
+   *
+   * \return this permutation group's degree
+   */
   unsigned degree() const { return _n; }
+
+  /** Obtain a permutation group's *order*.
+   *
+   * A permutation group \f$G\f$ 's order is equal to the number of elements it
+   * contains, i.e. \f$|G|\f$.
+   *
+   * \return this permutation group's order
+   */
   unsigned order() const { return _order; }
+
+  /** Obtain a permutation group's base and strong generating set.
+   *
+   * This function is only meaningful is the permutation group's elements are
+   * not stored explicitely, which can be determined via TODO.
+   *
+   * \return a BSGS object representing this permutation group's base and strong
+   *         generating set
+   */
   BSGS bsgs() const { return _bsgs; }
+
+  /** Check whether a permutation group is *trivial*.
+   *
+   * A permutation group is trivial by definition if it only contains an
+   * identity permutation on the set \f$\{1, \dots, n\}\f$ (where \f$n\f$ is the
+   * group's degree()).
+   *
+   * \return `true` if this permutation group is trivial, else `false`
+   */
   bool trivial() const { return _bsgs.trivial(); }
+
+  /** Check whether a permutation group is *transitive*.
+   *
+   * A permutation group is transitive by definition if for the group orbit of
+   * any of its elements \f$x\f$ it holds that: \f$G(x) = \{g \cdot x \in X : g
+   * \in G\} = \{1, \dots, n\}\f$ (where \f$n\f$ is the group's degree()). Note
+   * that the set of the group orbits for all elements is always a partition of
+   * \f$G\f$, this is a special case of this property.
+   *
+   * \return `true` if this permutation group is transitive, else `false`.
+   */
   bool transitive() const;
 
+  /** Check whether a permutation group contains a given permutation.
+   *
+   * Note that the group's elements may not be stored explicitly so while
+   * efficient, this operation is not trivial. if `perm.degree() !=
+   * (*this).degree()` this function's behaviour is undefined.
+   *
+   * \return `true` if this permutation group contains the permutation `perm`,
+   *         else `false`
+   */
   bool is_element(Perm const &perm) const;
+
+  /** Construct a random group element.
+   *
+   * This function makes no guarantees about the returned elements distribution
+   * of cryptographic security. Repeated calls to this function may not be very
+   * efficient, use TODO instead.
+   *
+   * \return some element \f$x\f$ of this permutation group
+   */
   Perm random_element() const;
 
+  /** Return a permutation group's orbit partition.
+   *
+   * The orbit partition of a permutation group is the set \f$\{G(x) : G(x) =
+   * \{g \cdot x \in X : g \in G\} = \{1, \dots, n\}\}\f$ which is always a
+   * partition of \f$\{1, \dots, n\}\f$ (where \f$n\f$ is the group's degree()).
+   *
+   * \return this permutation group's orbit partition as a vector of vector
+   *         where each element vector contains all elements in one of the
+   *         possible element orbits (sorted in ascending order) and the element
+   *         vectors themselves are sorted by their the smallest element (in
+   *         ascending order)
+   */
   std::vector<std::vector<unsigned>> orbits() const;
 
+  /** Find a *disjoint subgroup decomposition* of a permutation group
+   *
+   * This function's implementation is based on \cite donaldson09.
+   *
+   * A disjoint subgroup decomposition of a permutation group \f$G\f$ is a set
+   * \f$\{H_1, \dots, H_k\}\f$ where \f$H_1, \dots, H_k\f$ are subgroups of
+   * \f$G\f$ such that \f$G = \{\alpha_1 \cdot \alpha_2 \dots \alpha_k :
+   * \alpha_i \in H_i, (1 \leq i \leq k)\}\f$ and \f$\forall (i, j) \in \{1,
+   * \dots, k\}^2 : i \neq j \Rightarrow moved(H_i) \cap moved(H_j) =
+   * \emptyset\f$.  Here, \f$moved(H_i)\f$ is the set \f$\{x : (x \in \{1,
+   * \dots, n\} \land \exists \alpha \in H_i : \alpha(x) \neq x)\}\f$.
+   *
+   * \param complete
+   *    if this is `true` the function will always return the *finest* possible
+   *    disjoint subgroup decomposition (i.e. one in which no subgroup can be
+   *    further decomposed into disjoint subgroups), this might be more
+   *    computationally expensive
+   *
+   * \param disjoint_orbit_optimization
+   *    if this is `true`, the optimization described in \cite donaldson09,
+   *    chapter 5.2.1 is applied, this is only meaningful if `complete = true`,
+   *    otherwise this argument is ignored.
+   *
+   * \return a disjoint subgroup decomposition of this permutation group given
+   *         as a vector of subgroups as described above, in no particular
+   *         order, if no disjoint subgroup partition could be found, the vector
+   *         contains the group itself as its only element.
+   */
   std::vector<PermGroup> disjoint_decomposition(
     bool complete = true, bool disjoint_orbit_optimization = false) const;
 
+  /** Find a *wreath product decomposition* of a permutation group
+   *
+   * This function's implementation is based on \cite donaldson09.
+   *
+   * TODO
+   *
+   */
   std::vector<PermGroup> wreath_decomposition() const;
 
 private:
