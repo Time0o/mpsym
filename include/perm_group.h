@@ -56,7 +56,7 @@ public:
    *
    * \param degree the permutation group's *degree*, must be the same as the
                    degree of all given generators (which in turn implies that
-                   they map from the set \f$\{1, \dots, degree\}\f$ to itself
+                   they map from the set \f$\{1, \dots, degree\}\f$ to itself)
                    otherwise this constructor's behaviour is undefined
    * \param generators a generating set for the permutation group
    * \sa SchreierSims, BSGS
@@ -66,7 +66,7 @@ public:
 
   /** Check two permutation groups for equality.
    *
-   * Two permutation groups are equal exactly when the contain the same
+   * Two permutation groups are equal exactly when they contain the same
    * elements. Although it it possible to use the PermGroup class to represent
    * permutation groups containing a very large number of elements, this
    * operation is guaranteed to be performed in \f$O(|bsgs.sgs()|)\f$ time. If
@@ -113,10 +113,22 @@ public:
    * that storing references or pointers to the partial permutation pointed to
    * by any iterator iterating over a permutation group will result in
    * undefined behaviour. The elements are not guaranteed to be returned in any
-   * particular order but every element will returned exactly once and the
-   * elements will be returned in the same order on subsequent iterations
-   * through the permutation group (this is not necessarily true for other
-   * permutation which are equal to this one in the context of `operator==`).
+   * particular order but every element will be returned exactly once.The
+   * elements will also be returned in the same order on subsequent iterations
+   * through the permutation group. This last point is not necessarily true for
+   * other equal (in the sense of `operator==`) permutation groups.
+   *
+   * Iterating through a permutation group could thus look like this:
+   *
+   * ~~~~~{.cpp}
+   * PermGroup pg(degree, generators);
+   *
+   * for (auto const &perm : pg)
+   *   std::cout << perm;
+   *
+   * for (auto const it = pg.begin(); it != pg.end(); ++i)
+   *   std::cout << *it;
+   * ~~~~~
    *
    * \return a constant iterator pointing to some element in this permutation
    *         group, incrementing it will yield all other group members exactly
@@ -142,7 +154,8 @@ public:
   /** Obtain a permutation group's *order*.
    *
    * A permutation group \f$G\f$ 's order is equal to the number of elements it
-   * contains, i.e. \f$|G|\f$.
+   * contains, i.e. \f$|G|\f$. Note that every permutation group must at least
+   * contain an identity and thus it is always true that `order() > 0u`.
    *
    * \return this permutation group's order
    */
@@ -162,7 +175,7 @@ public:
    *
    * A permutation group is trivial by definition if it only contains an
    * identity permutation on the set \f$\{1, \dots, n\}\f$ (where \f$n\f$ is the
-   * group's degree()).
+   * group's degree()). This is equivalent to testing whether `order() == 1u`.
    *
    * \return `true` if this permutation group is trivial, else `false`
    */
@@ -171,10 +184,9 @@ public:
   /** Check whether a permutation group is *transitive*.
    *
    * A permutation group is transitive by definition if for the group orbit of
-   * any of its elements \f$x\f$ it holds that: \f$G(x) = \{g \cdot x \in X : g
-   * \in G\} = \{1, \dots, n\}\f$ (where \f$n\f$ is the group's degree()). Note
-   * that the set of the group orbits for all elements is always a partition of
-   * \f$G\f$, this is a special case of this property.
+   * any of its elements \f$x\f$ it holds that: \f$G(x) = \{g \cdot x \in \{1,
+   * \dots, n\} : g \in G\} = \{1, \dots, n\}\f$ (where \f$n\f$ is the group's
+   * degree()).
    *
    * \return `true` if this permutation group is transitive, else `false`.
    */
@@ -184,8 +196,7 @@ public:
    *
    * Note that the group's elements may not be stored explicitly so while
    * efficient, this operation is not trivial. if `perm.degree() !=
-   * (*this).degree()` this function's behaviour is undefined.
-   *
+   * (*this).degree()` this function's behaviour is undefined.   *
    * \return `true` if this permutation group contains the permutation `perm`,
    *         else `false`
    */
@@ -203,11 +214,12 @@ public:
 
   /** Return a permutation group's orbit partition.
    *
-   * The orbit partition of a permutation group is the set \f$\{G(x) : G(x) =
-   * \{g \cdot x \in X : g \in G\} = \{1, \dots, n\}\}\f$ which is always a
-   * partition of \f$\{1, \dots, n\}\f$ (where \f$n\f$ is the group's degree()).
+   * The *orbit* of an element \f$g\f$ of the group \f$G\f$ is the set \f$G(x)
+   * = \{g \cdot x \in \{1, \dots, n\}\} : g \in G\}\f$ (where \f$n\f$ is the
+   * group's degree()). This function returns the "set" containing every
+   * possible element orbit which always a partition of \f$G\f$.
    *
-   * \return this permutation group's orbit partition as a vector of vector
+   * \return this permutation group's orbit partition as a vector of vectors
    *         where each element vector contains all elements in one of the
    *         possible element orbits (sorted in ascending order) and the element
    *         vectors themselves are sorted by their the smallest element (in
@@ -250,8 +262,26 @@ public:
    *
    * This function's implementation is based on \cite donaldson09.
    *
-   * TODO
+   * A wreath product decomposition of a permutation group \f$G \leq S_n\f$ is
+   * (using the notation in \cite donaldson09) a triple \f$(H, K,
+   * \mathcal{X})\f$. Here\f$H \leq S_m\f$, \f$K \leq S_d\f$ and \f$n = m \cdot
+   * d\f$, \f$\mathcal{X}\f$ is a set \f$\{X_1, \dots, X_d\}\f$ of sets
+   * \f$X_i\f$ (with \f$|X_i| = m\f$) which partition the set \f$X = \{1,
+   * \dots, n\}\f$ on which \f$G\f$ operates and \f$G = \{\sigma(\beta)\
+   * \sigma_1(\alpha_1) \dots \sigma_d(\alpha_d) : \beta \in K, \alpha_i \in H
+   * \ (1 \leq i \leq d)\}\f$. \f$\sigma\f$ is the permutation representation
+   * of the action of \f$K\f$ on \f$\mathcal{X}\f$ which permutes the sets
+   * \f$X_i\f$ "among themselves" and the \f$\sigma_i\f$ are the permutation
+   * representations of the obvious actions of \f$K\f$ on the sets \f$X_i\f$.
+   * This is conventionally written as: \f$G = H \wr K\f$.
    *
+   * \return a wreath product decomposition of \f$G\f$ as described above in
+   *         the form of the vector of permutation groups \f$[\sigma(K),
+   *         \sigma_1(H_1), \dots, \sigma_d(H_d)]\f$, if no wreath product
+   *         decomposition could be found (either because none exists or the
+   *         algorithm is unable to determine a valid decomposition, which is
+   *         currently possible due to limitations in the implementation) an
+   *         empty vector is returned
    */
   std::vector<PermGroup> wreath_decomposition() const;
 
