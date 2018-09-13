@@ -44,10 +44,12 @@ BlockSystem::BlockSystem(std::vector<unsigned> const &classes)
     }
   }
 
+#ifndef NDEBUG
   for (auto const &block : _blocks) {
     assert(block.size() == _blocks[0].size() &&
       "blocks in block system have same size");
   }
+#endif
 }
 
 bool BlockSystem::trivial() const

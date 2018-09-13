@@ -54,7 +54,7 @@ struct SchreierTree
 
 private:
   unsigned _degree;
-  unsigned _root;
+  unsigned _root = 0;
   std::map<unsigned, unsigned> _edges;
   std::map<unsigned, Perm> _labels;
 };

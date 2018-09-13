@@ -356,18 +356,16 @@ Perm PartialPerm::to_perm(unsigned degree) const
       break;
     } else {
       unsigned im = _pperm[i - 1u];
-#ifndef NEBUG
       if (im == 0u)
         perm[i - 1u] = i;
       else if (i > 0u) {
+#ifndef NDEBUG
         auto it = std::find(perm.begin(), perm.begin() + i, im);
         assert(it == perm.begin() + i &&
                "partial permutation does not contain chain within domain");
+#endif
         perm[i - 1u] = im;
       }
-#else
-      perm[i] = im == 0u ? i : im;
-#endif
     }
   }
 
