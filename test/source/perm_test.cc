@@ -149,12 +149,7 @@ TEST(PermTest, CanRestrictPerm)
   };
 
   for (auto const &pr : perm_restrictions) {
-    bool id;
-
-    EXPECT_EQ(pr.expected, pr.perm.restricted(pr.domain, &id))
+    EXPECT_EQ(pr.expected, pr.perm.restricted(pr.domain))
       << "Restricting permutation yields correct result.";
-
-    EXPECT_EQ(pr.expected.id(), id)
-      << "Identitiy flag correctly set during permutation restriction.";
   }
 }

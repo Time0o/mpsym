@@ -417,10 +417,9 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
     domain_offsets[i] = orbit_low - 1u;
 
     for (auto j = 0u; j < gens.size(); ++j) {
-      bool id;
-      Perm tmp(gens[j].restricted(orbits[i], &id));
+      Perm tmp(gens[j].restricted(orbits[i]));
 
-      if (!id)
+      if (!tmp.id())
         restricted_gens.push_back(tmp.shifted(orbit_low, orbit_high));
     }
 

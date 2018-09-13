@@ -498,19 +498,17 @@ static bool orbits_dependent(PermGroup const &pg,
     if (stabilizes) {
       Dbg(Dbg::TRACE) << perm << " stabilizes " << orbit2;
 
-      bool id = false;
-      Perm restricted_stabilizer(perm.restricted(orbit1, &id));
+      Perm restricted_stabilizer(perm.restricted(orbit1));
       Dbg(Dbg::TRACE) << "Restricted stabilizer is: " << restricted_stabilizer;
 
-      if (!id)
+      if (!restricted_stabilizer.id())
         restricted_stabilizers.insert(restricted_stabilizer);
     }
 
-    bool id = false;
-    Perm restricted_element(perm.restricted(orbit1, &id));
+    Perm restricted_element(perm.restricted(orbit1));
     Dbg(Dbg::TRACE) << "Restricted group element is: " << restricted_element;
 
-    if (!id)
+    if (!restricted_element.id())
       restricted_elements.insert(restricted_element);
   }
 

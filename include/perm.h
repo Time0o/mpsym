@@ -207,15 +207,15 @@ public:
    * cycle representation which contain at least one element \f$x \notin
    * d_{new}\f$.
    *
-   * \param domain the domain to which to restrict the resulting permutation
-   *
-   * \param[out] id TODO: remove this parameter
+   * \param domain
+   *     the domain to which to restrict the resulting permutation, must not
+   *     contain any element outside this permutation's degree or this
+   *     function's behaviour is undefined
    *
    * \return a restricted version of this permutation according to the
    *         definition above
    */
-  Perm restricted(
-    std::vector<unsigned> const &domain, bool *id = nullptr) const;
+  Perm restricted(std::vector<unsigned> const &domain) const;
 
 private:
   unsigned _n;

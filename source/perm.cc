@@ -195,7 +195,7 @@ Perm Perm::shifted(unsigned low, unsigned high) const
   return Perm(perm_shifted);
 }
 
-Perm Perm::restricted(std::vector<unsigned> const &domain, bool *id) const
+Perm Perm::restricted(std::vector<unsigned> const &domain) const
 {
   // domain must be union of domains of disjoint cycles or behaviour is undefined
 
@@ -203,15 +203,9 @@ Perm Perm::restricted(std::vector<unsigned> const &domain, bool *id) const
   for (auto i = 1u; i <= _n; ++i)
     restricted_perm[i - 1u] = i;
 
-  if (id)
-    *id = true;
-
   for (unsigned x : domain) {
     if (_perm[x - 1u] != x) {
       restricted_perm[x - 1u] = _perm[x - 1u];
-
-      if (id && *id)
-        *id = false;
     }
   }
 
