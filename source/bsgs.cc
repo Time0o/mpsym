@@ -10,16 +10,16 @@ namespace cgtl
 {
 
 BSGS::BSGS(std::vector<Perm> const &generators,
-  SchreierSims::Variant schreier_sims_method) : _sgs(generators)
+  schreier_sims::Variant schreier_sims_method) : _sgs(generators)
 {
   if (_sgs.size() > 0u) {
 
     switch (schreier_sims_method) {
-      case SchreierSims::RANDOM:
-        SchreierSims::schreier_sims_random(_base, _sgs, _schreier_trees);
+      case schreier_sims::RANDOM:
+        schreier_sims::schreier_sims_random(_base, _sgs, _schreier_trees);
         break;
       default:
-        SchreierSims::schreier_sims(_base, _sgs, _schreier_trees);
+        schreier_sims::schreier_sims(_base, _sgs, _schreier_trees);
     }
 
     for (auto const &st : _schreier_trees)
@@ -60,7 +60,7 @@ std::vector<std::vector<unsigned>> BSGS::orbits() const
 
 std::pair<Perm, unsigned> BSGS::strip(Perm const &perm) const
 {
-  return SchreierSims::strip(perm, _base, _schreier_trees);
+  return schreier_sims::strip(perm, _base, _schreier_trees);
 }
 
 std::vector<Perm> BSGS::BaseElem::transversals() const

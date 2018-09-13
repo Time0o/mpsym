@@ -10,27 +10,29 @@
 namespace cgtl
 {
 
-class SchreierSims
+namespace schreier_sims
 {
-public:
-  enum Variant { SIMPLE, RANDOM };
 
-  static std::vector<std::vector<unsigned>> orbits(
-    std::vector<Perm> const &generators);
+enum Variant { SIMPLE, RANDOM };
 
-  static std::vector<unsigned> orbit(unsigned alpha,
-    std::vector<Perm> const &generators, SchreierTree &st);
+std::vector<std::vector<unsigned>> orbits(std::vector<Perm> const &generators);
 
-  static std::pair<Perm, unsigned> strip(Perm const &perm,
-    std::vector<unsigned> const &base, std::vector<SchreierTree> const &sts);
+std::vector<unsigned> orbit(
+  unsigned alpha, std::vector<Perm> const &generators, SchreierTree &st);
 
-  static void schreier_sims(std::vector<unsigned> &base,
-    std::vector<Perm> &generators, std::vector<SchreierTree> &sts);
+std::pair<Perm, unsigned> strip(
+    Perm const &perm, std::vector<unsigned> const &base,
+    std::vector<SchreierTree> const &sts);
 
-  static void schreier_sims_random(std::vector<unsigned> &base,
-    std::vector<Perm> &generators, std::vector<SchreierTree> &sts,
-    unsigned w = 10);
-};
+void schreier_sims(
+  std::vector<unsigned> &base,
+  std::vector<Perm> &generators, std::vector<SchreierTree> &sts);
+
+void schreier_sims_random(std::vector<unsigned> &base,
+  std::vector<Perm> &generators, std::vector<SchreierTree> &sts,
+  unsigned w = 10);
+
+} // namespace schreier_sims
 
 } // namespace cgtl
 

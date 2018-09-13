@@ -15,7 +15,7 @@ class BSGS
 {
 public:
   struct BaseElem {
-    BaseElem(SchreierTree const &st) : _st(st) {}
+    BaseElem(schreier_sims::SchreierTree const &st) : _st(st) {}
 
     unsigned elem() const { return _st.root(); }
     std::vector<unsigned> orbit() const { return _st.nodes(); }
@@ -23,14 +23,14 @@ public:
     std::vector<Perm> transversals() const;
 
   private:
-    SchreierTree _st;
+    schreier_sims::SchreierTree _st;
   };
 
   typedef std::vector<BaseElem>::size_type size_type;
   typedef std::vector<BaseElem>::const_iterator const_iterator;
 
   BSGS(std::vector<Perm> const &generators,
-       SchreierSims::Variant schreier_sims_method = SchreierSims::SIMPLE);
+       schreier_sims::Variant schreier_sims_method = schreier_sims::SIMPLE);
 
   const_iterator begin() const { return _base_elems.begin(); }
   const_iterator end() const { return _base_elems.end(); }
@@ -48,7 +48,7 @@ private:
   std::vector<unsigned> _base;
   std::vector<Perm> _sgs;
 
-  std::vector<SchreierTree> _schreier_trees;
+  std::vector<schreier_sims::SchreierTree> _schreier_trees;
   std::vector<BaseElem> _base_elems;
 };
 

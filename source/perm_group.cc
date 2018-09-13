@@ -18,7 +18,7 @@ namespace cgtl
 {
 
 PermGroup::PermGroup(unsigned degree, std::vector<Perm> const &generators,
-  SchreierSims::Variant schreier_sims_method)
+  schreier_sims::Variant schreier_sims_method)
   : _n(degree), _bsgs(generators, schreier_sims_method)
 {
 #ifndef NDEBUG
@@ -117,7 +117,7 @@ bool PermGroup::transitive() const
 
 std::vector<std::vector<unsigned>> PermGroup::orbits() const
 {
-  return SchreierSims::orbits(_bsgs.sgs());
+  return schreier_sims::orbits(_bsgs.sgs());
 }
 
 bool PermGroup::is_element(Perm const &perm) const

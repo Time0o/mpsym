@@ -13,7 +13,7 @@
 
 using cgtl::Perm;
 using cgtl::PermGroup;
-using cgtl::SchreierSims;
+using cgtl::schreier_sims::Variant;
 
 using testing::ElementsAre;
 using testing::UnorderedElementsAre;
@@ -271,13 +271,12 @@ TEST(PermGroupTest, CanIterateElements)
     << "Iteration produces every element exactly once (explicit iterator).";
 }
 
-class SchreierSimsVariantTest :
-  public testing::TestWithParam<SchreierSims::Variant> {};
+class SchreierSimsVariantTest : public testing::TestWithParam<Variant> {};
 
 // TODO: test more groups
 TEST_P(SchreierSimsVariantTest, CanGenerateCorrectGroupElements)
 {
-  SchreierSims::Variant schreier_var = GetParam();
+  Variant schreier_var = GetParam();
 
   typedef std::vector<std::vector<std::vector<unsigned>>> elemset;
 
@@ -316,7 +315,7 @@ TEST_P(SchreierSimsVariantTest, CanGenerateCorrectGroupElements)
 }
 
 INSTANTIATE_TEST_CASE_P(SchreierSimsVariants, SchreierSimsVariantTest,
-  testing::Values(SchreierSims::SIMPLE, SchreierSims::RANDOM));
+  testing::Values(Variant::SIMPLE, Variant::RANDOM));
 
 class DisjointSubgroupProductTest :
   public testing::TestWithParam<std::pair<bool, bool>> {};

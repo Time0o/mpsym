@@ -13,8 +13,10 @@
 namespace cgtl
 {
 
-std::vector<std::vector<unsigned>> SchreierSims::orbits(
-  std::vector<Perm> const &generators)
+namespace schreier_sims
+{
+
+std::vector<std::vector<unsigned>> orbits(std::vector<Perm> const &generators)
 {
   unsigned n = generators[0].degree();
 
@@ -52,8 +54,8 @@ std::vector<std::vector<unsigned>> SchreierSims::orbits(
   return res;
 }
 
-std::vector<unsigned> SchreierSims::orbit(unsigned alpha,
-  std::vector<Perm> const &generators, SchreierTree &st)
+std::vector<unsigned> orbit(
+  unsigned alpha, std::vector<Perm> const &generators, SchreierTree &st)
 {
   assert(generators.size() > 0u && "generator set not empty");
   assert(alpha <= generators[0].degree() && "alpha <= N");
@@ -85,8 +87,9 @@ std::vector<unsigned> SchreierSims::orbit(unsigned alpha,
   return result;
 }
 
-std::pair<Perm, unsigned> SchreierSims::strip(Perm const &perm,
-  std::vector<unsigned> const &base, std::vector<SchreierTree> const &sts)
+std::pair<Perm, unsigned> strip(
+  Perm const &perm, std::vector<unsigned> const &base,
+  std::vector<SchreierTree> const &sts)
 {
   Perm result(perm);
 
@@ -101,8 +104,9 @@ std::pair<Perm, unsigned> SchreierSims::strip(Perm const &perm,
   return std::make_pair(result, base.size() + 1u);
 }
 
-static void schreier_sims_init(std::vector<unsigned> &base,
-  std::vector<Perm> &generators, std::vector<SchreierTree> &sts,
+static void schreier_sims_init(
+  std::vector<unsigned> &base, std::vector<Perm> &generators,
+  std::vector<SchreierTree> &sts,
   std::vector<std::vector<Perm>> &strong_generators,
   std::vector<std::vector<unsigned>> &fundamental_orbits)
 {
@@ -175,8 +179,7 @@ static void schreier_sims_init(std::vector<unsigned> &base,
       }
     }
 
-    fundamental_orbits[i] =
-      SchreierSims::orbit(base[i], strong_generators[i], sts[i]);
+    fundamental_orbits[i] = orbit(base[i], strong_generators[i], sts[i]);
   }
 
   Dbg(Dbg::DBG) << "=== Initial values";
@@ -204,7 +207,7 @@ static void schreier_sims_finish(std::vector<unsigned> const &base,
   Dbg(Dbg::DBG) << "SGS = " << generators;
 }
 
-void SchreierSims::schreier_sims(std::vector<unsigned> &base,
+void schreier_sims(std::vector<unsigned> &base,
   std::vector<Perm> &generators, std::vector<SchreierTree> &sts)
 {
   Dbg(Dbg::DBG) << "Executing schreier sims algorithm";
@@ -292,9 +295,9 @@ top:
   schreier_sims_finish(base, generators, strong_generators);
 }
 
-void SchreierSims::schreier_sims_random(std::vector<unsigned> &base,
-  std::vector<Perm> &generators, std::vector<SchreierTree> &sts,
-  unsigned w)
+void schreier_sims_random(
+  std::vector<unsigned> &base, std::vector<Perm> &generators,
+  std::vector<SchreierTree> &sts, unsigned w)
 {
   Dbg(Dbg::DBG) << "Executing (random) schreier sims algorithm";
 
@@ -363,5 +366,7 @@ void SchreierSims::schreier_sims_random(std::vector<unsigned> &base,
 
   schreier_sims_finish(base, generators, strong_generators);
 }
+
+} // namespace schreier_sims
 
 } // namespace cgtl

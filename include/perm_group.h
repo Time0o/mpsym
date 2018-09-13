@@ -62,7 +62,7 @@ public:
    * \sa SchreierSims, BSGS
    */
   PermGroup(unsigned degree, std::vector<Perm> const &generators,
-    SchreierSims::Variant schreier_sims_method = SchreierSims::SIMPLE);
+    schreier_sims::Variant schreier_sims_method = schreier_sims::SIMPLE);
 
   /** Check two permutation groups for equality.
    *

@@ -9,6 +9,9 @@
 namespace cgtl
 {
 
+namespace schreier_sims
+{
+
 struct SchreierTree
 {
   SchreierTree(unsigned degree) : _degree(degree) {}
@@ -45,17 +48,18 @@ struct SchreierTree
     return result;
   }
 
-  //std::vector<Perm> transversals(std::vector<unsigned> const &origins) const;
-
   bool contains(unsigned node) const {
     return (node == _root) || (_edges.find(node) != _edges.end());
   }
 
+private:
   unsigned _degree;
   unsigned _root;
   std::map<unsigned, unsigned> _edges;
   std::map<unsigned, Perm> _labels;
 };
+
+} // namespace schreier_sims
 
 } // namespace cgtl
 

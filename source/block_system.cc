@@ -365,7 +365,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
 
   Dbg(Dbg::TRACE) << "Generators stabilizing first base element: " << stab;
 
-  std::vector<std::vector<unsigned>> stab_orbits = SchreierSims::orbits(stab);
+  std::vector<std::vector<unsigned>> stab_orbits = schreier_sims::orbits(stab);
   Dbg(Dbg::TRACE) << "Orbit decomposition of associated group is: " << stab_orbits;
 
   std::vector<BlockSystem> res;
