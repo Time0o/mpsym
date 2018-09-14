@@ -6,7 +6,6 @@
 
 #include "perm.h"
 #include "schreier_sims.h"
-#include "schreier_tree.h"
 
 namespace cgtl
 {

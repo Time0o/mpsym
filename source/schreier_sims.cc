@@ -7,7 +7,6 @@
 #include "dbg.h"
 #include "perm.h"
 #include "pr_randomizer.h"
-#include "schreier_tree.h"
 #include "schreier_sims.h"
 
 namespace cgtl

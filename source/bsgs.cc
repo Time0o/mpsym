@@ -1,9 +1,9 @@
+#include <map>
 #include <utility>
 #include <vector>
 
 #include "bsgs.h"
 #include "perm.h"
-#include "schreier_tree.h"
 #include "schreier_sims.h"
 
 namespace cgtl
