@@ -324,7 +324,7 @@ BlockSystem BlockSystem::minimal(std::vector<Perm> const &generators,
 std::vector<BlockSystem> BlockSystem::non_trivial(
   PermGroup const &pg, bool assume_transitivity)
 {
-  assert((!assume_transitivity || pg.transitive()) &&
+  assert((!assume_transitivity || pg.is_transitive()) &&
     "transitivity assumption correct");
 
   Dbg(Dbg::DBG) << "Finding all non-trivial block systems for:";
