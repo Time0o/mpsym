@@ -1,14 +1,3 @@
-/**
- * @file eemp.h
- * @brief Inverse semigroup of partial permutations auxiliary functions.
- *
- * This file defines several auxiliary functions used behind the scenes of
- * PartialPermInverseSemigroup. All functions and their implementations are
- * based on \cite east16.
- *
- * @author Timo Nicolai
- */
-
 #ifndef _GUARD_EEMP_H
 #define _GUARD_EEMP_H
 
@@ -19,16 +8,39 @@
 #include "partial_perm.h"
 #include "perm_group.h"
 
+/**
+ * @file eemp.h
+ * @brief Definitions related to inverse semigroups of partial permutations.
+ *
+ * This file defines several auxiliary functions used behind the scenes of
+ * PartialPermInverseSemigroup. All functions and their implementations are
+ * based on \cite east16.
+ *
+ * @author Timo Nicolai
+ */
+
 namespace cgtl
 {
 
 namespace eemp
 {
 
+/** Schreier tree data structure.
+ *
+ * Describes an OrbitGraph spanning tree. Similar to, but not to be confused
+ * with cgtl::schreier_sims::SchreierTree. Should be treated as opaque by
+ * functions other than those defined in eemp.h.
+ */
 struct SchreierTree {
   std::vector<std::pair<unsigned, unsigned>> data;
 };
 
+/** Orbit graph data structure.
+ *
+ * Describes an *orbit graph* according to the description of
+ * action_component(). Should be treated as opaque by functions other than
+ * those defined in eemp.h.
+ */
 struct OrbitGraph {
   std::vector<std::vector<unsigned>> data;
 };
@@ -47,15 +59,14 @@ struct OrbitGraph {
  * orbit graph rooted at the node corresponding to \f$\alpha\f$ (in most cases
  * there are several possible such spanning trees, this function makes no
  * guarantees about which one is returned). Orbit graph and Schreier tree can
- * be treated as blackboxes by code which uses the functions defined in this
- * header.
+ * be treated as opaque by code which uses the functions defined in this header.
  *
  * \param alpha
- *     a set of elements in form of a vector, the first element in the
+ *     a set of elements in the form of a vector, the first element in the
  *     resulting action component and root of the resulting orbit graph and
  *     Schreier tree
  *
- * \param generators a set of partial permutations in form of a vector
+ * \param generators a set of partial permutations in the form of a vector
  *
  * \param dom_max
  *     the maximum over the values `PartialPerm::dom_max()` of all generators
@@ -65,7 +76,7 @@ struct OrbitGraph {
  *
  * \param[out] orbit_graph the resulting orbit graph
  *
- * \return the resulting action component in form of a vector of vectors,
+ * \return the resulting action component in form of a vector of vectors;
  *         Schreier tree and orbit graph are internally represented using
  *         indices into this vector and are thus only meaningful in combination
  *         with it
@@ -77,17 +88,17 @@ std::vector<std::vector<unsigned>> action_component(
 
 /** Find the *strongly connected components* of an orbit graph.
  *
- * The strongly connected components (short s.c.c.'s) are sets of nodes
- * partitioning the orbit graph such that all nodes in a strongly connected
- * components can be directly or indirectly reached from every other node in the
- * strongly connected component.
+ * The strongly connected components (short s.c.c.'s) are a partition of the
+ * orbit graph such that all nodes in a strongly connected components can be
+ * directly or indirectly reached from every other node in the strongly
+ * connected component.
  *
- * \param orbit_graph orbit graph for which the s.c.c.'s are to be determined.
+ * \param orbit_graph orbit graph for which the s.c.c.'s are to be determined
  *
  * \return a pair in which the first element is the number of resulting s.c.c's
  *         and the second element is a vector containing as many elements as
  *         there are nodes in the orbit graph (and thus elements in the
- *         corresponding action_component) in which two elements have the same
+ *         corresponding action component) in which two elements have the same
  *         value if and only if the nodes corresponding to their indices in the
  *         vector lie in the same s.c.c.
  *
@@ -109,7 +120,7 @@ std::pair<unsigned, std::vector<unsigned>> strongly_connected_components(
  * \param i
  *     the resulting spanning tree will be calculated for the s.c.c. with index
  *     `i` (i.e. all the elements at indices corresponding to elements in the
- *     s.c.c. given by argument `scc` have value `i`)
+ *     s.c.c. given by the `scc` argument have value `i`)
  *
  * \param orbit_graph the orbit graph
  *
@@ -156,7 +167,8 @@ PartialPerm schreier_trace(
   std::vector<PartialPerm> const &generators, unsigned dom_max,
   unsigned target = 0u);
 
-/** Compute the *Schreier generators* for an one of an orbit graph's s.c.c.'s.
+/** Compute the *Schreier generators* for one strongly connected component of an
+ *  orbit graph.
  *
  * The Schreier generators form a permutation group, for details on their
  * theoretical significance see \cite east16.
@@ -232,9 +244,9 @@ std::ostream& operator<<(
  *
  * \param stream a stream object
  *
- * \param schreier_tree the orbit graph
+ * \param orbit_graph the orbit graph
  *
- * \return `stream`
+ * \return a reference to `stream`
  */
 std::ostream& operator<<(
   std::ostream& stream, OrbitGraph const &orbit_graph);

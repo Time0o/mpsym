@@ -1,9 +1,3 @@
-/**
- * @file partial_perm.h
- * @author Timo Nicolai
- * @brief A class representation of partial permutation over positive integers.
- */
-
 #ifndef _GUARD_PARTIAL_PERM_H
 #define _GUARD_PARTIAL_PERM_H
 
@@ -12,6 +6,13 @@
 #include <vector>
 
 #include "perm.h"
+
+/**
+ * @file partial_perm.h
+ * @author Timo Nicolai
+ *
+ * @brief Defines `PartialPerm`.
+ */
 
 namespace cgtl
 {
@@ -23,6 +24,8 @@ class PartialPerm;
 namespace std
 {
 
+/** A partial permutation hash functor.
+ */
 template<>
 struct hash<cgtl::PartialPerm>
 {
@@ -200,7 +203,29 @@ private:
   bool _id;
 };
 
+/** Print a partial permutation.
+ *
+ * Partial permutations are represented in the chain/cycle notation commonly
+ * found in mathematical literature.
+ *
+ * \param stream a stream object
+ *
+ * \param pperm a `PartialPerm` object
+ *
+ * \return a reference to `stream`
+ */
 std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm);
+
+/** Chain two partial permutations together.
+ *
+ * \param lhs a `PartialPerm` object representing a partial permuation \f$f\f$
+ *
+ * \param rhs a `PartialPerm` object representing a partial permuation \f$g\f$
+ *
+ * \return a `PartialPerm` object representing the partial permuation
+ *         \f$g \cdot f\f$ with \f$(g \cdot f)(x) = g(f(x)) \in
+ *         im(g|_{im(f)})\f$ for \f$x \in dom(f)\f$
+ */
 PartialPerm operator*(PartialPerm const &lhs, PartialPerm const &rhs);
 
 } // namespace cgtl

@@ -17,21 +17,22 @@
 #include "perm.h"
 #include "util.h"
 
+/**
+ * @file partial_perm_inverse_semigroup.cc
+ * @author Timo Nicolai
+ *
+ * @brief Implements `PartialPermInverseSemigroup`.
+ */
+
 namespace cgtl
 {
 
-PartialPermInverseSemigroup::PartialPermInverseSemigroup() : _empty(true) {}
+PartialPermInverseSemigroup::PartialPermInverseSemigroup() : _trivial(true) {}
 
 PartialPermInverseSemigroup::PartialPermInverseSemigroup(
-  std::vector<PartialPerm> const &generators) : _generators(generators)
+  std::vector<PartialPerm> const &generators)
+    : _trivial(generators.empty()), _generators(generators)
 {
-  if (_generators.empty()) {
-    _empty = true;
-    return;
-  } else {
-    _empty = false;
-  }
-
   unsigned dom_max = 0u;
   for (PartialPerm const &gen : generators)
     dom_max = std::max(dom_max, gen.dom_max());
@@ -65,10 +66,15 @@ bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
   Dbg(Dbg::DBG) << "in inverse semigroup with generators:";
   Dbg(Dbg::DBG) << _generators;
 
-  if (_empty) {
+  if (_trivial) {
     Dbg(Dbg::TRACE) << "Inverse semigroup is empty";
-    Dbg(Dbg::DBG) << "==> Not an element";
-    return false;
+    if (pperm.empty()) {
+      Dbg(Dbg::DBG) << "==> Not an element";
+      return true;
+    } else {
+      Dbg(Dbg::DBG) << "==> Not an element";
+      return false;
+    }
   }
 
   auto im(pperm.im());
@@ -115,7 +121,7 @@ bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
     PartialPerm tmp_pperm(~x * pperm * ~u);
     if (tmp_pperm.id()) {
       Dbg(Dbg::TRACE) << "=> " << tmp_pperm << " is identity";
-      Dbg(Dbg::DBG) << "==> element";
+      Dbg(Dbg::DBG) << "==> Element";
       return true;
     }
 
@@ -123,7 +129,7 @@ bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
 
     if (z_n.schreier_generators.is_element(tmp_perm)) {
       Dbg(Dbg::TRACE) << "=> " << tmp_perm << " is contained in Sx";
-      Dbg(Dbg::DBG) << "==> element";
+      Dbg(Dbg::DBG) << "==> Element";
       return true;
     }
 #ifndef NDEBUG
@@ -138,15 +144,15 @@ bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
 }
 
 void PartialPermInverseSemigroup::adjoin(
-  std::vector<PartialPerm> const &generators,
-  bool minimize, bool check_redundancy)
+  std::vector<PartialPerm> const &generators, bool minimize)
 {
-  assert(!(minimize && !check_redundancy && "valid parameter combination"));
-
   Dbg(Dbg::DBG) << "Adjoining generators: " << generators;
   Dbg(Dbg::DBG) << "to inverse semigroups with generators: " << _generators;
 
-  if (_empty) {
+  if (generators.empty())
+    return;
+
+  if (_trivial) {
     Dbg(Dbg::TRACE) << "==> Creating new inverse semigroup";
     *this = PartialPermInverseSemigroup(generators);
     return;
@@ -155,21 +161,6 @@ void PartialPermInverseSemigroup::adjoin(
   Dbg(Dbg::TRACE) << "=== Adjoining new generators";
 
   if (!minimize) {
-    if (check_redundancy) {
-      bool all_elements = true;
-      for (auto const &gen : generators) {
-        if (!is_element(gen)) {
-          all_elements = false;
-          break;
-        }
-      }
-
-      if (all_elements) {
-        Dbg(Dbg::TRACE) << "==> All generators are already elements";
-        return;
-      }
-    }
-
     update_action_component(generators);
 
     _generators.insert(_generators.end(), generators.begin(), generators.end());

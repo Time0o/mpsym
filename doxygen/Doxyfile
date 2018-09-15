@@ -714,7 +714,9 @@ LAYOUT_FILE            =
 # LATEX_BIB_STYLE. To use this feature you need bibtex and perl available in the
 # search path. See also \cite for info how to create references.
 
-CITE_BIB_FILES         = holt05.bib donaldson09.bib east16.bib
+CITE_BIB_FILES         = @DOC_DOXYGEN_IN_DIR@/bib/holt05 \
+						 @DOC_DOXYGEN_IN_DIR@/bib/donaldson09.bib \
+                         @DOC_DOXYGEN_IN_DIR@/bib/east16.bib
 
 #---------------------------------------------------------------------------
 # Configuration options related to warning and progress messages
@@ -793,7 +795,8 @@ WARN_LOGFILE           =
 
 INPUT                  = @SRC_DIR@ \
                          @INCLUDE_DIR@ \
-                         @DOC_DOXYGEN_IN_DIR@
+                         @DOC_DOXYGEN_IN_DIR@ \
+                         @DOC_DOXYGEN_IN_DIR@/dox
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -998,7 +1001,7 @@ USE_MDFILE_AS_MAINPAGE =
 # also VERBATIM_HEADERS is set to NO.
 # The default value is: NO.
 
-SOURCE_BROWSER         = NO
+SOURCE_BROWSER         = YES
 
 # Setting the INLINE_SOURCES tag to YES will include the body of functions,
 # classes and enums directly into the documentation.

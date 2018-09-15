@@ -14,6 +14,13 @@
 #include "schreier_sims.h"
 #include "util.h"
 
+/**
+ * @file perm_group.cc
+ * @brief Implements `PermGroup`.
+ *
+ * @author Timo Nicolai
+ */
+
 namespace cgtl
 {
 

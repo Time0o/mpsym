@@ -37,7 +37,7 @@ protected:
 
     auto tmp(strongly_connected_components(orbit_graph));
     scc = tmp.second;
-    scc_expanded = expand_partition(scc);
+    scc_expanded = expand_partition<unsigned>(scc);
   }
 
   std::vector<unsigned> const dom {1, 2, 3, 4, 5, 6, 7, 8, 9};

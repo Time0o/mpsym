@@ -7,6 +7,13 @@
 #include "perm.h"
 #include "util.h"
 
+/**
+ * @file perm.cc
+ * @brief Implements `Perm`.
+ *
+ * @author Timo Nicolai
+ */
+
 namespace cgtl
 {
 

@@ -9,6 +9,13 @@
 #include "pr_randomizer.h"
 #include "schreier_sims.h"
 
+/**
+ * @file schreier_sims.cc
+ * @brief Implements data structures and functions defined in schreier_sims.h.
+ *
+ * @author Timo Nicolai
+ */
+
 namespace cgtl
 {
 

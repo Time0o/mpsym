@@ -8,9 +8,23 @@
 #include "perm.h"
 #include "schreier_sims.h"
 
+/**
+ * @file perm_group.h
+ * @brief Defines `PermGroup`.
+ *
+ * @author Timo Nicolai
+ */
+
 namespace cgtl
 {
 
+/** A permutation group representation.
+ *
+ * This class provides a useful abstraction encapsulating several complex
+ * algorithms and data structures used to efficiently represent a permutation
+ * group defined by a set of generating permutations without the need to store
+ * elements explicitely for very large groups.
+ */
 class PermGroup
 {
 public:
@@ -49,7 +63,7 @@ public:
    * Constructs a permutation group representation from a given set of
    * generating permutations. The generators and group elements might not be
    * stored explicitly in the resulting object. Instead some variation of the
-   * *Schreier Sims* algorithm (see \cite holt05, chapter 4.4.2) might be used
+   * *Schreier-Sims* algorithm (see \cite holt05, chapter 4.4.2) might be used
    * to compute a *base* and *strong generating* set for the group which
    * describes the group completely and can be used to, among others, test
    * element membership and iterate through all group elements efficiently.
@@ -59,7 +73,11 @@ public:
                    they map from the set \f$\{1, \dots, degree\}\f$ to itself)
                    otherwise this constructor's behaviour is undefined
    * \param generators a generating set for the permutation group
-   * \sa SchreierSims, BSGS
+   *
+   * \param schreier_sims_method
+   *     determines which variant of the Schreier-Sims algorithms is used to
+   *     construct the internal group representation, might influence this
+   *     constructor's runtime
    */
   PermGroup(unsigned degree, std::vector<Perm> const &generators,
     schreier_sims::Variant schreier_sims_method = schreier_sims::SIMPLE);
@@ -74,7 +92,6 @@ public:
    *
    * \return `true`, if `*this` and `rhs` describe permutation groups containing
    *         the same elements, else `false`
-   * \sa BSGS
    */
   bool operator==(PermGroup const &rhs) const;
 
@@ -84,7 +101,6 @@ public:
    *
    * \return `true`, if `*this` and `rhs` describe permutation groups not
    *         containing the same elements, else `false`
-   * \sa operator==()
    */
   bool operator!=(PermGroup const &rhs) const;
 
@@ -161,16 +177,6 @@ public:
    */
   unsigned order() const { return _order; }
 
-  /** Obtain a permutation group's base and strong generating set.
-   *
-   * This function is only meaningful is the permutation group's elements are
-   * not stored explicitely, which can be determined via TODO.
-   *
-   * \return a BSGS object representing this permutation group's base and strong
-   *         generating set
-   */
-  BSGS bsgs() const { return _bsgs; }
-
   /** Check whether a permutation group is *trivial*.
    *
    * A permutation group is trivial by definition if it only contains an
@@ -192,6 +198,31 @@ public:
    */
   bool transitive() const;
 
+  /** Obtain a permutation group's base and strong generating set.
+   *
+   * This function is only meaningful is the permutation group's elements are
+   * not stored explicitely, which can be determined via TODO.
+   *
+   * \return a BSGS object representing this permutation group's base and strong
+   *         generating set
+   */
+  BSGS bsgs() const { return _bsgs; }
+
+  /** Return a permutation group's orbit partition.
+   *
+   * The *orbit* of a group element \f$g \in G\f$ where \f$G\f$ acts on the set
+   * \f$\Omega\f$ is the set \f$G(x) = \{x^g \mid g \in G\}\f$. This function
+   * returns the set \f$\{\{x^g \mid g \in G\} \mid x \in \Omega\}\f$ which
+   * contains every possible element orbit and is always a partition of \f$G\f$.
+   *
+   * \return this permutation group's orbit partition as a vector of vectors
+   *         where each element vector contains all elements in one of the
+   *         possible element orbits (sorted in ascending order) and the element
+   *         vectors themselves are sorted by their the smallest element (in
+   *         ascending order)
+   */
+  std::vector<std::vector<unsigned>> orbits() const;
+
   /** Check whether a permutation group contains a given permutation.
    *
    * Note that the group's elements may not be stored explicitly so while
@@ -211,21 +242,6 @@ public:
    * \return some element \f$x\f$ of this permutation group
    */
   Perm random_element() const;
-
-  /** Return a permutation group's orbit partition.
-   *
-   * The *orbit* of an element \f$g\f$ of the group \f$G\f$ is the set \f$G(x)
-   * = \{g \cdot x \in \{1, \dots, n\}\} : g \in G\}\f$ (where \f$n\f$ is the
-   * group's degree()). This function returns the "set" containing every
-   * possible element orbit which always a partition of \f$G\f$.
-   *
-   * \return this permutation group's orbit partition as a vector of vectors
-   *         where each element vector contains all elements in one of the
-   *         possible element orbits (sorted in ascending order) and the element
-   *         vectors themselves are sorted by their the smallest element (in
-   *         ascending order)
-   */
-  std::vector<std::vector<unsigned>> orbits() const;
 
   /** Find a *disjoint subgroup decomposition* of a permutation group
    *

@@ -1,0 +1,16 @@
+/**
+ * @namespace cgtl
+ * The project's main namespace.
+ */
+
+/**
+ * @namespace eemp
+ * A sub-namespace containing auxiliary functions for dealing with inverse
+ * semigroups of partial permutations.
+ */
+
+/**
+ * @namespace schreier_sims
+ * A sub-namespace containing functions related to the implementation of the
+ * *Schreier Sims* algorithm.
+ */

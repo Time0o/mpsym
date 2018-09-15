@@ -9,6 +9,13 @@
 #include "perm.h"
 #include "util.h"
 
+/**
+ * @file partial_perm.cc
+ * @author Timo Nicolai
+ *
+ * @brief Implements `PartialPerm`.
+ */
+
 namespace cgtl
 {
 

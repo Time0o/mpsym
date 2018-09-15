@@ -20,6 +20,13 @@
 #include "perm_group.h"
 #include "util.h"
 
+/**
+ * @file eemp.cc
+ * @brief Implements data structures and functions defined in eemp.h
+ *
+ * @author Timo Nicolai
+ */
+
 namespace cgtl
 {
 
@@ -449,7 +456,7 @@ std::ostream& operator<<(
   }
 
   auto tmp(strongly_connected_components(orbit_graph));
-  auto scc(expand_partition(tmp.second));
+  auto scc(expand_partition<unsigned>(tmp.second));
 
   stream << "s.c.c." << std::string(pad - 1u, ' ') << " | {";
   for (auto i = 0u; i < scc.size(); ++i) {

@@ -6,6 +6,13 @@
 #include "perm.h"
 #include "pr_randomizer.h"
 
+/**
+ * @file pr_randomizer.cc
+ * @brief Implements `PrRandomizer`.
+ *
+ * @author Timo Nicolai
+ */
+
 namespace cgtl
 {
 

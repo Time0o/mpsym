@@ -1,10 +1,3 @@
-/*
- * @file perm.h
- * @brief Defines `Perm`.
- *
- * @author Timo Nicolai
- */
-
 #ifndef _GUARD_PERM_H
 #define _GUARD_PERM_H
 
@@ -12,6 +5,13 @@
 #include <functional>
 #include <ostream>
 #include <vector>
+
+/**
+ * @file perm.h
+ * @brief Defines `Perm`.
+ *
+ * @author Timo Nicolai
+ */
 
 namespace cgtl
 {
