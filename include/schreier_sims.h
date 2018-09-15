@@ -183,13 +183,16 @@ std::vector<std::vector<unsigned>> orbits(std::vector<Perm> const &generators);
  *     a vector of `Perm` objects describing a generating set for the
  *     permutation group \f$G\f$
  *
- * \param[out] st the Schreier tree storing the orbit transversals
+ * \param[out] st
+ *     a pointer to a preallocated Schreier tree which will store the orbit
+ *     transversals after the execution of this function, provided
+ *     `st != nullptr`
  *
  * \return the orbit \f$G(x)\f$ as described above in the form of an ordered
  *         vector of positive integers \f$\in \Omega\f$
  */
 std::vector<unsigned> orbit(
-  unsigned x, std::vector<Perm> const &generators, SchreierTree &st);
+  unsigned x, std::vector<Perm> const &generators, SchreierTree *st = nullptr);
 
 /** Test membership of an arbitrary element in \f$Sym(\Omega)\f$ in a
  *  permutation group \f$G\f$ acting on \f$\Omega\f$.

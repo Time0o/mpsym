@@ -16,13 +16,17 @@
 namespace cgtl
 {
 
-/** A class encapsulation of the product replacement algorithm.
+/** A class encapsulation of the product replacement algorithm and
+ *  \f$S_n\f$/\f$A_n\f$ testing.
  *
  * The product replacement algorithm is used for the generation of random
  * permutation group elements from a set of generating permutations (i.e.
- * without the need for a base and strong generating set). It is e.g. utilized
- * in the implementation of the random Schreier Sims algorithm. For details
- * on the product replacement algorithm see \cite holt05.
+ * without the need for a BSGS). It is utilized in the implementation of the
+ * random Schreier Sims algorithm. This class also implements Monte Carlo
+ * algorithms for checking whether a given generating set of permutations
+ * produces a symmetric or alternating permutation group. For details on the
+ * product replacement algorithm and \f$S_n\f$/\f$A_n\f$ testing, see \cite
+ * holt05.
  */
 class PrRandomizer
 {
@@ -66,9 +70,73 @@ public:
    */
   Perm next();
 
+  /** Test whether a permutation group is a symmetric group without the need to
+   *  construct a BSGS.
+   *
+   * This test is probabilistic, a positive result is guaranteed to be correct,
+   * a negative result is incorrect with a certain probability `epsilon`. Note
+   * that this function's behaviour is undefined if the group described by the
+   * generating set represented by `generators` has `degree < 8u`.
+   *
+   * \param generators
+   *     a vector of `Perm` objects representing a generating set for the
+   *     permutation \f$G\f$ acting on \f$\{1, \dots, n\}\f$ which is to be
+   *     checked for equality with \f$S_n\f$. If \f$n < 8\f$ this function's
+   *     behaviour is undefined
+   *
+   * \param prr
+   *     a `PrRandomizer` object. This object must have been initialized with
+   *     the same vector of `Perm` object that is passed as the first argument
+   *     to this function, otherwise this function's behaviour is undefined
+   *
+   * \param epsilon
+   *     probability that a return value of `false` is incorrect, lower values
+   *     of epsilon might increase this function's runtime.
+   *
+   * \return `true` (or `false` with probability `epsilon`) if the generators
+   *         passed as an argument to this object's constructor represent a
+   *         generating set for a symmetric permutation group, else `false`.
+   */
+  static bool test_symmetric(
+    std::vector<Perm> const &generators, PrRandomizer &prr, double epsilon = 1e-6);
+
+  /** Test whether a permutation group is an alternating group without the need
+   *  to construct a BSGS.
+   *
+   * This test is probabilistic, a positive result is guaranteed to be correct,
+   * a negative result is incorrect with a certain probability `epsilon`. Note
+   * that this function's behaviour is undefined if the group described by the
+   * generating set represented by `generators` has `degree < 8u`.
+   *
+   * \param generators
+   *     a vector of `Perm` objects representing a generating set for the
+   *     permutation \f$G\f$ acting on \f$\{1, \dots, n\}\f$ which is to be
+   *     checked for equality with \f$A_n\f$. If \f$n < 8\f$ this function's
+   *     behaviour is undefined
+   *
+   * \param prr
+   *     a `PrRandomizer` object. This object must have been initialized with
+   *     the same vector of `Perm` object that is passed as the first argument
+   *     to this function, otherwise this function's behaviour is undefined
+   *
+   * \param epsilon
+   *     probability that a return value of `false` is incorrect, lower values
+   *     of epsilon might increase this function's runtime.
+   *
+   * \return `true` (or `false` with probability `epsilon`) if the generators
+   *         passed as an argument to this object's constructor represent a
+   *         generating set for an alternating  permutation group, else `false`.
+   */
+  static bool test_alternating(
+    std::vector<Perm> const &generators, PrRandomizer &prr, double epsilon = 1e-6);
+
 private:
+  static bool test_altsym(
+    std::vector<Perm> const &generators, PrRandomizer &prr, double epsilon);
+
+  static bool generators_even(std::vector<Perm> const &generators);
+
   std::vector<Perm> _gens;
-  unsigned _iterations;
 };
 
 } // namespace cgtl

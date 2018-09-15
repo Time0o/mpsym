@@ -61,13 +61,15 @@ std::vector<std::vector<unsigned>> orbits(std::vector<Perm> const &generators)
 }
 
 std::vector<unsigned> orbit(
-  unsigned alpha, std::vector<Perm> const &generators, SchreierTree &st)
+  unsigned alpha, std::vector<Perm> const &generators, SchreierTree *st)
 {
   assert(generators.size() > 0u && "generator set not empty");
   assert(alpha <= generators[0].degree() && "alpha <= N");
 
   std::vector<unsigned> result {alpha};
-  st.create_root(alpha);
+
+  if (st)
+    st->create_root(alpha);
 
   std::vector<unsigned> stack {alpha};
   std::set<unsigned> done {alpha};
@@ -85,7 +87,8 @@ std::vector<unsigned> orbit(
         done.insert(beta_prime);
         stack.push_back(beta_prime);
 
-        st.create_edge(beta_prime, beta, generators[i]);
+        if (st)
+          st->create_edge(beta_prime, beta, generators[i]);
       }
     }
   }
@@ -185,7 +188,7 @@ static void schreier_sims_init(
       }
     }
 
-    fundamental_orbits[i] = orbit(base[i], strong_generators[i], sts[i]);
+    fundamental_orbits[i] = orbit(base[i], strong_generators[i], &sts[i]);
   }
 
   Dbg(Dbg::DBG) << "=== Initial values";
@@ -284,7 +287,7 @@ top:
             strong_generators[j].push_back(strip_perm);
 
             fundamental_orbits[j] =
-              orbit(base[j], strong_generators[j], sts[j]);
+              orbit(base[j], strong_generators[j], &sts[j]);
 
             Dbg(Dbg::TRACE) << "S(" << (j + 1u) << ") = " << strong_generators[j];
             Dbg(Dbg::TRACE) << "O(" << (j + 1u) << ") = " << fundamental_orbits[j];
@@ -359,7 +362,7 @@ void schreier_sims_random(
 
       for (unsigned i = 1u; i < strip_level; ++i) {
         strong_generators[i].push_back(strip_perm);
-        fundamental_orbits[i] = orbit(base[i], strong_generators[i], sts[i]);
+        fundamental_orbits[i] = orbit(base[i], strong_generators[i], &sts[i]);
 
         Dbg(Dbg::TRACE) << "S(" << (i + 1u) << ") = " << strong_generators[i];
         Dbg(Dbg::TRACE) << "O(" << (i + 1u) << ") = " << fundamental_orbits[i];

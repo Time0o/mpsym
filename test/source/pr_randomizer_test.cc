@@ -75,3 +75,45 @@ TEST_F(PRRandomizerTest, DistributionApproximatelyUniform)
     }
   }
 }
+
+TEST_F(PRRandomizerTest, CanTestForAltSym)
+{
+  auto symmetric_generators = [](unsigned n) {
+    if (n == 1u)
+      return std::vector<Perm> {Perm(1u)};
+
+    std::vector<unsigned> chain;
+    for (unsigned i = 1u; i <= n; ++i)
+      chain.push_back(i);
+
+    return std::vector<Perm> {Perm(n, {{1, 2}}), Perm(n, {chain})};
+  };
+
+  auto alternating_generators = [](unsigned n) {
+    std::vector<Perm> gens;
+    for (unsigned i = 3u; i <= n; ++i)
+      gens.push_back(Perm(n, {{1, 2, i}}));
+
+    return gens;
+  };
+
+  for (unsigned i = 8u; i < 100u; ++i) {
+    auto gens_symmetric(symmetric_generators(i));
+    PrRandomizer pr_symmetric(gens_symmetric);
+
+    auto gens_alternating(alternating_generators(i));
+    PrRandomizer pr_alternating(gens_alternating);
+
+    EXPECT_TRUE(PrRandomizer::test_symmetric(gens_symmetric, pr_symmetric))
+      << "Can identify symmetric generating sets.";
+
+    EXPECT_FALSE(PrRandomizer::test_symmetric(gens_alternating, pr_alternating))
+      << "Can identify non-symmetric generating sets.";
+
+    EXPECT_TRUE(PrRandomizer::test_alternating(gens_alternating, pr_alternating))
+      << "Can identify alternating generating sets.";
+
+    EXPECT_FALSE(PrRandomizer::test_alternating(gens_symmetric, pr_symmetric))
+      << "Can identify non-alternating generating sets.";
+  }
+}
