@@ -106,19 +106,31 @@ public:
 
   /** Construct a symmetric permutation group
    *
-   * \return degree degree \f$n\f$ of the resulting group \f$S_n\f$
+   * \param degree
+   *     degree \f$n\f$ of the resulting group, for `degree == 0u` this
+   *     functions behaviour is undefined
+   *
+   * \return the symmetric group \f$S_n\f$
    */
   static PermGroup symmetric(unsigned degree);
 
   /** Construct a cyclic permutation group
    *
-   * \return degree degree \f$n\f$ of the resulting group \f$C_n\f$
+   * \param degree
+   *     degree \f$n\f$ of the resulting group, for `degree == 0u` this
+   *     functions behaviour is undefined
+   *
+   * \return the cyclic group \f$C_n\f$
    */
   static PermGroup cyclic(unsigned degree);
 
   /** Construct an alternating permutation group
    *
-   * \return degree degree \f$n\f$ of the resulting group \f$A_n\f$
+   * \param degree
+   *     degree \f$n\f$ of the resulting group, for `degree < 2u` this functions
+   *     behaviour is undefined
+   *
+   * \return the alternating group \f$A_n\f$
    */
   static PermGroup alternating(unsigned degree);
 
@@ -185,7 +197,22 @@ public:
    *
    * \return `true` if this permutation group is trivial, else `false`
    */
-  bool trivial() const { return _bsgs.trivial(); }
+  bool is_trivial() const { return _bsgs.trivial(); }
+
+  /** Check whether a permutation group is symmetric.
+   *
+   * \return `true` if the permutation group \f$G \leq Sym(\Omega)\f$
+   *          represented by this object is in fact equal to \f$Sym(\Omega)\f$,
+   *          else `false`
+   */
+  bool is_symmetric() const;
+
+  /** Check whether a permutation group is symmetric.
+   *
+   * \return `true` if the permutation group \f$G \leq S_n\f$ represented by
+   *          this object is the alternating group \f$A_n\f$, else `false`
+   */
+  bool is_alternating() const;
 
   /** Check whether a permutation group is *transitive*.
    *
@@ -196,7 +223,7 @@ public:
    *
    * \return `true` if this permutation group is transitive, else `false`.
    */
-  bool transitive() const;
+  bool is_transitive() const;
 
   /** Obtain a permutation group's base and strong generating set.
    *
@@ -231,7 +258,7 @@ public:
    * \return `true` if this permutation group contains the permutation `perm`,
    *         else `false`
    */
-  bool is_element(Perm const &perm) const;
+  bool contains_element(Perm const &perm) const;
 
   /** Construct a random group element.
    *

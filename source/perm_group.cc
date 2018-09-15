@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cassert>
+#include <climits>
 #include <ctime>
 #include <random>
 #include <set>
@@ -46,7 +47,7 @@ bool PermGroup::operator==(PermGroup const &rhs) const
     return false;
 
   for (Perm const &gen : rhs.bsgs().sgs()) {
-    if (!is_element(gen))
+    if (!contains_element(gen))
       return false;
   }
 
@@ -94,7 +95,38 @@ PermGroup PermGroup::alternating(unsigned degree)
   return PermGroup(degree, gens);
 }
 
-bool PermGroup::transitive() const
+bool PermGroup::is_symmetric() const
+{
+  if (_n == 1u)
+    return true;
+
+  unsigned buf = 1u;
+  for (unsigned i = _n; i > 0; --i) {
+    assert(buf <= UINT_MAX / i);
+    buf *= i;
+  }
+
+  return _order == buf;
+}
+
+bool PermGroup::is_alternating() const
+{
+  if (_n == 1u)
+    return false;
+
+  if (_n == 2u)
+    return _order == 1u;
+
+  unsigned buf = 1u;
+  for (unsigned i = _n; i > 2; --i) {
+    assert(buf <= UINT_MAX / i);
+    buf *= i;
+  }
+
+  return _order == buf;
+}
+
+bool PermGroup::is_transitive() const
 {
   std::vector<int> orbit_indices(_n + 1u, -1);
   orbit_indices[1] = 0;
@@ -127,7 +159,7 @@ std::vector<std::vector<unsigned>> PermGroup::orbits() const
   return schreier_sims::orbits(_bsgs.sgs());
 }
 
-bool PermGroup::is_element(Perm const &perm) const
+bool PermGroup::contains_element(Perm const &perm) const
 {
   assert(perm.degree() == _n && "element has same degree as group");
 
@@ -404,8 +436,8 @@ static std::vector<PermGroup> disjoint_decomposition_complete_recursive(
                       << restricted_gen1 << " / " << restricted_gen2;
 
       // if generator restricted to orbit partition is not a group member...
-      if (!pg.is_element(Perm(restricted_gen1)) ||
-          !pg.is_element(Perm(restricted_gen2))) {
+      if (!pg.contains_element(Perm(restricted_gen1)) ||
+          !pg.contains_element(Perm(restricted_gen2))) {
 
         recurse = false;
 
@@ -716,7 +748,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
 
       Perm reconstructed_gen(tmp_perm);
 
-      if (!block_permuter.is_element(reconstructed_gen)) {
+      if (!block_permuter.contains_element(reconstructed_gen)) {
         found_monomorphism = false;
         break;
       }

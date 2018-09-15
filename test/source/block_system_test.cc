@@ -101,7 +101,7 @@ TEST(BlockSystemTest, CanFindAllNonTrivialBlockSystemsForTransientGroup)
     }
   );
 
-  ASSERT_TRUE(pg.transitive())
+  ASSERT_TRUE(pg.is_transitive())
     << "Permutation group is actually transitive.";
 
   auto block_systems(BlockSystem::non_trivial(pg, true));
@@ -129,7 +129,7 @@ TEST(BlockSystemTest, CanFindAllNonTrivialBlockSystemsForNonTransientGroup)
     }
   );
 
-  ASSERT_FALSE(pg.transitive())
+  ASSERT_FALSE(pg.is_transitive())
     << "Permutation group is actually non-transitive.";
 
   auto block_systems(BlockSystem::non_trivial(pg));

@@ -336,7 +336,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial(
     transitive = true;
     Dbg(Dbg::DBG) << "Assuming transitivity";
   } else {
-    transitive = pg.transitive();
+    transitive = pg.is_transitive();
     Dbg(Dbg::DBG) << "Group " << (transitive ? "is" : "is not") << " transitive";
   }
 

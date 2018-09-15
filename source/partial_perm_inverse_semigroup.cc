@@ -127,7 +127,7 @@ bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
 
     Perm tmp_perm(tmp_pperm.to_perm(z_n.schreier_generators.degree()));
 
-    if (z_n.schreier_generators.is_element(tmp_perm)) {
+    if (z_n.schreier_generators.contains_element(tmp_perm)) {
       Dbg(Dbg::TRACE) << "=> " << tmp_perm << " is contained in Sx";
       Dbg(Dbg::DBG) << "==> Element";
       return true;

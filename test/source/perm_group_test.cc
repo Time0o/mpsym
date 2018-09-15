@@ -87,6 +87,22 @@ TEST(PermGroupTest, CanObtainOrder)
   }
 }
 
+TEST(PermGroupTest, CanCheckForSymmetricGroup)
+{
+  for (unsigned i = 1u; i < 10; ++i) {
+    EXPECT_TRUE(PermGroup::symmetric(i).is_symmetric())
+      << "Symmetric group correctly identified as such";
+  }
+}
+
+TEST(PermGroupTest, CanCheckForAlternatingGroup)
+{
+  for (unsigned i = 2u; i < 10; ++i) {
+    EXPECT_TRUE(PermGroup::alternating(i).is_alternating())
+      << "Alternating group correctly identified as such";
+  }
+}
+
 TEST(PermGroupTest, CanDetermineTrasitivity)
 {
   PermGroup transitive_group(9,
@@ -98,7 +114,7 @@ TEST(PermGroupTest, CanDetermineTrasitivity)
     }
   );
 
-  EXPECT_TRUE(transitive_group.transitive())
+  EXPECT_TRUE(transitive_group.is_transitive())
     << "Transitive group correctly identified as such.";
 
   PermGroup non_transitive_group(14,
@@ -114,7 +130,7 @@ TEST(PermGroupTest, CanDetermineTrasitivity)
     }
   );
 
-  EXPECT_FALSE(non_transitive_group.transitive())
+  EXPECT_FALSE(non_transitive_group.is_transitive())
     << "Non-transitive group correctly identified as such.";
 }
 
@@ -153,12 +169,12 @@ TEST(PermGroupTest, CanTestMembership)
   };
 
   for (Perm const &perm : expected_members) {
-    EXPECT_TRUE(a4.is_element(perm))
+    EXPECT_TRUE(a4.contains_element(perm))
       << "Membership test correctly identifies group member " << perm;
   }
 
   for (Perm const &perm : expected_non_members) {
-    EXPECT_FALSE(a4.is_element(perm))
+    EXPECT_FALSE(a4.contains_element(perm))
       << "Membership test correctly rejects non group member " << perm;
   }
 }
@@ -168,7 +184,7 @@ TEST(PermGroupTest, CanGenerateRandomElement)
   PermGroup a4 = PermGroup::alternating(4);
 
   for (unsigned i = 0u; i < 1000u; ++i) {
-    EXPECT_TRUE(a4.is_element(a4.random_element()))
+    EXPECT_TRUE(a4.contains_element(a4.random_element()))
       << "Randomly generated group element is actually inside group.";
   }
 }
