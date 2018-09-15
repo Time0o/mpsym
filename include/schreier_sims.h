@@ -48,6 +48,14 @@ struct SchreierTree
    */
   void create_root(unsigned root) { _root = root; }
 
+  /** Set a Schreier tree's possible edge labels.
+   *
+   * This function must be called before the first call to edge().
+   *
+   * \param labels possible permutation edge labels
+   */
+  void create_labels(std::vector<Perm> const &labels) { _labels = labels; }
+
   /** Add an edge to a Schreier tree.
    *
    * \param origin
@@ -62,9 +70,9 @@ struct SchreierTree
    *     a perm object describing a permutation \f$g \in G\f$ with \f$\beta^g =
    *     \beta'\f$
    */
-  void create_edge(unsigned origin, unsigned destination, Perm const &perm) {
+  void create_edge(unsigned origin, unsigned destination, unsigned label) {
     _edges[origin] = destination;
-    _labels[origin] = perm;
+    _edge_labels[origin] = label;
   }
 
   /** Obtain a Schreier tree's root element.
@@ -88,6 +96,13 @@ struct SchreierTree
 
     return result;
   }
+
+  /** Obtain all of a Schreier tree's possible edge labels.
+   *
+   * \return this Schreier tree's unique edge labels in not particular order,
+   *         in the form of a vector
+   */
+  std::vector<Perm> labels() const { return _labels; }
 
   /** Check whether an element of \f$\Omega\f$ is a node of a Schreier tree.
    *
@@ -116,7 +131,7 @@ struct SchreierTree
 
     unsigned current = origin;
     while(current != _root) {
-      Perm const &label = _labels.find(current)->second;
+      Perm const &label = _labels[_edge_labels.find(current)->second];
       result = label * result;
       current = _edges.find(current)->second;
     }
@@ -128,7 +143,8 @@ private:
   unsigned _degree;
   unsigned _root = 0;
   std::map<unsigned, unsigned> _edges;
-  std::map<unsigned, Perm> _labels;
+  std::vector<Perm> _labels;
+  std::map<unsigned, unsigned> _edge_labels;
 };
 
 /** *Schreier-Sims* variant constants.

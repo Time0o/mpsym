@@ -68,8 +68,10 @@ std::vector<unsigned> orbit(
 
   std::vector<unsigned> result {alpha};
 
-  if (st)
+  if (st) {
     st->create_root(alpha);
+    st->create_labels(generators);
+  }
 
   std::vector<unsigned> stack {alpha};
   std::set<unsigned> done {alpha};
@@ -88,7 +90,7 @@ std::vector<unsigned> orbit(
         stack.push_back(beta_prime);
 
         if (st)
-          st->create_edge(beta_prime, beta, generators[i]);
+          st->create_edge(beta_prime, beta, i);
       }
     }
   }
