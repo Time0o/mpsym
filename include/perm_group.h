@@ -127,7 +127,7 @@ public:
   /** Construct an alternating permutation group
    *
    * \param degree
-   *     degree \f$n\f$ of the resulting group, for `degree < 2u` this functions
+   *     degree \f$n\f$ of the resulting group, for `degree < 3u` this functions
    *     behaviour is undefined
    *
    * \return the alternating group \f$A_n\f$

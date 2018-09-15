@@ -97,7 +97,7 @@ TEST(PermGroupTest, CanCheckForSymmetricGroup)
 
 TEST(PermGroupTest, CanCheckForAlternatingGroup)
 {
-  for (unsigned i = 2u; i < 10; ++i) {
+  for (unsigned i = 3u; i < 10; ++i) {
     EXPECT_TRUE(PermGroup::alternating(i).is_alternating())
       << "Alternating group correctly identified as such";
   }
