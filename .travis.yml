@@ -2,49 +2,49 @@ language: cpp
 
 matrix:
   include:
-    - os: linux
-      compiler:
-        - g++
-      addons:
-        apt:
-          sources:
-            - boost-latest
-          packages:
-            - libboost-dev
-            - libboost-graph-dev
-            - liblua5.2-dev
+    #- os: linux
+    #  compiler:
+    #    - g++
+    #  addons:
+    #    apt:
+    #      sources:
+    #        - boost-latest
+    #      packages:
+    #        - libboost-dev
+    #        - libboost-graph-dev
+    #        - liblua5.2-dev
 
-    - os: linux
-      compiler:
-        - g++
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - boost-latest
-          packages:
-            - g++-5
-            - libboost-dev
-            - libboost-graph-dev
-            - liblua5.2-dev
-      env:
-         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+    #- os: linux
+    #  compiler:
+    #    - g++
+    #  addons:
+    #    apt:
+    #      sources:
+    #        - ubuntu-toolchain-r-test
+    #        - boost-latest
+    #      packages:
+    #        - g++-5
+    #        - libboost-dev
+    #        - libboost-graph-dev
+    #        - liblua5.2-dev
+    #  env:
+    #     - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
 
-    - os: linux
-      compiler:
-        - g++
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - boost-latest
-          packages:
-            - g++-6
-            - libboost-dev
-            - libboost-graph-dev
-            - liblua5.2-dev
-      env:
-         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+    #- os: linux
+    #  compiler:
+    #    - g++
+    #  addons:
+    #    apt:
+    #      sources:
+    #        - ubuntu-toolchain-r-test
+    #        - boost-latest
+    #      packages:
+    #        - g++-6
+    #        - libboost-dev
+    #        - libboost-graph-dev
+    #        - liblua5.2-dev
+    #  env:
+    #     - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 
     - os: linux
       compiler:
@@ -59,6 +59,7 @@ matrix:
             - libboost-dev
             - libboost-graph-dev
             - liblua5.2-dev
+            - doxygen
       env:
          - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
@@ -72,10 +73,7 @@ script:
   - make test
 
 after_success:
-  - mkdir gcov
-  - cd gcov
-  - gcov ../source/CMakeFiles/**/*
-  - bash <(curl -s https://codecov.io/bash)
+  - bash "${TRAVIS_BUILD_DIR}/deploy.sh"
 
 notifications:
   email: false
