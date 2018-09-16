@@ -109,7 +109,8 @@ bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
   Dbg(Dbg::TRACE) << scc_repr << " * " << u << " = " << im;
 
   Dbg(Dbg::TRACE) << "=== Iterating over R class representatives:";
-  Dbg(Dbg::TRACE) << "SGS of Sx is: " << z_n.schreier_generators.bsgs().sgs();
+  Dbg(Dbg::TRACE) << "SGS of Sx is: "
+                  << z_n.schreier_generators.bsgs().strong_generators;
   for (PartialPerm const &x : _r_class_repr) {
     Dbg(Dbg::TRACE) << x;
 

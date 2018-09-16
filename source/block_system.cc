@@ -350,10 +350,10 @@ std::vector<BlockSystem> BlockSystem::non_trivial(
 std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
   PermGroup const &pg)
 {
-  auto sgs = pg.bsgs().sgs();
+  auto sgs(pg.bsgs().strong_generators);
 
   // TODO: does the first base element HAVE to be one?
-  unsigned first_base_elem = pg.bsgs()[0].elem();
+  unsigned first_base_elem = pg.bsgs().base[0];
   Dbg(Dbg::TRACE) << "First base element is: " << first_base_elem;
 
   std::vector<Perm> stab = pg.bsgs().stabilizers(1);
@@ -395,7 +395,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
   PermGroup const &pg)
 {
   auto orbits(pg.orbits());
-  auto gens(pg.bsgs().sgs());
+  auto gens(pg.bsgs().strong_generators);
 
   Dbg(Dbg::TRACE) << "Group has " << orbits.size() << " distinct orbits:";
 #ifndef NDEBUG

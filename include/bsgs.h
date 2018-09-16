@@ -1,7 +1,6 @@
 #ifndef _GUARD_BSGS_H
 #define _GUARD_BSGS_H
 
-#include <utility>
 #include <vector>
 
 #include "perm.h"
@@ -10,45 +9,36 @@
 namespace cgtl
 {
 
-class BSGS
+struct BSGS
 {
-public:
-  struct BaseElem {
-    BaseElem(schreier_sims::SchreierTree const &st) : _st(st) {}
+  std::vector<unsigned> base;
+  std::vector<Perm> strong_generators;
+  std::vector<schreier_sims::SchreierTree> schreier_trees;
 
-    unsigned elem() const { return _st.root(); }
-    std::vector<unsigned> orbit() const { return _st.nodes(); }
-    Perm transversal(unsigned o) const { return _st.transversal(o); }
-    std::vector<Perm> transversals() const;
+  bool contains(Perm const &perm) {
+    auto strip_result(schreier_sims::strip(perm, base, schreier_trees));
+    return strip_result.first.id() && strip_result.second == base.size() + 1u;
+  }
 
-  private:
-    schreier_sims::SchreierTree _st;
-  };
+  std::vector<unsigned> orbit(unsigned i) const {
+    return schreier_trees[i].nodes();
+  }
 
-  typedef std::vector<BaseElem>::size_type size_type;
-  typedef std::vector<BaseElem>::const_iterator const_iterator;
+  Perm transversal(unsigned i, unsigned o) const {
+    return schreier_trees[i].transversal(o);
+  }
 
-  BSGS(std::vector<Perm> const &generators,
-       schreier_sims::Variant schreier_sims_method = schreier_sims::SIMPLE);
+  std::vector<Perm> transversals(unsigned i) const {
+    std::vector<Perm> transversals;
+    for (unsigned o : orbit(i))
+      transversals.push_back(schreier_trees[i].transversal(o));
 
-  const_iterator begin() const { return _base_elems.begin(); }
-  const_iterator end() const { return _base_elems.end(); }
-  BaseElem const& operator[](unsigned const i) const { return _base_elems[i]; }
+    return transversals;
+  }
 
-  std::vector<unsigned> base() const { return _base; }
-  std::vector<Perm> sgs() const { return _sgs; }
-  std::vector<Perm> stabilizers(unsigned i) const;
-  std::vector<std::vector<unsigned>> orbits() const;
-  size_type size() const { return _base_elems.size(); }
-  std::pair<Perm, unsigned> strip(Perm const &perm) const;
-  bool trivial() const { return _sgs.empty(); }
-
-private:
-  std::vector<unsigned> _base;
-  std::vector<Perm> _sgs;
-
-  std::vector<schreier_sims::SchreierTree> _schreier_trees;
-  std::vector<BaseElem> _base_elems;
+  std::vector<Perm> stabilizers(unsigned i) const {
+    return schreier_trees[i].labels();
+  }
 };
 
 } // namespace cgtl

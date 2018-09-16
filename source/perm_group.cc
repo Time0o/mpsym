@@ -26,17 +26,30 @@ namespace cgtl
 {
 
 PermGroup::PermGroup(unsigned degree, std::vector<Perm> const &generators,
-  schreier_sims::Variant schreier_sims_method)
-  : _n(degree), _bsgs(generators, schreier_sims_method)
+  schreier_sims::Variant schreier_sims_method) : _n(degree)
 {
 #ifndef NDEBUG
   for (auto const &gen : generators)
     assert(gen.degree() == _n && "all elements have same degree as group");
 #endif
 
+  _bsgs.strong_generators = generators;
+
+  if (_bsgs.strong_generators.size() > 0u) {
+    switch (schreier_sims_method) {
+      case schreier_sims::RANDOM:
+        schreier_sims::schreier_sims_random(
+          _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_trees);
+        break;
+      default:
+        schreier_sims::schreier_sims(
+          _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_trees);
+    }
+  }
+
   _order = 1u;
-  for (auto const &b : _bsgs)
-    _order *= b.orbit().size();
+  for (unsigned i = 0u; i < _bsgs.base.size(); ++i)
+    _order *= _bsgs.orbit(i).size();
 }
 
 bool PermGroup::operator==(PermGroup const &rhs) const
@@ -46,7 +59,7 @@ bool PermGroup::operator==(PermGroup const &rhs) const
   if (_order != rhs.order())
     return false;
 
-  for (Perm const &gen : rhs.bsgs().sgs()) {
+  for (Perm const &gen : rhs.bsgs().strong_generators) {
     if (!contains_element(gen))
       return false;
   }
@@ -138,7 +151,7 @@ bool PermGroup::is_transitive() const
     if (orbit_index1 == -1)
       return false;
 
-    for (Perm const &gen : _bsgs.sgs()) {
+    for (Perm const &gen : _bsgs.strong_generators) {
       unsigned j = gen[i];
 
       int orbit_index2 = orbit_indices[j];
@@ -156,16 +169,17 @@ bool PermGroup::is_transitive() const
 
 std::vector<std::vector<unsigned>> PermGroup::orbits() const
 {
-  return schreier_sims::orbits(_bsgs.sgs());
+  return schreier_sims::orbits(_bsgs.strong_generators);
 }
 
 bool PermGroup::contains_element(Perm const &perm) const
 {
   assert(perm.degree() == _n && "element has same degree as group");
 
-  auto strip_result = _bsgs.strip(perm);
+  auto strip_result =
+    schreier_sims::strip(perm, _bsgs.base, _bsgs.schreier_trees);
 
-  bool ret = (std::get<1>(strip_result) == _bsgs.size() + 1) &&
+  bool ret = (std::get<1>(strip_result) == _bsgs.base.size() + 1) &&
              (std::get<0>(strip_result).id());
 
   return ret;
@@ -176,10 +190,10 @@ Perm PermGroup::random_element() const
   static std::default_random_engine gen(time(0));
 
   Perm result(_n);
-  for (auto const &b : _bsgs) {
-    std::vector<unsigned> orbit = b.orbit();
+  for (unsigned i = 0u; i < _bsgs.base.size(); ++i) {
+    std::vector<unsigned> orbit = _bsgs.orbit(i);
     std::uniform_int_distribution<> d(0u, orbit.size() - 1u);
-    result *= b.transversal(orbit[d(gen)]);
+    result *= _bsgs.schreier_trees[i].transversal(orbit[d(gen)]);
   }
 
   return result;
@@ -243,7 +257,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_incomplete() const
   };
 
   std::vector<unsigned> moved;
-  for (Perm const &perm : _bsgs.sgs()) {
+  for (Perm const &perm : _bsgs.strong_generators) {
     moved.clear();
     for (unsigned i = 1u; i <= perm.degree(); ++i) {
       if (perm[i] != i)
@@ -320,7 +334,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_incomplete() const
   Dbg(Dbg::DBG) << "Disjunct subgroup generators are:";
 #ifndef NDEBUG
   for (PermGroup const &pg : decomp)
-    Dbg(Dbg::DBG) << pg.bsgs().sgs();
+    Dbg(Dbg::DBG) << pg.bsgs().strong_generators;
 #endif
 
   return decomp;
@@ -380,7 +394,7 @@ static std::vector<PermGroup> disjoint_decomposition_complete_recursive(
     std::vector<Perm> restricted_gens2;
 
     bool recurse = true;
-    for (Perm const &gen : pg.bsgs().sgs()) {
+    for (Perm const &gen : pg.bsgs().strong_generators) {
       Dbg(Dbg::TRACE) << "Generator: " << gen;
 
       // decompose generator into disjoint cycles
@@ -622,7 +636,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_complete(
     else
       orbit_id = orbit_ids[x - 1u];
 
-    for (Perm const &gen : _bsgs.sgs()) {
+    for (Perm const &gen : _bsgs.strong_generators) {
       unsigned y = gen[x];
 
       if (y != x) {
@@ -674,7 +688,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_complete(
 
   Dbg(Dbg::DBG) << "=== Disjoint subgroup generators";
   for (PermGroup const &pg : decomp)
-    Dbg(Dbg::DBG) << pg.bsgs().sgs();
+    Dbg(Dbg::DBG) << pg.bsgs().strong_generators;
 
   return decomp;
 }
@@ -685,7 +699,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
   Dbg(Dbg::DBG) << *this;
 
   auto blocksystems(BlockSystem::non_trivial(*this));
-  auto gens(_bsgs.sgs());
+  auto gens(_bsgs.strong_generators);
 
   for (BlockSystem const &bs : blocksystems) {
     Dbg(Dbg::TRACE) << "Considering block system: " << bs;
@@ -717,7 +731,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
     std::vector<Perm> block_permuter_generator_image;
 
     std::vector<unsigned> tmp_perm(_n);
-    for (Perm const &gen : block_permuter.bsgs().sgs()) {
+    for (Perm const &gen : block_permuter.bsgs().strong_generators) {
       for (unsigned i = 0u; i < d; ++i) {
         auto block(bs[i]);
 
@@ -784,7 +798,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
       << "==> Found wreath product decomposition, listing generators:";
 #ifndef NDEBUG
     for (PermGroup const &pg : res)
-      Dbg(Dbg::TRACE) << pg.bsgs().sgs();
+      Dbg(Dbg::TRACE) << pg.bsgs().strong_generators;
 #endif
 
     return res;
@@ -795,14 +809,14 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
 }
 
 PermGroup::const_iterator::const_iterator(PermGroup const &pg)
-  : _trivial(pg.bsgs().trivial()), _end(false)
+  : _trivial(pg.bsgs().strong_generators.empty()), _end(false)
 {
   if (_trivial) {
     _current_result = Perm(pg.degree());
   } else {
-    for (auto const &b : pg.bsgs()) {
+    for (unsigned i = 0u; i < pg.bsgs().base.size(); ++i) {
       _state.push_back(0u);
-      _transversals.push_back(b.transversals());
+      _transversals.push_back(pg.bsgs().transversals(i));
       _current_factors.push_back(_transversals.back()[0]);
     }
 
