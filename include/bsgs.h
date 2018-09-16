@@ -39,6 +39,9 @@ struct BSGS
   std::vector<Perm> stabilizers(unsigned i) const {
     return schreier_trees[i].labels();
   }
+
+  static bool solve(std::vector<unsigned> const &partial_base,
+                    std::vector<Perm> const &generators, BSGS &bsgs);
 };
 
 } // namespace cgtl

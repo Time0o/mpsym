@@ -8,6 +8,7 @@ include_directories("${INCLUDE_DIR}"
 add_library("${MAIN_LIB}"
             "arch_graph.cc"
             "block_system.cc"
+            "bsgs.cc"
             "dbg.cc"
             "eemp.cc"
             "partial_perm.cc"
@@ -16,8 +17,7 @@ add_library("${MAIN_LIB}"
             "perm_group.cc"
             "perm_word.cc"
             "pr_randomizer.cc"
-            "schreier_sims.cc"
-            "solvable_bsgs.cc")
+            "schreier_sims.cc")
 
 target_link_libraries("${MAIN_LIB}"
                       "${Boost_LIBRARIES}"

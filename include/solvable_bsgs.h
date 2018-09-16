@@ -1,17 +1,22 @@
 #ifndef _GUARD_SOLVABLE_BSGS_H
 #define _GUARD_SOLVABLE_BSGS_H
 
+#include <utility>
 #include <vector>
 
+#include "bsgs.h"
 #include "perm.h"
 #include "schreier_sims.h"
 
 namespace cgtl
 {
 
-std::vector<Perm> normalizing_generator(
-  Perm const &gen, std::vector<unsigned> &base, std::vector<Perm> &generators,
-  std::vector<schreier_sims::SchreierTree> &sts);
+namespace solvable_bsgs
+{
+
+bool solvable_bsgs(BSGS &bsgs);
+
+} // namespace solvable_bsgs
 
 } // namespace cgtl
 
