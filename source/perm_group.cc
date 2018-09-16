@@ -26,7 +26,7 @@ namespace cgtl
 {
 
 PermGroup::PermGroup(unsigned degree, std::vector<Perm> const &generators,
-  schreier_sims::Variant schreier_sims_method) : _n(degree)
+  ConstructionMethod construction_method) : _n(degree)
 {
 #ifndef NDEBUG
   for (auto const &gen : generators)
@@ -36,14 +36,23 @@ PermGroup::PermGroup(unsigned degree, std::vector<Perm> const &generators,
   _bsgs.strong_generators = generators;
 
   if (_bsgs.strong_generators.size() > 0u) {
-    switch (schreier_sims_method) {
-      case schreier_sims::RANDOM:
+    switch (construction_method) {
+      case SCHREIER_SIMS:
+        schreier_sims::schreier_sims(
+          _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_trees);
+        break;
+      case SCHREIER_SIMS_RANDOM:
         schreier_sims::schreier_sims_random(
           _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_trees);
         break;
       default:
-        schreier_sims::schreier_sims(
-          _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_trees);
+        BSGS tmp;
+        if (BSGS::solve(generators, tmp)) {
+          _bsgs = tmp;
+        } else {
+          schreier_sims::schreier_sims(
+            _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_trees);
+        }
     }
   }
 

@@ -28,6 +28,12 @@ namespace cgtl
 class PermGroup
 {
 public:
+  enum ConstructionMethod {
+    SCHREIER_SIMS,
+    SCHREIER_SIMS_RANDOM,
+    AUTO
+  };
+
   class const_iterator
   {
   public:
@@ -80,7 +86,7 @@ public:
    *     constructor's runtime
    */
   PermGroup(unsigned degree, std::vector<Perm> const &generators,
-    schreier_sims::Variant schreier_sims_method = schreier_sims::SIMPLE);
+    ConstructionMethod = SCHREIER_SIMS); // TODO: AUTO
 
   /** Check two permutation groups for equality.
    *

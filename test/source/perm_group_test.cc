@@ -13,7 +13,6 @@
 
 using cgtl::Perm;
 using cgtl::PermGroup;
-using cgtl::schreier_sims::Variant;
 
 using testing::ElementsAre;
 using testing::UnorderedElementsAre;
@@ -287,12 +286,13 @@ TEST(PermGroupTest, CanIterateElements)
     << "Iteration produces every element exactly once (explicit iterator).";
 }
 
-class SchreierSimsVariantTest : public testing::TestWithParam<Variant> {};
+class PermGroupConstructionMethodTest
+  : public testing::TestWithParam<PermGroup::ConstructionMethod> {};
 
 // TODO: test more groups
-TEST_P(SchreierSimsVariantTest, CanGenerateCorrectGroupElements)
+TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
 {
-  Variant schreier_var = GetParam();
+  PermGroup::ConstructionMethod method = GetParam();
 
   typedef std::vector<std::vector<std::vector<unsigned>>> elemset;
 
@@ -325,13 +325,15 @@ TEST_P(SchreierSimsVariantTest, CanGenerateCorrectGroupElements)
       ss << generators[j] << (j == generators.size() - 1u ? "" : ", ");
 
     EXPECT_TRUE(perm_group_equal(
-      expected_elements[i], PermGroup(degree, generators, schreier_var)))
+      expected_elements[i], PermGroup(degree, generators, method)))
       << ss.str();
   }
 }
 
-INSTANTIATE_TEST_CASE_P(SchreierSimsVariants, SchreierSimsVariantTest,
-  testing::Values(Variant::SIMPLE, Variant::RANDOM));
+INSTANTIATE_TEST_CASE_P(ConstructionMethods, PermGroupConstructionMethodTest,
+  testing::Values(PermGroup::ConstructionMethod::SCHREIER_SIMS,
+                  PermGroup::ConstructionMethod::SCHREIER_SIMS_RANDOM));
+                  // TODO: AUTO
 
 class DisjointSubgroupProductTest :
   public testing::TestWithParam<std::pair<bool, bool>> {};

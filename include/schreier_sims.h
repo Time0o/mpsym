@@ -147,23 +147,6 @@ private:
   std::map<unsigned, unsigned> _edge_labels;
 };
 
-/** *Schreier-Sims* variant constants.
- *
- *  These Constants should be used by functions and classes defined in other
- *  files when differentiating between different variants of the
- *  *Schreier-Sims* algorithm.
- */
-enum Variant {
-  /** Refers to the simple *Schreier-Sims* algorithm implemented in
-   *  schreier_sims()
-   */
-  SIMPLE,
-  /** Refers to the *Random Schreier-Sims* algorithm implemented in
-   *  schreier_sims_random()
-   */
-  RANDOM
-};
-
 /** Compute the orbit decomposition of a permutation group given as a set of
  *  generating permutations.
  *

@@ -40,8 +40,7 @@ struct BSGS
     return schreier_trees[i].labels();
   }
 
-  static bool solve(std::vector<unsigned> const &partial_base,
-                    std::vector<Perm> const &generators, BSGS &bsgs);
+  static bool solve(std::vector<Perm> const &generators, BSGS &bsgs);
 };
 
 } // namespace cgtl
