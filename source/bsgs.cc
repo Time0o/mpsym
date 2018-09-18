@@ -7,7 +7,6 @@
 #include "dbg.h"
 #include "perm.h"
 #include "schreier_sims.h"
-#include "solvable_bsgs.h"
 
 namespace cgtl
 {
