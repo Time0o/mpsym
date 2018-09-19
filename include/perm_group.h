@@ -86,7 +86,7 @@ public:
    *     constructor's runtime
    */
   PermGroup(unsigned degree, std::vector<Perm> const &generators,
-    ConstructionMethod = SCHREIER_SIMS); // TODO: AUTO
+    ConstructionMethod = AUTO);
 
   /** Check two permutation groups for equality.
    *
