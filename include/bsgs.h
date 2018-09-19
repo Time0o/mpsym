@@ -15,7 +15,7 @@ struct BSGS
   std::vector<Perm> strong_generators;
   std::vector<schreier_sims::SchreierTree> schreier_trees;
 
-  bool contains(Perm const &perm) {
+  bool contains(Perm const &perm) const {
     auto strip_result(schreier_sims::strip(perm, base, schreier_trees));
     return strip_result.first.id() && strip_result.second == base.size() + 1u;
   }
