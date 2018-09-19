@@ -30,6 +30,137 @@ extern "C" {
 namespace cgtl
 {
 
+namespace
+{
+
+int generator_degree;
+std::vector<Perm> generators;
+
+Perm to_perm(int *perm, int degree)
+{
+  std::vector<unsigned> tmp(degree);
+  for (int i = 0; i < degree; ++i)
+    tmp[i] = perm[i] + 1;
+
+  return Perm(tmp);
+}
+
+void save_generator(int, int *perm, int *, int, int, int)
+{
+  generators.push_back(to_perm(perm, generator_degree));
+}
+
+void nauty_free()
+{
+  naugraph_freedyn();
+  nautil_freedyn();
+  nauty_freedyn();
+}
+
+std::vector<unsigned> min_elem_bruteforce(
+  PermGroup const &ag, std::vector<unsigned> const &tasks,
+  unsigned min_pe, unsigned max_pe)
+{
+  std::vector<unsigned> min_element(tasks);
+
+  Dbg(Dbg::DBG) << "Performing brute force mapping";
+
+  for (Perm const &perm : ag) {
+    bool minimal = true;
+
+    for (auto i = 0u; i < tasks.size(); ++i) {
+      unsigned task_base = tasks[i];
+      if (task_base < min_pe || task_base > max_pe)
+        continue;
+
+      unsigned task = task_base - min_pe;
+
+      unsigned permuted = perm[task + 1u] - 1u + min_pe;
+
+      if (permuted < min_element[i])
+        break;
+
+      if (permuted > min_element[i]) {
+        minimal = false;
+        break;
+      }
+    }
+
+    if (minimal) {
+      for (auto i = 0u; i < tasks.size(); ++i) {
+        unsigned task_base = tasks[i];
+        if (task_base < min_pe || task_base > max_pe)
+          continue;
+
+        unsigned task = task_base - min_pe;
+
+        min_element[i] = perm[task + 1u] - 1u + min_pe;
+      }
+    }
+  }
+
+  Dbg(Dbg::DBG) << "Found minimal orbit element: " << min_element;
+
+  return min_element;
+}
+
+std::vector<unsigned> min_elem_approx(
+  PermGroup const &ag, std::vector<unsigned> const &tasks,
+  unsigned min_pe, unsigned max_pe)
+{
+  std::vector<Perm> generators(ag.bsgs().strong_generators);
+  std::vector<unsigned> min_element(tasks);
+
+  bool stationary, new_minimum;
+
+  Dbg(Dbg::TRACE) << "Performing approximate mapping";
+
+  do {
+    stationary = true;
+
+    for (Perm const &gen : generators) {
+      new_minimum = false;
+
+      for (unsigned task_base : min_element) {
+        if (task_base < min_pe || task_base > max_pe)
+          continue;
+
+        unsigned task = task_base - min_pe;
+
+        unsigned permuted = gen[task + 1u] - 1u;
+
+        if (permuted < task) {
+          new_minimum = true;
+          break;
+        }
+
+        if (permuted > task)
+          break;
+      }
+
+      if (new_minimum) {
+        for (unsigned &task_base : min_element) {
+          if (task_base < min_pe || task_base > max_pe)
+            continue;
+
+          unsigned task = task_base - min_pe;
+
+          task_base = gen[task + 1u] - 1u + min_pe;
+        }
+
+        stationary = false;
+        break;
+      }
+    }
+  } while (!stationary);
+
+  Dbg(Dbg::DBG) << "Found minimal orbit element: " << min_element;
+
+  return min_element;
+}
+
+} // anonymous namespace
+
 ArchGraph::ProcessorType ArchGraph::new_processor_type(std::string const &label)
 {
   auto id = _processor_types.size();
@@ -76,30 +207,6 @@ unsigned ArchGraph::num_processors() const
 unsigned ArchGraph::num_channels() const
 {
   return static_cast<size_t>(boost::num_edges(_adj));
-}
-
-static int generator_degree;
-static std::vector<Perm> generators;
-
-static Perm to_perm(int *perm, int degree)
-{
-  std::vector<unsigned> tmp(degree);
-  for (int i = 0; i < degree; ++i)
-    tmp[i] = perm[i] + 1;
-
-  return Perm(tmp);
-}
-
-static void save_generator(int, int *perm, int *, int, int, int)
-{
-  generators.push_back(to_perm(perm, generator_degree));
-}
-
-static void nauty_free()
-{
-  naugraph_freedyn();
-  nautil_freedyn();
-  nauty_freedyn();
 }
 
 void ArchGraph::complete()
@@ -332,108 +439,6 @@ PartialPermInverseSemigroup ArchGraph::partial_automorphisms() const
   backtrack(Domain(std::vector<bool>(num_processors(), false), 0u), {});
 
   return res;
-}
-
-static std::vector<unsigned> min_elem_bruteforce(
-  PermGroup const &ag, std::vector<unsigned> const &tasks,
-  unsigned min_pe, unsigned max_pe)
-{
-  std::vector<unsigned> min_element(tasks);
-
-  Dbg(Dbg::DBG) << "Performing brute force mapping";
-
-  for (Perm const &perm : ag) {
-    bool minimal = true;
-
-    for (auto i = 0u; i < tasks.size(); ++i) {
-      unsigned task_base = tasks[i];
-      if (task_base < min_pe || task_base > max_pe)
-        continue;
-
-      unsigned task = task_base - min_pe;
-
-      unsigned permuted = perm[task + 1u] - 1u + min_pe;
-
-      if (permuted < min_element[i])
-        break;
-
-      if (permuted > min_element[i]) {
-        minimal = false;
-        break;
-      }
-    }
-
-    if (minimal) {
-      for (auto i = 0u; i < tasks.size(); ++i) {
-        unsigned task_base = tasks[i];
-        if (task_base < min_pe || task_base > max_pe)
-          continue;
-
-        unsigned task = task_base - min_pe;
-
-        min_element[i] = perm[task + 1u] - 1u + min_pe;
-      }
-    }
-  }
-
-  Dbg(Dbg::DBG) << "Found minimal orbit element: " << min_element;
-
-  return min_element;
-}
-
-static std::vector<unsigned> min_elem_approx(
-  PermGroup const &ag, std::vector<unsigned> const &tasks,
-  unsigned min_pe, unsigned max_pe)
-{
-  std::vector<Perm> generators(ag.bsgs().strong_generators);
-  std::vector<unsigned> min_element(tasks);
-
-  bool stationary, new_minimum;
-
-  Dbg(Dbg::TRACE) << "Performing approximate mapping";
-
-  do {
-    stationary = true;
-
-    for (Perm const &gen : generators) {
-      new_minimum = false;
-
-      for (unsigned task_base : min_element) {
-        if (task_base < min_pe || task_base > max_pe)
-          continue;
-
-        unsigned task = task_base - min_pe;
-
-        unsigned permuted = gen[task + 1u] - 1u;
-
-        if (permuted < task) {
-          new_minimum = true;
-          break;
-        }
-
-        if (permuted > task)
-          break;
-      }
-
-      if (new_minimum) {
-        for (unsigned &task_base : min_element) {
-          if (task_base < min_pe || task_base > max_pe)
-            continue;
-
-          unsigned task = task_base - min_pe;
-
-          task_base = gen[task + 1u] - 1u + min_pe;
-        }
-
-        stationary = false;
-        break;
-      }
-    }
-  } while (!stationary);
-
-  Dbg(Dbg::DBG) << "Found minimal orbit element: " << min_element;
-
-  return min_element;
 }
 
 TaskMapping ArchGraph::mapping(
