@@ -38,48 +38,17 @@ struct SchreierTree : public SchreierStructure
 {
   SchreierTree(unsigned degree) : _degree(degree) {}
 
-  void create_root(unsigned root) override { _root = root; }
-
-  void create_labels(
-    std::vector<Perm> const &labels) override { _labels = labels; }
-
+  void create_root(unsigned root) override;
+  void create_labels(std::vector<Perm> const &labels) override;
   void create_edge(
-    unsigned origin, unsigned destination, unsigned label) override {
+    unsigned origin, unsigned destination, unsigned label) override;
 
-    _edges[origin] = destination;
-    _edge_labels[origin] = label;
-  }
+  unsigned root() const override;
+  std::vector<unsigned> nodes() const override;
+  std::vector<Perm> labels() const override;
 
-  unsigned root() const override { return _root; }
-
-  std::vector<unsigned> nodes() const override {
-    std::vector<unsigned> result {_root};
-
-    for (auto const &node : _edges)
-      result.push_back(node.first);
-
-    return result;
-  }
-
-  std::vector<Perm> labels() const override { return _labels; }
-
-  bool contains(unsigned node) const override {
-    return (node == _root) || (_edges.find(node) != _edges.end());
-  }
-
-  Perm transversal(unsigned origin) const override
-  {
-    Perm result(_degree);
-
-    unsigned current = origin;
-    while(current != _root) {
-      Perm const &label = _labels[_edge_labels.find(current)->second];
-      result = label * result;
-      current = _edges.find(current)->second;
-    }
-
-    return result;
-  }
+  bool contains(unsigned node) const override;
+  Perm transversal(unsigned origin) const override;
 
 private:
   unsigned _degree;
