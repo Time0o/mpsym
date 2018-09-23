@@ -7,9 +7,6 @@
 #include <sstream>
 #include <vector>
 
-#include "perm.h"
-#include "perm_group.h"
-
 class Dbg
 {
 public:
@@ -32,15 +29,6 @@ public:
       for (auto i = 0u; i < vect.size(); ++i)
         (*this) << vect[i] << ((i == vect.size() - 1u) ? "]" : ", ");
     }
-    return *this;
-  }
-
-  Dbg& operator<<(cgtl::PermGroup const &pg) {
-    _buf << "Permutation Group\n";
-    (*this) << header_indent() << "Base: " << pg.bsgs().base << '\n';
-    (*this) << header_indent() << "Strong generating set: "
-            << pg.bsgs().strong_generators;
-
     return *this;
   }
 

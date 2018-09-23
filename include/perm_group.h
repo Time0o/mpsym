@@ -31,7 +31,14 @@ public:
   enum ConstructionMethod {
     SCHREIER_SIMS,
     SCHREIER_SIMS_RANDOM,
-    AUTO
+    CONSTRUCTION_AUTO
+  };
+
+  enum TransversalStorageMethod {
+    EXPLICIT_TRANSVERSALS,
+    SCHREIER_TREES,
+    SHALLOW_SCHREIER_TREES,
+    TRANSVERSAL_STORAGE_AUTO
   };
 
   class const_iterator
@@ -86,7 +93,8 @@ public:
    *     constructor's runtime
    */
   PermGroup(unsigned degree, std::vector<Perm> const &generators,
-    ConstructionMethod = AUTO);
+    ConstructionMethod = CONSTRUCTION_AUTO,
+    TransversalStorageMethod = TRANSVERSAL_STORAGE_AUTO);
 
   /** Check two permutation groups for equality.
    *
@@ -344,6 +352,8 @@ private:
   unsigned _order;
   BSGS _bsgs;
 };
+
+std::ostream& operator<<(std::ostream& stream, PermGroup const &pg);
 
 } // namespace cgtl
 

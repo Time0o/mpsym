@@ -28,7 +28,7 @@ namespace eemp
 /** Schreier tree data structure.
  *
  * Describes an OrbitGraph spanning tree. Similar to, but not to be confused
- * with cgtl::schreier_sims::SchreierTree. Should be treated as opaque by
+ * with cgtl::SchreierTree. Should be treated as opaque by
  * functions other than those defined in eemp.h.
  */
 struct SchreierTree {

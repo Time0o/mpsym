@@ -1,12 +1,16 @@
 #ifndef _GUARD_SCHREIER_SIMS_H
 #define _GUARD_SCHREIER_SIMS_H
 
-#include <map>
+#include <cassert>
+#include <memory>
 #include <utility>
 #include <vector>
 
+#include "dbg.h"
 #include "perm.h"
+#include "pr_randomizer.h"
 #include "schreier_sims.h"
+#include "schreier_structure.h"
 
 /**
  * @file schreier_sims.h
@@ -22,130 +26,6 @@ namespace cgtl
 
 namespace schreier_sims
 {
-
-/** Data structure for space efficient storage of orbit transversals.
- *
- * The *orbit* of a group element \f$g \in G\f$ where \f$G\f$ acts on the set
- * \f$\Omega\f$ is the set \f$G(x) = \{x^g \mid g \in G\}\f$. The *orbit
- * transversals* corresponding to this orbit are \f$\{u_{\beta} \mid \beta \in
- * G(x)\}\f$ where \f$u_{\beta} \in G\f$ maps \f$x\f$ to \f$\beta\f$. Instead
- * of storing these explicitly (which can might consume a lot of space for
- * large orbits (possible for large sets \f$\Omega\f$), this data structure
- * only stores a spanning tree for the orbit graph connecting every element
- * \f$\beta' \in G(x)\f$ to every other element \f$\beta\f$ via a directed edge
- * labelled with \f$g \in G(x)\f$ if \f$\exists g \in G \colon \beta^g = \beta'\f$.
- * The spanning tree is rooted at \f$x\f$.
- */
-struct SchreierTree
-{
-  SchreierTree(unsigned degree) : _degree(degree) {}
-
-  /** Set a spanning tree's root.
-   *
-   * \param root
-   *     the element \f$x\f$ as per the notation used in this struct's
-   *     definition
-   */
-  void create_root(unsigned root) { _root = root; }
-
-  /** Set a Schreier tree's possible edge labels.
-   *
-   * This function must be called before the first call to edge().
-   *
-   * \param labels possible permutation edge labels
-   */
-  void create_labels(std::vector<Perm> const &labels) { _labels = labels; }
-
-  /** Add an edge to a Schreier tree.
-   *
-   * \param origin
-   *     an element \f$\beta' \in \Omega\f$ as per the notation used in this
-   *     struct's definition
-   *
-   * \param destination
-   *     an element \f$\beta \in \Omega\f$ as per the notation used in this
-   *     struct's definition
-   *
-   * \param perm
-   *     a perm object describing a permutation \f$g \in G\f$ with \f$\beta^g =
-   *     \beta'\f$
-   */
-  void create_edge(unsigned origin, unsigned destination, unsigned label) {
-    _edges[origin] = destination;
-    _edge_labels[origin] = label;
-  }
-
-  /** Obtain a Schreier tree's root element.
-   *
-   * \return the Schreier tree's root, i.e. the element \f$x\f$ as per the
-   *         notation used in this struct's definition
-   */
-  unsigned root() const { return _root; }
-
-  /** Obtain a Schreier tree's nodes.
-   *
-   * \return the Schreier tree's nodes, i.e. the orbit \f$G(x)\f$ as per the
-   *         notation used in this struct's definition, in the form of a vector
-   *         with no particular guaranteed order
-   */
-  std::vector<unsigned> nodes() const {
-    std::vector<unsigned> result {_root};
-
-    for (auto const &node : _edges)
-      result.push_back(node.first);
-
-    return result;
-  }
-
-  /** Obtain all of a Schreier tree's possible edge labels.
-   *
-   * \return this Schreier tree's unique edge labels in not particular order,
-   *         in the form of a vector
-   */
-  std::vector<Perm> labels() const { return _labels; }
-
-  /** Check whether an element of \f$\Omega\f$ is a node of a Schreier tree.
-   *
-   * This is equivalent to testing whether the element is contained in the orbit
-   * \f$G(x)\f$.
-   *
-   * \param node node to be testing for membership in this Schreier tree
-   *
-   * \return `true` if `node` is a node of this Schreier tree, else `false`
-   */
-  bool contains(unsigned node) const {
-    return (node == _root) || (_edges.find(node) != _edges.end());
-  }
-
-  /** Obtain an orbit transversal from a Schreier tree.
-   *
-   * \param origin
-   *     an element \f$\beta\f$ of \f$\Omega\f$, this must be a node of this
-   *     Schreier tree, otherwise this function's behaviour is undefined
-   *
-   * \return a permutation \f$g \in G\f$ such that \f$x^g = \beta\f$
-   */
-  Perm transversal(unsigned origin) const
-  {
-    Perm result(_degree);
-
-    unsigned current = origin;
-    while(current != _root) {
-      Perm const &label = _labels[_edge_labels.find(current)->second];
-      result = label * result;
-      current = _edges.find(current)->second;
-    }
-
-    return result;
-  }
-
-private:
-  unsigned _degree;
-  unsigned _root = 0;
-  std::map<unsigned, unsigned> _edges;
-  std::vector<Perm> _labels;
-  std::map<unsigned, unsigned> _edge_labels;
-};
 
 /** Compute the orbit decomposition of a permutation group given as a set of
  *  generating permutations.
@@ -172,8 +52,8 @@ std::vector<std::vector<unsigned>> orbits(std::vector<Perm> const &generators);
  * The *orbit* is the set \f$G(x) = \{x^g \mid g \in G\}\f$. This function also
  * computes the corresponding *orbit transversals*, i.e. the set \f$\{u_{\beta}
  * \mid \beta \in G(x)\}\f$ where \f$u_{\beta} \in G\f$ maps \f$x\f$ to
- * \f$\beta\f$. These orbit transversals are stored in a *Schreier tree*
- * (see schreier_sims() and SchreierTree).
+ * \f$\beta\f$. These orbit transversals are stored in a *Schreier structure*
+ * (see schreier_sims() and SchreierStructure).
  *
  * \param x
  *     the element \f$x \in \Omega\f$ for which \f$G(x)\f$ should be computed
@@ -191,7 +71,8 @@ std::vector<std::vector<unsigned>> orbits(std::vector<Perm> const &generators);
  *         vector of positive integers \f$\in \Omega\f$
  */
 std::vector<unsigned> orbit(
-  unsigned x, std::vector<Perm> const &generators, SchreierTree *st = nullptr);
+  unsigned x, std::vector<Perm> const &generators,
+  std::shared_ptr<SchreierStructure> st = nullptr);
 
 /** Test membership of an arbitrary element in \f$Sym(\Omega)\f$ in a
  *  permutation group \f$G\f$ acting on \f$\Omega\f$.
@@ -223,7 +104,100 @@ std::vector<unsigned> orbit(
  */
 std::pair<Perm, unsigned> strip(
     Perm const &perm, std::vector<unsigned> const &base,
-    std::vector<SchreierTree> const &sts);
+    std::vector<std::shared_ptr<SchreierStructure>> const &sts);
+
+template <typename SS>
+void schreier_sims_init(
+  std::vector<unsigned> &base, std::vector<Perm> &generators,
+  std::vector<std::shared_ptr<SchreierStructure>> &sts,
+  std::vector<std::vector<Perm>> &strong_generators,
+  std::vector<std::vector<unsigned>> &fundamental_orbits)
+{
+  assert(generators.size() > 0u && "generator set not empty");
+
+  unsigned degree = generators[0].degree();
+
+#ifndef NDEBUG
+  for (auto const &gen : generators)
+    assert(gen.degree() == degree && "all generators have same degree");
+#endif
+
+  Dbg(Dbg::DBG) << "=== Input";
+  Dbg(Dbg::DBG) << "B = " << base;
+  Dbg(Dbg::DBG) << "S = " << generators;
+
+  // add initial base points
+  for (auto it  = generators.begin(); it != generators.end(); ) {
+    Perm gen = *it;
+
+    if (gen.id()) {
+      it = generators.erase(it);
+
+    } else {
+      ++it;
+
+      bool stabilizes = true;
+      for (unsigned b : base) {
+        if (gen[b] != b) {
+          stabilizes = false;
+          break;
+        }
+      }
+
+      if (stabilizes) {
+#ifndef NDEBUG
+        bool extended_base = false;
+#endif
+        for (unsigned i = 1u; i <= degree; ++i) {
+          if (gen[i] != i) {
+            base.push_back(i);
+#ifndef NDEBUG
+            extended_base = true;
+#endif
+            break;
+          }
+        }
+
+        assert(extended_base && "no generator fixes all base elements");
+      }
+    }
+  }
+
+  strong_generators.resize(base.size());
+  fundamental_orbits.resize(base.size());
+
+  for (auto i = sts.size(); i < base.size(); ++i)
+    sts.push_back(std::make_shared<SS>(degree));
+
+  // calculate initial strong generator sets
+  for (unsigned i = 0u; i < base.size(); ++i) {
+    for (Perm const &gen : generators) {
+      bool stabilizes = true;
+      for (unsigned k = 0u; k < i; ++k) {
+        if (gen[base[k]] != base[k]) {
+          stabilizes = false;
+          break;
+        }
+      }
+      if (stabilizes) {
+        strong_generators[i].push_back(gen);
+      }
+    }
+
+    fundamental_orbits[i] = orbit(base[i], strong_generators[i], sts[i]);
+  }
+
+  Dbg(Dbg::DBG) << "=== Initial values";
+  Dbg(Dbg::DBG) << "B = " << base;
+  for (unsigned i = 0u; i < base.size(); ++i) {
+    Dbg(Dbg::DBG) << "S(" << (i + 1u) << ") = " << strong_generators[i];
+    Dbg(Dbg::DBG) << "O(" << (i + 1u) << ") = " << fundamental_orbits[i];
+  }
+}
+
+void schreier_sims_finish(
+  std::vector<unsigned> const &base, std::vector<Perm> &generators,
+  std::vector<std::vector<Perm>> const &strong_generators);
 
 /** The simple *Schreier-Sims* algorithm
  *
@@ -268,9 +242,95 @@ std::pair<Perm, unsigned> strip(
  *     schreier trees which describe the orbits of base elements and the
  *     associated transversals which are needed for several further computations
  */
+template <typename SS>
 void schreier_sims(
   std::vector<unsigned> &base, std::vector<Perm> &generators,
-  std::vector<SchreierTree> &sts);
+  std::vector<std::shared_ptr<SchreierStructure>> &sts)
+{
+  Dbg(Dbg::DBG) << "Executing schreier sims algorithm";
+
+  // intialize
+  std::vector<std::vector<Perm>> strong_generators;
+  std::vector<std::vector<unsigned>> fundamental_orbits;
+
+  schreier_sims_init<SS>(
+    base, generators, sts, strong_generators, fundamental_orbits);
+
+  unsigned degree = generators[0].degree();
+
+  unsigned i = base.size();
+  while (i >= 1u) {
+top:
+    Dbg(Dbg::TRACE) << "=== Main loop (i = " << i << ")";
+    auto const &st = sts[i - 1u];
+
+    for (unsigned beta : fundamental_orbits[i - 1u]) {
+      Dbg(Dbg::TRACE) << "== Orbit element " << beta;
+
+      Perm u_beta = st->transversal(beta);
+
+      for (Perm const &x : strong_generators[i - 1u]) {
+        unsigned beta_x = x[beta];
+
+        Perm schreier_generator = u_beta * x * ~st->transversal(beta_x);
+        Dbg(Dbg::TRACE) << "Schreier Generator: " << schreier_generator;
+
+        if (schreier_generator.id())
+          continue;
+
+        bool update_strong_generators = false;
+        std::pair<Perm, unsigned> strip_result =
+          strip(schreier_generator, base, sts);
+
+        Perm strip_perm = std::get<0>(strip_result);
+        unsigned strip_level = std::get<1>(strip_result);
+        Dbg(Dbg::TRACE) << "Strips to: " << strip_perm << ", " << strip_level;
+
+        if (strip_level <= base.size()) {
+           update_strong_generators = true;
+
+        } else if (strip_perm != Perm(degree)) {
+          update_strong_generators = true;
+
+          unsigned next_basepoint = 1u;
+          while (strip_perm[next_basepoint] == next_basepoint)
+            ++next_basepoint;
+
+          base.push_back(next_basepoint);
+
+          Dbg(Dbg::TRACE) << "Adjoined new basepoint:";
+          Dbg(Dbg::TRACE) << "B = " << base;
+        }
+
+        if (update_strong_generators) {
+          Dbg(Dbg::TRACE) << "Updating strong generators:";
+
+          for (unsigned j = i; j < strip_level; ++ j) {
+            if (strong_generators.size() <= j) {
+              strong_generators.push_back({});
+              fundamental_orbits.push_back({});
+              sts.push_back(std::make_shared<SS>(degree));
+            }
+
+            strong_generators[j].push_back(strip_perm);
+
+            fundamental_orbits[j] =
+              orbit(base[j], strong_generators[j], sts[j]);
+
+            Dbg(Dbg::TRACE) << "S(" << (j + 1u) << ") = " << strong_generators[j];
+            Dbg(Dbg::TRACE) << "O(" << (j + 1u) << ") = " << fundamental_orbits[j];
+          }
+
+          i = strip_level;
+          goto top;
+        }
+      }
+    }
+    i -= 1u;
+  }
+
+  schreier_sims_finish(base, generators, strong_generators);
+}
 
 /** The *Random Schreier-Sims* algorithm
  *
@@ -300,9 +360,78 @@ void schreier_sims(
  *     the given generators; more specifically this probability is approximately
  *     \f$1 - 2^{-w}\f$, refer to \cite holt05 for details
  */
+template <typename SS>
 void schreier_sims_random(
   std::vector<unsigned> &base, std::vector<Perm> &generators,
-  std::vector<SchreierTree> &sts, unsigned w = 10);
+  std::vector<std::shared_ptr<SchreierStructure>> &sts, unsigned w = 10)
+{
+  Dbg(Dbg::DBG) << "Executing (random) schreier sims algorithm";
+
+  // intialize
+  std::vector<std::vector<Perm>> strong_generators;
+  std::vector<std::vector<unsigned>> fundamental_orbits;
+
+  schreier_sims_init<SS>(
+    base, generators, sts, strong_generators, fundamental_orbits);
+
+  unsigned degree = generators[0].degree();
+
+  // random group element generator
+  PrRandomizer pr(generators);
+
+  unsigned c = 0u;
+  while (c < w) {
+    Perm rand_perm = pr.next();
+    Dbg(Dbg::TRACE) << "Random group element: " << rand_perm;
+
+    bool update_strong_generators = false;
+    std::pair<Perm, unsigned> strip_result = strip(rand_perm, base, sts);
+
+    Perm strip_perm = std::get<0>(strip_result);
+    unsigned strip_level = std::get<1>(strip_result);
+    Dbg(Dbg::TRACE) << "Strips to: " << strip_perm << ", " << strip_level;
+
+    if (strip_level <= base.size()) {
+      update_strong_generators = true;
+
+    } else if (!strip_perm.id()) {
+      update_strong_generators = true;
+
+      for (unsigned i = 1u; i <= degree; ++i) {
+        if (strip_perm[i] != i) {
+          base.push_back(i);
+          strong_generators.push_back({});
+
+          Dbg(Dbg::TRACE) << "Adjoined new basepoint:";
+          Dbg(Dbg::TRACE) << "B = " << base;
+
+          break;
+        }
+      }
+    }
+
+    if (update_strong_generators) {
+      Dbg(Dbg::TRACE) << "Updating strong generators:";
+
+      strong_generators.resize(strip_level);
+      fundamental_orbits.resize(strip_level);
+      sts.resize(strip_level, std::make_shared<SS>(degree));
+
+      for (unsigned i = 1u; i < strip_level; ++i) {
+        strong_generators[i].push_back(strip_perm);
+        fundamental_orbits[i] = orbit(base[i], strong_generators[i], sts[i]);
+
+        Dbg(Dbg::TRACE) << "S(" << (i + 1u) << ") = " << strong_generators[i];
+        Dbg(Dbg::TRACE) << "O(" << (i + 1u) << ") = " << fundamental_orbits[i];
+      }
+
+      c = 0u;
+
+    } else { ++c; }
+  }
+
+  schreier_sims_finish(base, generators, strong_generators);
+}
 
 } // namespace schreier_sims
 

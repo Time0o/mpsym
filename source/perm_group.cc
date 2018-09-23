@@ -305,8 +305,10 @@ unsigned generate_dependency_classes(
 
 } // anonymous namespace
 
-PermGroup::PermGroup(unsigned degree, std::vector<Perm> const &generators,
-  ConstructionMethod construction_method) : _n(degree)
+PermGroup::PermGroup(
+  unsigned degree, std::vector<Perm> const &generators,
+  ConstructionMethod construction_method,
+  TransversalStorageMethod storage_method) : _n(degree)
 {
 #ifndef NDEBUG
   for (auto const &gen : generators)
@@ -318,20 +320,32 @@ PermGroup::PermGroup(unsigned degree, std::vector<Perm> const &generators,
   if (_bsgs.strong_generators.size() > 0u) {
     switch (construction_method) {
       case SCHREIER_SIMS:
-        schreier_sims::schreier_sims(
-          _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_trees);
+        switch (storage_method) {
+          // TODO
+          default:
+            schreier_sims::schreier_sims<SchreierTree>(
+              _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_structures);
+        }
         break;
       case SCHREIER_SIMS_RANDOM:
-        schreier_sims::schreier_sims_random(
-          _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_trees);
+        switch (storage_method) {
+          // TODO
+          default:
+            schreier_sims::schreier_sims_random<SchreierTree>(
+              _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_structures);
+        }
         break;
       default:
         BSGS tmp;
         if (BSGS::solve(generators, tmp)) {
           _bsgs = tmp;
         } else {
-          schreier_sims::schreier_sims(
-            _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_trees);
+          switch (storage_method) {
+            // TODO
+            default:
+              schreier_sims::schreier_sims<SchreierTree>(
+                _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_structures);
+          }
         }
     }
   }
@@ -466,7 +480,7 @@ bool PermGroup::contains_element(Perm const &perm) const
   assert(perm.degree() == _n && "element has same degree as group");
 
   auto strip_result =
-    schreier_sims::strip(perm, _bsgs.base, _bsgs.schreier_trees);
+    schreier_sims::strip(perm, _bsgs.base, _bsgs.schreier_structures);
 
   bool ret = (std::get<1>(strip_result) == _bsgs.base.size() + 1) &&
              (std::get<0>(strip_result).id());
@@ -482,7 +496,7 @@ Perm PermGroup::random_element() const
   for (unsigned i = 0u; i < _bsgs.base.size(); ++i) {
     std::vector<unsigned> orbit = _bsgs.orbit(i);
     std::uniform_int_distribution<> d(0u, orbit.size() - 1u);
-    result *= _bsgs.schreier_trees[i].transversal(orbit[d(gen)]);
+    result *= _bsgs.schreier_structures[i]->transversal(orbit[d(gen)]);
   }
 
   return result;
@@ -892,6 +906,28 @@ void PermGroup::const_iterator::update_result()
   _current_result = _current_factors[0];
   for (unsigned j = 1u; j < _current_factors.size(); ++j)
     _current_result = _current_factors[j] * _current_result;
+}
+
+std::ostream& operator<<(std::ostream& stream, PermGroup const &pg) {
+  stream << "BASE: [";
+
+  for (auto i = 0u; i < pg.bsgs().base.size(); ++i) {
+    stream << pg.bsgs().base[i];
+    if (i < pg.bsgs().base.size() - 1u)
+      stream << ", ";
+  }
+
+  stream << "]; SGS: [";
+
+  for (auto i = 0u; i < pg.bsgs().strong_generators.size(); ++i) {
+    stream << pg.bsgs().strong_generators[i];
+    if (i < pg.bsgs().strong_generators.size() - 1u)
+      stream << ", ";
+  }
+
+  stream << ']';
+
+  return stream;
 }
 
 } // namespace cgtl
