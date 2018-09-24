@@ -40,6 +40,9 @@ def rand_pperm(X: List[int],
         im.append(X[im_remaining[j]])
         im_remaining.pop(j)
 
+    if not dom:
+      return [], []
+
     dom, im = zip(*sorted([[d, i] for d, i in zip(dom, im)]))
 
     return (dom, im)
@@ -55,7 +58,7 @@ if __name__ == '__main__':
     parser.add_argument('-n', default=1, type=int,
         help="number of partial permutations to be generated")
 
-    parser.add_argument('--dmin', default=0, type=int,
+    parser.add_argument('--dmin', default=1, type=int,
         help="minimum domain/image size")
 
     parser.add_argument('--dmax', default=None, type=int,
