@@ -183,11 +183,13 @@ bool s_normal_closure(
 
 }
 
-bool BSGS::solve(std::vector<Perm> const &generators, BSGS &bsgs)
+BSGS BSGS::solve(std::vector<Perm> const &generators)
 {
   assert(generators.size() > 0u);
 
   Dbg(Dbg::DBG) << "Attempting to solve BSGS for generators: " << generators;
+
+  BSGS bsgs;
 
   unsigned n = generators[0].degree();
 
@@ -222,13 +224,16 @@ bool BSGS::solve(std::vector<Perm> const &generators, BSGS &bsgs)
 
       if (!success) {
         Dbg(Dbg::DBG) << "==> Failure";
-        return false;
+        bsgs.base.clear();
+        bsgs.strong_generators.clear();
+        bsgs.schreier_structures.clear();
+        return bsgs;
       }
     }
   }
 
   Dbg(Dbg::DBG) << "==> Success";
-  return true;
+  return bsgs;
 }
 
 } // namespace cgtl

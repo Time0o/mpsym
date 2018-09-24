@@ -32,8 +32,8 @@ TEST(BSGSTest, CanSolveBSGS)
   std::vector<Perm> generators_non_solvable(
     PermGroup::symmetric(5).bsgs().strong_generators);
 
-  BSGS bsgs;
-  EXPECT_TRUE(BSGS::solve(generators_solvable, bsgs))
+  BSGS bsgs(BSGS::solve(generators_solvable));
+  ASSERT_FALSE(bsgs.base.empty())
     << "BSGS::solve succeeds for solvable group generating set.";
 
   for (Perm const &perm : generators_solvable_expected_elements) {
@@ -41,7 +41,7 @@ TEST(BSGSTest, CanSolveBSGS)
       << "Solvable group BSGS correct.";
   }
 
-  BSGS dummy;
-  EXPECT_FALSE(BSGS::solve(generators_non_solvable, dummy))
+  BSGS dummy(BSGS::solve(generators_non_solvable));
+  ASSERT_TRUE(dummy.base.empty())
     << "BSGS::solve fails for non-solvable group generating set.";
 }

@@ -22,7 +22,7 @@ struct BSGS
   std::vector<Perm> transversals(unsigned i) const;
   std::vector<Perm> stabilizers(unsigned i) const;
 
-  static bool solve(std::vector<Perm> const &generators, BSGS &bsgs);
+  static BSGS solve(std::vector<Perm> const &generators);
 };
 
 } // namespace cgtl

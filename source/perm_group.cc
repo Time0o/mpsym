@@ -336,8 +336,8 @@ PermGroup::PermGroup(
         }
         break;
       default:
-        BSGS tmp;
-        if (BSGS::solve(generators, tmp)) {
+        BSGS tmp(BSGS::solve(generators));
+        if (!tmp.base.empty()) {
           _bsgs = tmp;
         } else {
           switch (storage_method) {
