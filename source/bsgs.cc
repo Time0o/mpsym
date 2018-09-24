@@ -38,6 +38,98 @@ std::vector<Perm> BSGS::stabilizers(unsigned i) const {
   return schreier_structures[i]->labels();
 }
 
+void BSGS::remove_generators()
+{
+  assert(base.size() > 0u);
+
+  unsigned n = strong_generators[0].degree();
+  unsigned k = base.size();
+
+  auto difference = [](std::vector<Perm> const &lhs,
+                       std::vector<Perm> const &rhs,
+                       std::vector<Perm> const &removed) {
+
+    int delta = static_cast<int>(lhs.size() - rhs.size());
+    std::vector<Perm> res;
+
+    for (auto const &perm : lhs) {
+      if (std::find(rhs.begin(), rhs.end(), perm) == rhs.end() &&
+          std::find(removed.begin(), removed.end(), perm) == removed.end()) {
+
+        res.push_back(perm);
+        if (--delta == 0)
+          break;
+      }
+    }
+
+    return res;
+  };
+
+  auto produces_orbit = [&](unsigned root,
+                            std::vector<Perm> const &generators,
+                            std::vector<unsigned> const &orbit) {
+
+    std::vector<int> in_orbit_ref(n + 1u, 0), in_orbit(n + 1u, 0);
+
+    for (unsigned x : orbit)
+      in_orbit_ref[x] = 1;
+
+    in_orbit[root] = 1;
+
+    if (!in_orbit_ref[root])
+      return false;
+
+    auto target = orbit.size();
+
+    std::vector<unsigned> queue {root};
+
+    while (!queue.empty()) {
+      unsigned x = queue.back();
+      queue.pop_back();
+
+      for (auto const &gen : generators) {
+        unsigned y = gen[x];
+        if (!in_orbit_ref[y]) {
+          return false;
+        }
+
+        if (in_orbit[y] == 0) {
+          in_orbit[y] = 1;
+          queue.push_back(y);
+
+          if (--target == 0u) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  };
+
+  std::vector<Perm> working_set {Perm(n)};
+  std::vector<Perm> removed;
+
+  for (int i = static_cast<int>(k - 1u); i >= 0; --i) {
+    working_set = difference(stabilizers(i), working_set, removed);
+
+    std::vector<unsigned> remove;
+    for (unsigned j = 0u; j < strong_generators.size(); ++j) {
+      if (produces_orbit(base[i], working_set, orbit(i)))
+        remove.push_back(j);
+    }
+
+    for (unsigned j : remove) {
+      removed.push_back(strong_generators[j]);
+      strong_generators.erase(strong_generators.begin() + j);
+    }
+  }
+
+  // TODO: avoid recomputation?
+  for (unsigned i = 0u; i < base.size(); ++i)
+    schreier_sims::orbit(base[i], strong_generators, schreier_structures[i]);
+}
+
 namespace
 {
 

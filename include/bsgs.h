@@ -22,6 +22,9 @@ struct BSGS
   std::vector<Perm> transversals(unsigned i) const;
   std::vector<Perm> stabilizers(unsigned i) const;
 
+  // TODO: add option to keep original generators
+  void remove_generators();
+
   static BSGS solve(std::vector<Perm> const &generators);
 };
 
