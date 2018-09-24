@@ -9,6 +9,7 @@
 
 #include "test_main.cc"
 
+using cgtl::ExplicitTransversals;
 using cgtl::Perm;
 using cgtl::SchreierTree;
 using cgtl::schreier_sims::orbit;
@@ -18,7 +19,8 @@ using testing::UnorderedElementsAreArray;
 template <typename T>
 class SchreierStructureTest : public testing::Test {};
 
-using SchreierStructureTypes = ::testing::Types<SchreierTree>;
+using SchreierStructureTypes = ::testing::Types<ExplicitTransversals,
+                                                SchreierTree>;
 
 TYPED_TEST_CASE(SchreierStructureTest, SchreierStructureTypes);
 
