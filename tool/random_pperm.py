@@ -67,24 +67,26 @@ if __name__ == '__main__':
     ns = parser.parse_args()
 
     if re.match(r'([1-9]+,)*([1-9]+)', ns.DOMAIN) is None:
-      print("DOMAIN has invalid format, should be 'x1,x2, ...'", file=sys.stderr)
-      parser.print_help(file=sys.stderr)
-      sys.exit(1)
+        err = "DOMAIN has invalid format, should be 'x1,x2, ...'",
+        print(err, file=sys.stderr)
+        parser.print_help(file=sys.stderr)
+        sys.exit(1)
 
     X = [int(x) for x in ns.DOMAIN.split(',')]
 
     if len(set(X)) != len(X):
-      print("DOMAIN contains duplicates", file=sys.stderr)
-      parser.print_help(file=sys.stderr)
-      sys.exit(1)
+        print("DOMAIN contains duplicates", file=sys.stderr)
+        parser.print_help(file=sys.stderr)
+        sys.exit(1)
 
     res = []
     for _ in range(ns.n):
-      dom, im = rand_pperm(X, dmin=ns.dmin, dmax=ns.dmax)
-      strlist = lambda l: ', '.join(map(str, l))
-      res.append("PartialPerm({{{}}}, {{{}}})".format(strlist(dom), strlist(im)))
+        dom, im = rand_pperm(X, dmin=ns.dmin, dmax=ns.dmax)
+        strlist = lambda l: ', '.join(map(str, l))
+        fmt = "PartialPerm({{{}}}, {{{}}})"
+        res.append(fmt.format(strlist(dom), strlist(im)))
 
     if ns.sort:
-      res = sorted(res)
+        res = sorted(res)
 
     print(',\n'.join(res))
