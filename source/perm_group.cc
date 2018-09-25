@@ -909,24 +909,7 @@ void PermGroup::const_iterator::update_result()
 }
 
 std::ostream& operator<<(std::ostream& stream, PermGroup const &pg) {
-  stream << "BASE: [";
-
-  for (auto i = 0u; i < pg.bsgs().base.size(); ++i) {
-    stream << pg.bsgs().base[i];
-    if (i < pg.bsgs().base.size() - 1u)
-      stream << ", ";
-  }
-
-  stream << "]; SGS: [";
-
-  for (auto i = 0u; i < pg.bsgs().strong_generators.size(); ++i) {
-    stream << pg.bsgs().strong_generators[i];
-    if (i < pg.bsgs().strong_generators.size() - 1u)
-      stream << ", ";
-  }
-
-  stream << ']';
-
+  stream << pg.bsgs();
   return stream;
 }
 

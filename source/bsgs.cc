@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cmath>
 #include <memory>
+#include <ostream>
 #include <vector>
 
 #include "bsgs.h"
@@ -326,6 +327,28 @@ BSGS BSGS::solve(std::vector<Perm> const &generators)
 
   Dbg(Dbg::DBG) << "==> Success";
   return bsgs;
+}
+
+std::ostream& operator<<(std::ostream& stream, BSGS const &bsgs)
+{
+  stream << "BASE: [";
+
+  for (auto i = 0u; i < bsgs.base.size(); ++i) {
+    stream << bsgs.base[i];
+    if (i < bsgs.base.size() - 1u)
+      stream << ", ";
+  }
+
+  stream << "]; SGS: [";
+
+  for (auto i = 0u; i < bsgs.strong_generators.size(); ++i) {
+    stream << bsgs.strong_generators[i];
+    if (i < bsgs.strong_generators.size() - 1u)
+      stream << ", ";
+  }
+
+  stream << ']';
+  return stream;
 }
 
 } // namespace cgtl

@@ -2,6 +2,7 @@
 #define _GUARD_BSGS_H
 
 #include <memory>
+#include <ostream>
 #include <vector>
 
 #include "perm.h"
@@ -27,6 +28,8 @@ struct BSGS
 
   static BSGS solve(std::vector<Perm> const &generators);
 };
+
+std::ostream& operator<<(std::ostream& stream, BSGS const &bsgs);
 
 } // namespace cgtl
 
