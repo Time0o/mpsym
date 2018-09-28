@@ -211,7 +211,7 @@ public:
    *
    * \return `true` if this permutation group is trivial, else `false`
    */
-  bool is_trivial() const { return _bsgs.strong_generators.empty(); }
+  bool is_trivial() const { return _bsgs.base.empty(); }
 
   /** Check whether a permutation group is symmetric.
    *

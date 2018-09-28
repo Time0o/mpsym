@@ -120,7 +120,8 @@ std::pair<Perm, unsigned> strip(
 
 void schreier_sims_finish(
   std::vector<unsigned> const &base, std::vector<Perm> &generators,
-  std::vector<std::vector<Perm>> const &strong_generators)
+  std::vector<std::vector<Perm>> const &strong_generators,
+  std::shared_ptr<SchreierStructure> s1)
 {
   std::unordered_set<Perm> unique_generators;
 
@@ -129,6 +130,8 @@ void schreier_sims_finish(
 
   generators = std::vector<Perm>(unique_generators.begin(),
                                  unique_generators.end());
+
+  orbit(base[0], generators, s1);
 
   Dbg(Dbg::DBG) << "=== Result";
   Dbg(Dbg::DBG) << "B = " << base;

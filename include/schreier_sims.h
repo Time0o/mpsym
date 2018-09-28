@@ -113,8 +113,6 @@ void schreier_sims_init(
   std::vector<std::vector<Perm>> &strong_generators,
   std::vector<std::vector<unsigned>> &fundamental_orbits)
 {
-  assert(generators.size() > 0u && "generator set not empty");
-
   unsigned degree = generators[0].degree();
 
 #ifndef NDEBUG
@@ -197,7 +195,8 @@ void schreier_sims_init(
 
 void schreier_sims_finish(
   std::vector<unsigned> const &base, std::vector<Perm> &generators,
-  std::vector<std::vector<Perm>> const &strong_generators);
+  std::vector<std::vector<Perm>> const &strong_generators,
+  std::shared_ptr<SchreierStructure> s1);
 
 /** The simple *Schreier-Sims* algorithm
  *
@@ -248,6 +247,13 @@ void schreier_sims(
   std::vector<std::shared_ptr<SchreierStructure>> &sts)
 {
   Dbg(Dbg::DBG) << "Executing schreier sims algorithm";
+
+  assert(generators.size() > 0u && "generator set not empty");
+
+  if (generators.size() == 1u && generators[0].id()) {
+    base.clear();
+    return;
+  }
 
   // intialize
   std::vector<std::vector<Perm>> strong_generators;
@@ -329,7 +335,7 @@ top:
     i -= 1u;
   }
 
-  schreier_sims_finish(base, generators, strong_generators);
+  schreier_sims_finish(base, generators, strong_generators, sts[0]);
 }
 
 /** The *Random Schreier-Sims* algorithm
@@ -366,6 +372,13 @@ void schreier_sims_random(
   std::vector<std::shared_ptr<SchreierStructure>> &sts, unsigned w = 10)
 {
   Dbg(Dbg::DBG) << "Executing (random) schreier sims algorithm";
+
+  assert(generators.size() > 0u && "generator set not empty");
+
+  if (generators.size() == 1u && generators[0].id()) {
+    base.clear();
+    return;
+  }
 
   // intialize
   std::vector<std::vector<Perm>> strong_generators;
@@ -430,7 +443,7 @@ void schreier_sims_random(
     } else { ++c; }
   }
 
-  schreier_sims_finish(base, generators, strong_generators);
+  schreier_sims_finish(base, generators, strong_generators, sts[0]);
 }
 
 } // namespace schreier_sims

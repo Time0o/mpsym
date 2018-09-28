@@ -837,7 +837,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
 }
 
 PermGroup::const_iterator::const_iterator(PermGroup const &pg)
-  : _trivial(pg.bsgs().strong_generators.empty()), _end(false)
+  : _trivial(pg.bsgs().base.empty()), _end(false)
 {
   if (_trivial) {
     _current_result = Perm(pg.degree());
