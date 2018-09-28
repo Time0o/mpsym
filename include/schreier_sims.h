@@ -64,7 +64,7 @@ std::vector<std::vector<unsigned>> orbits(std::vector<Perm> const &generators);
  *     permutation group \f$G\f$
  *
  * \param[out] st
- *     a pointer to a preallocated Schreier tree which will store the orbit
+ *     a pointer to a preallocated Schreier structure which will store the orbit
  *     transversals after the execution of this function, provided
  *     `st != nullptr`
  *
@@ -81,7 +81,7 @@ std::vector<unsigned> orbit(
  * This function computes a pair containing a permutation \f$h\f$ and a
  * positive integer \f$i\f$. If the permutation \f$g\f$ described by `perm` is
  * contained in the group \f$G\f$ with *base* `base` and *base orbits/base
- * orbit transversals* described by the *Schreier trees* `sts` (see also
+ * orbit transversals* described by the *Schreier structures* `sts` (see also
  * schreier_sims()), \f$h\f$ will be the identity permutation and \f$i\f$ will
  * be \f$k + 1\f$ (where \f$k\f$ is the length of the given base). This implies
  * that \f$g\f$ can be decomposed as \f$u_k u_{k-1} \dots u_i\f$ with \f$u_i
@@ -96,9 +96,8 @@ std::vector<unsigned> orbit(
  *     the permutation which should be tested for membership in the group with
  *     base `base` and base orbits/base orbit transversals described by `sts`
  *
- * \param base a group base, refer to schreier_sims()
- *
- * \param sts a vector of Schreier trees, refer to schreier_sims()
+ * \param bsgs
+ *     a base and strong generating set, e.g. constructed using schreier_sims()
  *
  * \return a pair containing a permutation \f$h\f$ and a positive integer
  *         \f$i\f$ as described above
@@ -213,30 +212,26 @@ void schreier_sims_finish(BSGS &bsgs);
  * elements \f$\beta_1, \dots, \beta_{i-1}\f$ to themselves and \f$S^{(i)} := S
  * \cap G^{(i)}\f$.
  *
- * This function also calculates *base orbits/base orbit transversals* in the form of
- * a vector of Schreier trees (one per base element). The \f$i\f$th base orbit
- * is the set \f$\Delta^{(i)} := \beta_i^{H^{(i)}}\f$ (where \f$H^{(i)} :=
- * \left<S^{(i)}\right>\f$) and the corresponding base orbit transversal is
- * \f$U^{(i)} := \{u_{\beta}^{(i)} \mid \beta \in \Delta^{(i)}\}\f$ (where
- * \f$u_{\beta}^{(i)} \in G\f$ maps \f$\beta_i\f$ to \f$\beta\f$).
+ * This function also calculates *base orbits/base orbit transversals* in the
+ * form of a vector of *Schreier structures* (one per base element). The
+ * \f$i\f$th base orbit is the set \f$\Delta^{(i)} := \beta_i^{H^{(i)}}\f$
+ * (where \f$H^{(i)} := \left<S^{(i)}\right>\f$) and the corresponding base
+ * orbit transversal is \f$U^{(i)} := \{u_{\beta}^{(i)} \mid \beta \in
+ * \Delta^{(i)}\}\f$ (where \f$u_{\beta}^{(i)} \in G\f$ maps \f$\beta_i\f$ to
+ * \f$\beta\f$).
  *
  * Note that in general there is no unique BSGS for a given permutation group
  * and this function makes no guarantees as to which possible BSGS is returned.
  *
- * \param[in,out] base
- *     initial base, the resulting base will be an extension of this base, i.e.
- *     in general more eleme elements will be appended to the end of this
- *     parameter; base may be empty (and should be if initially no particular
- *     base prefix is desired)
- *
- * \param[in,out] generators
- *     the generating set for the permutation for which BSGS should be computed.
- *     this function replaces the element in this vector by the determined
- *     strong generators (in no particular order)
- *
- * \param[out] sts
- *     schreier trees which describe the orbits of base elements and the
- *     associated transversals which are needed for several further computations
+ * \param[in,out] bsgs
+ *     initial base and generators in the form of a base and strong generating
+ *     set (BSGS) object; the resulting base will be an extension of the
+ *     initial base, i.e. in general more elements will be appended to it; the
+ *     base may be empty initially (and should be if no particular base prefix
+ *     is desired); the generators are replaced by the computed strong
+ *     generating set (in no particular order); this parameter's Schreier
+ *     structures, which describe the orbits of base elements and the associated
+ *     transversals, are also set by this function
  */
 template <typename SS>
 void schreier_sims(BSGS &bsgs)
@@ -339,19 +334,15 @@ top:
  * described by the given generators, to achieve certainty, an additional call
  * to TODO is necessary.
  *
- * \param[in,out] base
- *     initial base in general more eleme elements will be appended to the end
- *     of this parameter; base may be empty (and should be if initially no
- *     particular base prefix is desired)
- *
- * \param[in,out] generators
- *     the generating set for the permutation for which BSGS should be computed.
- *     this function replaces the element in this vector by the determined
- *     strong generators (in no particular order)
- *
- * \param[out] sts
- *     schreier trees which describe the orbits of base elements and the
- *     associated transversals which are needed for several further computations
+ * \param[in,out] bsgs
+ *     initial base and generators in the form of a base and strong generating
+ *     set (BSGS) object; the resulting base will be an extension of the
+ *     initial base, i.e. in general more elements will be appended to it; the
+ *     base may be empty initially (and should be if no particular base prefix
+ *     is desired); the generators are replaced by the computed strong
+ *     generating set (in no particular order); this parameter's Schreier
+ *     structures, which describe the orbits of base elements and the associated
+ *     transversals, are also set by this function
  *
  * \param w
  *     tuning parameter, higher values increase the probability that the
