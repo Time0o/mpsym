@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <unordered_set>
 #include <vector>
 
 class Dbg
@@ -28,6 +29,25 @@ public:
       _buf << '[';
       for (auto i = 0u; i < vect.size(); ++i)
         (*this) << vect[i] << ((i == vect.size() - 1u) ? "]" : ", ");
+    }
+    return *this;
+  }
+
+  template <typename T>
+  Dbg& operator<<(std::unordered_set<T> const &set) {
+    if (set.size() == 0u) {
+      _buf << "{}";
+    } else {
+      std::stringstream ss;
+
+      ss << '{';
+      for (auto const &x : set)
+        ss << x << ", ";
+      std::string s(ss.str());
+      s.resize(s.size() - 1u);
+      s.back() = '}';
+
+      (*this) << s;
     }
     return *this;
   }
