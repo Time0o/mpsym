@@ -5,6 +5,7 @@
 #include <utility>
 #include <vector>
 
+#include "bsgs.h"
 #include "dbg.h"
 #include "perm.h"
 #include "pr_randomizer.h"
@@ -101,41 +102,38 @@ std::vector<unsigned> orbit(
   return result;
 }
 
-std::pair<Perm, unsigned> strip(
-  Perm const &perm, std::vector<unsigned> const &base,
-  std::vector<std::shared_ptr<SchreierStructure>> const &sts)
+std::pair<Perm, unsigned> strip(Perm const &perm, BSGS const &bsgs)
 {
   Perm result(perm);
 
-  for (unsigned i = 0u; i < base.size(); ++i) {
-    unsigned beta = result[base[i]];
-    if (!sts[i]->contains(beta))
+  for (unsigned i = 0u; i < bsgs.base.size(); ++i) {
+    unsigned beta = result[bsgs.base[i]];
+    if (!bsgs.schreier_structures[i]->contains(beta))
       return std::make_pair(result, i + 1u);
 
-    result *= ~sts[i]->transversal(beta);
+    result *= ~bsgs.schreier_structures[i]->transversal(beta);
   }
 
-  return std::make_pair(result, base.size() + 1u);
+  return std::make_pair(result, bsgs.base.size() + 1u);
 }
 
-void schreier_sims_finish(
-  std::vector<unsigned> const &base, std::vector<Perm> &generators,
-  std::vector<std::vector<Perm>> const &strong_generators,
-  std::shared_ptr<SchreierStructure> s1)
+void schreier_sims_finish(BSGS &bsgs)
 {
   std::unordered_set<Perm> unique_generators;
 
-  for (auto const &gens : strong_generators)
-    unique_generators.insert(gens.begin(), gens.end());
+  for (auto const &st : bsgs.schreier_structures) {
+    auto stabilizers(st->labels());
+    unique_generators.insert(stabilizers.begin(), stabilizers.end());
+  }
 
-  generators = std::vector<Perm>(unique_generators.begin(),
-                                 unique_generators.end());
+  bsgs.strong_generators =
+    std::vector<Perm>(unique_generators.begin(), unique_generators.end());
 
-  orbit(base[0], generators, s1);
+  orbit(bsgs.base[0], bsgs.strong_generators, bsgs.schreier_structures[0]);
 
   Dbg(Dbg::DBG) << "=== Result";
-  Dbg(Dbg::DBG) << "B = " << base;
-  Dbg(Dbg::DBG) << "SGS = " << generators;
+  Dbg(Dbg::DBG) << "B = " << bsgs.base;
+  Dbg(Dbg::DBG) << "SGS = " << bsgs.strong_generators;
 }
 
 } // namespace schreier_sims

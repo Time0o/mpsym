@@ -16,7 +16,7 @@ namespace cgtl
 {
 
 bool BSGS::contains(Perm const &perm) const {
-  auto strip_result(schreier_sims::strip(perm, base, schreier_structures));
+  auto strip_result(schreier_sims::strip(perm, *this));
   return strip_result.first.id() && strip_result.second == base.size() + 1u;
 }
 

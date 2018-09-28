@@ -323,16 +323,14 @@ PermGroup::PermGroup(
         switch (storage_method) {
           // TODO
           default:
-            schreier_sims::schreier_sims<SchreierTree>(
-              _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_structures);
+            schreier_sims::schreier_sims<SchreierTree>(_bsgs);
         }
         break;
       case SCHREIER_SIMS_RANDOM:
         switch (storage_method) {
           // TODO
           default:
-            schreier_sims::schreier_sims_random<SchreierTree>(
-              _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_structures);
+            schreier_sims::schreier_sims_random<SchreierTree>(_bsgs);
         }
         break;
       default:
@@ -343,8 +341,7 @@ PermGroup::PermGroup(
           switch (storage_method) {
             // TODO
             default:
-              schreier_sims::schreier_sims<SchreierTree>(
-                _bsgs.base, _bsgs.strong_generators, _bsgs.schreier_structures);
+              schreier_sims::schreier_sims<SchreierTree>(_bsgs);
           }
         }
     }
@@ -479,8 +476,7 @@ bool PermGroup::contains_element(Perm const &perm) const
 {
   assert(perm.degree() == _n && "element has same degree as group");
 
-  auto strip_result =
-    schreier_sims::strip(perm, _bsgs.base, _bsgs.schreier_structures);
+  auto strip_result = schreier_sims::strip(perm, _bsgs);
 
   bool ret = (std::get<1>(strip_result) == _bsgs.base.size() + 1) &&
              (std::get<0>(strip_result).id());
