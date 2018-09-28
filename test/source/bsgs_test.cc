@@ -1,3 +1,4 @@
+#include <memory>
 #include <vector>
 
 #include "gmock/gmock.h"
@@ -5,12 +6,84 @@
 #include "bsgs.h"
 #include "perm.h"
 #include "perm_group.h"
+#include "schreier_structure.h"
 
 #include "test_main.cc"
 
 using cgtl::BSGS;
 using cgtl::Perm;
 using cgtl::PermGroup;
+using cgtl::SchreierTree;
+using cgtl::schreier_sims::orbit;
+
+TEST(BSGSTest, CanRemoveRedundantGenerators)
+{
+  // explicitly construct BSGS
+  BSGS bsgs;
+
+  bsgs.base = {3, 1, 2};
+
+  bsgs.strong_generators = {
+    Perm(4, {{1, 3, 4}}),
+    Perm(4, {{1, 2, 3}}),
+    Perm(4, {{1, 2}}),
+    Perm(4, {{1, 3, 2, 4}}),
+    Perm(4, {{1, 3, 2}}),
+    Perm(4, {{1, 4, 3, 2}}),
+    Perm(4, {{2, 3, 4}}),
+    Perm(4, {{2, 3}}),
+    Perm(4, {{2, 4, 3}}),
+    Perm(4, {{2, 4}}),
+    Perm(4, {{3, 4}})
+  };
+
+  std::vector<Perm> S1(bsgs.strong_generators);
+  std::vector<Perm> S2 {Perm(4, {{1, 2}}), Perm(4, {{2, 4}})};
+  std::vector<Perm> S3 {Perm(4, {{2, 4}})};
+
+  for (int i = 0; i < 3; ++i)
+    bsgs.schreier_structures.push_back(std::make_shared<SchreierTree>(4));
+
+  orbit(bsgs.base[0], S1, bsgs.schreier_structures[0]);
+  orbit(bsgs.base[1], S2, bsgs.schreier_structures[1]);
+  orbit(bsgs.base[2], S3, bsgs.schreier_structures[2]);
+
+  // remove redundant generators
+  bsgs.remove_generators();
+
+  // check whether resulting BSGS is still equivalent
+  Perm expected_elements[] = {
+    Perm(4, {{1, 2}}),
+    Perm(4, {{1, 2}, {3, 4}}),
+    Perm(4, {{1, 2, 3}}),
+    Perm(4, {{1, 2, 3, 4}}),
+    Perm(4, {{1, 2, 4}}),
+    Perm(4, {{1, 2, 4, 3}}),
+    Perm(4, {{1, 3}}),
+    Perm(4, {{1, 3}, {2, 4}}),
+    Perm(4, {{1, 3, 2}}),
+    Perm(4, {{1, 3, 2, 4}}),
+    Perm(4, {{1, 3, 4}}),
+    Perm(4, {{1, 3, 4, 2}}),
+    Perm(4, {{1, 4}}),
+    Perm(4, {{1, 4}, {2, 3}}),
+    Perm(4, {{1, 4, 2}}),
+    Perm(4, {{1, 4, 2, 3}}),
+    Perm(4, {{1, 4, 3}}),
+    Perm(4, {{1, 4, 3, 2}}),
+    Perm(4, {{2, 3}}),
+    Perm(4, {{2, 3, 4}}),
+    Perm(4, {{2, 4}}),
+    Perm(4, {{2, 4, 3}}),
+    Perm(4, {{3, 4}})
+  };
+
+  for (Perm const &perm : expected_elements) {
+    EXPECT_TRUE(bsgs.contains(perm))
+      << "BSGS with reduced strong generators describes the same permutation group "
+      << "(containing element " << perm << ")";
+  }
+}
 
 TEST(BSGSTest, CanSolveBSGS)
 {
