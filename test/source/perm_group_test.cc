@@ -481,3 +481,115 @@ TEST(WreathProductTest, CanFindWreathProduct)
   EXPECT_THAT(tmp, UnorderedElementsAreArray(sigma_hs))
     << "Permutation representations of block actions generated correctly.";
 }
+
+TEST(SpecialPermGroupTest, CanConstructSymmetricGroup)
+{
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(S1),
+                               PermGroup::symmetric(1)))
+    << "Can construct symmetric group S_1.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(S2),
+                               PermGroup::symmetric(2)))
+    << "Can construct symmetric group S_2.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(S3),
+                               PermGroup::symmetric(3)))
+    << "Can construct symmetric group S_3.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(S4),
+                               PermGroup::symmetric(4)))
+    << "Can construct symmetric group S_4.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(S5),
+                               PermGroup::symmetric(5)))
+    << "Can construct symmetric group S_5.";
+}
+
+TEST(SpecialPermGroupTest, CanConstructCyclicGroup)
+{
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(C1),
+                               PermGroup::cyclic(1)))
+    << "Can construct cyclic group C_1.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(C2),
+                               PermGroup::cyclic(2)))
+    << "Can construct cyclic group C_2.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(C3),
+                               PermGroup::cyclic(3)))
+    << "Can construct cyclic group C_3.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(C4),
+                               PermGroup::cyclic(4)))
+    << "Can construct cyclic group C_4.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(C5),
+                               PermGroup::cyclic(5)))
+    << "Can construct cyclic group C_5.";
+}
+
+TEST(SpecialPermGroupTest, CanConstructAlternatingGroup)
+{
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(A1),
+                               PermGroup::alternating(1)))
+    << "Can construct alternating group A_1.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(A2),
+                               PermGroup::alternating(2)))
+    << "Can construct alternating group A_2.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(A3),
+                               PermGroup::alternating(3)))
+    << "Can construct alternating group A_3.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(A4),
+                               PermGroup::alternating(4)))
+    << "Can construct alternating group A_4.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(A5),
+                               PermGroup::alternating(5)))
+    << "Can construct alternating group A_5.";
+}
+
+TEST(SpecialPermGroupTest, CanConstructDihedralGroup)
+{
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(D1),
+                               PermGroup::dihedral(1)))
+    << "Can construct dihedral group D_1.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(D2),
+                               PermGroup::dihedral(2)))
+    << "Can construct dihedral group D_2.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(D3),
+                               PermGroup::dihedral(3)))
+    << "Can construct dihedral group D_3.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(D4),
+                               PermGroup::dihedral(4)))
+    << "Can construct dihedral group D_4.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(D5),
+                               PermGroup::dihedral(5)))
+    << "Can construct dihedral group D_5.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(D6),
+                               PermGroup::dihedral(6)))
+    << "Can construct dihedral group D_6.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(D7),
+                               PermGroup::dihedral(7)))
+    << "Can construct dihedral group D_7.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(D8),
+                               PermGroup::dihedral(8)))
+    << "Can construct dihedral group D_8.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(D9),
+                               PermGroup::dihedral(9)))
+    << "Can construct dihedral group D_9.";
+
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(D10),
+                               PermGroup::dihedral(10)))
+    << "Can construct dihedral group D_10.";
+}

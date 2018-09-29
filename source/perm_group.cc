@@ -399,13 +399,46 @@ PermGroup PermGroup::cyclic(unsigned degree)
 
 PermGroup PermGroup::alternating(unsigned degree)
 {
-  assert(degree > 2u);
+  assert(degree > 0u);
+
+  if (degree == 1u)
+    return PermGroup(1, {});
+
+  if (degree == 2u)
+    return PermGroup(2, {});
 
   std::vector<Perm> gens;
   for (unsigned i = 3u; i <= degree; ++i)
     gens.push_back(Perm(degree, {{1, 2, i}}));
 
   return PermGroup(degree, gens);
+}
+
+PermGroup PermGroup::dihedral(unsigned degree)
+{
+  assert(degree > 0u);
+
+  if (degree == 1u)
+    return PermGroup(2, {Perm({2, 1})});
+
+  if (degree == 2u)
+    return PermGroup(4, {Perm({2, 1, 3, 4}), Perm({1, 2, 4, 3})});
+
+  std::vector<unsigned> rotation(degree);
+  for (unsigned i = 0u; i < degree - 1u; ++i)
+    rotation[i] = i + 2u;
+  rotation.back() = 1u;
+
+  std::vector<unsigned> reflection(degree);
+  for (unsigned i = 0u; i < degree / 2; ++i) {
+    reflection[i] = degree - i;
+    reflection[degree - i - 1u] = i + 1u;
+  }
+
+  if (degree % 2u == 1u)
+    reflection[degree / 2u] = degree / 2u + 1u;
+
+  return PermGroup(degree, {Perm(rotation), Perm(reflection)});
 }
 
 bool PermGroup::is_symmetric() const

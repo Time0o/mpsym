@@ -122,7 +122,7 @@ public:
    *
    * \param degree
    *     degree \f$n\f$ of the resulting group, for `degree == 0u` this
-   *     functions behaviour is undefined
+   *     function's behaviour is undefined
    *
    * \return the symmetric group \f$S_n\f$
    */
@@ -132,7 +132,7 @@ public:
    *
    * \param degree
    *     degree \f$n\f$ of the resulting group, for `degree == 0u` this
-   *     functions behaviour is undefined
+   *     function's behaviour is undefined
    *
    * \return the cyclic group \f$C_n\f$
    */
@@ -141,12 +141,23 @@ public:
   /** Construct an alternating permutation group
    *
    * \param degree
-   *     degree \f$n\f$ of the resulting group, for `degree < 3u` this functions
-   *     behaviour is undefined
+   *     degree \f$n\f$ of the resulting group, for `degree == 0u` this
+   *     function's behaviour is undefined
    *
    * \return the alternating group \f$A_n\f$
    */
   static PermGroup alternating(unsigned degree);
+
+  /** Construct a dihedral permutation group
+   *
+   * \param degree
+   *     degree \f$n\f$ of the resulting group (except when `degree == 1u` or
+   *     `degree == 2u`), for `degree == 0u` this function's behaviour is
+   *     undefined
+   *
+   * \return the dihedral group \f$D_n\f$ (or \f$D_2n\f$ in a different notation)
+   */
+  static PermGroup dihedral(unsigned degree);
 
   /** Obtain a constant iterator iterating over this group's elements.
    *
