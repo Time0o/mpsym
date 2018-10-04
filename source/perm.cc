@@ -192,12 +192,28 @@ bool Perm::id() const
   return true;
 }
 
-Perm Perm::shifted(unsigned low, unsigned high) const
+Perm Perm::normalized(unsigned low, unsigned high) const
 {
-  std::vector<unsigned> perm_shifted(high - low + 1u);
+  std::vector<unsigned> perm_normalized(high - low + 1u);
 
   for (auto i = low; i <= high; ++i)
-    perm_shifted[i - low] = _perm[i - 1u] - low + 1u;
+    perm_normalized[i - low] = _perm[i - 1u] - low + 1u;
+
+  return Perm(perm_normalized);
+}
+
+Perm Perm::shifted(unsigned shift) const
+{
+  if (shift == 0 || _n == 0u)
+    return *this;
+
+  std::vector<unsigned> perm_shifted(_n + shift);
+
+  for (unsigned i = 1u; i <= shift; ++i)
+    perm_shifted[i - 1u] = i;
+
+  for (unsigned i = 1u; i <= _n; ++i)
+    perm_shifted[i + shift - 1u] = (*this)[i] + shift;
 
   return Perm(perm_shifted);
 }

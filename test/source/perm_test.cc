@@ -113,6 +113,29 @@ TEST(PermTest, CanHashPerm)
     << "Hashed permutation set has correct elements.";
 }
 
+// TODO: CanNormalizePerm
+
+TEST(PermTest, CanShiftPerm)
+{
+  Perm perm(5, {{2, 5}, {3, 1, 4}});
+
+  std::vector<std::vector<unsigned>> expected_shifted_perms {
+    {4, 5, 1, 3, 2},
+    {1, 5, 6, 2, 4, 3},
+    {1, 2, 6, 7, 3, 5, 4},
+    {1, 2, 3, 7, 8, 4, 6, 5},
+    {1, 2, 3, 4, 8, 9, 5, 7, 6},
+    {1, 2, 3, 4, 5, 9, 10, 6, 8, 7},
+    {1, 2, 3, 4, 5, 6, 10, 11, 7, 9, 8},
+    {1, 2, 3, 4, 5, 6, 7, 11, 12, 8, 10, 9}
+  };
+
+  for (auto i = 0u; i < expected_shifted_perms.size(); ++i) {
+    EXPECT_TRUE(perm_equal(expected_shifted_perms[i], perm.shifted(i)))
+      << "Permutation shift yields original permutation (shift was " << i << ")";
+  }
+}
+
 TEST(PermTest, CanRestrictPerm)
 {
   struct PermRestriction {

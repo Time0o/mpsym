@@ -422,7 +422,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
       Perm tmp(gens[j].restricted(orbits[i]));
 
       if (!tmp.id())
-        restricted_gens.push_back(tmp.shifted(orbit_low, orbit_high));
+        restricted_gens.push_back(tmp.normalized(orbit_low, orbit_high));
     }
 
     Dbg(Dbg::TRACE) << "Group generators restricted to " << orbits[i] << ":";

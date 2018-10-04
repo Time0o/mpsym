@@ -183,7 +183,7 @@ public:
    */
   bool id() const;
 
-  /** *Shift* a permutation's domain.
+  /** *Normalize* a permutation's domain.
    *
    * This function constructs a new permutation \f$p'\f$ from this permutation,
    * \f$p\f$, with the domain \f$\{1, \dots, high - low + 1\}\f$ whose action
@@ -198,7 +198,17 @@ public:
    *     the high end of the domain range which is to be "shifted downwards" as
    *     described above
    */
-  Perm shifted(unsigned low, unsigned high) const;
+  Perm normalized(unsigned low, unsigned high) const;
+
+  /* *Shift* a permutation's domain.
+   *
+   * This function constructs a new permutation \f$p'\f$ equivalent to this
+   * permutation, \f$p\f$, but with the domain \f$\{1 + shift, \dots, shift + n -
+   * 1\}\f$ (where $n$ is this permutation's degree).
+   *
+   * \param shift domain shift as described above
+   */
+  Perm shifted(unsigned shift) const;
 
   /** Construct a *restricted* version of a permutation.
    *
