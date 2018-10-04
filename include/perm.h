@@ -191,7 +191,10 @@ public:
    * action of \f$p'\f$ is defined by \f$p'(i) = p(i)\f$ for \f$1 \leq i \leq
    * n\f$ and \f$p'(i) = i\f$ for \f$n + 1 \leq i \leq n'\f$.
    *
-   * \param degree degree of the resulting permutation as described above
+   * \param degree
+   *     degree of the resulting permutation as described above; if degree is
+   *     smaller than this permutation's degree, this function's behaviour is
+   *     undefined
    *
    * \return a copy of this permutation extended to the domain \f$\{1, \dots,
    *         n'\}\f$
@@ -212,16 +215,20 @@ public:
    * \param high
    *     the high end of the domain range which is to be "shifted downwards" as
    *     described above
+   *
+   * \return a *normalized* copy of this permutation as described above
    */
   Perm normalized(unsigned low, unsigned high) const;
 
-  /* *Shift* a permutation's domain.
+  /** *Shift* a permutation's domain.
    *
    * This function constructs a new permutation \f$p'\f$ equivalent to this
    * permutation, \f$p\f$, but with the domain \f$\{1 + shift, \dots, shift + n -
-   * 1\}\f$ (where $n$ is this permutation's degree).
+   * 1\}\f$ (where \f$n\f$ is this permutation's degree).
    *
    * \param shift domain shift as described above
+   *
+   * \return a *shifted* copy of this permutation as described above
    */
   Perm shifted(unsigned shift) const;
 
