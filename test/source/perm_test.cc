@@ -113,6 +113,24 @@ TEST(PermTest, CanHashPerm)
     << "Hashed permutation set has correct elements.";
 }
 
+TEST(PermTest, CanExtendPerm)
+{
+  Perm perm(5, {{2, 5}, {3, 1, 4}});
+
+  std::vector<std::vector<unsigned>> expected_extended_perms {
+    {4, 5, 1, 3, 2},
+    {4, 5, 1, 3, 2, 6},
+    {4, 5, 1, 3, 2, 6, 7},
+    {4, 5, 1, 3, 2, 6, 7, 8}
+  };
+
+  for (auto i = 0u; i < expected_extended_perms.size(); ++i) {
+    EXPECT_TRUE(perm_equal(expected_extended_perms[i],
+                           perm.extended(perm.degree() + i)))
+      << "Permutation extension yields original permutation.";
+  }
+}
+
 // TODO: CanNormalizePerm
 
 TEST(PermTest, CanShiftPerm)

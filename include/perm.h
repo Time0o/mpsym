@@ -183,6 +183,21 @@ public:
    */
   bool id() const;
 
+  /** *Extend* a permutation's domain.
+   *
+   * This function constructs a new permutation \f$p'\f$ from this permutation,
+   * \f$p\f$, with the domain \f$\{1, \dots, n'\}\f$ where \f$n\f$ and \f$n'\f$
+   * are the degrees of \f$p\f$ and \f$p'\f$ with \f$n' \geq n\f$ and the
+   * action of \f$p'\f$ is defined by \f$p'(i) = p(i)\f$ for \f$1 \leq i \leq
+   * n\f$ and \f$p'(i) = i\f$ for \f$n + 1 \leq i \leq n'\f$.
+   *
+   * \param degree degree of the resulting permutation as described above
+   *
+   * \return a copy of this permutation extended to the domain \f$\{1, \dots,
+   *         n'\}\f$
+   */
+  Perm extended(unsigned degree) const;
+
   /** *Normalize* a permutation's domain.
    *
    * This function constructs a new permutation \f$p'\f$ from this permutation,

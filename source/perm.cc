@@ -192,6 +192,24 @@ bool Perm::id() const
   return true;
 }
 
+Perm Perm::extended(unsigned degree) const
+{
+  assert(degree >= _n);
+
+  if (degree == _n)
+    return *this;
+
+  std::vector<unsigned> perm(degree);
+
+  for (unsigned i = 0u; i < _n; ++i)
+    perm[i] = _perm[i];
+
+  for (unsigned i = _n + 1u; i <= degree; ++i)
+    perm[i - 1u] = i;
+
+  return Perm(perm);
+}
+
 Perm Perm::normalized(unsigned low, unsigned high) const
 {
   std::vector<unsigned> perm_normalized(high - low + 1u);
