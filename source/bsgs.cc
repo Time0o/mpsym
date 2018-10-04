@@ -158,8 +158,10 @@ void BSGS::remove_generators()
 
       bool remove_stab = false;
       if (produces_orbit(base[i], orbit_gens, orbit(i))) {
+#ifndef NDEBUG
         Dbg(Dbg::TRACE) << base[i] << "^" << reduced_stabilizers
                         << " = " << orbit(i);
+#endif
 
         Dbg(Dbg::TRACE) << "=> Removing strong generator " << *it;
 
