@@ -335,6 +335,74 @@ INSTANTIATE_TEST_CASE_P(ConstructionMethods, PermGroupConstructionMethodTest,
                   PermGroup::ConstructionMethod::SCHREIER_SIMS_RANDOM));
                   // TODO: AUTO
 
+TEST(PermGroupCombinationTest, CanConstructDirectProduct)
+{
+  auto S3(PermGroup::symmetric(3));
+
+  std::vector<Perm> S3_shifted_generators;
+  for (auto const &gen : S3.bsgs().strong_generators)
+    S3_shifted_generators.push_back(gen.shifted(3));
+
+  PermGroup S3_shifted(6, S3_shifted_generators);
+
+  auto S3xS3(PermGroup::direct_product(S3, S3_shifted));
+  auto S3xS3_autoshift(PermGroup::direct_product(S3, S3, true));
+
+  std::vector<std::pair<PermGroup, PermGroup>> direct_products {
+    {S3xS3, S3xS3_autoshift}
+  };
+
+  std::vector<std::vector<std::vector<unsigned>>> expected_direct_products[] =  {
+    {
+      {{1, 2, 3}, {4, 5, 6}},
+      {{1, 2, 3}, {4, 5}},
+      {{1, 2, 3}, {4, 6, 5}},
+      {{1, 2, 3}, {4, 6}},
+      {{1, 2, 3}, {5, 6}},
+      {{1, 2, 3}},
+      {{1, 2}, {4, 5, 6}},
+      {{1, 2}, {4, 5}},
+      {{1, 2}, {4, 6, 5}},
+      {{1, 2}, {4, 6}},
+      {{1, 2}, {5, 6}},
+      {{1, 2}},
+      {{1, 3, 2}, {4, 5, 6}},
+      {{1, 3, 2}, {4, 5}},
+      {{1, 3, 2}, {4, 6, 5}},
+      {{1, 3, 2}, {4, 6}},
+      {{1, 3, 2}, {5, 6}},
+      {{1, 3, 2}},
+      {{1, 3}, {4, 5, 6}},
+      {{1, 3}, {4, 5}},
+      {{1, 3}, {4, 6, 5}},
+      {{1, 3}, {4, 6}},
+      {{1, 3}, {5, 6}},
+      {{1, 3}},
+      {{2, 3}, {4, 5, 6}},
+      {{2, 3}, {4, 5}},
+      {{2, 3}, {4, 6, 5}},
+      {{2, 3}, {4, 6}},
+      {{2, 3}, {5, 6}},
+      {{2, 3}},
+      {{4, 5, 6}},
+      {{4, 5}},
+      {{4, 6, 5}},
+      {{4, 6}},
+      {{5, 6}},
+    }
+  };
+
+  for (auto i = 0u; i < direct_products.size(); ++i) {
+    EXPECT_TRUE(perm_group_equal(
+      expected_direct_products[i], direct_products[i].first))
+        << "Direct product construction correct (no autoshift).";
+
+    EXPECT_TRUE(perm_group_equal(
+      expected_direct_products[i], direct_products[i].second))
+        << "Direct product construction correct (autoshift).";
+  }
+}
+
 class DisjointSubgroupProductTest :
   public testing::TestWithParam<std::pair<bool, bool>> {};
 

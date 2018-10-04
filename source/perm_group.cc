@@ -441,6 +441,36 @@ PermGroup PermGroup::dihedral(unsigned degree)
   return PermGroup(degree, {Perm(rotation), Perm(reflection)});
 }
 
+PermGroup PermGroup::direct_product(
+    PermGroup const &lhs, PermGroup const &rhs, bool autoshift)
+{
+  std::vector<Perm> generators_lhs, generators_rhs;
+  if (autoshift || rhs.degree() >= lhs.degree()) {
+    generators_lhs = std::vector<Perm>(rhs.bsgs().strong_generators);
+    generators_rhs = std::vector<Perm>(lhs.bsgs().strong_generators);
+  } else {
+    generators_lhs = std::vector<Perm>(lhs.bsgs().strong_generators);
+    generators_rhs = std::vector<Perm>(rhs.bsgs().strong_generators);
+  }
+
+  unsigned n = autoshift ? lhs.degree() + rhs.degree() : rhs.degree();
+
+  std::vector<Perm> generators;
+
+  for (auto const &perm : generators_lhs)
+    generators.push_back(perm.extended(n));
+
+  if (autoshift) {
+    for (auto const &perm : generators_rhs)
+      generators.push_back(perm.shifted(lhs.degree()));
+  } else {
+    generators.insert(
+      generators.end(), generators_rhs.begin(), generators_rhs.end());
+  }
+
+  return PermGroup(n, generators);
+}
+
 bool PermGroup::is_symmetric() const
 {
   if (_n == 1u)

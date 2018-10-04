@@ -159,6 +159,22 @@ public:
    */
   static PermGroup dihedral(unsigned degree);
 
+  /** Compute the direct product of two permutation groups.
+   *
+   * \param lhs left hand side permutation group operand
+   *
+   * \param rhs right hand side permutation group operand
+   *
+   * \param autoshift
+   *     if this is `true`, automatically shift the domain of `rhs` so that it
+   *     does not overlap with that of `lhs`; this function is not commutative
+   *     in this case
+   *
+   * \return the direct permutation group product of `lhs` and `rhs`
+   */
+  static PermGroup direct_product(
+    PermGroup const &lhs, PermGroup const &rhs, bool autoshift = false);
+
   /** Obtain a constant iterator iterating over this group's elements.
    *
    * Note that the permutation group elements might not be stored explicitly
