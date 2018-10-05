@@ -118,7 +118,7 @@ public:
    */
   bool operator!=(PermGroup const &rhs) const;
 
-  /** Construct a symmetric permutation group
+  /** Construct a symmetric permutation group.
    *
    * \param degree
    *     degree \f$n\f$ of the resulting group, for `degree == 0u` this
@@ -128,7 +128,7 @@ public:
    */
   static PermGroup symmetric(unsigned degree);
 
-  /** Construct a cyclic permutation group
+  /** Construct a cyclic permutation group.
    *
    * \param degree
    *     degree \f$n\f$ of the resulting group, for `degree == 0u` this
@@ -138,7 +138,7 @@ public:
    */
   static PermGroup cyclic(unsigned degree);
 
-  /** Construct an alternating permutation group
+  /** Construct an alternating permutation group.
    *
    * \param degree
    *     degree \f$n\f$ of the resulting group, for `degree == 0u` this
@@ -148,7 +148,7 @@ public:
    */
   static PermGroup alternating(unsigned degree);
 
-  /** Construct a dihedral permutation group
+  /** Construct a dihedral permutation group.
    *
    * \param degree
    *     degree \f$n\f$ of the resulting group (except when `degree == 1u` or
