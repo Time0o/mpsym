@@ -446,11 +446,11 @@ PermGroup PermGroup::direct_product(
 {
   std::vector<Perm> generators_lhs, generators_rhs;
   if (autoshift || rhs.degree() >= lhs.degree()) {
-    generators_lhs = std::vector<Perm>(rhs.bsgs().strong_generators);
-    generators_rhs = std::vector<Perm>(lhs.bsgs().strong_generators);
-  } else {
     generators_lhs = std::vector<Perm>(lhs.bsgs().strong_generators);
     generators_rhs = std::vector<Perm>(rhs.bsgs().strong_generators);
+  } else {
+    generators_lhs = std::vector<Perm>(rhs.bsgs().strong_generators);
+    generators_rhs = std::vector<Perm>(lhs.bsgs().strong_generators);
   }
 
   unsigned n = autoshift ? lhs.degree() + rhs.degree() : rhs.degree();
