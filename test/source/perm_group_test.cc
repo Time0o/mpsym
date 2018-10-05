@@ -661,3 +661,123 @@ TEST(SpecialPermGroupTest, CanConstructDihedralGroup)
                                PermGroup::dihedral(10)))
     << "Can construct dihedral group D_10.";
 }
+
+TEST(SpecialPermGroupTest, CanConstructSymmetricGroupWithSupport)
+{
+  std::vector<PermGroup> symmetric_groups {
+    PermGroup::symmetric({6, 9}),
+    PermGroup::symmetric({7, 2, 4})
+  };
+
+  std::vector<std::vector<std::vector<unsigned>>> expected_elements[] = {
+    {
+      {{6, 9}}
+    },
+    {
+      {{7, 2, 4}},
+      {{7, 2}},
+      {{7, 4, 2}},
+      {{7, 4}},
+      {{2, 4}}
+    }
+  };
+
+  for (auto i = 0u; i < symmetric_groups.size(); ++i) {
+    EXPECT_TRUE(perm_group_equal(expected_elements[i], symmetric_groups[i]))
+      << "Symmetric group constructed for specific support has correct elements.";
+  }
+}
+
+TEST(SpecialPermGroupTest, CanConstructCyclicGroupWithSupport)
+{
+  std::vector<PermGroup> cyclic_groups {
+    PermGroup::cyclic({6, 9}),
+    PermGroup::cyclic({7, 2, 4}),
+    PermGroup::cyclic({1, 8, 4, 5})
+  };
+
+  std::vector<std::vector<std::vector<unsigned>>> expected_elements[] = {
+    {
+      {{6, 9}}
+    },
+    {
+      {{7, 2, 4}},
+      {{7, 4, 2}}
+    },
+    {
+      {{1, 8, 4, 5}},
+      {{1, 4}, {8, 5}},
+      {{1, 5, 4, 8}}
+    }
+  };
+
+  for (auto i = 0u; i < cyclic_groups.size(); ++i) {
+    EXPECT_TRUE(perm_group_equal(expected_elements[i], cyclic_groups[i]))
+      << "Cyclic group constructed for specific support has correct elements.";
+  }
+}
+
+TEST(SpecialPermGroupTest, CanConstructAlternatingGroupWithSupport)
+{
+  std::vector<PermGroup> alternating_groups {
+    PermGroup::alternating({7, 2, 4}),
+    PermGroup::alternating({1, 8, 4, 5})
+  };
+
+  std::vector<std::vector<std::vector<unsigned>>> expected_elements[] = {
+    {
+      {{7, 2, 4}},
+      {{7, 4, 2}}
+    },
+    {
+      {{1, 8, 4}},
+      {{1, 8, 5}},
+      {{1, 8}, {4, 5}},
+      {{1, 4, 8}},
+      {{1, 4, 5}},
+      {{1, 4}, {8, 5}},
+      {{1, 5, 8}},
+      {{1, 5, 4}},
+      {{1, 5}, {8, 4}},
+      {{8, 4, 5}},
+      {{8, 5, 4}}
+    }
+  };
+
+  for (auto i = 0u; i < alternating_groups.size(); ++i) {
+    EXPECT_TRUE(perm_group_equal(expected_elements[i], alternating_groups[i]))
+      << "Alternating group constructed for specific support has correct elements.";
+  }
+}
+
+TEST(SpecialPermGroupTest, CanConstructDihedralGroupWithSupport)
+{
+  std::vector<PermGroup> dihedral_groups {
+    PermGroup::dihedral({7, 2, 4}),
+    PermGroup::dihedral({1, 8, 4, 5})
+  };
+
+  std::vector<std::vector<std::vector<unsigned>>> expected_elements[] = {
+    {
+      {{7, 2, 4}},
+      {{7, 2}},
+      {{7, 4, 2}},
+      {{7, 4}},
+      {{2, 4}}
+    },
+    {
+      {{1, 8, 4, 5}},
+      {{1, 8}, {4, 5}},
+      {{1, 4}, {8, 5}},
+      {{1, 4}},
+      {{1, 5, 4, 8}},
+      {{1, 5}, {8, 4}},
+      {{8, 5}}
+    }
+  };
+
+  for (auto i = 0u; i < dihedral_groups.size(); ++i) {
+    EXPECT_TRUE(perm_group_equal(expected_elements[i], dihedral_groups[i]))
+      << "Dihedral group constructed for specific support has correct elements.";
+  }
+}

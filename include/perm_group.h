@@ -128,6 +128,17 @@ public:
    */
   static PermGroup symmetric(unsigned degree);
 
+  /** Construct a symmetric permutation group with arbitrary support.
+   *
+   * \param support
+   *     support of the resulting permutation group's group action, if
+   *     `support.size() < 2u` this function's behaviour is undefined
+   *
+   * \return the permutation group containing the elements of \f$S(support)\f$
+   *         extended to the domain \f$\{1, \dots, max(support)\}\f$
+   */
+  static PermGroup symmetric(std::vector<unsigned> const &support);
+
   /** Construct a cyclic permutation group.
    *
    * \param degree
@@ -137,6 +148,18 @@ public:
    * \return the cyclic group \f$C_n\f$
    */
   static PermGroup cyclic(unsigned degree);
+
+
+  /** Construct a cyclic permutation group with arbitrary support.
+   *
+   * \param support
+   *     support of the resulting permutation group's group action, if
+   *     `support.size() < 2u` this function's behaviour is undefined
+   *
+   * \return the permutation group containing the elements of \f$C(support)\f$
+   *         extended to the domain \f$\{1, \dots, max(support)\}\f$
+   */
+  static PermGroup cyclic(std::vector<unsigned> const &support);
 
   /** Construct an alternating permutation group.
    *
@@ -148,6 +171,17 @@ public:
    */
   static PermGroup alternating(unsigned degree);
 
+  /** Construct an alternating permutation group with arbitrary support.
+   *
+   * \param support
+   *     support of the resulting permutation group's group action, if
+   *     `support.size() < 3u` this function's behaviour is undefined
+   *
+   * \return the permutation group containing the elements of \f$A(support)\f$
+   *         extended to the domain \f$\{1, \dots, max(support)\}\f$
+   */
+  static PermGroup alternating(std::vector<unsigned> const &support);
+
   /** Construct a dihedral permutation group.
    *
    * \param degree
@@ -158,6 +192,17 @@ public:
    * \return the dihedral group \f$D_n\f$ (or \f$D_2n\f$ in a different notation)
    */
   static PermGroup dihedral(unsigned degree);
+
+  /** Construct a dihedral permutation group with arbitrary support.
+   *
+   * \param support
+   *     support of the resulting permutation group's group action, if
+   *     `support.size() < 3u` this function's behaviour is undefined
+   *
+   * \return the permutation group containing the elements of \f$A(support)\f$
+   *         extended to the domain \f$\{1, \dots, max(support)\}\f$
+   */
+  static PermGroup dihedral(std::vector<unsigned> const &support);
 
   /** Compute the direct product of two permutation groups.
    *
