@@ -337,11 +337,17 @@ INSTANTIATE_TEST_CASE_P(ConstructionMethods, PermGroupConstructionMethodTest,
 
 TEST(PermGroupCombinationTest, CanConstructDirectProduct)
 {
-  auto S3(PermGroup::symmetric(3));
-  auto S3xS3(PermGroup::direct_product(S3, S3));
-
-  std::vector<PermGroup> direct_products {
-    S3xS3
+  std::vector<std::pair<std::vector<Perm>, std::vector<Perm>>> direct_products {
+    {
+      {
+        Perm(3, {{1, 2}}),
+        Perm(3, {{1, 2, 3}})
+      },
+      {
+        Perm(3, {{1, 2}}),
+        Perm(3, {{1, 2, 3}})
+      }
+    }
   };
 
   std::vector<std::vector<std::vector<unsigned>>> expected_direct_products[] =  {
@@ -385,9 +391,19 @@ TEST(PermGroupCombinationTest, CanConstructDirectProduct)
   };
 
   for (auto i = 0u; i < direct_products.size(); ++i) {
+    auto lhs(direct_products[i].first);
+    auto rhs(direct_products[i].second);
+
     EXPECT_TRUE(perm_group_equal(
-      expected_direct_products[i], direct_products[i]))
-        << "Direct product construction correct.";
+      expected_direct_products[i],
+      PermGroup::direct_product(lhs, rhs)))
+        << "Direct product construction correct (generators).";
+
+    EXPECT_TRUE(perm_group_equal(
+      expected_direct_products[i],
+      PermGroup::direct_product(PermGroup(lhs[0].degree(), lhs),
+                                PermGroup(rhs[0].degree(), rhs))))
+        << "Direct product construction correct (group).";
   }
 }
 

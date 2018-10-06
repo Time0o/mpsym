@@ -556,18 +556,24 @@ PermGroup PermGroup::dihedral(std::vector<unsigned> const &support)
 
 PermGroup PermGroup::direct_product(PermGroup const &lhs, PermGroup const &rhs)
 {
-  auto generators_lhs(std::vector<Perm>(lhs.bsgs().strong_generators));
-  auto generators_rhs(std::vector<Perm>(rhs.bsgs().strong_generators));
+  return direct_product(lhs.bsgs().strong_generators,
+                        rhs.bsgs().strong_generators);
+}
 
-  unsigned n = lhs.degree() + rhs.degree();
+PermGroup PermGroup::direct_product(
+  std::vector<Perm> const &lhs, std::vector<Perm> const &rhs)
+{
+  assert(!lhs.empty() && !rhs.empty());
+
+  unsigned n = lhs[0].degree() + rhs[0].degree();
 
   std::vector<Perm> generators;
 
-  for (auto const &perm : generators_lhs)
+  for (auto const &perm : lhs)
     generators.push_back(perm.extended(n));
 
-  for (auto const &perm : generators_rhs)
-    generators.push_back(perm.shifted(lhs.degree()));
+  for (auto const &perm : rhs)
+    generators.push_back(perm.shifted(lhs[0].degree()));
 
   return PermGroup(n, generators);
 }
