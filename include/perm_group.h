@@ -210,15 +210,9 @@ public:
    *
    * \param rhs right hand side permutation group operand
    *
-   * \param autoshift
-   *     if this is `true`, automatically shift the domain of `rhs` so that it
-   *     does not overlap with that of `lhs`; this function is not commutative
-   *     in this case
-   *
    * \return the direct permutation group product of `lhs` and `rhs`
    */
-  static PermGroup direct_product(
-    PermGroup const &lhs, PermGroup const &rhs, bool autoshift = false);
+  static PermGroup direct_product(PermGroup const &lhs, PermGroup const &rhs);
 
   /** Obtain a constant iterator iterating over this group's elements.
    *

@@ -498,32 +498,20 @@ PermGroup PermGroup::dihedral(std::vector<unsigned> const &support)
   return PermGroup(degree, {Perm(rotation), Perm(reflection)});
 }
 
-PermGroup PermGroup::direct_product(
-    PermGroup const &lhs, PermGroup const &rhs, bool autoshift)
+PermGroup PermGroup::direct_product(PermGroup const &lhs, PermGroup const &rhs)
 {
-  std::vector<Perm> generators_lhs, generators_rhs;
-  if (autoshift || rhs.degree() >= lhs.degree()) {
-    generators_lhs = std::vector<Perm>(lhs.bsgs().strong_generators);
-    generators_rhs = std::vector<Perm>(rhs.bsgs().strong_generators);
-  } else {
-    generators_lhs = std::vector<Perm>(rhs.bsgs().strong_generators);
-    generators_rhs = std::vector<Perm>(lhs.bsgs().strong_generators);
-  }
+  auto generators_lhs(std::vector<Perm>(lhs.bsgs().strong_generators));
+  auto generators_rhs(std::vector<Perm>(rhs.bsgs().strong_generators));
 
-  unsigned n = autoshift ? lhs.degree() + rhs.degree() : rhs.degree();
+  unsigned n = lhs.degree() + rhs.degree();
 
   std::vector<Perm> generators;
 
   for (auto const &perm : generators_lhs)
     generators.push_back(perm.extended(n));
 
-  if (autoshift) {
-    for (auto const &perm : generators_rhs)
-      generators.push_back(perm.shifted(lhs.degree()));
-  } else {
-    generators.insert(
-      generators.end(), generators_rhs.begin(), generators_rhs.end());
-  }
+  for (auto const &perm : generators_rhs)
+    generators.push_back(perm.shifted(lhs.degree()));
 
   return PermGroup(n, generators);
 }
