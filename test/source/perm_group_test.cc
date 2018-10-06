@@ -393,35 +393,101 @@ TEST(PermGroupCombinationTest, CanConstructDirectProduct)
 
 TEST(PermGroupCombinationTest, CanConstructWreathProduct)
 {
-  //std::vector<PermGroup> wreath_products {
-  //  PermGroup::wreath_product(
-  //    {
-  //      Perm(9, {{1, 4, 7}}),
-  //      Perm(9, {{1, 5, 9}})
-  //    },
-  //    {
-  //      Perm(3, {{1, 2, 3}})
-  //    }
-  //  )
-  //};
+  std::vector<std::pair<std::vector<Perm>, std::vector<Perm>>> wreath_products {
+    {
+      {
+        Perm(5, {{1, 3, 2}}),
+        Perm(5, {{4, 5}})
+      },
+      {
+        Perm(5, {{1, 3, 2}, {4, 5}})
+      }
+    },
+    {
+      {
+        Perm(9, {{1, 4, 7}}),
+        Perm(9, {{1, 5, 9}})
+      },
+      {
+        Perm(3, {{1, 2, 3}})
+      }
+    },
+    {
+      {
+        Perm(5, {{2, 4}}),
+        Perm(5, {{3, 5}})
+      },
+      {
+        Perm(4, {{1, 2, 4}}),
+        Perm(4, {{3, 2}}),
+      }
+    }
+  };
 
-  //std::vector<std::vector<std::vector<unsigned>>> expected_wreath_products[] =  {
-  //  {
-  //    {{1, 2, 3}},
-  //    {{1, 2}},
-  //    {{1, 4, 7}, {2, 5, 8}, {3, 6, 9}},
-  //    {{4, 5, 6}},
-  //    {{4, 5}},
-  //    {{7, 8, 9}},
-  //    {{7, 8}}
-  //  }
-  //};
+  PermGroup expected_wreath_products[] = {
+    PermGroup(25,
+      {
+        Perm(25, {{1, 3, 2}}),
+        Perm(25, {{4, 5}}),
+        Perm(25, {{6, 8, 7}}),
+        Perm(25, {{9, 10}}),
+        Perm(25, {{11, 13, 12}}),
+        Perm(25, {{14, 15}}),
+        Perm(25, {{16, 18, 17}}),
+        Perm(25, {{19, 20}}),
+        Perm(25, {{21, 23, 22}}),
+        Perm(25, {{24, 25}}),
+        Perm(25, {{1, 11, 6}, {2, 12, 7},
+                  {3, 13, 8}, {4, 14, 9},
+                  {5, 15, 10}, {16, 21},
+                  {17, 22}, {18, 23},
+                  {19, 24}, {20, 25}})
+      }
+    ),
+    PermGroup(15,
+      {
+        Perm(15, {{1, 2, 4}}),
+        Perm(15, {{1, 3, 5}}),
+        Perm(15, {{1, 6, 11}, {2, 7, 12},
+                  {3, 8, 13}, {4, 9, 14},
+                  {5, 10, 15}}),
+        Perm(15, {{11, 12, 14}}),
+        Perm(15, {{11, 13, 15}}),
+        Perm(15, {{6, 7, 9}}),
+        Perm(15, {{6, 8, 10}})
+      }
+    ),
+    PermGroup(16,
+      {
+        Perm(16, {{1, 3}}),
+        Perm(16, {{1, 5, 13}, {2, 6, 14},
+                  {3, 7, 15}, {4, 8, 16}}),
+        Perm(16, {{10, 12}}),
+        Perm(16, {{13, 15}}),
+        Perm(16, {{14, 16}}),
+        Perm(16, {{2, 4}}),
+        Perm(16, {{5, 7}}),
+        Perm(16, {{5, 9}, {6, 10},
+                  {7, 11}, {8, 12}}),
+        Perm(16, {{6, 8}}),
+        Perm(16, {{9, 11}})
+      }
+    )
+  };
 
-  //for (auto i = 0u; i < wreath_products.size(); ++i) {
-  //  EXPECT_TRUE(perm_group_equal(
-  //    expected_wreath_products[i], wreath_products[i]))
-  //      << "Wreath product construction correct.";
-  //}
+  for (auto i = 0u; i < wreath_products.size(); ++i) {
+    auto lhs(wreath_products[i].first);
+    auto rhs(wreath_products[i].second);
+
+    EXPECT_EQ(expected_wreath_products[i],
+              PermGroup::wreath_product(lhs, rhs))
+      << "Wreath product construction correct (generators).";
+
+    EXPECT_EQ(expected_wreath_products[i],
+              PermGroup::wreath_product(PermGroup(lhs[0].degree(), lhs),
+                                        PermGroup(rhs[0].degree(), rhs)))
+      << "Wreath product construction correct (groups).";
+  }
 }
 
 class DisjointSubgroupProductTest :

@@ -390,16 +390,16 @@ PermGroup::PermGroup(
         }
         break;
       default:
-        BSGS tmp(BSGS::solve(generators));
-        if (!tmp.base.empty()) {
-          _bsgs = tmp;
-        } else {
-          switch (storage_method) {
-            // TODO
-            default:
+        //BSGS tmp(BSGS::solve(generators));
+        //if (!tmp.base.empty()) {
+        //  _bsgs = tmp;
+        //} else {
+        //  switch (storage_method) {
+        //    // TODO
+        //    default:
               schreier_sims::schreier_sims<SchreierTree>(_bsgs);
-          }
-        }
+        //  }
+        //}
     }
   }
 
@@ -597,37 +597,36 @@ PermGroup PermGroup::wreath_product(
   std::vector<Perm> wreath_product_generators;
 
   for (unsigned i = 0u; i < degree_rhs; ++i) {
-    for (Perm const &perm : lhs_compressed)
-      wreath_product_generators.push_back(perm.shifted(degree_lhs * i));
-  }
-
-  for (Perm const &gen_rhs : rhs_compressed) {
-    for (Perm const &gen_lhs : lhs_compressed) {
-
-      std::vector<std::vector<unsigned>> cycles {gen_lhs.cycles()};
-      for (auto &cycle : cycles) {
-        for (unsigned &x : cycle)
-          x = gen_rhs[x];
-      }
-
-      std::vector<std::vector<unsigned>> shifted_cycles;
-
-      for (unsigned i = 0u; i < degree_lhs; ++i) {
-        for (auto const &cycle : cycles) {
-          std::vector<unsigned> shifted_cycle(cycle);
-
-          for (unsigned &x : shifted_cycle)
-            x += i;
-
-          shifted_cycles.push_back(shifted_cycle);
-        }
-      }
-
-      wreath_product_generators.push_back(Perm(degree, shifted_cycles));
+    for (Perm const &perm : lhs_compressed) {
+      Perm tmp(perm.shifted(degree_lhs * i).extended(degree));
+      wreath_product_generators.push_back(tmp);
     }
   }
 
-  return PermGroup();
+  for (Perm const &gen_rhs : rhs_compressed) {
+    std::vector<std::vector<unsigned>> cycles {gen_rhs.cycles()};
+    for (auto &cycle : cycles) {
+      for (unsigned &x : cycle)
+        x = (x - 1u) * degree_lhs + 1u;
+    }
+
+    std::vector<std::vector<unsigned>> shifted_cycles {cycles};
+
+    for (unsigned i = 1u; i < degree_lhs; ++i) {
+      for (auto const &cycle : cycles) {
+        std::vector<unsigned> shifted_cycle(cycle);
+
+        for (unsigned &x : shifted_cycle)
+          x += i;
+
+        shifted_cycles.push_back(shifted_cycle);
+      }
+    }
+
+    wreath_product_generators.push_back(Perm(degree, shifted_cycles));
+  }
+
+  return PermGroup(degree, wreath_product_generators);
 }
 
 bool PermGroup::is_symmetric() const
