@@ -192,6 +192,43 @@ bool Perm::id() const
   return true;
 }
 
+std::vector<std::vector<unsigned>> Perm::cycles() const
+{
+  std::vector<std::vector<unsigned>> result;
+
+  std::vector<unsigned> cycle;
+
+  std::set<unsigned> done;
+
+  unsigned first, current;
+  first = current = 1u;
+
+  while (1) {
+    done.insert(current);
+    cycle.push_back(current);
+
+    current = (*this)[current];
+
+    if (current == first) {
+      if (cycle.size() > 1u)
+        result.push_back(cycle);
+
+      cycle.clear();
+
+      if (done.size() == _n)
+        return result;
+
+      for (unsigned i = 1u; i <= _n; ++i) {
+        if (done.find(i) == done.end()) {
+          first = i;
+          current = i;
+          break;
+        }
+      }
+    }
+  }
+}
+
 Perm Perm::extended(unsigned degree) const
 {
   assert(degree >= _n);

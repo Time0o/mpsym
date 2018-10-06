@@ -183,6 +183,16 @@ public:
    */
   bool id() const;
 
+  /* Obtain a permutation's vector representation.
+   * TODO
+   */
+  std::vector<unsigned> vect() const { return _perm; }
+
+  /* Obtain a permutation's vector representation.
+   * TODO
+   */
+  std::vector<std::vector<unsigned>> cycles() const;
+
   /** *Extend* a permutation's domain.
    *
    * This function constructs a new permutation \f$p'\f$ from this permutation,

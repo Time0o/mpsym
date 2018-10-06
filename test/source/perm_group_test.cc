@@ -391,6 +391,39 @@ TEST(PermGroupCombinationTest, CanConstructDirectProduct)
   }
 }
 
+TEST(PermGroupCombinationTest, CanConstructWreathProduct)
+{
+  //std::vector<PermGroup> wreath_products {
+  //  PermGroup::wreath_product(
+  //    {
+  //      Perm(9, {{1, 4, 7}}),
+  //      Perm(9, {{1, 5, 9}})
+  //    },
+  //    {
+  //      Perm(3, {{1, 2, 3}})
+  //    }
+  //  )
+  //};
+
+  //std::vector<std::vector<std::vector<unsigned>>> expected_wreath_products[] =  {
+  //  {
+  //    {{1, 2, 3}},
+  //    {{1, 2}},
+  //    {{1, 4, 7}, {2, 5, 8}, {3, 6, 9}},
+  //    {{4, 5, 6}},
+  //    {{4, 5}},
+  //    {{7, 8, 9}},
+  //    {{7, 8}}
+  //  }
+  //};
+
+  //for (auto i = 0u; i < wreath_products.size(); ++i) {
+  //  EXPECT_TRUE(perm_group_equal(
+  //    expected_wreath_products[i], wreath_products[i]))
+  //      << "Wreath product construction correct.";
+  //}
+}
+
 class DisjointSubgroupProductTest :
   public testing::TestWithParam<std::pair<bool, bool>> {};
 

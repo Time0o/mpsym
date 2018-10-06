@@ -214,6 +214,19 @@ public:
    */
   static PermGroup direct_product(PermGroup const &lhs, PermGroup const &rhs);
 
+  /** Compute the wreath product of two permutation groups.
+   *
+   * \param lhs left hand side permutation group operand
+   *
+   * \param rhs right hand side permutation group operand
+   *
+   * \return the permutation group wreath product of `lhs` and `rhs`
+   */
+  static PermGroup wreath_product(PermGroup const &lhs, PermGroup const &rhs);
+
+  static PermGroup wreath_product(
+    std::vector<Perm> const &lhs, std::vector<Perm> const &rhs);
+
   /** Obtain a constant iterator iterating over this group's elements.
    *
    * Note that the permutation group elements might not be stored explicitly
