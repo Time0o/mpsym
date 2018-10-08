@@ -305,6 +305,16 @@ TEST_F(ArchGraphTest, CanProduceDotFile)
 }
 */
 
+TEST(SpecialArchGraphTest, CanConstructFullyConnected)
+{
+  for (unsigned i = 1u; i < 5u; ++i) {
+    EXPECT_EQ(PermGroup::symmetric(i),
+              ArchGraph::fully_connected(i).automorphisms())
+      << "Fully connected architecture graph with " << i
+      << " processing elements has correct automorphism group.";
+  }
+}
+
 class ArchGraphMappingVariantTest :
   public ArchGraphTestBase<
     testing::TestWithParam<ArchGraph::MappingVariant>> {};

@@ -657,6 +657,35 @@ void ArchGraph::todot(std::string const &outfile) const
   out << "}\n";
 }
 
+ArchGraph ArchGraph::fully_connected(
+  unsigned n, std::string const &pe_label, std::string const &ch_label)
+{
+  assert(n > 0u);
+
+  ArchGraph ag;
+
+  auto pe(ag.new_processor_type(pe_label));
+  auto ch(ag.new_channel_type(ch_label));
+
+  std::vector<ArchGraph::ProcessorType> processors;
+  for (unsigned i = 0u; i < n; ++i)
+    processors.push_back(ag.add_processor(pe));
+
+  for (unsigned i = 0u; i < n; ++i) {
+    for (unsigned j = 0u; j < n; ++j) {
+      if (j == i)
+        continue;
+
+      ag.add_channel(processors[i], processors[j], ch);
+    }
+  }
+
+  ag._automorphisms = PermGroup::symmetric(n);
+  ag._automorphisms_valid = true;
+
+  return ag;
+}
+
 void ArchGraphCluster::add_subsystem(
   std::shared_ptr<ArchGraphSystem> const &ags)
 {
