@@ -315,6 +315,17 @@ TEST(SpecialArchGraphTest, CanConstructFullyConnected)
   }
 }
 
+TEST(SpecialArchGraphTest, CanConstructRegularMesh)
+{
+  // TODO: test non-quadratic meshes
+  for (unsigned i = 1u; i < 5u; ++i) {
+    EXPECT_EQ(PermGroup::dihedral(8),
+              ArchGraph::regular_mesh(i, i).automorphisms())
+      << "Regular mesh architecture graph with " << i * i
+      << " processing elements has correct automorphism group.";
+  }
+}
+
 class ArchGraphMappingVariantTest :
   public ArchGraphTestBase<
     testing::TestWithParam<ArchGraph::MappingVariant>> {};

@@ -686,6 +686,53 @@ ArchGraph ArchGraph::fully_connected(
   return ag;
 }
 
+ArchGraph ArchGraph::regular_mesh(
+  unsigned width, unsigned height,
+  std::string const &pe_label, std::string const &ch_label)
+{
+  assert(width > 0u && height > 0u);
+
+  ArchGraph ag;
+
+  auto pe(ag.new_processor_type(pe_label));
+  auto ch(ag.new_channel_type(ch_label));
+
+  std::vector<std::vector<ArchGraph::ProcessorType>> processors(height);
+
+  for (unsigned i = 0u; i < height; ++i) {
+    for (unsigned j = 0u; j < width; ++j) {
+      processors[i].push_back(ag.add_processor(pe));
+    }
+  }
+
+  std::pair<int, int> offsets[] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
+
+  int iheight = static_cast<int>(height);
+  int iwidth = static_cast<int>(width);
+
+  for (int i = 0u; i < iheight; ++i) {
+    for (int j = 0u; j < iwidth; ++j) {
+      for (auto const &offs : offsets) {
+        int i_offs = i + offs.first;
+        int j_offs = j + offs.second;
+        if (i_offs < 0 || i_offs >= iheight || j_offs < 0 || j_offs >= iwidth)
+          continue;
+
+        ag.add_channel(processors[i][j], processors[i_offs][j_offs], ch);
+      }
+    }
+  }
+
+  if (height == width) {
+    ag._automorphisms = PermGroup::dihedral(8);
+    ag._automorphisms_valid = true;
+  } else {
+    ag.complete();
+  }
+
+  return ag;
+}
+
 void ArchGraphCluster::add_subsystem(
   std::shared_ptr<ArchGraphSystem> const &ags)
 {

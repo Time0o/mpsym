@@ -94,6 +94,9 @@ public:
   static ArchGraph fully_connected(unsigned n,
     std::string const &pe_label = "", std::string const &ch_label = "");
 
+  static ArchGraph regular_mesh(unsigned width, unsigned height,
+    std::string const &pe_label = "", std::string const &ch_label = "");
+
   //static ArchGraph fromlua(std::string const &infile);
 
 private:
