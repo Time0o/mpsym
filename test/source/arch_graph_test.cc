@@ -423,6 +423,14 @@ TEST_F(ArchGraphClusterTest, CanDetermineNumberOfChannels)
     << "Number of channels in architecture graph cluster determined correctly.";
 }
 
+TEST_F(ArchGraphClusterTest, CanObtainAutormorphisms)
+{
+  EXPECT_TRUE(perm_group_equal({
+      {{1, 2}}, {{3, 4}}, {{1, 2}, {3, 4}},
+    }, cluster_minimal.automorphisms()))
+    << "Automorphisms of minimal architecture graph cluster correct.";
+}
+
 class ArchGraphClusterMappingVariantTest :
   public ArchGraphClusterTestBase<
     testing::TestWithParam<ArchGraphSystem::MappingVariant>> {};

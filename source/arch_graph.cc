@@ -683,8 +683,25 @@ unsigned ArchGraphCluster::num_channels() const
 
 void ArchGraphCluster::complete()
 {
+  assert(!_subsystems.empty());
+
   for (auto const &subsystem : _subsystems)
     subsystem->complete();
+
+  _automorphisms = _subsystems[0]->automorphisms();
+  for (auto i = 1u; i < _subsystems.size(); ++i) {
+    _automorphisms = PermGroup::direct_product(
+      _automorphisms, _subsystems[i]->automorphisms());
+  }
+
+  _automorphisms_valid = true;
+}
+
+PermGroup ArchGraphCluster::automorphisms() const
+{
+  assert(_automorphisms_valid);
+
+  return _automorphisms;
 }
 
 TaskMapping ArchGraphCluster::mapping(

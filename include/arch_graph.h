@@ -115,9 +115,7 @@ public:
 
   void complete() override;
 
-  PermGroup automorphisms() const override {
-    throw std::logic_error("not implemented");
-  }
+  PermGroup automorphisms() const override;
 
   PartialPermInverseSemigroup partial_automorphisms() const override {
     throw std::logic_error("not implemented");
@@ -129,6 +127,9 @@ public:
 
 private:
   ArchGraph _archgraph;
+  PermGroup _automorphisms;
+  bool _automorphisms_valid = false;
+
   std::vector<std::shared_ptr<ArchGraphSystem>> _subsystems;
 };
 
