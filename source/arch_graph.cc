@@ -206,7 +206,7 @@ unsigned ArchGraph::num_processors() const
 
 unsigned ArchGraph::num_channels() const
 {
-  return static_cast<size_t>(boost::num_edges(_adj));
+  return static_cast<unsigned>(boost::num_edges(_adj));
 }
 
 void ArchGraph::complete()
