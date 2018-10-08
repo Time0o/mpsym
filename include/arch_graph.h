@@ -132,7 +132,6 @@ public:
     MappingVariant mapping_variant = MAP_AUTO) const override;
 
 private:
-  ArchGraph _archgraph;
   PermGroup _automorphisms;
   bool _automorphisms_valid = false;
 
