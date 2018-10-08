@@ -70,8 +70,8 @@ public:
   typedef processor_type_size_type ProcessorType;
   typedef channel_type_size_type ChannelType;
 
-  ProcessorType new_processor_type(std::string const &label);
-  ChannelType new_channel_type(std::string const &label);
+  ProcessorType new_processor_type(std::string const &label = "");
+  ChannelType new_channel_type(std::string const &label = "");
 
   unsigned add_processor(ProcessorType pe);
   void add_channel(unsigned pe1, unsigned pe2, ChannelType ch);
