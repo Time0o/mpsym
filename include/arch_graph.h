@@ -138,6 +138,54 @@ private:
   std::vector<std::shared_ptr<ArchGraphSystem>> _subsystems;
 };
 
+class ArchUniformSuperGraph : public ArchGraphSystem
+{
+public:
+  typedef ArchGraph::ProcessorType SubsystemType;
+  typedef ArchGraph::ChannelType SubsystemChannelType;
+
+  ArchUniformSuperGraph(
+    std::shared_ptr<ArchGraphSystem> const &subsystem_proto,
+    std::string const &subsystem_label = "");
+
+  SubsystemChannelType new_subsystem_channel_type(std::string const &label = "");
+
+  SubsystemType add_subsystem();
+
+  void add_subsystem_channel(
+    SubsystemType ss1, SubsystemType ss2, SubsystemChannelType ch);
+
+  unsigned num_processors() const override;
+  unsigned num_channels() const override;
+
+  void complete() override;
+
+  PermGroup automorphisms() const override;
+
+  PartialPermInverseSemigroup partial_automorphisms() const override {
+    throw std::logic_error("not implemented");
+  }
+
+  TaskMapping mapping(
+    std::vector<unsigned> const &tasks, unsigned offset = 0u,
+    MappingVariant mapping_variant = MAP_AUTO) const override {
+
+    (void)tasks;
+    (void)offset;
+    (void)mapping_variant;
+
+    throw std::logic_error("not implemented");
+  }
+
+private:
+  ArchGraph _subsystem_supergraph;
+  std::shared_ptr<ArchGraphSystem> _subsystem_proto;
+  ArchGraph::ProcessorType _subsystem_processor_type;
+
+  PermGroup _automorphisms;
+  bool _automorphisms_valid = false;
+};
+
 }
 
 #endif // _GUARD_ARCH_GRAPH_H
