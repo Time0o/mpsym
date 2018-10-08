@@ -181,7 +181,7 @@ ArchGraph::ChannelType ArchGraph::new_channel_type(std::string const &label)
 
 unsigned ArchGraph::add_processor(ProcessorType pt)
 {
-  _automorphisms_valid = false;
+  assert(!_automorphisms_valid);
 
   _processor_type_instances[pt]++;
 
@@ -191,7 +191,7 @@ unsigned ArchGraph::add_processor(ProcessorType pt)
 
 void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType cht)
 {
-  _automorphisms_valid = false;
+  assert(!_automorphisms_valid);
 
   _channel_type_instances[cht]++;
 
@@ -736,6 +736,8 @@ ArchGraph ArchGraph::regular_mesh(
 void ArchGraphCluster::add_subsystem(
   std::shared_ptr<ArchGraphSystem> const &ags)
 {
+  assert(!_automorphisms_valid);
+
   _subsystems.push_back(ags);
 }
 
