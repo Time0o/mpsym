@@ -35,6 +35,7 @@ public:
   virtual unsigned num_channels() const = 0;
 
   virtual void complete() = 0;
+  virtual bool completed() const = 0;
 
   virtual PermGroup automorphisms() const = 0;
 
@@ -80,6 +81,7 @@ public:
   unsigned num_channels() const override;
 
   void complete() override;
+  bool completed() const override { return _automorphisms_valid; }
 
   PermGroup automorphisms() const override;
 
@@ -120,6 +122,7 @@ public:
   unsigned num_channels() const override;
 
   void complete() override;
+  bool completed() const override { return _automorphisms_valid; }
 
   PermGroup automorphisms() const override;
 
@@ -144,8 +147,14 @@ public:
   typedef ArchGraph::ProcessorType SubsystemType;
   typedef ArchGraph::ChannelType SubsystemChannelType;
 
+  ArchUniformSuperGraph() {};
+
   ArchUniformSuperGraph(
     std::shared_ptr<ArchGraphSystem> const &subsystem_proto,
+    std::string const &subsystem_label = "");
+
+  void set_subsystem(
+    std::shared_ptr<ArchGraph> const &subsystem_proto,
     std::string const &subsystem_label = "");
 
   SubsystemChannelType new_subsystem_channel_type(std::string const &label = "");
@@ -159,6 +168,7 @@ public:
   unsigned num_channels() const override;
 
   void complete() override;
+  bool completed() const override { return _automorphisms_valid; }
 
   PermGroup automorphisms() const override;
 

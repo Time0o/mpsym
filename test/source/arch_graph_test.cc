@@ -17,6 +17,7 @@
 using cgtl::ArchGraphSystem;
 using cgtl::ArchGraph;
 using cgtl::ArchGraphCluster;
+using cgtl::ArchUniformSuperGraph;
 using cgtl::PartialPerm;
 using cgtl::Perm;
 using cgtl::PermGroup;
@@ -503,3 +504,86 @@ INSTANTIATE_TEST_CASE_P(
   ArchGraphClusterMappingVariants, ArchGraphClusterMappingVariantTest,
   testing::Values(ArchGraphSystem::MAP_BRUTEFORCE,
                   ArchGraphSystem::MAP_APPROX));
+
+template<typename T>
+class ArchUniformSuperGraphTestBase : public T
+{
+protected:
+  void SetUp() {
+    supergraph_minimal = construct_minimal();
+  }
+
+  ArchUniformSuperGraph supergraph_minimal;
+
+private:
+  ArchUniformSuperGraph construct_minimal() {
+    // construct subsystem prototype
+    ArchGraph proto;
+
+    auto p = proto.new_processor_type();
+    auto c = proto.new_channel_type();
+
+    auto pe1 = proto.add_processor(p);
+    auto pe2 = proto.add_processor(p);
+    auto pe3 = proto.add_processor(p);
+
+    proto.add_channel(pe1, pe2, c);
+    proto.add_channel(pe2, pe3, c);
+    proto.add_channel(pe3, pe1, c);
+
+    // construct uniform supergraph
+    ArchUniformSuperGraph supergraph(std::make_shared<ArchGraph>(proto));
+
+    auto ssc = supergraph.new_subsystem_channel_type();
+
+    auto ss1 = supergraph.add_subsystem();
+    auto ss2 = supergraph.add_subsystem();
+    auto ss3 = supergraph.add_subsystem();
+    auto ss4 = supergraph.add_subsystem();
+
+    supergraph.add_subsystem_channel(ss1, ss2, ssc);
+    supergraph.add_subsystem_channel(ss2, ss3, ssc);
+    supergraph.add_subsystem_channel(ss3, ss4, ssc);
+    supergraph.add_subsystem_channel(ss4, ss1, ssc);
+
+    supergraph.complete();
+
+    return supergraph;
+  }
+};
+
+class ArchUniformSuperGraphTest
+  : public ArchUniformSuperGraphTestBase<testing::Test>{};
+
+TEST_F(ArchUniformSuperGraphTest, CanDetermineNumberOfProcessors)
+{
+  EXPECT_EQ(12u, supergraph_minimal.num_processors())
+    << "Number of processors in uniform architecture supergraph determined correctly.";
+}
+
+TEST_F(ArchUniformSuperGraphTest, CanDetermineNumberOfChannels)
+{
+  EXPECT_EQ(16u, supergraph_minimal.num_channels())
+    << "Number of channels in uniform architecture supergraph determined correctly.";
+}
+
+TEST_F(ArchUniformSuperGraphTest, CanObtainAutormorphisms)
+{
+  PermGroup expected_automorphisms(12,
+    {
+      Perm(12, {{1, 2}}),
+      Perm(12, {{1, 4, 7, 10}, {2, 5, 8, 11}, {3, 6, 9, 12}}),
+      Perm(12, {{10, 11}}),
+      Perm(12, {{11, 12}}),
+      Perm(12, {{2, 3}}),
+      Perm(12, {{4, 10}, {5, 11}, {6, 12}}),
+      Perm(12, {{4, 5}}),
+      Perm(12, {{5, 6}}),
+      Perm(12, {{7, 8}}),
+      Perm(12, {{8, 9}})
+    }
+  );
+
+  EXPECT_EQ(expected_automorphisms, supergraph_minimal.automorphisms())
+    << "Automorphisms of uniform architecture supergraph correct.";
+}

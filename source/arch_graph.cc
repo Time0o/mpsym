@@ -820,6 +820,18 @@ ArchUniformSuperGraph::ArchUniformSuperGraph(
      _subsystem_supergraph.new_processor_type(subsystem_label);
 }
 
+void ArchUniformSuperGraph::set_subsystem(
+  std::shared_ptr<ArchGraph> const &subsystem_proto,
+  std::string const &subsystem_label)
+{
+  _subsystem_proto = subsystem_proto;
+
+  _subsystem_proto->complete();
+
+  _subsystem_processor_type =
+     _subsystem_supergraph.new_processor_type(subsystem_label);
+}
+
 ArchUniformSuperGraph::SubsystemChannelType
 ArchUniformSuperGraph::new_subsystem_channel_type(std::string const &label)
 {
@@ -850,15 +862,20 @@ unsigned ArchUniformSuperGraph::num_processors() const
 unsigned ArchUniformSuperGraph::num_channels() const
 {
   unsigned res = _subsystem_supergraph.num_channels();
-  res += num_processors() * _subsystem_proto->num_channels();
+  res += _subsystem_supergraph.num_processors() *
+         _subsystem_proto->num_channels();
 
   return res;
 }
 
 void ArchUniformSuperGraph::complete()
 {
+  assert(_subsystem_proto->completed());
+
+  _subsystem_supergraph.complete();
+
   _automorphisms = PermGroup::wreath_product(
-    _subsystem_supergraph.automorphisms(), _subsystem_proto->automorphisms());
+    _subsystem_proto->automorphisms(), _subsystem_supergraph.automorphisms());
 
   _automorphisms_valid = true;
 }
