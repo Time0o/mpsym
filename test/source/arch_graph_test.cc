@@ -182,6 +182,23 @@ protected:
     return ag;
   }
 
+  ArchGraph ag_tri() {
+    ArchGraph ag;
+    auto p = ag.new_processor_type("P");
+    auto c = ag.new_channel_type("C");
+
+    auto pe1 = ag.add_processor(p);
+    auto pe2 = ag.add_processor(p);
+    auto pe3 = ag.add_processor(p);
+
+    ag.add_channel(pe1, pe2, c);
+    ag.add_channel(pe2, pe3, c);
+    ag.add_channel(pe3, pe1, c);
+
+    ag.complete();
+    return ag;
+  }
+
   ArchGraph ag_grid22() {
     /*
      * P1--P2
@@ -273,6 +290,11 @@ TEST_F(ArchGraphTest, CanObtainAutomorphisms)
       {{1, 3}, {2, 4}}
     }, ag_tcol().automorphisms()))
     << "Automorphisms of totally colored architecture graph correct.";
+
+  EXPECT_TRUE(perm_group_equal({
+      {{1, 2, 3}}, {{1, 3, 2}}
+    }, ag_tri().automorphisms()))
+    << "Automorphisms of minimal triangular architecture graph correct.";
 }
 
 TEST_F(ArchGraphTest, DISABLED_CanObtainPartialAutomorphisms)
