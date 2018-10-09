@@ -292,7 +292,7 @@ TEST_F(ArchGraphTest, CanObtainAutomorphisms)
     << "Automorphisms of totally colored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
-      {{1, 2, 3}}, {{1, 3, 2}}
+      {{1, 2, 3}}, {{1, 2}}, {{1, 3, 2}}, {{1, 3}}, {{2, 3}}
     }, ag_tri().automorphisms()))
     << "Automorphisms of minimal triangular architecture graph correct.";
 }
