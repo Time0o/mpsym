@@ -68,11 +68,6 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--infile',
                         help="read from IN_FILE instead of stdin")
 
-    help_in_place = "if used together with --in-file, modify input file in place"
-    parser.add_argument('-i', '--in-place',
-                        action='store_true',
-                        help=help_in_place)
-
     parser.add_argument('-o', '--outfile',
                         help="write to OUT_FILE instead of stdout")
 
@@ -81,60 +76,67 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    if args.in_place:
-        if args.infile is None:
-            parser.print_usage(sys.stderr)
-
-            fmt = "{}: error: --in-place may only be used in combination with --in-file"
-            print(fmt.format(progname), file=sys.stderr)
-
-            sys.exit(1)
-
-        if args.outfile is not None:
-            parser.print_usage(sys.stderr)
-
-            fmt = "{}: error: --in-place may not be used in combination with --out-file"
-            print(fmt.format(progname), file=sys.stderr)
-
-            sys.exit(1)
-
     # parse input
     matcher_pperm_identity = re.compile(PPERM_IDENTITY)
     matcher_pperm = re.compile(PPERM)
 
-    result = []
-
     istream = open(args.infile, 'r') if args.infile is not None else sys.stdin
 
-    for line in istream:
-        line = line.rstrip()
+    if args.outfile is not None:
+        open(args.outfile, 'w').close()
 
-        match_pperm_identity = matcher_pperm_identity.match(line)
-        if match_pperm_identity is None:
+    result = []
 
-            match_pperm = matcher_pperm.match(line)
-            if match_pperm is None:
-                fmt = "{}: error: failed to parse input line:\n{}"
+    listmode = False
+    for i, line in enumerate(istream):
+        line = line.strip()
+
+        if i == 0:
+            if line.startswith('['):
+                listmode = True
+
+                line = line.replace(', (', '; (')
+                line = line.replace(', [', '; [')
+                line = line.replace(', <', '; <')
+        else:
+            if listmode:
+                fmt = "{}: error: can only parse one input line in list mode\n{}"
                 print(fmt.format(progname, line), file=sys.stderr)
 
                 sys.exit(1)
 
-            chains, cycles = match_pperm.groups()
-
-            if chains:
-                chains = [list_str_to_int(chain)
-                          for chain in chains[1:-1].split('][')]
-
-            if cycles:
-                cycles = [list_str_to_int(cycles)
-                          for cycles in cycles[1:-1].split(')(')]
-
-            result.append(pperm_constructor(chains, cycles))
-
+        if listmode:
+            pperms = [pperm.strip() for pperm in line[1:-1].split(';')]
         else:
-            domain = list_str_to_int(match_pperm_identity.group(1))
+            pperms = [line]
 
-            result.append(pperm_identity_constructor(domain))
+        for pperm in pperms:
+            match_pperm_identity = matcher_pperm_identity.match(pperm)
+            if match_pperm_identity is None:
+
+                match_pperm = matcher_pperm.match(pperm)
+                if match_pperm is None:
+                    fmt = "{}: error: failed to parse input line:\n{}"
+                    print(fmt.format(progname, line), file=sys.stderr)
+
+                    sys.exit(1)
+
+                chains, cycles = match_pperm.groups()
+
+                if chains:
+                    chains = [list_str_to_int(chain)
+                              for chain in chains[1:-1].split('][')]
+
+                if cycles:
+                    cycles = [list_str_to_int(cycles)
+                              for cycles in cycles[1:-1].split(')(')]
+
+                result.append(pperm_constructor(chains, cycles))
+
+            else:
+                domain = list_str_to_int(match_pperm_identity.group(1))
+
+                result.append(pperm_identity_constructor(domain))
 
     if istream != sys.stdin:
         istream.close()
@@ -142,14 +144,13 @@ if __name__ == '__main__':
     if args.sort:
         result = sorted(result)
 
-    result = ',\n'.join(result)
+    if listmode:
+        result = '[ ' + ',\n  '.join(result) + ' ]'
+    else:
+        result = ',\n'.join(result)
 
-    if args.in_place:
-        with open(args.infile, 'w', encoding='UTF-8') as outfile:
-            outfile.write(result + '\n')
-
-    elif args.outfile is not None:
-        with open(args.outfile, 'w', encoding='UTF-8') as outfile:
+    if args.outfile is not None:
+        with open(args.outfile, 'r+', encoding='UTF-8') as outfile:
             outfile.write(result + '\n')
 
     else:
