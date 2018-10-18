@@ -18,13 +18,41 @@ PPERM = r'^((?:\[\d+,\d+(?:,\d+)*\])*)((?:\(\d+(?:,\d+)*\))*)$'
 PPERM_IDENTITY = r'^<identity partial perm on \[ (\d+(?:, \d+)*) \]>$'
 
 
+def list_str_to_int(lst: str) -> List[int]:
+    return list(map(lambda x: int(x.strip()), lst.split(',')))
+
+
 def pperm_identity_constructor(domain: List[int]) -> str:
     return 'PartialPermOp((), {})'.format(domain)
 
 
 def pperm_constructor(chains: Optional[List[List[int]]],
                       cycles: Optional[List[List[int]]]) -> str:
-    return ''  # TODO
+    mapping = {}
+
+    def map_to(x: int, y: int):
+        if x in mapping:
+            fmt = "ambigous image given for domain element ''"
+            raise ValueError(fmt.format(x))
+
+        mapping[x] = y
+
+    for chain in chains:
+        for x, y in zip(chain[:-1], chain[1:]):
+            map_to(x, y)
+
+    for cycle in cycles:
+        for x, y in zip(cycle, cycle[1:] + [cycle[0]]):
+            map_to(x, y)
+
+    domain = []
+    image = []
+
+    for x, y in mapping.items():
+        domain.append(x)
+        image.append(y)
+
+    return 'PartialPermOp({}, {})'.format(domain, image)
 
 
 if __name__ == '__main__':
@@ -85,21 +113,26 @@ if __name__ == '__main__':
         if match_pperm_identity is None:
 
             match_pperm = matcher_pperm.match(line)
-            chains, cycles = match_pperm.groups()
-
-            if match_pperm is None or not (chains or cycles):
+            if match_pperm is None:
                 fmt = "{}: error: failed to parse input line:\n{}"
                 print(fmt.format(progname, line), file=sys.stderr)
 
                 sys.exit(1)
 
-            chains = [chain.split(',') for chain in chains[1:-1].split('][')]
-            cycles = [cycles.split(',') for cycles in cycles[1:-1].split(')(')]
+            chains, cycles = match_pperm.groups()
+
+            if chains:
+                chains = [list_str_to_int(chain)
+                          for chain in chains[1:-1].split('][')]
+
+            if cycles:
+                cycles = [list_str_to_int(cycles)
+                          for cycles in cycles[1:-1].split(')(')]
 
             result.append(pperm_constructor(chains, cycles))
 
         else:
-            domain = match_pperm_identity.group(1).split(',')
+            domain = list_str_to_int(match_pperm_identity.group(1))
 
             result.append(pperm_identity_constructor(domain))
 
