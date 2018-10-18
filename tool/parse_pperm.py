@@ -52,7 +52,7 @@ def pperm_constructor(chains: Optional[List[List[int]]],
         domain.append(x)
         image.append(y)
 
-    return 'PartialPermOp({}, {})'.format(domain, image)
+    return 'PartialPerm({}, {})'.format(domain, image)
 
 
 if __name__ == '__main__':
