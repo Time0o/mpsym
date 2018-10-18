@@ -52,6 +52,8 @@ def pperm_constructor(chains: Optional[List[List[int]]],
         domain.append(x)
         image.append(y)
 
+    domain, image = map(list, zip(*sorted(zip(domain, image))))
+
     return 'PartialPerm({}, {})'.format(domain, image)
 
 
