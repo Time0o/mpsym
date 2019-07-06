@@ -107,6 +107,16 @@ if __name__ == '__main__':
     out, _ = p.communicate()
     out = out.decode('ascii')[:-1]
 
-    print(out.replace(' ', ''))
+    out = out.replace(' ', '')
+
+    out_list = [c for c in out]
+
+    i = 0
+    while i < len(out_list):
+        if out_list[i] == '\n' and out_list[i - 1] in ':),':
+            out_list[i] = ''
+        i += 1
+
+    print(''.join(out_list))
 
     os.remove(f.name)
