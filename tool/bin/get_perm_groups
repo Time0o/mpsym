@@ -9,12 +9,12 @@ from tempfile import NamedTemporaryFile
 
 
 USAGE = \
-"""get_perm_groups.py [-h]
-                          [--min-degree MIN_DEGREE]
-                           --max-degree MAX_DEGREE
-                          [--degree-step DEGREE_STEP]
-                          [--order-limit ORDER_LIMIT]
-                          CLASS"""
+""" {} [-h]
+                        [--min-degree MIN_DEGREE]
+                         --max-degree MAX_DEGREE
+                        [--degree-step DEGREE_STEP]
+                        [--order-limit ORDER_LIMIT]
+                        CLASS""".format(os.path.basename(__file__))
 
 DESC = "Obtain generators of known permutation groups"
 
