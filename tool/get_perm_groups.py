@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
+import os
+import subprocess
+import sys
+
 from argparse import ArgumentParser
+from tempfile import NamedTemporaryFile
 
 
 GAP_MAIN_LOOP = \
@@ -55,4 +60,12 @@ if __name__ == '__main__':
 
         gap_cmd = gap_cmd.format(gap_extract_gens)
 
-    print(gap_cmd)
+    with NamedTemporaryFile(mode='w+', delete=False) as f:
+        f.write(gap_cmd)
+
+    try:
+        subprocess.run(['gap', '--nointeract', '-q', f.name], check=True)
+    except subprocess.CalledProcessError:
+        print("failed to run gap", file=sys.stderr)
+
+    os.remove(f.name)
