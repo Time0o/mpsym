@@ -5,4 +5,5 @@ debug/*
 !debug/.gitkeep
 release/*
 !release/.gitkeep
+tool/bin/gap_time
 tmp

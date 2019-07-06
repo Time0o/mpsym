@@ -30,6 +30,9 @@ set(TEST_SRC_DIR "${PROJECT_SOURCE_DIR}/test/source")
 set(TEST_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/test/include")
 set(TEST_RESOURCE_DIR "${PROJECT_SOURCE_DIR}/test/resources")
 
+set(TOOL_SRC_DIR "${PROJECT_SOURCE_DIR}/tool/source")
+set(TOOL_BIN_DIR "${PROJECT_SOURCE_DIR}/tool/bin")
+
 set(PROFILE_SRC_DIR "${PROJECT_SOURCE_DIR}/profile/source")
 set(PROFILE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/profile/include")
 set(PROFILE_RESOURCE_DIR "${PROJECT_SOURCE_DIR}/profile/resources")
@@ -276,5 +279,7 @@ add_subdirectory("${SRC_DIR}")
 
 enable_testing()
 add_subdirectory("${TEST_SRC_DIR}")
+
+add_subdirectory("${TOOL_SRC_DIR}")
 
 add_subdirectory("${PROFILE_SRC_DIR}")
