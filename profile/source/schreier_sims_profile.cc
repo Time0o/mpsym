@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -16,6 +17,12 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#include "perm.h"
+#include "perm_group.h"
+
+using cgtl::Perm;
+using cgtl::PermGroup;
 
 
 namespace {
@@ -73,11 +80,130 @@ bool valid_choice(std::vector<std::string> const &choices,
 
 // group construction
 
-void run_cpp(std::string const &generators,
-             std::string const &schreier_sims,
-             std::string const &transversal_storage)
+bool time_child(pid_t child, double *t, double *t_acc)
 {
-  throw std::logic_error("TODO");
+  int status;
+  waitpid(child, &status, 0);
+
+  if (!WIFEXITED(status) || WEXITSTATUS(status) != EXIT_SUCCESS)
+    return false;
+
+  struct tms tms;
+  times(&tms);
+
+  *t = static_cast<double>(tms.tms_cutime) / sysconf(_SC_CLK_TCK) - *t_acc;
+  *t_acc += *t;
+
+  return true;
+}
+
+bool run_cpp(std::string const &generators,
+             std::string const &schreier_sims,
+             std::string const &transversal_storage,
+             double *t)
+{
+  static double t_acc = 0.0;
+
+  // validate generator expression
+  std::string perm = R"((\(\)|(\((\d+,)+\d+\))+))";
+
+  std::regex re("\\[(" + perm + ",)*(" + perm + ")?\\]");
+
+  if (!std::regex_match(generators, re)) {
+    error("malformed generator expression");
+    return false;
+  }
+
+  // extract permutation expressions
+  std::vector<std::string> gen_strs;
+
+  std::size_t pos = 1, nextpos;
+  for (;;) {
+    nextpos = generators.find("),", pos);
+
+    if (nextpos == std::string::npos) {
+      gen_strs.push_back(generators.substr(pos, generators.size() - pos - 1));
+      break;
+    } else {
+      gen_strs.push_back(generators.substr(pos, nextpos - pos + 1));
+    }
+
+    pos = nextpos + 2;
+  }
+
+  // parse permutation expressions
+  unsigned degree = 0;
+
+  for (auto const &gen_str : gen_strs) {
+    for (char c : gen_str) {
+      if (c >= '1' && c <= '9')
+        degree = std::max(degree, static_cast<unsigned>(c - '0'));
+    }
+  }
+
+  std::vector<Perm> gens;
+
+  for (auto const &gen_str : gen_strs) {
+    std::vector<unsigned> cycle;
+    std::vector<std::vector<unsigned>> perm;
+
+    for (char c : gen_str) {
+      switch (c) {
+      case '(':
+        cycle.clear();
+        break;
+      case ')':
+        perm.push_back(cycle);
+        break;
+      case ',':
+        continue;
+      default:
+        cycle.push_back(static_cast<unsigned>(c - '0'));
+      }
+    }
+
+    gens.push_back(Perm(degree, perm));
+  }
+
+  pid_t child;
+  switch((child = fork())) {
+  case -1:
+    error("failed to fork child process");
+    return false;
+    break;
+  case 0:
+    {
+      PermGroup::ConstructionMethod constr;
+      if (schreier_sims == "standard")
+        constr = PermGroup::SCHREIER_SIMS;
+      else if (schreier_sims == "random")
+        constr = PermGroup::SCHREIER_SIMS_RANDOM;
+      else {
+        error("unreachable");
+        return false;
+      }
+
+      PermGroup::TransversalStorageMethod transv;
+      if (transversal_storage == "explicit")
+        transv = PermGroup::EXPLICIT_TRANSVERSALS;
+      else if (transversal_storage == "schreier-trees")
+        transv = PermGroup::SCHREIER_TREES;
+      else if (transversal_storage == "shallow-schreier-trees")
+        transv = PermGroup::SHALLOW_SCHREIER_TREES;
+      else {
+        error("unreachable");
+        return false;
+      }
+
+      PermGroup g(degree, gens, constr, transv);
+    }
+    break;
+  default:
+    if (!time_child(child, t, &t_acc))
+      return false;
+  }
+
+  return true;
 }
 
 bool run_gap(std::string const &generators, double *t)
@@ -121,19 +247,8 @@ bool run_gap(std::string const &generators, double *t)
     }
     break;
   default:
-    {
-      int status;
-      waitpid(child, &status, 0);
-
-      if (!WIFEXITED(status) || WEXITSTATUS(status) != EXIT_SUCCESS)
-        return false;
-
-      struct tms tms;
-      times(&tms);
-
-      *t = static_cast<double>(tms.tms_cutime) / sysconf(_SC_CLK_TCK) - t_acc;
-      t_acc += *t;
-    }
+    if (!time_child(child, t, &t_acc))
+      return false;
   }
 
   return true;
@@ -239,6 +354,12 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
+  if (schreier_sims != "gap" && transversal_storage.empty()) {
+    usage(std::cerr);
+    error("--transversal-storage option is mandatory when not using gap");
+    return EXIT_FAILURE;
+  }
+
   std::ifstream f(groups);
   if (f.fail()) {
     error("failed to open " + groups);
@@ -275,7 +396,8 @@ int main(int argc, char **argv)
           return EXIT_FAILURE;
         }
       } else {
-        throw std::logic_error("TODO");
+        if (!run_cpp(m[3], schreier_sims, transversal_storage, &t))
+          return EXIT_FAILURE;
       }
 
       ts.push_back(t);
