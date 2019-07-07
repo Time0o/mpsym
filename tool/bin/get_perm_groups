@@ -80,16 +80,16 @@ if __name__ == '__main__':
       choices=['symmetric', 'cyclic', 'alternating', 'dihedral', 'primitive'],
       help="groups class")
 
-    parser.add_argument('--min-degree', default=1,
+    parser.add_argument('--min-degree', type=int, default=1,
         help="minimum group degree, default is %(default)d")
 
-    parser.add_argument('--max-degree', required=True,
+    parser.add_argument('--max-degree', required=True, type=int,
         help="maximum group degree")
 
-    parser.add_argument('--degree-step', default=1,
+    parser.add_argument('--degree-step', type=int, default=1,
         help="group degree step, default is %(default)d")
 
-    parser.add_argument('--order-limit', default=2**63-1,
+    parser.add_argument('--order-limit', type=int, default=2**63-1,
         help=str("group order limit, default is %(default)d"))
 
     ns = parser.parse_args()
