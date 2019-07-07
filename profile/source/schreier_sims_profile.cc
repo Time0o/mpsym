@@ -1,7 +1,9 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <iostream>
+#include <regex>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -13,6 +15,8 @@
 namespace {
 
 std::string progname;
+
+// output
 
 void usage(std::ostream &s)
 {
@@ -32,10 +36,19 @@ void usage(std::ostream &s)
     s << pad << opts[i] << '\n';
 }
 
-void error(std::string const &msg)
-{
-  std::cerr << progname << ": error: " << msg << '\n';
+template<typename Arg, typename... Args>
+void error(Arg &&arg, Args&&... args) {
+  std::cerr << progname << ": error: ";
+
+  std::cerr << std::forward<Arg>(arg);
+
+  using expander = int[];
+  (void)expander{0, (void(std::cerr << ' ' << std::forward<Args>(args)), 0)...};
+
+  std::cerr << '\n';
 }
+
+// argument parsing
 
 std::vector<std::string> schreier_sims_choices {
   "standard", "random", "gap"
@@ -49,6 +62,21 @@ bool valid_choice(std::vector<std::string> const &choices,
                   std::string const &opt)
 {
   return std::find(choices.begin(), choices.end(), opt) != choices.end();
+}
+
+// group construction
+
+void run_cpp(std::string const &generators,
+             std::string const &schreier_sims,
+             std::string const &transversal_storage)
+{
+  throw std::logic_error("TODO");
+}
+
+void run_gap(std::string const &generators)
+{
+   // TODO
+   std::cout << "StabChain(Group(" << generators << "))\n";
 }
 
 }
@@ -130,7 +158,35 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  // TODO
+  std::ifstream f(groups);
+  if (f.fail()) {
+    error("failed to open " + groups);
+    return EXIT_FAILURE;
+  }
+
+  std::regex re("degree:(\\d+),order:(\\d+),gens:(.*)");
+  std::smatch m;
+
+  std::string line;
+  int lineno = 1;
+  while (std::getline(f, line)) {
+    if (!std::regex_match(line, m, re)) {
+      error("failed to parse line no.", lineno, "in", groups);
+      return EXIT_FAILURE;
+    }
+
+    if (schreier_sims == "gap")
+      run_gap(m[3]);
+    else
+      throw std::logic_error("TODO");
+
+    ++lineno;
+  }
+
+  if (f.bad()) {
+    error("failed to read " + groups);
+    return EXIT_FAILURE;
+  }
 
   return EXIT_SUCCESS;
 }
