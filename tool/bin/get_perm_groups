@@ -23,6 +23,10 @@ GAP_CMD = \
      {{}}
    od;"""
 
+GAP_CMD_NOLOOP = \
+"""d := {};
+   {{}}"""
+
 GAP_ORDER_SKIP = "if Order(g) > {} then continue; fi;"
 
 GAP_GET_GENERATORS = "gens := GeneratorsOfGroup(g);"
@@ -45,12 +49,22 @@ GAP_SPECIAL_GROUP = \
 
 
 def gap_script(group_class, min_degree, max_degree, degree_step, order_limit):
-    gap_cmd = GAP_CMD.format(min_degree, min_degree + degree_step, max_degree)
+    if max_degree < min_degree:
+        raise ValueError("--max-degree must be >= --min-degree")
 
-    if order_limit is not None:
-        gap_order_skip = GAP_ORDER_SKIP.format(order_limit)
-    else:
+    if (max_degree - min_degree) % degree_step != 0:
+        raise ValueError("--degree-step must divide --max-degree - --min-degree")
+
+    if max_degree == min_degree:
+        gap_cmd = GAP_CMD_NOLOOP.format(min_degree)
         gap_order_skip = ""
+    else:
+        gap_cmd = GAP_CMD.format(min_degree, min_degree + degree_step, max_degree)
+
+        if order_limit is not None:
+            gap_order_skip = GAP_ORDER_SKIP.format(order_limit)
+        else:
+            gap_order_skip = ""
 
     if group_class == 'primitive':
         gap_group = GAP_PRIMITIVE_GROUP
