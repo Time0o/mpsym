@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 
-include_directories("${INCLUDE_DIR}"
-                    "${PROFILE_INCLUDE_DIR}")
+include_directories("${INCLUDE_DIR}" "${PROFILE_INCLUDE_DIR}")
 
 file(GLOB PROFILE_SOURCES "*_profile.cc")
 set(PROFILE_UTILITY "profile_utility.cc")
@@ -15,13 +14,7 @@ foreach(PROFILE_SOURCE "${PROFILE_SOURCES}")
 
   add_executable("${PROFILE_PROG}" "${PROFILE_SOURCE}" "${PROFILE_UTILITY}")
 
-  target_link_libraries("${PROFILE_PROG}"
-                        "${MAIN_LIB}")
+  target_link_libraries("${PROFILE_PROG}" "${MAIN_LIB}")
 
-  set_target_properties("${PROFILE_PROG}" PROPERTIES
-    LINKER_LANGUAGE CXX
-    CXX_STANDARD 11
-    CXX_STANDARD_REQUIRED ON
-    COMPILE_FLAGS "-Wall -pedantic -Wextra -g -O2"
-  )
+  set_default_target_properties(TARGET "${PROFILE_PROG}")
 endforeach()

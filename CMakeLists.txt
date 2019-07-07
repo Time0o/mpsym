@@ -101,6 +101,28 @@ add_subdirectory("${GTEST_SRC_DIR}" "${GTEST_BIN_DIR}" EXCLUDE_FROM_ALL)
 
 
 ################################################################################
+# Common Compilation Settings
+################################################################################
+
+set(MAIN_COMPILER_FLAGS "-Wall -Wextra -pedantic")
+set(MAIN_LINK_FLAGS "")
+
+function(set_default_target_properties)
+  set(options NONE)
+  set(args TARGET)
+  cmake_parse_arguments(Arg "${options}" "${args}" "" "${ARGN}")
+
+  set_target_properties("${Arg_TARGET}" PROPERTIES
+    LINKER_LANGUAGE CXX
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED ON
+    COMPILE_FLAGS "${MAIN_COMPILER_FLAGS}"
+    LINK_FLAGS "${MAIN_LINK_FLAGS}"
+  )
+endfunction()
+
+
+################################################################################
 # Documentation
 ################################################################################
 
@@ -203,6 +225,11 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(WARNING "Failed to find gcov")
   endif()
 
+  if(DO_COVERAGE)
+    set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O0 --coverage")
+    set(MAIN_LINK_FLAGS "${MAIN_LINK_FLAGS} --coverage")
+  endif()
+
   if(NOT LCOV_PATH)
     set(LCOV_COVERAGE FALSE)
     message(WARNING "Failed to find lcov")
@@ -250,6 +277,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Profile")
     message(FATAL_ERROR "Failed to find perf")
   endif()
 
+  set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O2 -DNDEBUG")
+
   set(PROFILE_TARGET "profile")
   set(PROFILE_OUTDIR "${CMAKE_BINARY_DIR}/perf")
 
@@ -277,8 +306,10 @@ endif()
 
 add_subdirectory("${SRC_DIR}")
 
-enable_testing()
-add_subdirectory("${TEST_SRC_DIR}")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  enable_testing()
+  add_subdirectory("${TEST_SRC_DIR}")
+endif()
 
 add_subdirectory("${TOOL_SRC_DIR}")
 
