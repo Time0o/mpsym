@@ -230,7 +230,8 @@ bool run_gap(std::string const &generators, double *t)
     return false;
   }
 
-  f << "StabChain(Group(" + generators + "))\n";
+  f << "StabChain(Group(" + generators + "));\n";
+  f.flush();
 
   pid_t child;
   switch((child = fork())) {
