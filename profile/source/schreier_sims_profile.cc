@@ -40,7 +40,8 @@ void usage(std::ostream &s)
     "[-h|--help]",
     "-s|--schreier-sims",
     "[-t|--transversal-storage]",
-    "[-n|--num-runs]",
+    "[-c|--num-cycles]",
+    "[-r|--num-runs]",
     "[-v|--verbose]",
     "GROUPS"
   };
@@ -78,6 +79,18 @@ bool valid_choice(std::vector<std::string> const &choices,
   return std::find(choices.begin(), choices.end(), opt) != choices.end();
 }
 
+bool stoi_safe(char const *str, int *i)
+{
+  std::size_t idx;
+  try {
+    *i = std::stoi(optarg, &idx);
+    return idx == strlen(str);
+  } catch (...) {
+    return false;
+  }
+}
+
+
 // group construction
 
 bool time_child(pid_t child, double *t, double *t_acc)
@@ -100,6 +113,7 @@ bool time_child(pid_t child, double *t, double *t_acc)
 bool run_cpp(std::string const &generators,
              std::string const &schreier_sims,
              std::string const &transversal_storage,
+             int num_cycles,
              double *t)
 {
   static double t_acc = 0.0;
@@ -195,7 +209,8 @@ bool run_cpp(std::string const &generators,
         return false;
       }
 
-      PermGroup g(degree, gens, constr, transv);
+      for (int i = 0; i < num_cycles; ++i)
+        PermGroup g(degree, gens, constr, transv);
     }
     break;
   default:
@@ -206,7 +221,7 @@ bool run_cpp(std::string const &generators,
   return true;
 }
 
-bool run_gap(std::string const &generators, double *t)
+bool run_gap(std::string const &generators, int num_cycles, double *t)
 {
   static double t_acc = 0.0;
 
@@ -230,7 +245,9 @@ bool run_gap(std::string const &generators, double *t)
     return false;
   }
 
-  f << "StabChain(Group(" + generators + "));\n";
+  f << "for i in [1.." << num_cycles << "] do\n";
+  f << "  StabChain(Group(" + generators + "));\n";
+  f << "od;\n";
   f.flush();
 
   pid_t child;
@@ -278,7 +295,8 @@ int main(int argc, char **argv)
     {"help",                  no_argument,       0,       'h'},
     {"schreier-sims",         required_argument, 0,       's'},
     {"transversal-storage",   required_argument, 0,       't'},
-    {"num-runs",              required_argument, 0,       'n'},
+    {"num-cyles",             required_argument, 0,       'c'},
+    {"num-runs",              required_argument, 0,       'r'},
     {"verbose",               no_argument,       0,       'v'},
     {nullptr,                 0,                 nullptr,  0 }
   };
@@ -286,13 +304,17 @@ int main(int argc, char **argv)
   std::string schreier_sims;
   std::string transversal_storage;
   std::string groups;
+  int num_cycles = 1;
   int num_runs = 1;
   bool verbose = false;
 
   // TODO: detect superfluous non-argument options
 
-  int c;
-  while ((c = getopt_long(argc, argv, "hs:t:n:v", long_options, nullptr)) != -1) {
+  for (;;) {
+    int c = getopt_long(argc, argv, "hs:t:r:c:v", long_options, nullptr);
+    if (c == -1)
+      break;
+
     switch(c) {
     case 'h':
       usage(std::cout);
@@ -315,19 +337,17 @@ int main(int argc, char **argv)
         transversal_storage = optarg;
       }
       break;
-    case 'n':
+    case 'c':
       {
-        bool failed = false;
-
-        std::size_t idx;
-        try {
-          num_runs = std::stoi(optarg, &idx);
-          failed = idx != strlen(optarg);
-        } catch (...) {
-          failed = true;
+        if (!stoi_safe(optarg, &num_cycles)) {
+          error("invalid argument to --num-cycles");
+          return EXIT_FAILURE;
         }
-
-        if (failed) {
+      }
+      break;
+    case 'r':
+      {
+        if (!stoi_safe(optarg, &num_runs)) {
           error("invalid argument to --num-runs");
           return EXIT_FAILURE;
         }
@@ -337,7 +357,7 @@ int main(int argc, char **argv)
       verbose = true;
       break;
     default:
-      break;
+      return EXIT_FAILURE;
     }
   }
 
@@ -392,12 +412,12 @@ int main(int argc, char **argv)
 
       double t;
       if (schreier_sims == "gap") {
-        if (!run_gap(m[3], &t)) {
+        if (!run_gap(m[3], num_cycles, &t)) {
           error("failed to run gap");
           return EXIT_FAILURE;
         }
       } else {
-        if (!run_cpp(m[3], schreier_sims, transversal_storage, &t))
+        if (!run_cpp(m[3], schreier_sims, transversal_storage, num_cycles, &t))
           return EXIT_FAILURE;
       }
 
