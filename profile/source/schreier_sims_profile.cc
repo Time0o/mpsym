@@ -79,12 +79,12 @@ bool valid_choice(std::vector<std::string> const &choices,
   return std::find(choices.begin(), choices.end(), opt) != choices.end();
 }
 
-bool stoi_safe(char const *str, int *i)
+bool stoi_safe(std::string const &str, int *i)
 {
   std::size_t idx;
   try {
-    *i = std::stoi(optarg, &idx);
-    return idx == strlen(str);
+    *i = std::stoi(str, &idx);
+    return idx == str.size();
   } catch (...) {
     return false;
   }
@@ -147,38 +147,54 @@ bool run_cpp(std::string const &generators,
 
   // parse permutation expressions
   unsigned degree = 0;
-
-  for (auto const &gen_str : gen_strs) {
-    for (char c : gen_str) {
-      if (c >= '1' && c <= '9')
-        degree = std::max(degree, static_cast<unsigned>(c - '0'));
-    }
-  }
-
-  std::vector<Perm> gens;
+  std::vector<std::vector<std::vector<unsigned>>> gens_;
 
   for (auto const &gen_str : gen_strs) {
     std::vector<unsigned> cycle;
     std::vector<std::vector<unsigned>> perm;
 
-    for (char c : gen_str) {
+    int n_beg = -1;
+    for (int i = 0; i < static_cast<int>(gen_str.size()); ++i) {
+      char c = gen_str[i];
+
       switch (c) {
       case '(':
         cycle.clear();
         break;
-      case ')':
-        perm.push_back(cycle);
-        break;
       case ',':
-        continue;
+      case ')':
+        {
+          int n = 0;
+#ifndef NDEBUG
+          assert(stoi_safe(gen_str.substr(n_beg, i - n_beg), &n));
+          assert(n > 0);
+#else
+          stoi_safe(gen_str.substr(n_beg, i - n_beg), &n);
+#endif
+
+          degree = std::max(degree, static_cast<unsigned>(n));
+
+          cycle.push_back(n);
+          if (c == ')')
+            perm.push_back(cycle);
+
+          n_beg = -1;
+        }
+        break;
       default:
-        cycle.push_back(static_cast<unsigned>(c - '0'));
+        if (n_beg == -1)
+          n_beg = i;
       }
     }
 
-    gens.push_back(Perm(degree, perm));
+    gens_.push_back(perm);
   }
 
+  std::vector<Perm> gens(gens_.size());
+  for (auto i = 0u; i < gens_.size(); ++i)
+    gens[i] = Perm(degree, gens_[i]);
+
+  // run group creation in child process
   pid_t child;
   switch((child = fork())) {
   case -1:
@@ -211,6 +227,8 @@ bool run_cpp(std::string const &generators,
 
       for (int i = 0; i < num_cycles; ++i)
         PermGroup g(degree, gens, constr, transv);
+
+      _Exit(EXIT_SUCCESS);
     }
     break;
   default:
@@ -417,8 +435,10 @@ int main(int argc, char **argv)
           return EXIT_FAILURE;
         }
       } else {
-        if (!run_cpp(m[3], schreier_sims, transversal_storage, num_cycles, &t))
+        if (!run_cpp(m[3], schreier_sims, transversal_storage, num_cycles, &t)) {
+          error("profiling failed");
           return EXIT_FAILURE;
+        }
       }
 
       ts.push_back(t);
