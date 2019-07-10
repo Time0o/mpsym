@@ -306,6 +306,6 @@ add_subdirectory("${SRC_DIR}")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   enable_testing()
   add_subdirectory("${TEST_SRC_DIR}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Profile")
+  add_subdirectory("${PROFILE_SRC_DIR}")
 endif()
-
-add_subdirectory("${PROFILE_SRC_DIR}")
