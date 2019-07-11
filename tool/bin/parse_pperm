@@ -4,11 +4,10 @@ import argparse
 import os
 import re
 import sys
+
+from argparse import ArgumentParser, RawTextHelpFormatter
 from typing import List, Optional
 
-from argparse import ArgumentParser
-
-USAGE = ""
 
 DESC = """\
 Reconstructs valid GAP partial permutation construction statements from their
@@ -63,7 +62,7 @@ if __name__ == '__main__':
 
     # parse arguments
     def formatter_class(prog):
-        return argparse.RawTextHelpFormatter(prog, max_help_position=80)
+        return RawTextHelpFormatter(prog, max_help_position=80)
 
     parser = ArgumentParser(description=DESC, formatter_class=formatter_class)
 

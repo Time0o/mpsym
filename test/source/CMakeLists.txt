@@ -20,10 +20,5 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
 
   target_link_libraries("${TEST_PROG}" "${MAIN_LIB}" gmock_main)
 
-  set_target_properties("${TEST_PROG}" PROPERTIES
-    LINKER_LANGUAGE CXX
-    CXX_STANDARD 11
-    CXX_STANDARD_REQUIRED ON
-    COMPILE_FLAGS "-Wall -pedantic -Wextra"
-  )
+  set_default_target_properties(TARGET "${TEST_PROG}")
 endforeach()
