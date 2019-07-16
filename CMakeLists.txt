@@ -21,6 +21,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SCRIPT_DIR}")
 
 set(NAUTY_CONFIG "${CMAKE_SCRIPT_DIR}/GetNauty.cmake")
 set(GTEST_CONFIG "${CMAKE_SCRIPT_DIR}/GetGTest.cmake")
+set(PERMLIB_CONFIG "${CMAKE_SCRIPT_DIR}/GetPermLib.cmake")
 
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/source")
 set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
@@ -43,6 +44,11 @@ set(GTEST_DIR "${CMAKE_BINARY_DIR}/gtest")
 set(GTEST_DOWNLOAD_DIR "${GTEST_DIR}/download")
 set(GTEST_SRC_DIR "${GTEST_DIR}/source")
 set(GTEST_BIN_DIR "${GTEST_DIR}/build")
+
+set(PERMLIB_DIR "${CMAKE_BINARY_DIR}/permlib")
+set(PERMLIB_DOWNLOAD_DIR "${PERMLIB_DIR}/download")
+set(PERMLIB_WORKDIR "${PERMLIB_DIR}/workdir")
+set(PERMLIB_INCLUDE_DIR "${PERMLIB_WORKDIR}/include")
 
 set(DOC_DOXYGEN_IN_DIR "${PROJECT_SOURCE_DIR}/doxygen")
 set(DOC_DOXYGEN_OUT_DIR "${CMAKE_BINARY_DIR}/doxygen")
@@ -307,5 +313,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   enable_testing()
   add_subdirectory("${TEST_SRC_DIR}")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Profile")
+  add_external_project(NAME "permlib"
+                       CONFIGFILE "${PERMLIB_CONFIG}"
+                       WORKDIR "${PERMLIB_DOWNLOAD_DIR}")
+
   add_subdirectory("${PROFILE_SRC_DIR}")
 endif()
