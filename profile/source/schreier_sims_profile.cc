@@ -399,8 +399,10 @@ bool run_cpp(SchreierSimsImpl schreier_sims_impl,
     }
     break;
   default:
-    if (!time_child(child, t, &t_acc))
+    if (!time_child(child, t, &t_acc)) {
+      error("the forked child process terminated prematurely");
       return false;
+    }
   }
 
   return true;
