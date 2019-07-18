@@ -42,6 +42,7 @@ namespace boost {
 #include <permlib/permlib_api.h>
 
 #include <permlib/construct/random_schreier_sims_construction.h>
+#include <permlib/generator/bsgs_random_generator.h>
 #include <permlib/transversal/explicit_transversal.h>
 #include <permlib/transversal/shallow_schreier_tree_transversal.h>
 
@@ -206,17 +207,6 @@ permlib_transversal_type(TransversalImpl transversal_impl)
   }
 }
 
-template<typename SS, typename TRANSV>
-void make_permlib_perm_group_generic(
-  unsigned degree,
-  std::vector<permlib::Permutation::ptr> const &gens,
-  int num_cycles)
-{
-  SS construction(degree);
-  for (int i = 0; i < num_cycles; ++i)
-    construction.construct(gens.begin(), gens.end());
-}
-
 void make_permlib_perm_group(
   SchreierSimsImpl schreier_sims_impl,
   TransversalImpl transversal_impl,
@@ -226,25 +216,28 @@ void make_permlib_perm_group(
 {
   using namespace permlib;
 
-  // TODO: using?
-  std::visit([&](auto transversal_type_) {
-    using transversal_type = typename decltype(transversal_type_)::type;
+  std::visit([&](auto transv_type_) {
+    using transv_type = typename decltype(transv_type_)::type;
 
-    switch (schreier_sims_impl) {
-      case SCHREIER_SIMS_DETERMINISTIC:
-        make_permlib_perm_group_generic<
-          SchreierSimsConstruction<Permutation, transversal_type>,
-          transversal_type
-        >(degree, gens, num_cycles);
-      case SCHREIER_SIMS_RANDOM:
-        // TODO
-        //make_permlib_perm_group_generic<
-        //  RandomSchreierSimsConstruction<Permutation, typename decltype(transv)::type>,
-        //  typename decltype(transv)::type
-        //>(degree, gens, num_cycles);
-        break;
-      default:
-        throw std::logic_error("unreachable");
+    if (schreier_sims_impl == SCHREIER_SIMS_DETERMINISTIC) {
+      SchreierSimsConstruction<Permutation, transv_type>
+      construction(degree);
+
+      for (int i = 0; i < num_cycles; ++i)
+        construction.construct(gens.begin(), gens.end());
+
+    } else { // SCHREIER_SIMS_RANDOM
+      BSGS<Permutation, transv_type> bsgs(degree);
+
+      std::unique_ptr<BSGSRandomGenerator<Permutation, transv_type>>
+      random_generator(new BSGSRandomGenerator<Permutation, transv_type>(bsgs));
+
+      RandomSchreierSimsConstruction<Permutation, transv_type>
+      construction(degree, random_generator.get());
+
+      bool guaranteed = true;
+      for (int i = 0; i < num_cycles; ++i)
+        construction.construct(gens.begin(), gens.end(), guaranteed);
     }
   }, permlib_transversal_type(transversal_impl));
 }
