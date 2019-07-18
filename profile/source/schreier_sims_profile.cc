@@ -55,23 +55,20 @@ std::string progname;
 
 void usage(std::ostream &s)
 {
-  std::string header = "usage: " + progname;
-  std::string pad = std::string(header.size() + 1, ' ');
-
   char const *opts[] = {
     "[-h|--help]",
-    "-i|--implementation",
-    "-s|--schreier-sims",
-    "[-t|--transversal-storage]",
+    "-i|--implementation        {mpsym|permlib|gap}",
+    "-s|--schreier-sims         {deterministic|random}",
+    "[-t|--transversal-storage] {explicit|schreier-tree|random-schreier-tree}",
     "[-c|--num-cycles]",
     "[-r|--num-runs]",
     "[-v|--verbose]",
     "GROUPS"
   };
 
-  s << header << ' ' << opts[0] << '\n';
-  for (auto i = 1u; i < sizeof(opts) / sizeof(opts[0]); ++i)
-    s << pad << opts[i] << '\n';
+  s << "usage: " << progname << '\n';
+  for (char const *opt : opts)
+    s << "  " << opt << '\n';
 }
 
 template<typename Arg, typename... Args>
