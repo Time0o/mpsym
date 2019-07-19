@@ -16,7 +16,7 @@ public:
   static int loglevel;
   static std::ostream &out;
 
-  Dbg(int level) : _level(level) { _buf << _headers[_level]; }
+  Dbg(int level = WARN) : _level(level) { _buf << _headers[_level]; }
 
   template <typename T>
   Dbg& operator<<(T const &val) { _buf << val; return *this; }
@@ -65,8 +65,16 @@ private:
   std::ostringstream _buf;
 };
 
+#ifdef NDEBUG
+
+#define Dbg(level) if (0) Dbg()
+
+#else
+
 #define Dbg(level) \
   if (level < Dbg::loglevel) {} \
   else Dbg(level)
+
+#endif
 
 #endif // _GUARD_DBG_H
