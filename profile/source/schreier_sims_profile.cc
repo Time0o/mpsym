@@ -368,7 +368,8 @@ bool run_cpp(SchreierSimsImpl schreier_sims_impl,
         }
       }
 
-      gens.emplace_back(new permlib::Permutation(degree, gen_str.str()));
+      gens[i] = permlib::Permutation::ptr(
+        new permlib::Permutation(degree, gen_str.str()));
     }
   }
 
