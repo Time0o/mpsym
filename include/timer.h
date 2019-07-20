@@ -2,6 +2,7 @@
 #define _GUARD_TIMER_H
 
 #include <cassert>
+#include <chrono>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
@@ -12,6 +13,19 @@
 #include "dbg.h"
 #include "timer.h"
 #include "util.h"
+
+#ifdef NTIMER
+
+#define Timer_create(name, precision)
+#define Timer_start(name)
+#define Timer_stop(name)
+#define Timer_dump(name)
+
+#else
+
+#ifdef TIMER_CPU
+#warning "Available CPU timer has low resolution"
+#endif
 
 class Timer
 {
@@ -27,9 +41,9 @@ public:
   { assert(false); }
 
   Timer(char const *name, Precision precision)
-  : _name(name),
-    _precision(precision),
-    _start(std::clock())
+  : _start(time()),
+    _name(name),
+    _precision(precision)
   {}
 
   static void create(char const *name, Precision precision)
@@ -46,14 +60,20 @@ public:
   }
 
   void start()
-  { _start = std::clock(); }
+  { _start = time(); }
 
   void stop()
   {
-    auto delta = std::clock() - _start;
+    double seconds;
 
-    double seconds =
-      static_cast<double>(delta) / static_cast<double>(CLOCKS_PER_SEC);
+    auto delta = time() - _start;
+
+#ifdef TIMER_CPU
+    seconds = static_cast<double>(delta) / static_cast<double>(CLOCKS_PER_SEC);
+#else
+    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(delta);
+    seconds = static_cast<double>(ns.count()) / 10e9;
+#endif
 
     _meas.push_back(scale(seconds));
   }
@@ -85,6 +105,18 @@ public:
   { util::mean_stddev(_meas, mean, stddev); }
 
 private:
+#ifdef TIMER_CPU
+  std::clock_t time()
+  { return std::clock(); }
+
+  std::clock_t _start;
+#else
+  std::chrono::high_resolution_clock::time_point time()
+  { return std::chrono::high_resolution_clock::now(); }
+
+  std::chrono::high_resolution_clock::time_point _start;
+#endif
+
   double scale(double t) {
     switch (_precision) {
       case SECONDS:
@@ -101,7 +133,6 @@ private:
   char const *_name;
   Precision _precision;
 
-  std::clock_t _start;
   std::vector<double> _meas;
 
   static std::unordered_map<std::string, Timer> _timers;
@@ -131,15 +162,6 @@ inline std::ostream &operator<< (std::ostream &s, Timer const &timer)
 
   return s;
 }
-
-#ifdef NTIMER
-
-#define Timer_create(name, precision)
-#define Timer_start(name)
-#define Timer_stop(name)
-#define Timer_dump(name)
-
-#else
 
 #define Timer_create(name, precision) Timer::create(name, precision)
 #define Timer_start(name) Timer::get(name).start()
