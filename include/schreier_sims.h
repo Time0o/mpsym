@@ -12,6 +12,7 @@
 #include "pr_randomizer.h"
 #include "schreier_sims.h"
 #include "schreier_structure.h"
+#include "timer.h"
 
 /**
  * @file schreier_sims.h
@@ -251,6 +252,18 @@ void schreier_sims(BSGS &bsgs)
 
   schreier_sims_init<SS>(bsgs, strong_generators, fundamental_orbits);
 
+  // performance timers
+  char const *t_transversal = "transversal";
+  char const *t_create_schreier_generator = "create schreier generator";
+  char const *t_strip = "strip";
+  char const *t_update_strong_generators = "update strong generators";
+
+  Timer_create(t_transversal, Timer::MILLISECONDS);
+  Timer_create(t_create_schreier_generator, Timer::MILLISECONDS);
+  Timer_create(t_strip, Timer::MILLISECONDS);
+  Timer_create(t_update_strong_generators, Timer::MILLISECONDS);
+
+  // main loop
   unsigned degree = bsgs.strong_generators[0].degree();
 
   unsigned i = bsgs.base.size();
@@ -262,19 +275,32 @@ top:
     for (unsigned beta : fundamental_orbits[i - 1u]) {
       Dbg(Dbg::TRACE) << "== Orbit element " << beta;
 
+      // obtain schreier structure transversal
+      Timer_start(t_transversal);
       Perm u_beta = st->transversal(beta);
+      Timer_stop(t_transversal);
 
       for (Perm const &x : strong_generators[i - 1u]) {
+        // create schreier generator
+        Timer_start(t_create_schreier_generator);
+
         unsigned beta_x = x[beta];
 
         Perm schreier_generator = u_beta * x * ~st->transversal(beta_x);
         Dbg(Dbg::TRACE) << "Schreier Generator: " << schreier_generator;
 
+        Timer_stop(t_create_schreier_generator);
+
         if (schreier_generator.id())
           continue;
 
+        // strip
+        Timer_start(t_strip);
+
         bool update_strong_generators = false;
         std::pair<Perm, unsigned> strip_result = strip(schreier_generator, bsgs);
+
+        Timer_stop(t_strip);
 
         Perm strip_perm = std::get<0>(strip_result);
         unsigned strip_level = std::get<1>(strip_result);
@@ -284,6 +310,7 @@ top:
            update_strong_generators = true;
 
         } else if (strip_perm != Perm(degree)) {
+          // adjoin new basepoint
           update_strong_generators = true;
 
           unsigned next_basepoint = 1u;
@@ -297,6 +324,8 @@ top:
         }
 
         if (update_strong_generators) {
+          Timer_start(t_update_strong_generators);
+
           Dbg(Dbg::TRACE) << "Updating strong generators:";
 
           for (unsigned j = i; j < strip_level; ++ j) {
@@ -313,7 +342,10 @@ top:
 
             Dbg(Dbg::TRACE) << "S(" << (j + 1u) << ") = " << strong_generators[j];
             Dbg(Dbg::TRACE) << "O(" << (j + 1u) << ") = " << fundamental_orbits[j];
+
           }
+
+          Timer_stop(t_update_strong_generators);
 
           i = strip_level;
           goto top;
@@ -322,6 +354,12 @@ top:
     }
     i -= 1u;
   }
+
+  // dump performance statistics
+  Timer_dump(t_transversal);
+  Timer_dump(t_create_schreier_generator);
+  Timer_dump(t_strip);
+  Timer_dump(t_update_strong_generators);
 
   schreier_sims_finish(bsgs);
 }

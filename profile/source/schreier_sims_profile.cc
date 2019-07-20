@@ -559,6 +559,9 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
+  if (verbose)
+    Timer::enabled = true;
+
   std::regex re("degree:(\\d+),order:(\\d+),gens:(.*)");
   std::smatch m;
 

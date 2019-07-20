@@ -229,7 +229,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   endif()
 
   if(DO_COVERAGE)
-    set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O0 --coverage")
+    set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O0 --coverage -DNTIMER")
     set(MAIN_LINK_FLAGS "${MAIN_LINK_FLAGS} --coverage")
   endif()
 

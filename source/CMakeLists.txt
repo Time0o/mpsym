@@ -18,7 +18,8 @@ add_library("${MAIN_LIB}"
             "perm_word.cc"
             "pr_randomizer.cc"
             "schreier_sims.cc"
-            "schreier_structure.cc")
+            "schreier_structure.cc"
+            "timer.cc")
 
 target_link_libraries("${MAIN_LIB}"
                       "${Boost_LIBRARIES}"
