@@ -1,7 +1,6 @@
 #ifndef _GUARD_TIMER_H
 #define _GUARD_TIMER_H
 
-#include <cassert>
 #include <chrono>
 #include <ctime>
 #include <iomanip>
@@ -37,9 +36,6 @@ public:
   static bool enabled;
   static std::ostream &out;
 
-  Timer()
-  { assert(false); }
-
   Timer(char const *name, Precision precision)
   : _start(time()),
     _name(name),
@@ -48,14 +44,19 @@ public:
 
   static void create(char const *name, Precision precision)
   {
-    assert(_timers.find(name) == _timers.end());
-    _timers[name] = Timer(name, precision);
+    auto it = _timers.find(name);
+    if (it != _timers.end())
+      throw std::logic_error("timer already exists");
+
+    _timers.insert({name, Timer(name, precision)});
   }
 
   static Timer &get(char const *name)
   {
     auto it = _timers.find(name);
-    assert(it != timers.end());
+    if (it == _timers.end())
+      throw std::logic_error("no such timer");
+
     return it->second;
   }
 
