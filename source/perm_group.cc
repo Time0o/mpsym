@@ -966,7 +966,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
     Dbg(Dbg::TRACE) << "Block stabilizer of " << bs[0] << " is: " << sigma[0];
 
     unsigned tmp = PermGroup(_n, sigma[0]).order();
-    if (_order != pow(tmp, d) * block_permuter.order()) {
+    if (_order != util::pow(tmp, d) * block_permuter.order()) {
       Dbg(Dbg::TRACE)
         << "Group order equality not satisfied, skipping block system";
       continue;

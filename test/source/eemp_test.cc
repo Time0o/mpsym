@@ -16,7 +16,6 @@
 using cgtl::PartialPerm;
 using cgtl::Perm;
 using cgtl::PermGroup;
-using cgtl::expand_partition;
 
 using cgtl::eemp::OrbitGraph;
 using cgtl::eemp::SchreierTree;
@@ -24,6 +23,8 @@ using cgtl::eemp::action_component;
 using cgtl::eemp::r_class_representatives;
 using cgtl::eemp::scc_spanning_tree;
 using cgtl::eemp::strongly_connected_components;
+
+using util::expand_partition;
 
 using testing::ElementsAreArray;
 using testing::UnorderedElementsAreArray;

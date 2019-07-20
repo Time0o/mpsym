@@ -2,7 +2,9 @@
 #define _GUARD_UTIL_H
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
+#include <numeric>
 #include <vector>
 
 /**
@@ -12,7 +14,7 @@
  * @author Timo Nicolai
  */
 
-namespace cgtl
+namespace util
 {
 
 /** Calculate integer powers.
@@ -65,6 +67,19 @@ T factorial(T x)
     res *= x--;
 
   return res;
+}
+
+
+template<typename T, typename U = double>
+void mean_stddev(std::vector<T> const &vals, U *mean, U *stddev) {
+  *mean = std::accumulate(vals.begin(), vals.end(), 0) / vals.size();
+
+  std::vector<U> d(vals.size());
+  std::transform(vals.begin(), vals.end(), d.begin(),
+                 [mean](U val) { return val - *mean; });
+
+  *stddev = std::sqrt(
+    std::inner_product(d.begin(), d.end(), d.begin(), 0) / vals.size());
 }
 
 /** Expand a compact set partition representation into an explicit which allows

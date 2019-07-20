@@ -297,7 +297,7 @@ namespace std
 
 std::size_t hash<cgtl::Perm>::operator()(cgtl::Perm const &perm) const
 {
-  return cgtl::vector_hash(perm._perm);
+  return util::vector_hash(perm._perm);
 }
 
 } // namespace std

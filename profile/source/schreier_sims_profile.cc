@@ -26,6 +26,7 @@
 
 #include "perm.h"
 #include "perm_group.h"
+#include "util.h"
 
 namespace boost {
   // permlib needs this to compile and I couldn't be bothered to build this
@@ -460,19 +461,6 @@ bool run_gap(std::string const &generators, int num_cycles, double *t)
   return true;
 }
 
-// statistics
-
-void get_statistics(std::vector<double> const &ts, double *mean, double *stddev) {
-  *mean = std::accumulate(ts.begin(), ts.end(), 0.0) / ts.size();
-
-  std::vector<double> d(ts.size());
-  std::transform(ts.begin(), ts.end(), d.begin(),
-                 [mean](double t) { return t - *mean; });
-
-  *stddev = std::sqrt(
-    std::inner_product(d.begin(), d.end(), d.begin(), 0.0) / ts.size());
-}
-
 }
 
 int main(int argc, char **argv)
@@ -631,7 +619,7 @@ int main(int argc, char **argv)
     }
 
     double t_mean, t_stddev;
-    get_statistics(ts, &t_mean, &t_stddev);
+    util::mean_stddev(ts, &t_mean, &t_stddev);
 
     std::cout.precision(3);
     std::cout << "mean: " << std::fixed << t_mean << "s, "

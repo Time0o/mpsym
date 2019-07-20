@@ -34,7 +34,7 @@ class PartialPermInverseSemigroup
 {
   struct VectorHash {
     std::size_t operator()(std::vector<unsigned> const &v) const {
-      return vector_hash(v);
+      return util::vector_hash(v);
     }
   };
 

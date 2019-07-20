@@ -65,7 +65,7 @@ std::vector<std::vector<unsigned>> action_component(
 
   std::vector<std::vector<ComponentElemId>> elem_ids(dom_max + 1u);
 
-  std::size_t hash = vector_hash(alpha);
+  std::size_t hash = util::vector_hash(alpha);
   elem_ids[alpha.size()].push_back(ComponentElemId(0u, hash));
 
   // if beta is a component element, set 'id' to it's component index,
@@ -73,7 +73,7 @@ std::vector<std::vector<unsigned>> action_component(
   auto in_component = [&](std::vector<unsigned> const &beta, unsigned &id) {
     bool contained = true;
 
-    std::size_t beta_hash = vector_hash(beta);
+    std::size_t beta_hash = util::vector_hash(beta);
 
     auto const size_idx = beta.size();
     if (!elem_size_present[size_idx]) {
@@ -456,7 +456,7 @@ std::ostream& operator<<(
   }
 
   auto tmp(strongly_connected_components(orbit_graph));
-  auto scc(expand_partition<unsigned>(tmp.second));
+  auto scc(util::expand_partition<unsigned>(tmp.second));
 
   stream << "s.c.c." << std::string(pad - 1u, ' ') << " | {";
   for (auto i = 0u; i < scc.size(); ++i) {

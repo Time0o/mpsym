@@ -6,8 +6,8 @@
 
 #include "test_main.cc"
 
-using cgtl::pow;
-using cgtl::factorial;
+using util::pow;
+using util::factorial;
 
 class PowTest :
   public testing::TestWithParam<std::tuple<unsigned, unsigned, unsigned>> {};
