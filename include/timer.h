@@ -168,7 +168,7 @@ inline std::ostream &operator<< (std::ostream &s, Timer const &timer)
 #define Timer_start(name) Timer::get(name).start()
 #define Timer_stop(name) Timer::get(name).stop()
 #define Timer_dump(name) \
-  do { if (Timer::enabled) Timer::out << Timer::get(name) << '\n'; } while (0)
+  do { if (Timer::enabled) Timer::out << Timer::get(name) << std::endl; } while (0)
 
 #endif
 

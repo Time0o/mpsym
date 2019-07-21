@@ -581,13 +581,13 @@ int main(int argc, char **argv)
       std::cout << "profiling group " << lineno
                 << " with degree " << degree
                 << " and order " << order
-                << '\n';
+                << std::endl;
     }
 
     std::vector<double> ts;
     for (int r = 0; r < num_runs; ++r) {
       if (verbose)
-        std::cout << "run " << r + 1 << '/' << num_runs << '\n';
+        std::cout << "run " << r + 1 << '/' << num_runs << std::endl;
 
       double t;
       if (library_impl == LIBRARY_GAP) {
@@ -626,7 +626,8 @@ int main(int argc, char **argv)
 
     std::cout.precision(3);
     std::cout << "mean: " << std::fixed << t_mean << "s, "
-              << "stddev: " << std::fixed << t_stddev << "s\n";
+              << "stddev: " << std::fixed << t_stddev << "s"
+              << std::endl;
 
     ++lineno;
   }
