@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -240,7 +241,13 @@ void make_permlib_perm_group(
   }, permlib_transversal_type(transversal_impl));
 }
 
-bool time_child(pid_t child, double *t, double *t_acc)
+// cpu timer
+
+double time_child_acc;
+
+void time_child_start() {}
+
+bool time_child_stop(pid_t child, double *t)
 {
   int status;
   waitpid(child, &status, 0);
@@ -251,10 +258,56 @@ bool time_child(pid_t child, double *t, double *t_acc)
   struct tms tms;
   times(&tms);
 
-  *t = static_cast<double>(tms.tms_cutime) / sysconf(_SC_CLK_TCK) - *t_acc;
-  *t_acc += *t;
+  *t = static_cast<double>(tms.tms_cutime) / sysconf(_SC_CLK_TCK) - time_child_acc;
+  time_child_acc += *t;
 
   return true;
+}
+
+
+// realtime timer
+
+std::chrono::high_resolution_clock::time_point time_realtime_begin;
+
+void time_realtime_start()
+{
+  time_realtime_begin = std::chrono::high_resolution_clock::now();
+}
+
+void time_realtime_stop(double *t)
+{
+  auto delta = std::chrono::high_resolution_clock::now() - time_realtime_begin;
+  auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(delta);
+
+  *t = static_cast<double>(ns.count()) / 10e9;
+}
+
+// timer wrapper functions
+
+bool time_realtime_enabled = false;
+
+pid_t timer_start() {
+  if (time_realtime_enabled) {
+    time_realtime_start();
+    return 0;
+  } else {
+    time_child_start();
+    return fork();
+  }
+}
+
+double timer_stop(pid_t maybe_child) {
+  double t;
+  if (time_realtime_enabled) {
+    time_realtime_stop(&t);
+  } else {
+    if (!time_child_stop(maybe_child, &t)) {
+      error("the forked child process terminated prematurely");
+      return false;
+    }
+  }
+
+  return t;
 }
 
 template<LibraryImpl L>
@@ -264,8 +317,6 @@ bool run_cpp(SchreierSimsImpl schreier_sims_impl,
              int num_cycles,
              double *t)
 {
-  static double t_acc = 0.0;
-
   // validate generator expression
   std::string perm = R"((\(\)|(\((\d+,)+\d+\))+))";
 
@@ -375,8 +426,8 @@ bool run_cpp(SchreierSimsImpl schreier_sims_impl,
   }
 
   // run group creation in child process
-  pid_t child;
-  switch((child = fork())) {
+  pid_t maybe_child;
+  switch ((maybe_child = timer_start())) {
   case -1:
     error("failed to fork child process");
     return false;
@@ -397,23 +448,19 @@ bool run_cpp(SchreierSimsImpl schreier_sims_impl,
                                 num_cycles);
       }
 
-      _Exit(EXIT_SUCCESS);
+      if (!time_realtime_enabled)
+        _Exit(EXIT_SUCCESS);
     }
     break;
-  default:
-    if (!time_child(child, t, &t_acc)) {
-      error("the forked child process terminated prematurely");
-      return false;
-    }
   }
+
+  *t = timer_stop(maybe_child);
 
   return true;
 }
 
 bool run_gap(std::string const &generators, int num_cycles, double *t)
 {
-  static double t_acc = 0.0;
-
   char ftmp[] = {'X', 'X', 'X', 'X', 'X', 'X'};
   if (mkstemp(ftmp) == -1) {
     error("failed to create temporary file");
@@ -439,8 +486,8 @@ bool run_gap(std::string const &generators, int num_cycles, double *t)
   f << "od;\n";
   f.flush();
 
-  pid_t child;
-  switch((child = fork())) {
+  pid_t maybe_child;
+  switch ((maybe_child = timer_start())) {
   case -1:
     error("failed to fork child process");
     return false;
@@ -451,12 +498,14 @@ bool run_gap(std::string const &generators, int num_cycles, double *t)
         error("failed to exec gap");
         _Exit(EXIT_FAILURE);
       }
+
+      if (!time_realtime_enabled)
+        _Exit(EXIT_SUCCESS);
     }
     break;
-  default:
-    if (!time_child(child, t, &t_acc))
-      return false;
   }
+
+  *t = timer_stop(maybe_child);
 
   return true;
 }
@@ -474,6 +523,7 @@ int main(int argc, char **argv)
     {"transversal-storage", required_argument, 0,       't'},
     {"num-cyles",           required_argument, 0,       'c'},
     {"num-runs",            required_argument, 0,       'r'},
+    {"realtime-clock",      no_argument,       0,        1 },
     {"verbose",             no_argument,       0,       'v'},
     {nullptr,               0,                 nullptr,  0 }
   };
@@ -517,6 +567,9 @@ int main(int argc, char **argv)
         break;
       case 'v':
         verbose = true;
+        break;
+      case 1:
+        time_realtime_enabled = true;
         break;
       default:
         return EXIT_FAILURE;
@@ -625,8 +678,8 @@ int main(int argc, char **argv)
     util::mean_stddev(ts, &t_mean, &t_stddev);
 
     std::cout.precision(3);
-    std::cout << "mean: " << std::fixed << t_mean << "s, "
-              << "stddev: " << std::fixed << t_stddev << "s"
+    std::cout << "mean: " << std::scientific << t_mean << "s, "
+              << "stddev: " << std::scientific << t_stddev << "s"
               << std::endl;
 
     ++lineno;
