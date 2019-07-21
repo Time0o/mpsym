@@ -72,14 +72,17 @@ T factorial(T x)
 
 template<typename T, typename U = double>
 void mean_stddev(std::vector<T> const &vals, U *mean, U *stddev) {
-  *mean = std::accumulate(vals.begin(), vals.end(), 0) / vals.size();
+  T zero = static_cast<T>(0);
+  T size = static_cast<T>(vals.size());
+
+  *mean = std::accumulate(vals.begin(), vals.end(), zero) / size;
 
   std::vector<U> d(vals.size());
   std::transform(vals.begin(), vals.end(), d.begin(),
                  [mean](U val) { return val - *mean; });
 
   *stddev = std::sqrt(
-    std::inner_product(d.begin(), d.end(), d.begin(), 0) / vals.size());
+    std::inner_product(d.begin(), d.end(), d.begin(), zero) / size);
 }
 
 /** Expand a compact set partition representation into an explicit which allows
