@@ -578,7 +578,7 @@ int main(int argc, char **argv)
     auto generators = m[3];
 
     if (verbose) {
-      std::cerr << "profiling group " << lineno
+      std::cout << "profiling group " << lineno
                 << " with degree " << degree
                 << " and order " << order
                 << '\n';
@@ -587,7 +587,7 @@ int main(int argc, char **argv)
     std::vector<double> ts;
     for (int r = 0; r < num_runs; ++r) {
       if (verbose)
-        std::cerr << "run " << r + 1 << '/' << num_runs << '\n';
+        std::cout << "run " << r + 1 << '/' << num_runs << '\n';
 
       double t;
       if (library_impl == LIBRARY_GAP) {
