@@ -183,13 +183,15 @@ public:
    */
   bool id() const;
 
-  /* Obtain a permutation's vector representation.
-   * TODO
+  /** Obtain a permutation's vector representation.
+   *
+   * \return vector representation of this permutation.
    */
   std::vector<unsigned> vect() const { return _perm; }
 
-  /* Obtain a permutation's vector representation.
-   * TODO
+  /** Obtain a permutation's cycle representation.
+   *
+   * \return a cycle representation of this permutation.
    */
   std::vector<std::vector<unsigned>> cycles() const;
 
