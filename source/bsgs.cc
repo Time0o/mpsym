@@ -16,15 +16,18 @@
 namespace cgtl
 {
 
-std::vector<unsigned> BSGS::orbit(unsigned i) const {
+std::vector<unsigned> BSGS::orbit(unsigned i) const
+{
   return schreier_structures[i]->nodes();
 }
 
-Perm BSGS::transversal(unsigned i, unsigned o) const {
+Perm BSGS::transversal(unsigned i, unsigned o) const
+{
   return schreier_structures[i]->transversal(o);
 }
 
-std::vector<Perm> BSGS::transversals(unsigned i) const {
+std::vector<Perm> BSGS::transversals(unsigned i) const
+{
   std::vector<Perm> transversals;
   for (unsigned o : orbit(i))
     transversals.push_back(schreier_structures[i]->transversal(o));
@@ -32,7 +35,8 @@ std::vector<Perm> BSGS::transversals(unsigned i) const {
   return transversals;
 }
 
-std::vector<Perm> BSGS::stabilizers(unsigned i) const {
+std::vector<Perm> BSGS::stabilizers(unsigned i) const
+{
   return schreier_structures[i]->labels();
 }
 
