@@ -4,6 +4,7 @@
 #include <memory>
 #include <ostream>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "bsgs.h"
@@ -14,11 +15,6 @@
 
 namespace cgtl
 {
-
-bool BSGS::contains(Perm const &perm) const {
-  auto strip_result(schreier_sims::strip(perm, *this));
-  return strip_result.first.id() && strip_result.second == base.size() + 1u;
-}
 
 std::vector<unsigned> BSGS::orbit(unsigned i) const {
   return schreier_structures[i]->nodes();
@@ -38,6 +34,28 @@ std::vector<Perm> BSGS::transversals(unsigned i) const {
 
 std::vector<Perm> BSGS::stabilizers(unsigned i) const {
   return schreier_structures[i]->labels();
+}
+
+std::pair<Perm, unsigned> BSGS::strip(Perm const &perm, unsigned offs) const
+{
+  Perm result(perm);
+
+  for (unsigned i = offs; i < base.size(); ++i) {
+    unsigned beta = result[base[i]];
+    if (!schreier_structures[i]->contains(beta))
+      return std::make_pair(result, i + 1u);
+
+    result *= ~schreier_structures[i]->transversal(beta);
+  }
+
+  return std::make_pair(result, base.size() + 1u);
+}
+
+bool BSGS::strips_completely(Perm const &perm) const
+{
+  auto strip_result(strip(perm));
+
+  return strip_result.first.id() && strip_result.second == base.size() + 1u;
 }
 
 void BSGS::remove_generators()
@@ -314,12 +332,12 @@ bool s_normal_closure(
     Perm const g(queue1[i]);
     Dbg(Dbg::TRACE) << "Considering queue element: " << g;
 
-    if (!bsgs.contains(g)) {
+    if (!bsgs.strips_completely(g)) {
       Dbg(Dbg::TRACE) << "=> Not in current BSGS";
 
       for (auto const &h : queue2) {
         Perm tmp(~g * ~h * g * h);
-        if (!original_bsgs.contains(tmp)) {
+        if (!original_bsgs.strips_completely(tmp)) {
           Dbg(Dbg::TRACE) << ~g << " * " << ~h << " * " << g << " * " << h
                           << " = " << tmp << " not in original BSGS";
 
@@ -383,7 +401,7 @@ BSGS BSGS::solve(std::vector<Perm> const &generators)
   for (auto const &gen : generators) {
     Dbg(Dbg::TRACE) << "====== Considering generator: " << gen;
 
-    while (!bsgs.contains(gen)) {
+    while (!bsgs.strips_completely(gen)) {
       Dbg(Dbg::TRACE) << "=> Not in current BSGS";
 
       Perm w(gen);

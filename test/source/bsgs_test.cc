@@ -79,7 +79,7 @@ TEST(BSGSTest, CanRemoveRedundantGenerators)
   };
 
   for (Perm const &perm : expected_elements) {
-    EXPECT_TRUE(bsgs.contains(perm))
+    EXPECT_TRUE(bsgs.strips_completely(perm))
       << "BSGS with reduced strong generators describes the same permutation group "
       << "(containing element " << perm << ")";
   }
@@ -110,7 +110,7 @@ TEST(BSGSTest, CanSolveBSGS)
     << "BSGS::solve succeeds for solvable group generating set.";
 
   for (Perm const &perm : generators_solvable_expected_elements) {
-    EXPECT_TRUE(bsgs.contains(perm))
+    EXPECT_TRUE(bsgs.strips_completely(perm))
       << "Solvable group BSGS correct.";
   }
 

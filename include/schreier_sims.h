@@ -3,7 +3,6 @@
 
 #include <cassert>
 #include <memory>
-#include <utility>
 #include <vector>
 
 #include "bsgs.h"
@@ -76,40 +75,6 @@ std::vector<std::vector<unsigned>> orbits(std::vector<Perm> const &generators);
 std::vector<unsigned> orbit(
   unsigned x, std::vector<Perm> const &generators,
   std::shared_ptr<SchreierStructure> st = nullptr);
-
-/** Test membership of an arbitrary element in \f$Sym(\Omega)\f$ in a
- *  permutation group \f$G\f$ acting on \f$\Omega\f$.
- *
- * This function computes a pair containing a permutation \f$h\f$ and a
- * positive integer \f$i\f$. If the permutation \f$g\f$ described by `perm` is
- * contained in the group \f$G\f$ with *base* `base` and *base orbits/base
- * orbit transversals* described by the *Schreier structures* `sts` (see also
- * schreier_sims()), \f$h\f$ will be the identity permutation and \f$i\f$ will
- * be \f$k + 1\f$ (where \f$k\f$ is the length of the given base). This implies
- * that \f$g\f$ can be decomposed as \f$u_k u_{k-1} \dots u_i\f$ with \f$u_i
- * \in U^{(i)}\f$ where \f$U^{(i)}\f$ is the \f$i\f$th *base orbit transversal*.
- *
- * If \f$g \notin G\f$, this will not hold. The returned values \f$h\f$ and
- * \f$i\f$ are in this case nevertheless vital to the implementation of the
- * *Schreier-Sims* algorithm in schreier_sims() (This is an implementation
- * detail, refer to \cite holt05 for further information).
- *
- * \param perm
- *     the permutation which should be tested for membership in the group with
- *     base `base` and base orbits/base orbit transversals described by `sts`
- *
- * \param bsgs
- *     a base and strong generating set, e.g. constructed using schreier_sims()
- *
- * \param offs
- *     only consider base elements \f$\beta_i\f$ with \f$i >\f$ `offs`
- *
- * \return a pair containing a permutation \f$h\f$ and a positive integer
- *         \f$i\f$ as described above
- */
-std::pair<Perm, unsigned> strip(Perm const &perm,
-                                BSGS const &bsgs,
-                                unsigned offs = 0);
 
 template <typename SS>
 void schreier_sims_init(
@@ -290,8 +255,7 @@ top:
       // strip
       Timer_start("strip");
 
-      std::pair<Perm, unsigned> strip_result =
-        strip(schreier_generator, bsgs, i);
+      auto strip_result(bsgs.strip(schreier_generator, i));
 
       Perm strip_perm = std::get<0>(strip_result);
       unsigned strip_level = std::get<1>(strip_result);
@@ -423,10 +387,12 @@ void schreier_sims_random(BSGS &bsgs, unsigned w = 10)
     Dbg(Dbg::TRACE) << "Random group element: " << rand_perm;
 
     bool update_strong_generators = false;
-    std::pair<Perm, unsigned> strip_result = strip(rand_perm, bsgs);
+
+    auto strip_result(bsgs.strip(rand_perm));
 
     Perm strip_perm = std::get<0>(strip_result);
     unsigned strip_level = std::get<1>(strip_result);
+
     Dbg(Dbg::TRACE) << "Strips to: " << strip_perm << ", " << strip_level;
 
     if (strip_level <= bsgs.base.size()) {

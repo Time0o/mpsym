@@ -2,7 +2,6 @@
 #include <memory>
 #include <set>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "bsgs.h"
@@ -100,23 +99,6 @@ std::vector<unsigned> orbit(
   }
 
   return result;
-}
-
-std::pair<Perm, unsigned> strip(Perm const &perm,
-                                BSGS const &bsgs,
-                                unsigned offs)
-{
-  Perm result(perm);
-
-  for (unsigned i = offs; i < bsgs.base.size(); ++i) {
-    unsigned beta = result[bsgs.base[i]];
-    if (!bsgs.schreier_structures[i]->contains(beta))
-      return std::make_pair(result, i + 1u);
-
-    result *= ~bsgs.schreier_structures[i]->transversal(beta);
-  }
-
-  return std::make_pair(result, bsgs.base.size() + 1u);
 }
 
 void schreier_sims_finish(BSGS &bsgs)

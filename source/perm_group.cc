@@ -703,12 +703,7 @@ bool PermGroup::contains_element(Perm const &perm) const
 {
   assert(perm.degree() == _n && "element has same degree as group");
 
-  auto strip_result = schreier_sims::strip(perm, _bsgs);
-
-  bool ret = (std::get<1>(strip_result) == _bsgs.base.size() + 1) &&
-             (std::get<0>(strip_result).id());
-
-  return ret;
+  return _bsgs.strips_completely(perm);
 }
 
 Perm PermGroup::random_element() const

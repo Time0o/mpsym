@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <ostream>
+#include <utility>
 #include <vector>
 
 #include "perm.h"
@@ -17,11 +18,13 @@ struct BSGS
   std::vector<Perm> strong_generators;
   std::vector<std::shared_ptr<SchreierStructure>> schreier_structures;
 
-  bool contains(Perm const &perm) const;
   std::vector<unsigned> orbit(unsigned i) const;
   Perm transversal(unsigned i, unsigned o) const;
   std::vector<Perm> transversals(unsigned i) const;
   std::vector<Perm> stabilizers(unsigned i) const;
+
+  std::pair<Perm, unsigned> strip(Perm const &perm, unsigned offs = 0) const;
+  bool strips_completely(Perm const &perm) const;
 
   // TODO: add option to keep original generators
   void remove_generators();
