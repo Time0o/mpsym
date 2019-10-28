@@ -102,11 +102,13 @@ std::vector<unsigned> orbit(
   return result;
 }
 
-std::pair<Perm, unsigned> strip(Perm const &perm, BSGS const &bsgs)
+std::pair<Perm, unsigned> strip(Perm const &perm,
+                                BSGS const &bsgs,
+                                unsigned offs)
 {
   Perm result(perm);
 
-  for (unsigned i = 0u; i < bsgs.base.size(); ++i) {
+  for (unsigned i = offs; i < bsgs.base.size(); ++i) {
     unsigned beta = result[bsgs.base[i]];
     if (!bsgs.schreier_structures[i]->contains(beta))
       return std::make_pair(result, i + 1u);
