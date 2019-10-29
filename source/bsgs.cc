@@ -62,6 +62,12 @@ bool BSGS::strips_completely(Perm const &perm) const
   return strip_result.first.id() && strip_result.second == base.size() + 1u;
 }
 
+void BSGS::extend_base(unsigned bp)
+{
+  base.push_back(bp);
+  schreier_structures.emplace_back(std::make_shared<SchreierTree>(degree()));
+}
+
 void BSGS::remove_generators()
 {
   Dbg(Dbg::DBG) << "Removing redundant strong generators from BSGS:";

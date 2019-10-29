@@ -14,6 +14,7 @@
 #include "dbg.h"
 #include "perm.h"
 #include "schreier_sims.h"
+#include "schreier_structure.h"
 #include "util.h"
 
 /**
@@ -379,14 +380,14 @@ PermGroup::PermGroup(unsigned degree,
         switch (transversals) {
           // TODO
           default:
-            schreier_sims::schreier_sims<SchreierTree>(_bsgs);
+            schreier_sims::schreier_sims(_bsgs);
         }
         break;
       case schreier_sims::CONSTRUCTION_RANDOM:
         switch (transversals) {
           // TODO
           default:
-            schreier_sims::schreier_sims_random<SchreierTree>(_bsgs);
+            schreier_sims::schreier_sims_random(_bsgs);
         }
         break;
       default:
@@ -397,7 +398,7 @@ PermGroup::PermGroup(unsigned degree,
         //  switch (storage_method) {
         //    // TODO
         //    default:
-              schreier_sims::schreier_sims<SchreierTree>(_bsgs);
+              schreier_sims::schreier_sims(_bsgs);
         //  }
         //}
     }
