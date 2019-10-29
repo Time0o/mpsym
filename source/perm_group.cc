@@ -694,11 +694,6 @@ bool PermGroup::is_transitive() const
   throw std::logic_error("unreachable");
 }
 
-std::vector<std::vector<unsigned>> PermGroup::orbits() const
-{
-  return schreier_sims::orbits(_bsgs.strong_generators);
-}
-
 bool PermGroup::contains_element(Perm const &perm) const
 {
   assert(perm.degree() == _n && "element has same degree as group");

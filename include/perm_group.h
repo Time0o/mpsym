@@ -339,21 +339,6 @@ public:
    */
   BSGS bsgs() const { return _bsgs; }
 
-  /** Return a permutation group's orbit partition.
-   *
-   * The *orbit* of a group element \f$g \in G\f$ where \f$G\f$ acts on the set
-   * \f$\Omega\f$ is the set \f$G(x) = \{x^g \mid g \in G\}\f$. This function
-   * returns the set \f$\{\{x^g \mid g \in G\} \mid x \in \Omega\}\f$ which
-   * contains every possible element orbit and is always a partition of \f$G\f$.
-   *
-   * \return this permutation group's orbit partition as a vector of vectors
-   *         where each element vector contains all elements in one of the
-   *         possible element orbits (sorted in ascending order) and the element
-   *         vectors themselves are sorted by their the smallest element (in
-   *         ascending order)
-   */
-  std::vector<std::vector<unsigned>> orbits() const;
-
   /** Check whether a permutation group contains a given permutation.
    *
    * Note that the group's elements may not be stored explicitly so while

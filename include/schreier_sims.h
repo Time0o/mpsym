@@ -42,25 +42,6 @@ enum Transversals {
   TRANSVERSALS_AUTO
 };
 
-/** Compute the orbit decomposition of a permutation group given as a set of
- *  generating permutations.
- *
- * The *orbit* of a group element \f$g \in G\f$ where \f$G\f$ acts on the set
- * \f$\Omega\f$ is the set \f$G(x) = \{x^g \mid g \in G\}\f$. This function
- * returns the set \f$\{\{x^g \mid g \in G\} \mid x \in \Omega\}\f$ which
- * contains every possible element orbit and is always a partition of \f$G\f$.
- *
- * \param generators
- *     a vector of `Perm` objects describing a generating set for the
- *     permutation group \f$G\f$
- *
- * \return \f$G\f$'s orbit partition as a vector of vectors where each element
- *         vector contains all elements in one of the possible element orbits
- *         (sorted in ascending order) and the element vectors themselves are
- *         sorted by their the smallest element (in ascending order)
- */
-std::vector<std::vector<unsigned>> orbits(std::vector<Perm> const &generators);
-
 /** Compute the orbit of a single element \f$x \in \Omega\f$ for the group \f$G
  *  \leq Sym(\Omega)\f$ described by a set of generating permutations.
  *

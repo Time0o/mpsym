@@ -24,44 +24,6 @@ namespace cgtl
 namespace schreier_sims
 {
 
-std::vector<std::vector<unsigned>> orbits(std::vector<Perm> const &generators)
-{
-  unsigned n = generators[0].degree();
-
-  std::vector<std::vector<unsigned>> res;
-  std::vector<int> orbit_indices(n + 1u, -1);
-
-  unsigned processed = 0u;
-
-  for (auto i = 1u; i <= n; ++i) {
-    int orbit_index1 = orbit_indices[i];
-    if (orbit_index1 == -1) {
-      orbit_index1 = static_cast<int>(res.size());
-      orbit_indices[i] = orbit_index1;
-
-      res.push_back({i});
-
-      if (++processed == n)
-        return res;
-    }
-
-    for (Perm const &gen : generators) {
-      unsigned j = gen[i];
-
-      int orbit_index2 = orbit_indices[j];
-      if (orbit_index2 == -1) {
-        res[orbit_index1].push_back(j);
-        orbit_indices[j] = orbit_index1;
-
-        if (++processed == n)
-          return res;
-      }
-    }
-  }
-
-  return res;
-}
-
 std::vector<unsigned> orbit(
   unsigned alpha, std::vector<Perm> const &generators,
   std::shared_ptr<SchreierStructure> st)
