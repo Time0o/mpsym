@@ -42,34 +42,6 @@ enum Transversals {
   TRANSVERSALS_AUTO
 };
 
-/** Compute the orbit of a single element \f$x \in \Omega\f$ for the group \f$G
- *  \leq Sym(\Omega)\f$ described by a set of generating permutations.
- *
- * The *orbit* is the set \f$G(x) = \{x^g \mid g \in G\}\f$. This function also
- * computes the corresponding *orbit transversals*, i.e. the set \f$\{u_{\beta}
- * \mid \beta \in G(x)\}\f$ where \f$u_{\beta} \in G\f$ maps \f$x\f$ to
- * \f$\beta\f$. These orbit transversals are stored in a *Schreier structure*
- * (see schreier_sims() and SchreierStructure).
- *
- * \param x
- *     the element \f$x \in \Omega\f$ for which \f$G(x)\f$ should be computed
- *
- * \param generators
- *     a vector of `Perm` objects describing a generating set for the
- *     permutation group \f$G\f$
- *
- * \param[out] st
- *     a pointer to a preallocated Schreier structure which will store the orbit
- *     transversals after the execution of this function, provided
- *     `st != nullptr`
- *
- * \return the orbit \f$G(x)\f$ as described above in the form of an ordered
- *         vector of positive integers \f$\in \Omega\f$
- */
-std::vector<unsigned> orbit(
-  unsigned x, std::vector<Perm> const &generators,
-  std::shared_ptr<SchreierStructure> st = nullptr);
-
 /** The simple *Schreier-Sims* algorithm
  *
  * The following explanation is based on \cite holt05, consult the book for

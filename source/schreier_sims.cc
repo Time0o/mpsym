@@ -24,7 +24,6 @@ namespace
 
 using cgtl::BSGS;
 using cgtl::Perm;
-using cgtl::schreier_sims::orbit;
 using cgtl::schreier_sims::SchreierGeneratorQueue;
 
 void schreier_sims_init(
@@ -102,9 +101,8 @@ void schreier_sims_init(
         strong_generators[i].push_back(gen);
     }
 
-    fundamental_orbits[i] = orbit(bsgs.base[i],
-                                  strong_generators[i],
-                                  bsgs.schreier_structures[i]);
+    bsgs.update_schreier_structure(i, strong_generators[i]);
+    fundamental_orbits[i] = bsgs.orbit(i);
 
     if (schreier_generator_queues)
       schreier_generator_queues->emplace_back(strong_generators[i],
@@ -132,7 +130,7 @@ void schreier_sims_finish(BSGS &bsgs)
   bsgs.strong_generators =
     std::vector<Perm>(unique_generators.begin(), unique_generators.end());
 
-  orbit(bsgs.base[0], bsgs.strong_generators, bsgs.schreier_structures[0]);
+  bsgs.update_schreier_structure(0, bsgs.strong_generators);
 
   Dbg(Dbg::DBG) << "=== Result";
   Dbg(Dbg::DBG) << "B = " << bsgs.base;
@@ -146,45 +144,6 @@ namespace cgtl
 
 namespace schreier_sims
 {
-
-std::vector<unsigned> orbit(
-  unsigned alpha, std::vector<Perm> const &generators,
-  std::shared_ptr<SchreierStructure> st)
-{
-  assert(generators.size() > 0u && "generator set not empty");
-  assert(alpha <= generators[0].degree() && "alpha <= N");
-
-  std::vector<unsigned> result {alpha};
-
-  if (st) {
-    st->create_root(alpha);
-    st->create_labels(generators);
-  }
-
-  std::vector<unsigned> stack {alpha};
-  std::set<unsigned> done {alpha};
-
-  while (!stack.empty()) {
-    unsigned beta = stack.back();
-    stack.pop_back();
-
-    for (auto i = 0u; i < generators.size(); ++i) {
-      Perm const &gen = generators[i];
-      unsigned beta_prime = gen[beta];
-
-      if (done.find(beta_prime) == done.end()) {
-        result.push_back(beta_prime);
-        done.insert(beta_prime);
-        stack.push_back(beta_prime);
-
-        if (st)
-          st->create_edge(beta_prime, beta, i);
-      }
-    }
-  }
-
-  return result;
-}
 
 void schreier_sims(BSGS &bsgs)
 {
@@ -273,9 +232,8 @@ top:
         strong_generators[i].emplace_back(strip_perm);
 
         // redetermine schreier structure and fundamental orbit
-        fundamental_orbits[i] = orbit(bsgs.base[i],
-                                      strong_generators[i],
-                                      bsgs.schreier_structures[i]);
+        bsgs.update_schreier_structure(i, strong_generators[i]);
+        fundamental_orbits[i] = bsgs.orbit(i);
 
         Dbg(Dbg::TRACE) << "S(" << i + 1 << ") = " << strong_generators[i];
         Dbg(Dbg::TRACE) << "O(" << i + 1 << ") = " << fundamental_orbits[i];
@@ -369,8 +327,8 @@ void schreier_sims_random(BSGS &bsgs, unsigned w)
 
       for (unsigned i = 1u; i < strip_level; ++i) {
         strong_generators[i].push_back(strip_perm);
-        fundamental_orbits[i] = orbit(bsgs.base[i], strong_generators[i],
-                                      bsgs.schreier_structures[i]);
+        bsgs.update_schreier_structure(i, strong_generators[i]);
+        fundamental_orbits[i] = bsgs.orbit(i);
 
         Dbg(Dbg::TRACE) << "S(" << (i + 1u) << ") = " << strong_generators[i];
         Dbg(Dbg::TRACE) << "O(" << (i + 1u) << ") = " << fundamental_orbits[i];

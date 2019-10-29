@@ -368,7 +368,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
 
   Dbg(Dbg::TRACE) << "Generators stabilizing first base element: " << stab;
 
-  std::vector<std::vector<unsigned>> stab_orbits = orbits(stab);
+  std::vector<std::vector<unsigned>> stab_orbits = orbit_partition(stab);
   Dbg(Dbg::TRACE) << "Orbit decomposition of associated group is: " << stab_orbits;
 
   std::vector<BlockSystem> res;
@@ -395,24 +395,24 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
 std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
   PermGroup const &pg)
 {
-  auto orbs(orbits(pg.bsgs().strong_generators));
+  auto orbits(orbit_partition(pg.bsgs().strong_generators));
   auto gens(pg.bsgs().strong_generators);
 
-  Dbg(Dbg::TRACE) << "Group has " << orbs.size() << " distinct orbits:";
+  Dbg(Dbg::TRACE) << "Group has " << orbits.size() << " distinct orbits:";
 #ifndef NDEBUG
-  for (auto const &orbit : orbs)
+  for (auto const &orbit : orbits)
     Dbg(Dbg::TRACE) << orbit;
 #endif
 
-  std::vector<std::vector<BlockSystem>> partial_blocksystems(orbs.size());
-  std::vector<unsigned> domain_offsets(orbs.size());
+  std::vector<std::vector<BlockSystem>> partial_blocksystems(orbits.size());
+  std::vector<unsigned> domain_offsets(orbits.size());
 
-  for (auto i = 0u; i < orbs.size(); ++i) {
+  for (auto i = 0u; i < orbits.size(); ++i) {
     // calculate all non trivial block systems for orbit restricted group
     std::vector<Perm> restricted_gens;
 
     auto orbit_extremes =
-      std::minmax_element(orbs[i].begin(), orbs[i].end());
+      std::minmax_element(orbits[i].begin(), orbits[i].end());
 
     unsigned orbit_low = *std::get<0>(orbit_extremes);
     unsigned orbit_high = *std::get<1>(orbit_extremes);
@@ -420,13 +420,13 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
     domain_offsets[i] = orbit_low - 1u;
 
     for (auto j = 0u; j < gens.size(); ++j) {
-      Perm tmp(gens[j].restricted(orbs[i]));
+      Perm tmp(gens[j].restricted(orbits[i]));
 
       if (!tmp.id())
         restricted_gens.push_back(tmp.normalized(orbit_low, orbit_high));
     }
 
-    Dbg(Dbg::TRACE) << "Group generators restricted to " << orbs[i] << ":";
+    Dbg(Dbg::TRACE) << "Group generators restricted to " << orbits[i] << ":";
 	Dbg(Dbg::TRACE) << restricted_gens;
 
     auto pg_restricted(PermGroup(orbit_high - orbit_low + 1u, restricted_gens));
@@ -445,8 +445,8 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
 #endif
 
     // append trivial blocksystem {{x} | x in orbit}
-    std::vector<unsigned> trivial_classes(orbs[i].size());
-    for (auto j = 1u; j <= orbs[i].size(); ++j)
+    std::vector<unsigned> trivial_classes(orbits[i].size());
+    for (auto j = 1u; j <= orbits[i].size(); ++j)
       trivial_classes[j - 1u] = j;
 
     partial_blocksystems[i].push_back(BlockSystem(trivial_classes));

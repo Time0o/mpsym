@@ -36,6 +36,8 @@ struct BSGS
 
   // TODO: allow for other schreier structures
   void extend_base(unsigned bp);
+  void update_schreier_structure(unsigned i,
+                                 std::vector<Perm> const &strong_generators);
   // TODO: add option to keep original generators
   void remove_generators();
 

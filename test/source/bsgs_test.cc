@@ -14,7 +14,6 @@ using cgtl::BSGS;
 using cgtl::Perm;
 using cgtl::PermGroup;
 using cgtl::SchreierTree;
-using cgtl::schreier_sims::orbit;
 
 TEST(BSGSTest, CanRemoveRedundantGenerators)
 {
@@ -44,9 +43,9 @@ TEST(BSGSTest, CanRemoveRedundantGenerators)
   for (int i = 0; i < 3; ++i)
     bsgs.schreier_structures.push_back(std::make_shared<SchreierTree>(4));
 
-  orbit(bsgs.base[0], S1, bsgs.schreier_structures[0]);
-  orbit(bsgs.base[1], S2, bsgs.schreier_structures[1]);
-  orbit(bsgs.base[2], S3, bsgs.schreier_structures[2]);
+  bsgs.update_schreier_structure(0, S1);
+  bsgs.update_schreier_structure(1, S2);
+  bsgs.update_schreier_structure(2, S3);
 
   // remove redundant generators
   bsgs.remove_generators();

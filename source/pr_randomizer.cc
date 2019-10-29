@@ -7,6 +7,7 @@
 
 #include <boost/math/special_functions/prime.hpp>
 
+#include "orbits.h"
 #include "perm.h"
 #include "pr_randomizer.h"
 #include "schreier_sims.h"
@@ -117,7 +118,7 @@ bool PrRandomizer::test_altsym(
   assert(n >= 8u && n - 2 <= boost::math::max_prime);
 
   // check whether group is even transitive
-  auto orbit(schreier_sims::orbit(1, generators));
+  auto orbit(orbit_of(1, generators));
 
   if (orbit.size() != n)
     return false;

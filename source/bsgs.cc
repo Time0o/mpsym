@@ -3,6 +3,7 @@
 #include <cmath>
 #include <memory>
 #include <ostream>
+#include <set>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -66,6 +67,36 @@ void BSGS::extend_base(unsigned bp)
 {
   base.push_back(bp);
   schreier_structures.emplace_back(std::make_shared<SchreierTree>(degree()));
+}
+
+void BSGS::update_schreier_structure(unsigned i,
+                                     std::vector<Perm> const &strong_generators)
+{
+  unsigned bp = base[i];
+  auto st = schreier_structures[i];
+
+  st->create_root(bp);
+  st->create_labels(strong_generators);
+
+  std::vector<unsigned> stack {bp};
+  std::set<unsigned> done {bp};
+
+  while (!stack.empty()) {
+    unsigned beta = stack.back();
+    stack.pop_back();
+
+    for (auto i = 0u; i < strong_generators.size(); ++i) {
+      Perm gen = strong_generators[i];
+      unsigned beta_prime = gen[beta];
+
+      if (done.find(beta_prime) == done.end()) {
+        done.insert(beta_prime);
+        stack.push_back(beta_prime);
+
+        st->create_edge(beta_prime, beta, i);
+      }
+    }
+  }
 }
 
 void BSGS::remove_generators()
@@ -244,7 +275,7 @@ void BSGS::remove_generators()
 
     Dbg(Dbg::TRACE) << "=> S(" << i + 1u << ") = " << stabilizers;
 
-    schreier_sims::orbit(base[i], stabilizers, schreier_structures[i]);
+    update_schreier_structure(i, stabilizers);
   }
 }
 
@@ -310,7 +341,7 @@ void normalizing_generator(Perm const &gen, unsigned n, BSGS &bsgs)
         std::vector<Perm> s_j(bsgs.schreier_structures[j]->labels());
         s_j.push_back(h);
 
-        schreier_sims::orbit(bsgs.base[j], s_j, bsgs.schreier_structures[j]);
+        bsgs.update_schreier_structure(j, s_j);
 
         Dbg(Dbg::TRACE) << "  S(" << j + 1u << ")" << " = " << s_j;
         Dbg(Dbg::TRACE) << "  O(" << j + 1u << ")" << " = "
