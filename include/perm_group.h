@@ -28,19 +28,6 @@ namespace cgtl
 class PermGroup
 {
 public:
-  enum ConstructionMethod {
-    SCHREIER_SIMS,
-    SCHREIER_SIMS_RANDOM,
-    CONSTRUCTION_AUTO
-  };
-
-  enum TransversalStorageMethod {
-    EXPLICIT_TRANSVERSALS,
-    SCHREIER_TREES,
-    SHALLOW_SCHREIER_TREES,
-    TRANSVERSAL_STORAGE_AUTO
-  };
-
   class const_iterator
   {
   public:
@@ -92,9 +79,10 @@ public:
    *     construct the internal group representation, might influence this
    *     constructor's runtime
    */
-  PermGroup(unsigned degree, std::vector<Perm> const &generators,
-    ConstructionMethod = CONSTRUCTION_AUTO,
-    TransversalStorageMethod = TRANSVERSAL_STORAGE_AUTO);
+  PermGroup(unsigned degree,
+            std::vector<Perm> const &generators,
+            schreier_sims::Construction construction = schreier_sims::CONSTRUCTION_AUTO,
+            schreier_sims::Transversals transversals = schreier_sims::TRANSVERSALS_AUTO);
 
   /** Check two permutation groups for equality.
    *

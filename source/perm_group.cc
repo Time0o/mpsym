@@ -361,10 +361,10 @@ unsigned generate_dependency_classes(
 
 } // anonymous namespace
 
-PermGroup::PermGroup(
-  unsigned degree, std::vector<Perm> const &generators,
-  ConstructionMethod construction_method,
-  TransversalStorageMethod storage_method) : _n(degree)
+PermGroup::PermGroup(unsigned degree,
+                     std::vector<Perm> const &generators,
+                     schreier_sims::Construction construction,
+                     schreier_sims::Transversals transversals) : _n(degree)
 {
 #ifndef NDEBUG
   for (auto const &gen : generators)
@@ -374,16 +374,16 @@ PermGroup::PermGroup(
   _bsgs.strong_generators = generators;
 
   if (_bsgs.strong_generators.size() > 0u) {
-    switch (construction_method) {
-      case SCHREIER_SIMS:
-        switch (storage_method) {
+    switch (construction) {
+      case schreier_sims::CONSTRUCTION_STANDARD:
+        switch (transversals) {
           // TODO
           default:
             schreier_sims::schreier_sims<SchreierTree>(_bsgs);
         }
         break;
-      case SCHREIER_SIMS_RANDOM:
-        switch (storage_method) {
+      case schreier_sims::CONSTRUCTION_RANDOM:
+        switch (transversals) {
           // TODO
           default:
             schreier_sims::schreier_sims_random<SchreierTree>(_bsgs);

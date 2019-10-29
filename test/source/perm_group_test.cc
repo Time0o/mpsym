@@ -287,12 +287,12 @@ TEST(PermGroupTest, CanIterateElements)
 }
 
 class PermGroupConstructionMethodTest
-  : public testing::TestWithParam<PermGroup::ConstructionMethod> {};
+  : public testing::TestWithParam<cgtl::schreier_sims::Construction> {};
 
 // TODO: test more groups
 TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
 {
-  PermGroup::ConstructionMethod method = GetParam();
+  auto method = GetParam();
 
   typedef std::vector<std::vector<std::vector<unsigned>>> elemset;
 
@@ -331,8 +331,8 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
 }
 
 INSTANTIATE_TEST_CASE_P(ConstructionMethods, PermGroupConstructionMethodTest,
-  testing::Values(PermGroup::ConstructionMethod::SCHREIER_SIMS,
-                  PermGroup::ConstructionMethod::SCHREIER_SIMS_RANDOM));
+  testing::Values(cgtl::schreier_sims::CONSTRUCTION_STANDARD,
+                  cgtl::schreier_sims::CONSTRUCTION_RANDOM));
                   // TODO: AUTO
 
 TEST(PermGroupCombinationTest, CanConstructDirectProduct)

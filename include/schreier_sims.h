@@ -29,6 +29,19 @@ namespace cgtl
 namespace schreier_sims
 {
 
+enum Construction {
+  CONSTRUCTION_STANDARD,
+  CONSTRUCTION_RANDOM,
+  CONSTRUCTION_AUTO
+};
+
+enum Transversals {
+  TRANSVERSALS_EXPLICIT,
+  TRANSVERSALS_SCHREIER_TREES,
+  TRANSVERSALS_SHALLOW_SCHREIER_TREES,
+  TRANSVERSALS_AUTO
+};
+
 /** Compute the orbit decomposition of a permutation group given as a set of
  *  generating permutations.
  *
