@@ -10,9 +10,6 @@
 namespace cgtl
 {
 
-namespace schreier_sims
-{
-
 class SchreierGeneratorQueue
 {
   using sg_type = std::vector<Perm>;
@@ -147,8 +144,6 @@ private:
   Perm _u_beta;
   Perm _schreier_generator;
 };
-
-} // namespace schreier_sims
 
 } // namespace cgtl
 

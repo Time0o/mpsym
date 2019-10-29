@@ -26,16 +26,13 @@
 namespace cgtl
 {
 
-namespace schreier_sims
-{
-
-enum Construction {
+enum SchreierSimsConstruction {
   CONSTRUCTION_STANDARD,
   CONSTRUCTION_RANDOM,
   CONSTRUCTION_AUTO
 };
 
-enum Transversals {
+enum SchreierSimsTransversals {
   TRANSVERSALS_EXPLICIT,
   TRANSVERSALS_SCHREIER_TREES,
   TRANSVERSALS_SHALLOW_SCHREIER_TREES,
@@ -108,8 +105,6 @@ void schreier_sims(BSGS &bsgs);
  *     \f$1 - 2^{-w}\f$, refer to \cite holt05 for details
  */
 void schreier_sims_random(BSGS &bsgs, unsigned w = 10);
-
-} // namespace schreier_sims
 
 } // namespace cgtl
 

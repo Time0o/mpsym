@@ -81,8 +81,8 @@ public:
    */
   PermGroup(unsigned degree,
             std::vector<Perm> const &generators,
-            schreier_sims::Construction construction = schreier_sims::CONSTRUCTION_AUTO,
-            schreier_sims::Transversals transversals = schreier_sims::TRANSVERSALS_AUTO);
+            SchreierSimsConstruction construction = CONSTRUCTION_AUTO,
+            SchreierSimsTransversals transversals = TRANSVERSALS_AUTO);
 
   /** Check two permutation groups for equality.
    *

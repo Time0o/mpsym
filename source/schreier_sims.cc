@@ -24,7 +24,7 @@ namespace
 
 using cgtl::BSGS;
 using cgtl::Perm;
-using cgtl::schreier_sims::SchreierGeneratorQueue;
+using cgtl::SchreierGeneratorQueue;
 
 void schreier_sims_init(
   BSGS &bsgs,
@@ -140,9 +140,6 @@ void schreier_sims_finish(BSGS &bsgs)
 } // namespace
 
 namespace cgtl
-{
-
-namespace schreier_sims
 {
 
 void schreier_sims(BSGS &bsgs)
@@ -341,7 +338,5 @@ void schreier_sims_random(BSGS &bsgs, unsigned w)
 
   schreier_sims_finish(bsgs);
 }
-
-} // namespace schreier_sims
 
 } // namespace cgtl

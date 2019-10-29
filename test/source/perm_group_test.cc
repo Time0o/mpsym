@@ -287,7 +287,7 @@ TEST(PermGroupTest, CanIterateElements)
 }
 
 class PermGroupConstructionMethodTest
-  : public testing::TestWithParam<cgtl::schreier_sims::Construction> {};
+  : public testing::TestWithParam<cgtl::SchreierSimsConstruction> {};
 
 // TODO: test more groups
 TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
@@ -331,8 +331,8 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
 }
 
 INSTANTIATE_TEST_CASE_P(ConstructionMethods, PermGroupConstructionMethodTest,
-  testing::Values(cgtl::schreier_sims::CONSTRUCTION_STANDARD,
-                  cgtl::schreier_sims::CONSTRUCTION_RANDOM));
+  testing::Values(cgtl::CONSTRUCTION_STANDARD,
+                  cgtl::CONSTRUCTION_RANDOM));
                   // TODO: AUTO
 
 TEST(PermGroupCombinationTest, CanConstructDirectProduct)

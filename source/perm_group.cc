@@ -364,8 +364,8 @@ unsigned generate_dependency_classes(
 
 PermGroup::PermGroup(unsigned degree,
                      std::vector<Perm> const &generators,
-                     schreier_sims::Construction construction,
-                     schreier_sims::Transversals transversals) : _n(degree)
+                     SchreierSimsConstruction construction,
+                     SchreierSimsTransversals transversals) : _n(degree)
 {
 #ifndef NDEBUG
   for (auto const &gen : generators)
@@ -376,18 +376,18 @@ PermGroup::PermGroup(unsigned degree,
 
   if (_bsgs.strong_generators.size() > 0u) {
     switch (construction) {
-      case schreier_sims::CONSTRUCTION_STANDARD:
+      case CONSTRUCTION_STANDARD:
         switch (transversals) {
           // TODO
           default:
-            schreier_sims::schreier_sims(_bsgs);
+            schreier_sims(_bsgs);
         }
         break;
-      case schreier_sims::CONSTRUCTION_RANDOM:
+      case CONSTRUCTION_RANDOM:
         switch (transversals) {
           // TODO
           default:
-            schreier_sims::schreier_sims_random(_bsgs);
+            schreier_sims_random(_bsgs);
         }
         break;
       default:
@@ -398,7 +398,7 @@ PermGroup::PermGroup(unsigned degree,
         //  switch (storage_method) {
         //    // TODO
         //    default:
-              schreier_sims::schreier_sims(_bsgs);
+              schreier_sims(_bsgs);
         //  }
         //}
     }
