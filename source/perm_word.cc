@@ -1,10 +1,12 @@
 #include <cassert>
+#include <cstddef>
 #include <utility>
 #include <vector>
 
 #include <boost/functional/hash.hpp>
 
 #include "perm.h"
+#include "perm_word.h"
 
 namespace cgtl
 {

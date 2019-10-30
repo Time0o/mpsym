@@ -4,6 +4,7 @@
 #include "gmock/gmock.h"
 
 #include "perm.h"
+#include "perm_word.h"
 #include "test_utility.h"
 
 #include "test_main.cc"
