@@ -2,19 +2,20 @@
 
 #include "orbits.h"
 #include "perm.h"
+#include "perm_set.h"
 
 namespace cgtl
 {
 
 std::vector<unsigned>
-orbit_of(unsigned x, std::vector<Perm> const &generators)
+orbit_of(unsigned x, PermSet const &generators)
 {
   std::vector<unsigned> res {x};
 
   if (generators.empty())
     return res;
 
-  std::vector<unsigned> in_orbit(generators[0].degree() + 1, 0);
+  std::vector<unsigned> in_orbit(generators.degree() + 1, 0);
   in_orbit[x] = 1;
 
   std::vector<unsigned> stack {x};
@@ -39,16 +40,15 @@ orbit_of(unsigned x, std::vector<Perm> const &generators)
 }
 
 std::vector<std::vector<unsigned>>
-orbit_partition(std::vector<Perm> const &generators)
+orbit_partition(PermSet const &generators)
 {
-  unsigned n = generators[0].degree();
-
   std::vector<std::vector<unsigned>> res;
-  std::vector<int> orbit_indices(n + 1u, -1);
+
+  std::vector<int> orbit_indices(generators.degree() + 1u, -1);
 
   unsigned processed = 0u;
 
-  for (auto i = 1u; i <= n; ++i) {
+  for (auto i = 1u; i <= generators.degree(); ++i) {
     int orbit_index1 = orbit_indices[i];
     if (orbit_index1 == -1) {
       orbit_index1 = static_cast<int>(res.size());
@@ -56,7 +56,7 @@ orbit_partition(std::vector<Perm> const &generators)
 
       res.push_back({i});
 
-      if (++processed == n)
+      if (++processed == generators.degree())
         return res;
     }
 
@@ -68,7 +68,7 @@ orbit_partition(std::vector<Perm> const &generators)
         res[orbit_index1].push_back(j);
         orbit_indices[j] = orbit_index1;
 
-        if (++processed == n)
+        if (++processed == generators.degree())
           return res;
       }
     }

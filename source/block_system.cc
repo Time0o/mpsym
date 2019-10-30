@@ -65,11 +65,11 @@ BlockSystem::const_iterator BlockSystem::begin() const
 BlockSystem::const_iterator BlockSystem::end() const
 { return _blocks.end(); }
 
-PermGroup BlockSystem::block_permuter(std::vector<Perm> const &generators) const
+PermGroup BlockSystem::block_permuter(PermSet const &generators) const
 {
   unsigned d = static_cast<unsigned>(_blocks.size());
 
-  std::vector<unsigned> block_pointers(generators[0].degree() + 1u);
+  std::vector<unsigned> block_pointers(generators.degree() + 1u);
 
   for (unsigned i = 0u; i < d; ++i) {
     for (unsigned x : _blocks[i])
@@ -95,7 +95,7 @@ PermGroup BlockSystem::block_permuter(std::vector<Perm> const &generators) const
   return PermGroup(d, permuter_generators);
 }
 
-bool BlockSystem::is_block(std::vector<Perm> const &generators,
+bool BlockSystem::is_block(PermSet const &generators,
                            std::vector<unsigned> const &block)
 {
   for (Perm const &gen : generators) {
@@ -119,7 +119,7 @@ bool BlockSystem::is_block(std::vector<Perm> const &generators,
 }
 
 std::vector<Perm> BlockSystem::block_stabilizers(
-  std::vector<Perm> const &generators, std::vector<unsigned> const &block)
+  PermSet const &generators, std::vector<unsigned> const &block)
 {
   std::vector<Perm> res;
 
@@ -146,13 +146,12 @@ std::vector<Perm> BlockSystem::block_stabilizers(
   return res;
 }
 
-BlockSystem BlockSystem::from_block(std::vector<Perm> const &generators,
+BlockSystem BlockSystem::from_block(PermSet const &generators,
                                     std::vector<unsigned> const &block)
 {
   assert(is_block(generators, block));
 
-  unsigned n = generators[0].degree();
-  std::vector<unsigned> classes(n + 1u, 0u);
+  std::vector<unsigned> classes(generators.degree() + 1u, 0u);
 
   for (unsigned x : block)
     classes[x] = 1u;
@@ -180,8 +179,8 @@ BlockSystem BlockSystem::from_block(std::vector<Perm> const &generators,
       }
       blocks.push_back(next_block);
 
-      if ((n_processed += block.size()) == n)
-        return BlockSystem(n, blocks);
+      if ((n_processed += block.size()) == generators.degree())
+        return BlockSystem(generators.degree(), blocks);
     }
 
     ++block_idx;
@@ -190,15 +189,13 @@ BlockSystem BlockSystem::from_block(std::vector<Perm> const &generators,
   throw std::logic_error("unreachable");
 }
 
-BlockSystem BlockSystem::minimal(std::vector<Perm> const &generators,
+BlockSystem BlockSystem::minimal(PermSet const &generators,
                                  std::vector<unsigned> const &initial_class)
 {
   assert(initial_class.size() >= 2u);
 
-  unsigned degree = generators[0].degree();
-
-  std::vector<unsigned> classpath(degree + 1u);
-  std::vector<unsigned> cardinalities(degree + 1u);
+  std::vector<unsigned> classpath(generators.degree() + 1u);
+  std::vector<unsigned> cardinalities(generators.degree() + 1u);
   std::vector<unsigned> queue;
 
   auto rep = [&](unsigned k) {
@@ -265,7 +262,7 @@ BlockSystem BlockSystem::minimal(std::vector<Perm> const &generators,
 
   Dbg(Dbg::DBG) << "Initial class is: " << initial_class;
 
-  for (auto i = 1u; i <= degree; ++i) {
+  for (auto i = 1u; i <= generators.degree(); ++i) {
     classpath[i] = i;
     cardinalities[i] = 1u;
   }
@@ -309,7 +306,7 @@ BlockSystem BlockSystem::minimal(std::vector<Perm> const &generators,
     }
   }
 
-  for (auto i = 1u; i <= degree; ++i)
+  for (auto i = 1u; i <= generators.degree(); ++i)
     rep(i);
 
   Dbg(Dbg::TRACE) << "Final classpath is: " << classpath;
@@ -322,8 +319,8 @@ BlockSystem BlockSystem::minimal(std::vector<Perm> const &generators,
   return res;
 }
 
-std::vector<BlockSystem> BlockSystem::non_trivial(
-  PermGroup const &pg, bool assume_transitivity)
+std::vector<BlockSystem> BlockSystem::non_trivial(PermGroup const &pg,
+                                                  bool assume_transitivity)
 {
   assert((!assume_transitivity || pg.is_transitive()) &&
     "transitivity assumption correct");

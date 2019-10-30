@@ -13,6 +13,7 @@
 #include "bsgs.h"
 #include "dbg.h"
 #include "perm.h"
+#include "perm_set.h"
 #include "schreier_sims.h"
 #include "schreier_structure.h"
 #include "util.h"
@@ -30,7 +31,7 @@ namespace cgtl
 namespace
 {
 
-unsigned compress_generators(unsigned degree, std::vector<Perm> &generators)
+unsigned compress_generators(unsigned degree, PermSet &generators)
 {
   std::vector<std::vector<unsigned>> moved_sets(generators.size());
 
@@ -363,16 +364,13 @@ unsigned generate_dependency_classes(
 } // anonymous namespace
 
 PermGroup::PermGroup(unsigned degree,
-                     std::vector<Perm> const &generators,
+                     PermSet const &generators,
                      SchreierSimsConstruction construction,
                      SchreierSimsTransversals transversals) : _n(degree)
 {
-#ifndef NDEBUG
-  for (auto const &gen : generators)
-    assert(gen.degree() == _n && "all elements have same degree as group");
-#endif
+  generators.assert_degree(degree);
 
-  _bsgs.strong_generators = generators;
+  _bsgs.strong_generators = generators.vect();
 
   if (_bsgs.strong_generators.size() > 0u) {
     switch (construction) {
@@ -561,22 +559,22 @@ PermGroup PermGroup::direct_product(PermGroup const &lhs, PermGroup const &rhs)
                         rhs.bsgs().strong_generators);
 }
 
-PermGroup PermGroup::direct_product(
-  std::vector<Perm> const &lhs, std::vector<Perm> const &rhs)
+PermGroup PermGroup::direct_product(PermSet const &lhs, PermSet const &rhs)
 {
-  assert(!lhs.empty() && !rhs.empty());
+  lhs.assert_not_empty();
+  rhs.assert_not_empty();
 
-  unsigned n = lhs[0].degree() + rhs[0].degree();
+  unsigned degree = lhs.degree() + rhs.degree();
 
-  std::vector<Perm> generators;
+  PermSet generators;
 
   for (auto const &perm : lhs)
-    generators.push_back(perm.extended(n));
+    generators.add(perm.extended(degree));
 
   for (auto const &perm : rhs)
-    generators.push_back(perm.shifted(lhs[0].degree()));
+    generators.add(perm.shifted(lhs.degree()));
 
-  return PermGroup(n, generators);
+  return PermGroup(degree, generators);
 }
 
 PermGroup PermGroup::wreath_product(PermGroup const &lhs, PermGroup const &rhs)
@@ -585,13 +583,13 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs, PermGroup const &rhs)
                         rhs.bsgs().strong_generators);
 }
 
-PermGroup PermGroup::wreath_product(
-  std::vector<Perm> const &lhs, std::vector<Perm> const &rhs)
+PermGroup PermGroup::wreath_product(PermSet const &lhs, PermSet const &rhs)
 {
-  assert(!lhs.empty() && !rhs.empty());
+  lhs.assert_not_empty();
+  rhs.assert_not_empty();
 
-  unsigned degree_lhs = lhs[0].degree();
-  unsigned degree_rhs = rhs[0].degree();
+  unsigned degree_lhs = lhs.degree();
+  unsigned degree_rhs = rhs.degree();
 
   auto lhs_compressed(lhs);
   degree_lhs = compress_generators(degree_lhs, lhs_compressed);
@@ -601,13 +599,12 @@ PermGroup PermGroup::wreath_product(
 
   unsigned degree = degree_lhs * degree_rhs;
 
-  std::vector<Perm> wreath_product_generators;
+  PermSet wreath_product_generators;
 
   for (unsigned i = 0u; i < degree_rhs; ++i) {
-    for (Perm const &perm : lhs_compressed) {
-      Perm tmp(perm.shifted(degree_lhs * i).extended(degree));
-      wreath_product_generators.push_back(tmp);
-    }
+    for (Perm const &perm : lhs_compressed)
+      wreath_product_generators.add(
+        perm.shifted(degree_lhs * i).extended(degree));
   }
 
   for (Perm const &gen_rhs : rhs_compressed) {
@@ -630,7 +627,7 @@ PermGroup PermGroup::wreath_product(
       }
     }
 
-    wreath_product_generators.push_back(Perm(degree, shifted_cycles));
+    wreath_product_generators.add(degree, shifted_cycles);
   }
 
   return PermGroup(degree, wreath_product_generators);

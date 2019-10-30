@@ -6,6 +6,7 @@
 
 #include "perm.h"
 #include "perm_group.h"
+#include "perm_set.h"
 
 namespace cgtl
 {
@@ -32,22 +33,22 @@ public:
   const_iterator begin() const;
   const_iterator end() const;
 
-  PermGroup block_permuter(std::vector<Perm> const &generators) const;
+  PermGroup block_permuter(PermSet const &generators) const;
 
-  static bool is_block(std::vector<Perm> const &generators,
+  static bool is_block(PermSet const &generators,
                        std::vector<unsigned> const &block);
 
-  static std::vector<Perm> block_stabilizers(
-    std::vector<Perm> const &generators, std::vector<unsigned> const &block);
+  static std::vector<Perm> block_stabilizers(PermSet const &generators,
+                                             std::vector<unsigned> const &block);
 
-  static BlockSystem from_block(std::vector<Perm> const &generators,
+  static BlockSystem from_block(PermSet const &generators,
                                 std::vector<unsigned> const &block);
 
-  static BlockSystem minimal(std::vector<Perm> const &generators,
+  static BlockSystem minimal(PermSet const &generators,
                              std::vector<unsigned> const &initial_class);
 
-  static std::vector<BlockSystem> non_trivial(
-    PermGroup const &pg, bool assume_transitivity = false);
+  static std::vector<BlockSystem> non_trivial(PermGroup const &pg,
+                                              bool assume_transitivity = false);
 
 private:
   static std::vector<BlockSystem> non_trivial_transitive(PermGroup const &pg);

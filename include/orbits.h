@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "perm.h"
+#include "perm_set.h"
 
 /**
  * @file orbits.h
@@ -16,10 +16,10 @@ namespace cgtl
 {
 
 std::vector<unsigned>
-orbit_of(unsigned x, std::vector<Perm> const &generators);
+orbit_of(unsigned x, PermSet const &generators);
 
 std::vector<std::vector<unsigned>>
-orbit_partition(std::vector<Perm> const &generators);
+orbit_partition(PermSet const &generators);
 
 } // namespace cgtl
 
