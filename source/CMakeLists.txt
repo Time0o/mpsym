@@ -20,6 +20,7 @@ add_library("${MAIN_LIB}"
             "pr_randomizer.cc"
             "schreier_sims.cc"
             "schreier_structure.cc"
+            "solvable_bsgs.cc"
             "timer.cc")
 
 target_link_libraries("${MAIN_LIB}"

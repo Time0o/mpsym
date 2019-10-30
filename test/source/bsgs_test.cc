@@ -7,10 +7,13 @@
 #include "perm.h"
 #include "perm_group.h"
 #include "schreier_structure.h"
+#include "solvable_bsgs.h"
 
 #include "test_main.cc"
 
 using cgtl::BSGS;
+using cgtl::solve_bsgs;
+using cgtl::BSGS_solve_error;
 using cgtl::Perm;
 using cgtl::PermGroup;
 using cgtl::SchreierTree;
@@ -104,16 +107,23 @@ TEST(BSGSTest, CanSolveBSGS)
   std::vector<Perm> generators_non_solvable(
     PermGroup::symmetric(5).bsgs().strong_generators);
 
-  BSGS bsgs(BSGS::solve(generators_solvable));
+  BSGS bsgs(4);
+  solve_bsgs(bsgs, generators_solvable);
+
   ASSERT_FALSE(bsgs.base.empty())
-    << "BSGS::solve succeeds for solvable group generating set.";
+    << "Solving BSGS succeeds for solvable group generating set.";
 
   for (Perm const &perm : generators_solvable_expected_elements) {
     EXPECT_TRUE(bsgs.strips_completely(perm))
       << "Solvable group BSGS correct.";
   }
 
-  BSGS dummy(BSGS::solve(generators_non_solvable));
-  ASSERT_TRUE(dummy.base.empty())
-    << "BSGS::solve fails for non-solvable group generating set.";
+  // TODO
+  try {
+    BSGS dummy(5);
+    solve_bsgs(dummy, generators_non_solvable);
+
+    ASSERT_TRUE(false)
+      << "Solving BSGS fails for non-solvable group generating set.";
+  } catch (BSGS_solve_error const &) {}
 }

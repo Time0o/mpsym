@@ -38,8 +38,6 @@ struct BSGS
                                  std::vector<Perm> const &strong_generators);
   // TODO: add option to keep original generators
   void remove_generators();
-
-  static BSGS solve(std::vector<Perm> const &generators);
 };
 
 std::ostream& operator<<(std::ostream& stream, BSGS const &bsgs);
