@@ -15,16 +15,14 @@ namespace cgtl
 
 struct BSGS
 {
+  BSGS(unsigned degree)
+  : degree(degree)
+  {}
+
+  unsigned degree;
   std::vector<unsigned> base;
   std::vector<Perm> strong_generators;
   std::vector<std::shared_ptr<SchreierStructure>> schreier_structures;
-
-  // TODO
-  unsigned degree()
-  {
-    assert(!strong_generators.empty());
-    return strong_generators[0].degree();
-  }
 
   std::vector<unsigned> orbit(unsigned i) const;
   Perm transversal(unsigned i, unsigned o) const;

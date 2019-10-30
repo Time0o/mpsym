@@ -66,7 +66,7 @@ bool BSGS::strips_completely(Perm const &perm) const
 void BSGS::extend_base(unsigned bp)
 {
   base.push_back(bp);
-  schreier_structures.emplace_back(std::make_shared<SchreierTree>(degree()));
+  schreier_structures.emplace_back(std::make_shared<SchreierTree>(degree));
 }
 
 void BSGS::update_schreier_structure(unsigned i,
@@ -430,9 +430,10 @@ BSGS BSGS::solve(std::vector<Perm> const &generators)
 
   Dbg(Dbg::DBG) << "Attempting to solve BSGS for generators: " << generators;
 
-  BSGS bsgs;
 
   unsigned n = generators[0].degree();
+
+  BSGS bsgs(n);
 
   unsigned iterations =
     static_cast<unsigned>(5.0 / 2.0 * std::log(n) / std::log(3.0));

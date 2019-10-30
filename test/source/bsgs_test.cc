@@ -18,7 +18,7 @@ using cgtl::SchreierTree;
 TEST(BSGSTest, CanRemoveRedundantGenerators)
 {
   // explicitly construct BSGS
-  BSGS bsgs;
+  BSGS bsgs(3);
 
   bsgs.base = {3, 1, 2};
 

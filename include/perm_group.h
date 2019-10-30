@@ -280,7 +280,7 @@ public:
    *
    * \return this permutation group's degree
    */
-  unsigned degree() const { return _n; }
+  unsigned degree() const { return _bsgs.degree; }
 
   /** Obtain a permutation group's *order*.
    *
@@ -422,7 +422,6 @@ private:
 
   std::vector<PermGroup> disjoint_decomposition_incomplete() const;
 
-  unsigned _n;
   unsigned _order;
   BSGS _bsgs;
 };

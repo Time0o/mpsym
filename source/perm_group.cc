@@ -366,7 +366,8 @@ unsigned generate_dependency_classes(
 PermGroup::PermGroup(unsigned degree,
                      PermSet const &generators,
                      SchreierSimsConstruction construction,
-                     SchreierSimsTransversals transversals) : _n(degree)
+                     SchreierSimsTransversals transversals)
+: _bsgs(degree)
 {
   generators.assert_degree(degree);
 
@@ -409,7 +410,8 @@ PermGroup::PermGroup(unsigned degree,
 
 bool PermGroup::operator==(PermGroup const &rhs) const
 {
-  assert(_n == rhs.degree() && "comparing permutation groups of equal degree");
+  assert(rhs.degree() == degree()
+         && "comparing permutation groups of equal degree");
 
   if (_order != rhs.order())
     return false;
@@ -635,11 +637,11 @@ PermGroup PermGroup::wreath_product(PermSet const &lhs, PermSet const &rhs)
 
 bool PermGroup::is_symmetric() const
 {
-  if (_n == 1u)
+  if (degree() == 1u)
     return true;
 
   unsigned buf = 1u;
-  for (unsigned i = _n; i > 0; --i) {
+  for (unsigned i = degree(); i > 0; --i) {
     assert(buf <= UINT_MAX / i);
     buf *= i;
   }
@@ -649,14 +651,14 @@ bool PermGroup::is_symmetric() const
 
 bool PermGroup::is_alternating() const
 {
-  if (_n == 1u)
+  if (degree() == 1u)
     return false;
 
-  if (_n == 2u)
+  if (degree() == 2u)
     return _order == 1u;
 
   unsigned buf = 1u;
-  for (unsigned i = _n; i > 2; --i) {
+  for (unsigned i = degree(); i > 2; --i) {
     assert(buf <= UINT_MAX / i);
     buf *= i;
   }
@@ -666,12 +668,12 @@ bool PermGroup::is_alternating() const
 
 bool PermGroup::is_transitive() const
 {
-  std::vector<int> orbit_indices(_n + 1u, -1);
+  std::vector<int> orbit_indices(degree() + 1u, -1);
   orbit_indices[1] = 0;
 
   unsigned processed = 1u;
 
-  for (auto i = 1u; i <= _n; ++i) {
+  for (auto i = 1u; i <= degree(); ++i) {
     int orbit_index1 = orbit_indices[i];
     if (orbit_index1 == -1)
       return false;
@@ -683,7 +685,7 @@ bool PermGroup::is_transitive() const
       if (orbit_index2 == -1) {
         orbit_indices[j] = orbit_index1;
 
-        if (++processed == _n)
+        if (++processed == degree())
           return true;
       }
     }
@@ -694,7 +696,7 @@ bool PermGroup::is_transitive() const
 
 bool PermGroup::contains_element(Perm const &perm) const
 {
-  assert(perm.degree() == _n && "element has same degree as group");
+  assert(perm.degree() == degree() && "element has same degree as group");
 
   return _bsgs.strips_completely(perm);
 }
@@ -703,7 +705,7 @@ Perm PermGroup::random_element() const
 {
   static std::default_random_engine gen(time(0));
 
-  Perm result(_n);
+  Perm result(degree());
   for (unsigned i = 0u; i < _bsgs.base.size(); ++i) {
     std::vector<unsigned> orbit = _bsgs.orbit(i);
     std::uniform_int_distribution<> d(0u, orbit.size() - 1u);
@@ -833,7 +835,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_incomplete() const
       }
     }
 
-    if ((moved_total += ec1.moved.size()) == _n)
+    if ((moved_total += ec1.moved.size()) == degree())
       break;
   }
 
@@ -842,7 +844,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_incomplete() const
     if (merged[j])
       continue;
 
-    decomp.push_back(PermGroup(_n, equivalence_classes[j].generators));
+    decomp.emplace_back(degree(), equivalence_classes[j].generators);
   }
 
   Dbg(Dbg::DBG) << "Disjunct subgroup generators are:";
@@ -861,12 +863,12 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_complete(
   Dbg(Dbg::DBG) << *this;
 
   // determine complete orbit decomposition
-  std::vector<unsigned> orbit_ids(_n, 0u);
+  std::vector<unsigned> orbit_ids(degree(), 0u);
   orbit_ids[0u] = 1u;
 
   unsigned n_processed = 1u;
   unsigned n_orbits = 1u;
-  for (unsigned x = 1u; x <= _n; ++x) {
+  for (unsigned x = 1u; x <= degree(); ++x) {
     unsigned orbit_id = 0u;
     std::vector<unsigned> new_orbit_elems;
 
@@ -897,7 +899,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_complete(
     for (unsigned y : new_orbit_elems) {
       orbit_ids[y - 1u] = orbit_id;
 
-      if (++n_processed == _n) {
+      if (++n_processed == degree()) {
         done = true;
         break;
       }
@@ -909,7 +911,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_complete(
 
   Dbg(Dbg::TRACE) << "=== Orbit decomposition:";
 #ifndef NDEBUG
-  debug_orbit_decomposition(orbit_ids, n_orbits, _n);
+  debug_orbit_decomposition(orbit_ids, n_orbits, degree());
 #endif
 
   if (disjoint_orbit_optimization) {
@@ -918,7 +920,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_complete(
 
     Dbg(Dbg::TRACE) << "==> Grouped dependency class unions:";
 #ifndef NDEBUG
-    debug_orbit_decomposition(orbit_ids, n_orbits, _n);
+    debug_orbit_decomposition(orbit_ids, n_orbits, degree());
 #endif
   }
 
@@ -953,7 +955,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
     sigma[0] = BlockSystem::block_stabilizers(gens, bs[0]);
     Dbg(Dbg::TRACE) << "Block stabilizer of " << bs[0] << " is: " << sigma[0];
 
-    unsigned tmp = PermGroup(_n, sigma[0]).order();
+    unsigned tmp = PermGroup(degree(), sigma[0]).order();
     if (_order != util::pow(tmp, d) * block_permuter.order()) {
       Dbg(Dbg::TRACE)
         << "Group order equality not satisfied, skipping block system";
@@ -969,7 +971,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
     // try to find monomorphism from block permuter to group using heuristic
     std::vector<Perm> block_permuter_generator_image;
 
-    std::vector<unsigned> tmp_perm(_n);
+    std::vector<unsigned> tmp_perm(degree());
     for (Perm const &gen : block_permuter.bsgs().strong_generators) {
       for (unsigned i = 0u; i < d; ++i) {
         auto block(bs[i]);
@@ -1029,9 +1031,9 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
 
     std::vector<PermGroup> res(d + 1u);
 
-    res[0] = PermGroup(_n, block_permuter_generator_image);
+    res[0] = PermGroup(degree(), block_permuter_generator_image);
     for (unsigned i = 0u; i < d; ++i)
-      res[i + 1u] = PermGroup(_n, sigma[i]);
+      res[i + 1u] = PermGroup(degree(), sigma[i]);
 
     Dbg(Dbg::TRACE)
       << "==> Found wreath product decomposition, listing generators:";
