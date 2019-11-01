@@ -57,11 +57,11 @@ public:
   std::vector<Perm>::const_iterator begin() const { return _perms.begin(); }
   std::vector<Perm>::const_iterator end() const { return _perms.end(); }
 
-  void add(Perm const &perm) { _perms.push_back(perm); }
-  void add(Perm &&perm) { _perms.emplace_back(perm); }
+  void insert(Perm const &perm) { _perms.push_back(perm); }
+  void insert(Perm &&perm) { _perms.emplace_back(perm); }
 
   template<typename IT>
-  IT add(IT b, IT e) { return _perms.insert(_perms.end(), b, e); }
+  void insert(IT b, IT e) { _perms.insert(_perms.end(), b, e); }
 
   template<typename ...ARGS>
   void emplace(ARGS &&...args) {  _perms.emplace_back(args...); }

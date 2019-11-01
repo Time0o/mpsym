@@ -28,18 +28,18 @@ PrRandomizer::PrRandomizer(PermSet const &generators,
 {
   generators.assert_not_empty();
 
-  _gens.add(generators.degree());
+  _gens.insert(generators.degree());
 
   if (generators.size() >= n_generators) {
-    _gens.add(generators.begin(), generators.end());
+    _gens.insert(generators.begin(), generators.end());
     n_generators = generators.size();
   } else {
     while (_gens.size() < n_generators) {
       unsigned missing = n_generators - _gens.size();
       if (missing > generators.size()) {
-        _gens.add(generators.begin(), generators.end());
+        _gens.insert(generators.begin(), generators.end());
       } else {
-        _gens.add(generators.begin(), generators.begin() + missing);
+        _gens.insert(generators.begin(), generators.begin() + missing);
         break;
       }
     }

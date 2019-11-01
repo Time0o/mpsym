@@ -104,7 +104,7 @@ bool BSGS::solve_s_normal_closure(PermSet const &generators,
 
       solve_adjoin_normalizing_generator(g);
 
-      queue2.add(g);
+      queue2.insert(g);
 
       Dbg(Dbg::TRACE) << "=> Updating queue:";
       for (auto const &gen : generators) {
@@ -112,7 +112,7 @@ bool BSGS::solve_s_normal_closure(PermSet const &generators,
           << "  Appending: " << ~gen << " * " << g << " * " << gen
           << " = " << ~gen * g * gen;
 
-        queue1.add(~gen * g * gen);
+        queue1.insert(~gen * g * gen);
       }
     }
 #ifndef NDEBUG
@@ -179,7 +179,7 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
 
       for (unsigned j = 0u; j < i; ++j) { // TODO: avoid complete recomputation
         PermSet s_j(schreier_structures[j]->labels());
-        s_j.add(h);
+        s_j.insert(h);
 
         update_schreier_structure(j, s_j.vect());
 

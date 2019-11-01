@@ -536,10 +536,10 @@ PermGroup PermGroup::direct_product(PermSet const &lhs, PermSet const &rhs)
   PermSet generators;
 
   for (auto const &perm : lhs)
-    generators.add(perm.extended(degree));
+    generators.insert(perm.extended(degree));
 
   for (auto const &perm : rhs)
-    generators.add(perm.shifted(lhs.degree()));
+    generators.insert(perm.shifted(lhs.degree()));
 
   return PermGroup(degree, generators);
 }
@@ -570,7 +570,7 @@ PermGroup PermGroup::wreath_product(PermSet const &lhs, PermSet const &rhs)
 
   for (unsigned i = 0u; i < degree_rhs; ++i) {
     for (Perm const &perm : lhs_compressed)
-      wreath_product_generators.add(
+      wreath_product_generators.insert(
         perm.shifted(degree_lhs * i).extended(degree));
   }
 
