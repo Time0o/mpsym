@@ -14,7 +14,6 @@
 #include "dbg.h"
 #include "perm.h"
 #include "perm_set.h"
-#include "schreier_sims.h"
 #include "schreier_structure.h"
 #include "util.h"
 
@@ -365,44 +364,10 @@ unsigned generate_dependency_classes(
 
 PermGroup::PermGroup(unsigned degree,
                      PermSet const &generators,
-                     SchreierSimsConstruction construction,
-                     SchreierSimsTransversals transversals)
-: _bsgs(degree)
+                     BSGS::Construction construction,
+                     BSGS::Transversals transversals)
+: _bsgs(degree, generators, construction, transversals)
 {
-  generators.assert_degree(degree);
-
-  _bsgs.strong_generators = generators.vect();
-
-  if (_bsgs.strong_generators.size() > 0u) {
-    switch (construction) {
-      case CONSTRUCTION_STANDARD:
-        switch (transversals) {
-          // TODO
-          default:
-            schreier_sims(_bsgs);
-        }
-        break;
-      case CONSTRUCTION_RANDOM:
-        switch (transversals) {
-          // TODO
-          default:
-            schreier_sims_random(_bsgs);
-        }
-        break;
-      default:
-        //BSGS tmp(BSGS::solve(generators));
-        //if (!tmp.base.empty()) {
-        //  _bsgs = tmp;
-        //} else {
-        //  switch (storage_method) {
-        //    // TODO
-        //    default:
-              schreier_sims(_bsgs);
-        //  }
-        //}
-    }
-  }
-
   _order = 1u;
   for (unsigned i = 0u; i < _bsgs.base.size(); ++i)
     _order *= _bsgs.orbit(i).size();

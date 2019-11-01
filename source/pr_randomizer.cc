@@ -10,7 +10,6 @@
 #include "orbits.h"
 #include "perm.h"
 #include "pr_randomizer.h"
-#include "schreier_sims.h"
 
 /**
  * @file pr_randomizer.cc

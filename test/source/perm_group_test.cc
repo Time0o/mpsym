@@ -6,11 +6,11 @@
 
 #include "perm.h"
 #include "perm_group.h"
-#include "schreier_sims.h"
 #include "test_utility.h"
 
 #include "test_main.cc"
 
+using cgtl::BSGS;
 using cgtl::Perm;
 using cgtl::PermGroup;
 
@@ -287,7 +287,7 @@ TEST(PermGroupTest, CanIterateElements)
 }
 
 class PermGroupConstructionMethodTest
-  : public testing::TestWithParam<cgtl::SchreierSimsConstruction> {};
+  : public testing::TestWithParam<BSGS::Construction> {};
 
 // TODO: test more groups
 TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
@@ -331,8 +331,8 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
 }
 
 INSTANTIATE_TEST_CASE_P(ConstructionMethods, PermGroupConstructionMethodTest,
-  testing::Values(cgtl::CONSTRUCTION_STANDARD,
-                  cgtl::CONSTRUCTION_RANDOM));
+  testing::Values(BSGS::CONSTRUCTION_SCHREIER_SIMS,
+                  BSGS::CONSTRUCTION_SCHREIER_SIMS_RANDOM));
                   // TODO: AUTO
 
 TEST(PermGroupCombinationTest, CanConstructDirectProduct)

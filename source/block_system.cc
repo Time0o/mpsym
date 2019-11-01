@@ -9,7 +9,6 @@
 #include "orbits.h"
 #include "perm.h"
 #include "perm_group.h"
-#include "schreier_sims.h"
 
 namespace cgtl
 {

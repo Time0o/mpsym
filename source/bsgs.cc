@@ -10,11 +10,38 @@
 #include "bsgs.h"
 #include "dbg.h"
 #include "perm.h"
-#include "schreier_sims.h"
 #include "schreier_structure.h"
 
 namespace cgtl
 {
+
+BSGS::BSGS(unsigned degree,
+           PermSet const &generators,
+           Construction construction,
+           Transversals transversals)
+: _degree(degree),
+  _transversals(transversals)
+{
+  generators.assert_degree(degree);
+
+  if (generators.empty() || (generators.size() == 1u && generators[0].id()))
+    return;
+
+  switch (construction) {
+    case CONSTRUCTION_SCHREIER_SIMS:
+      schreier_sims(generators);
+      break;
+    case CONSTRUCTION_SCHREIER_SIMS_RANDOM:
+      schreier_sims_random(generators);
+      break;
+    case CONSTRUCTION_SOLVE:
+      solve(generators);
+      break;
+    case CONSTRUCTION_AUTO:
+      schreier_sims(generators); // TODO
+      break;
+  }
+}
 
 std::vector<unsigned> BSGS::orbit(unsigned i) const
 {
@@ -66,20 +93,33 @@ void BSGS::extend_base(unsigned bp)
 {
   base.push_back(bp);
 
-  auto st = std::make_shared<SchreierTree>(degree);
+  std::shared_ptr<SchreierStructure> st;
+
+  switch (_transversals) {
+    case BSGS::TRANSVERSALS_EXPLICIT:
+      st = std::make_shared<ExplicitTransversals>(degree());
+      break;
+    case BSGS::TRANSVERSALS_SCHREIER_TREES:
+    case BSGS::TRANSVERSALS_AUTO:
+      st = std::make_shared<SchreierTree>(degree());
+      break;
+    case BSGS::TRANSVERSALS_SHALLOW_SCHREIER_TREES:
+      throw std::logic_error("TODO");
+  }
+
   st->create_root(bp);
 
   schreier_structures.push_back(st);
 }
 
 void BSGS::update_schreier_structure(unsigned i,
-                                     std::vector<Perm> const &strong_generators)
+                                     std::vector<Perm> const &generators)
 {
   unsigned bp = base[i];
   auto st = schreier_structures[i];
 
   st->create_root(bp);
-  st->create_labels(strong_generators);
+  st->create_labels(generators);
 
   std::vector<unsigned> stack {bp};
   std::set<unsigned> done {bp};
@@ -88,8 +128,8 @@ void BSGS::update_schreier_structure(unsigned i,
     unsigned beta = stack.back();
     stack.pop_back();
 
-    for (auto i = 0u; i < strong_generators.size(); ++i) {
-      Perm gen = strong_generators[i];
+    for (auto i = 0u; i < generators.size(); ++i) {
+      Perm gen = generators[i];
       unsigned beta_prime = gen[beta];
 
       if (done.find(beta_prime) == done.end()) {
@@ -102,6 +142,7 @@ void BSGS::update_schreier_structure(unsigned i,
   }
 }
 
+// TODO: add option to keep original generators
 void BSGS::remove_generators()
 {
   Dbg(Dbg::DBG) << "Removing redundant strong generators from BSGS:";

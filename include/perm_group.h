@@ -7,7 +7,6 @@
 #include "bsgs.h"
 #include "perm.h"
 #include "perm_set.h"
-#include "schreier_sims.h"
 
 /**
  * @file perm_group.h
@@ -82,8 +81,8 @@ public:
    */
   PermGroup(unsigned degree,
             PermSet const &generators,
-            SchreierSimsConstruction construction = CONSTRUCTION_AUTO,
-            SchreierSimsTransversals transversals = TRANSVERSALS_AUTO);
+            BSGS::Construction construction = BSGS::CONSTRUCTION_AUTO,
+            BSGS::Transversals transversals = BSGS::TRANSVERSALS_AUTO);
 
   /** Check two permutation groups for equality.
    *
@@ -280,7 +279,7 @@ public:
    *
    * \return this permutation group's degree
    */
-  unsigned degree() const { return _bsgs.degree; }
+  unsigned degree() const { return _bsgs.degree(); }
 
   /** Obtain a permutation group's *order*.
    *

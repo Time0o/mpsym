@@ -4,7 +4,6 @@
 
 #include "gmock/gmock.h"
 
-#include "schreier_sims.h"
 #include "schreier_structure.h"
 
 #include "test_main.cc"
