@@ -61,7 +61,7 @@ public:
   void add(Perm &&perm) { _perms.emplace_back(perm); }
 
   template<typename ...ARGS>
-  void add(ARGS &&...args) {  _perms.emplace_back(args...); }
+  void emplace(ARGS &&...args) {  _perms.emplace_back(args...); }
 
   void assert_not_empty() const {
     assert(!empty() && "permutation set not empty");

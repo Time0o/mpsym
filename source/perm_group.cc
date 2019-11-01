@@ -594,7 +594,7 @@ PermGroup PermGroup::wreath_product(PermSet const &lhs, PermSet const &rhs)
       }
     }
 
-    wreath_product_generators.add(degree, shifted_cycles);
+    wreath_product_generators.emplace(degree, shifted_cycles);
   }
 
   return PermGroup(degree, wreath_product_generators);
