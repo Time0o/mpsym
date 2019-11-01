@@ -21,32 +21,25 @@
 namespace cgtl
 {
 
-PrRandomizer::PrRandomizer(std::vector<Perm> const &generators,
-  unsigned n_generators, unsigned iterations)
+PrRandomizer::PrRandomizer(PermSet const &generators,
+                           unsigned n_generators,
+                           unsigned iterations)
+: _gens_orig(generators)
 {
-  assert(generators.size() > 0u &&
-    "product replacement initialized with more than zero generators");
+  generators.assert_not_empty();
 
-#ifndef NDEBUG
-  for (auto const &gen : generators)
-    assert(gen.degree() == generators[0].degree() &&
-      "generators have same degree");
-#endif
-
-  _gens.push_back(Perm(generators[0].degree()));
+  _gens.add(generators.degree());
 
   if (generators.size() >= n_generators) {
-    _gens.insert(_gens.end(), generators.begin(), generators.end());
+    _gens.add(generators.begin(), generators.end());
     n_generators = generators.size();
   } else {
     while (_gens.size() < n_generators) {
       unsigned missing = n_generators - _gens.size();
       if (missing > generators.size()) {
-        _gens.insert(
-          _gens.end(), generators.begin(), generators.end());
+        _gens.add(generators.begin(), generators.end());
       } else {
-        _gens.insert(
-          _gens.end(), generators.begin(), generators.begin() + missing);
+        _gens.add(generators.begin(), generators.begin() + missing);
         break;
       }
     }
@@ -80,44 +73,32 @@ Perm PrRandomizer::next()
   return _gens[0];
 }
 
-bool PrRandomizer::test_symmetric(
-  std::vector<Perm> const &generators, PrRandomizer &prr, double epsilon)
+bool PrRandomizer::test_symmetric(double epsilon)
 {
-#ifndef NDEBUG
-  for (auto i = 1u; i < generators.size(); ++i)
-    assert(generators[i].degree() == generators[0].degree());
-#endif
-
-  if (!test_altsym(generators, prr, epsilon))
+  if (!test_altsym(epsilon))
     return false;
 
-  return !generators_even(generators);
+  return !generators_even();
 }
 
-bool PrRandomizer::test_alternating(
-  std::vector<Perm> const &generators, PrRandomizer &prr, double epsilon)
+bool PrRandomizer::test_alternating(double epsilon)
 {
-#ifndef NDEBUG
-  for (auto i = 1u; i < generators.size(); ++i)
-    assert(generators[i].degree() == generators[0].degree());
-#endif
-
-  if (!test_altsym(generators, prr, epsilon))
+  if (!test_altsym(epsilon))
     return false;
 
-  return generators_even(generators);
+  return generators_even();
 }
 
-bool PrRandomizer::test_altsym(
-  std::vector<Perm> const &generators, PrRandomizer &prr, double epsilon)
+bool PrRandomizer::test_altsym(double epsilon)
 {
   assert(epsilon > 0.0);
 
-  unsigned n = generators[0].degree();
+  unsigned n = _gens_orig[0].degree();
+
   assert(n >= 8u && n - 2 <= boost::math::max_prime);
 
   // check whether group is even transitive
-  auto orbit(orbit_of(1, generators));
+  auto orbit(orbit_of(1, _gens_orig));
 
   if (orbit.size() != n)
     return false;
@@ -140,7 +121,7 @@ bool PrRandomizer::test_altsym(
   unsigned p_upper_bound = n - 2u;
 
   for (unsigned i = 0u; i < iterations; ++i) {
-    Perm random_element(prr.next());
+    Perm random_element(next());
 
     std::vector<int> processed(n, 0);
     unsigned remaining = n;
@@ -181,11 +162,11 @@ bool PrRandomizer::test_altsym(
   return false;
 }
 
-bool PrRandomizer::generators_even(std::vector<Perm> const &generators)
+bool PrRandomizer::generators_even()
 {
-  unsigned n = generators[0].degree();
+  unsigned n = _gens_orig[0].degree();
 
-  for (auto const &gen : generators) {
+  for (auto const &gen : _gens_orig) {
     unsigned parity = 0u;
 
     std::vector<int> processed(n, 0);

@@ -1,10 +1,8 @@
 #ifndef _GUARD_PR_RANDOMIZER_H
 #define _GUARD_PR_RANDOMIZER_H
 
-#include <random>
-#include <vector>
-
 #include "perm.h"
+#include "perm_set.h"
 
 /**
  * @file pr_randomizer.h
@@ -58,8 +56,9 @@ public:
    *	 "more random" elements, at the cost of a slightly increased runtime of
    *	 this constructor
    */
-  PrRandomizer(std::vector<Perm> const &generators,
-    unsigned n_generators = 10, unsigned iterations = 20);
+  PrRandomizer(PermSet const &generators,
+               unsigned n_generators = 10,
+               unsigned iterations = 20);
 
   /** Produce a random group element.
    *
@@ -78,17 +77,6 @@ public:
    * that this function's behaviour is undefined if the group described by the
    * generating set represented by `generators` has `degree < 8u`.
    *
-   * \param generators
-   *     a vector of `Perm` objects representing a generating set for the
-   *     permutation \f$G\f$ acting on \f$\{1, \dots, n\}\f$ which is to be
-   *     checked for equality with \f$S_n\f$. If \f$n < 8\f$ this function's
-   *     behaviour is undefined
-   *
-   * \param prr
-   *     a `PrRandomizer` object. This object must have been initialized with
-   *     the same vector of `Perm` object that is passed as the first argument
-   *     to this function, otherwise this function's behaviour is undefined
-   *
    * \param epsilon
    *     probability that a return value of `false` is incorrect, lower values
    *     of epsilon might increase this function's runtime.
@@ -97,8 +85,7 @@ public:
    *         passed as an argument to this object's constructor represent a
    *         generating set for a symmetric permutation group, else `false`.
    */
-  static bool test_symmetric(
-    std::vector<Perm> const &generators, PrRandomizer &prr, double epsilon = 1e-6);
+  bool test_symmetric(double epsilon = 1e-6);
 
   /** Test whether a permutation group is an alternating group without the need
    *  to construct a BSGS.
@@ -108,17 +95,6 @@ public:
    * that this function's behaviour is undefined if the group described by the
    * generating set represented by `generators` has `degree < 8u`.
    *
-   * \param generators
-   *     a vector of `Perm` objects representing a generating set for the
-   *     permutation \f$G\f$ acting on \f$\{1, \dots, n\}\f$ which is to be
-   *     checked for equality with \f$A_n\f$. If \f$n < 8\f$ this function's
-   *     behaviour is undefined
-   *
-   * \param prr
-   *     a `PrRandomizer` object. This object must have been initialized with
-   *     the same vector of `Perm` object that is passed as the first argument
-   *     to this function, otherwise this function's behaviour is undefined
-   *
    * \param epsilon
    *     probability that a return value of `false` is incorrect, lower values
    *     of epsilon might increase this function's runtime.
@@ -127,16 +103,14 @@ public:
    *         passed as an argument to this object's constructor represent a
    *         generating set for an alternating  permutation group, else `false`.
    */
-  static bool test_alternating(
-    std::vector<Perm> const &generators, PrRandomizer &prr, double epsilon = 1e-6);
+  bool test_alternating(double epsilon = 1e-6);
 
 private:
-  static bool test_altsym(
-    std::vector<Perm> const &generators, PrRandomizer &prr, double epsilon);
+  bool test_altsym(double epsilon);
+  bool generators_even();
 
-  static bool generators_even(std::vector<Perm> const &generators);
-
-  std::vector<Perm> _gens;
+  PermSet _gens_orig;
+  PermSet _gens;
 };
 
 } // namespace cgtl

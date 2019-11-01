@@ -60,6 +60,9 @@ public:
   void add(Perm const &perm) { _perms.push_back(perm); }
   void add(Perm &&perm) { _perms.emplace_back(perm); }
 
+  template<typename IT>
+  IT add(IT b, IT e) { return _perms.insert(_perms.end(), b, e); }
+
   template<typename ...ARGS>
   void emplace(ARGS &&...args) {  _perms.emplace_back(args...); }
 

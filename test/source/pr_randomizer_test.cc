@@ -104,16 +104,16 @@ TEST_F(PRRandomizerTest, CanTestForAltSym)
     auto gens_alternating(alternating_generators(i));
     PrRandomizer pr_alternating(gens_alternating);
 
-    EXPECT_TRUE(PrRandomizer::test_symmetric(gens_symmetric, pr_symmetric))
+    EXPECT_TRUE(pr_symmetric.test_symmetric())
       << "Can identify symmetric generating sets.";
 
-    EXPECT_FALSE(PrRandomizer::test_symmetric(gens_alternating, pr_alternating))
+    EXPECT_FALSE(pr_alternating.test_symmetric())
       << "Can identify non-symmetric generating sets.";
 
-    EXPECT_TRUE(PrRandomizer::test_alternating(gens_alternating, pr_alternating))
+    EXPECT_TRUE(pr_alternating.test_alternating())
       << "Can identify alternating generating sets.";
 
-    EXPECT_FALSE(PrRandomizer::test_alternating(gens_symmetric, pr_symmetric))
+    EXPECT_FALSE(pr_symmetric.test_alternating())
       << "Can identify non-alternating generating sets.";
   }
 }
