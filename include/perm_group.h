@@ -49,8 +49,8 @@ public:
     bool _trivial;
     bool _end;
 
-    std::vector<std::vector<Perm>> _transversals;
-    std::vector<Perm> _current_factors;
+    std::vector<PermSet> _transversals;
+    PermSet _current_factors;
     Perm _current_result;
   };
 

@@ -38,8 +38,8 @@ public:
   static bool is_block(PermSet const &generators,
                        std::vector<unsigned> const &block);
 
-  static std::vector<Perm> block_stabilizers(PermSet const &generators,
-                                             std::vector<unsigned> const &block);
+  static PermSet block_stabilizers(PermSet const &generators,
+                                   std::vector<unsigned> const &block);
 
   static BlockSystem from_block(PermSet const &generators,
                                 std::vector<unsigned> const &block);

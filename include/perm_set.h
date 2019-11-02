@@ -14,6 +14,8 @@ namespace cgtl
 class PermSet
 {
 public:
+  typedef std::vector<Perm>::const_iterator const_iterator;
+
   PermSet()
   {}
 
@@ -54,8 +56,8 @@ public:
     return _perms[i];
   }
 
-  std::vector<Perm>::const_iterator begin() const { return _perms.begin(); }
-  std::vector<Perm>::const_iterator end() const { return _perms.end(); }
+  const_iterator begin() const { return _perms.begin(); }
+  const_iterator end() const { return _perms.end(); }
 
   void insert(Perm const &perm) { _perms.push_back(perm); }
   void insert(Perm &&perm) { _perms.emplace_back(perm); }
@@ -65,6 +67,9 @@ public:
 
   template<typename ...ARGS>
   void emplace(ARGS &&...args) {  _perms.emplace_back(args...); }
+
+  template<typename IT>
+  IT erase(IT it) { return _perms.erase(it); }
 
   void assert_not_empty() const {
     assert(!empty() && "permutation set not empty");

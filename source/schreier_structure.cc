@@ -6,10 +6,15 @@
 namespace cgtl
 {
 
-void SchreierTree::create_root(unsigned root) { _root = root; }
+void SchreierTree::create_root(unsigned root)
+{
+  _root = root;
+}
 
-void SchreierTree::create_labels(
-  std::vector<Perm> const &labels) { _labels = labels; }
+void SchreierTree::create_labels(PermSet const &labels)
+{
+  _labels = labels;
+}
 
 void SchreierTree::create_edge(
   unsigned origin, unsigned destination, unsigned label)
@@ -31,7 +36,10 @@ std::vector<unsigned> SchreierTree::nodes() const
   return result;
 }
 
-std::vector<Perm> SchreierTree::labels() const { return _labels; }
+PermSet SchreierTree::labels() const
+{
+  return _labels;
+}
 
 bool SchreierTree::contains(unsigned node) const
 {
@@ -58,7 +66,7 @@ void ExplicitTransversals::create_root(unsigned root)
   _orbit[root] = Perm(_degree);
 }
 
-void ExplicitTransversals::create_labels(std::vector<Perm> const &labels)
+void ExplicitTransversals::create_labels(PermSet const &labels)
 {
   _labels = labels;
 }
@@ -88,7 +96,7 @@ std::vector<unsigned> ExplicitTransversals::nodes() const
   return res;
 }
 
-std::vector<Perm> ExplicitTransversals::labels() const
+PermSet ExplicitTransversals::labels() const
 {
   return _labels;
 }

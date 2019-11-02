@@ -181,14 +181,14 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
         PermSet s_j(schreier_structures[j]->labels());
         s_j.insert(h);
 
-        update_schreier_structure(j, s_j.vect());
+        update_schreier_structure(j, s_j);
 
         Dbg(Dbg::TRACE) << "  S(" << j + 1u << ")" << " = " << s_j;
         Dbg(Dbg::TRACE) << "  O(" << j + 1u << ")" << " = "
                         << schreier_structures[j]->nodes();
       }
 
-      strong_generators.push_back(h);
+      strong_generators.insert(h);
       Dbg(Dbg::TRACE) << "  >>> Updated SGS: " << strong_generators << " <<<";
     }
 

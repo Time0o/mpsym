@@ -53,16 +53,16 @@ Perm BSGS::transversal(unsigned i, unsigned o) const
   return schreier_structures[i]->transversal(o);
 }
 
-std::vector<Perm> BSGS::transversals(unsigned i) const
+PermSet BSGS::transversals(unsigned i) const
 {
-  std::vector<Perm> transversals;
+  PermSet transversals;
   for (unsigned o : orbit(i))
-    transversals.push_back(schreier_structures[i]->transversal(o));
+    transversals.insert(schreier_structures[i]->transversal(o));
 
   return transversals;
 }
 
-std::vector<Perm> BSGS::stabilizers(unsigned i) const
+PermSet BSGS::stabilizers(unsigned i) const
 {
   return schreier_structures[i]->labels();
 }
@@ -112,8 +112,7 @@ void BSGS::extend_base(unsigned bp)
   schreier_structures.push_back(st);
 }
 
-void BSGS::update_schreier_structure(unsigned i,
-                                     std::vector<Perm> const &generators)
+void BSGS::update_schreier_structure(unsigned i, PermSet const &generators)
 {
   unsigned bp = base[i];
   auto st = schreier_structures[i];
@@ -159,9 +158,9 @@ void BSGS::remove_generators()
   unsigned n = strong_generators[0].degree();
   unsigned k = base.size();
 
+  // TODO
   std::unordered_set<Perm> strong_generator_set(
     strong_generators.begin(), strong_generators.end());
-
 
   auto difference = [&](std::unordered_set<Perm> const &lhs,
                         std::unordered_set<Perm> const &rhs) {
@@ -290,13 +289,13 @@ void BSGS::remove_generators()
     }
   }
 
-  strong_generators = std::vector<Perm>(
-    strong_generator_set.begin(), strong_generator_set.end());
+  strong_generators = PermSet(strong_generator_set.begin(),
+                              strong_generator_set.end());
 
   Dbg(Dbg::TRACE) << "Remaining strong generators: " << strong_generators;
 
   std::vector<int> stabilizes(strong_generators.size(), 0);
-  std::vector<Perm> stabilizers;
+  PermSet stabilizers;
 
   for (int i = static_cast<int>(base.size()) - 1; i >= 0; --i) {
     for (auto j = 0u; j < strong_generators.size(); ++j) {
@@ -313,7 +312,7 @@ void BSGS::remove_generators()
 
       if (stab) {
         stabilizes[j] = 1;
-        stabilizers.push_back(strong_generators[j]);
+        stabilizers.insert(strong_generators[j]);
       }
     }
 

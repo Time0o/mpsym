@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "perm.h"
+#include "perm_set.h"
 
 /**
  * @file perm_word.h
@@ -63,8 +64,8 @@ public:
 
 private:
   unsigned _n;
-  std::vector<Perm> _perms;
-  std::vector<Perm> _invperms;
+  PermSet _perms;
+  PermSet _invperms;
 };
 
 std::ostream& operator<<(std::ostream& stream, PermWord const &pw);

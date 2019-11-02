@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "perm.h"
+#include "perm_set.h"
 #include "schreier_structure.h"
 
 namespace cgtl
@@ -12,7 +13,7 @@ namespace cgtl
 
 class SchreierGeneratorQueue
 {
-  using sg_type = std::vector<Perm>;
+  using sg_type = PermSet;
   using sg_it_type = sg_type::const_iterator;
 
   using fo_type = std::vector<unsigned>;

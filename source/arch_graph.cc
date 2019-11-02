@@ -26,6 +26,7 @@ extern "C" {
 #include "partial_perm_inverse_semigroup.h"
 #include "perm.h"
 #include "perm_group.h"
+#include "perm_set.h"
 
 namespace cgtl
 {
@@ -108,7 +109,7 @@ std::vector<unsigned> min_elem_approx(
   PermGroup const &ag, std::vector<unsigned> const &tasks,
   unsigned min_pe, unsigned max_pe)
 {
-  std::vector<Perm> generators(ag.bsgs().strong_generators);
+  PermSet generators(ag.bsgs().strong_generators);
   std::vector<unsigned> min_element(tasks);
 
   bool stationary, new_minimum;

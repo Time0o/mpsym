@@ -915,7 +915,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
     Dbg(Dbg::TRACE) << "Block permuter is:";
     Dbg(Dbg::TRACE) << block_permuter;
 
-    std::vector<std::vector<Perm>> sigma(d);
+    std::vector<PermSet> sigma(d);
 
     sigma[0] = BlockSystem::block_stabilizers(gens, bs[0]);
     Dbg(Dbg::TRACE) << "Block stabilizer of " << bs[0] << " is: " << sigma[0];
@@ -1022,8 +1022,11 @@ PermGroup::const_iterator::const_iterator(PermGroup const &pg)
   } else {
     for (unsigned i = 0u; i < pg.bsgs().base.size(); ++i) {
       _state.push_back(0u);
-      _transversals.push_back(pg.bsgs().transversals(i));
-      _current_factors.push_back(_transversals.back()[0]);
+
+      auto transv = pg.bsgs().transversals(i);
+
+      _transversals.emplace_back(transv);
+      _current_factors.insert(transv[0]);
     }
 
     update_result();

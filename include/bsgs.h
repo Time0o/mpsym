@@ -49,13 +49,14 @@ public:
 
   // TODO: make private
   std::vector<unsigned> base;
-  std::vector<Perm> strong_generators;
   std::vector<std::shared_ptr<SchreierStructure>> schreier_structures;
+
+  PermSet strong_generators;
 
   std::vector<unsigned> orbit(unsigned i) const;
   Perm transversal(unsigned i, unsigned o) const;
-  std::vector<Perm> transversals(unsigned i) const;
-  std::vector<Perm> stabilizers(unsigned i) const;
+  PermSet transversals(unsigned i) const;
+  PermSet stabilizers(unsigned i) const;
 
   std::pair<Perm, unsigned> strip(Perm const &perm, unsigned offs = 0) const;
   bool strips_completely(Perm const &perm) const;
@@ -68,7 +69,7 @@ private:
   void schreier_sims_random(PermSet const &generators, unsigned w = 10);
 
   void schreier_sims_init(
-    std::vector<std::vector<Perm>> *strong_generators,
+    std::vector<PermSet> *strong_generators,
     std::vector<std::vector<unsigned>> *fundamental_orbits,
     std::vector<SchreierGeneratorQueue> *schreier_generator_queues = nullptr);
 
@@ -85,8 +86,7 @@ private:
 
   // convenience methods
   void extend_base(unsigned bp);
-  void update_schreier_structure(unsigned i,
-                                 std::vector<Perm> const &strong_generators);
+  void update_schreier_structure(unsigned i, PermSet const &strong_generators);
 
   unsigned _degree;
   Transversals _transversals; // TODO

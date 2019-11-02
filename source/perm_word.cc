@@ -11,10 +11,11 @@
 namespace cgtl
 {
 
-PermWord::PermWord(Perm const &perm) : _n(perm.degree())
+PermWord::PermWord(Perm const &perm)
+: _n(perm.degree())
 {
-  _perms.push_back(perm);
-  _invperms.push_back(~perm);
+  _perms.insert(perm);
+  _invperms.insert(~perm);
 }
 
 unsigned PermWord::operator[](unsigned const i) const
@@ -71,8 +72,8 @@ PermWord& PermWord::operator*=(PermWord const &rhs)
 {
   assert(rhs.degree() == _n && "multiplying permutation words of equal degree");
 
-  _perms.insert(_perms.end(), rhs._perms.begin(), rhs._perms.end());
-  _invperms.insert(_invperms.end(), rhs._invperms.begin(), rhs._invperms.end());
+  _perms.insert(rhs._perms.begin(), rhs._perms.end());
+  _invperms.insert(rhs._invperms.begin(), rhs._invperms.end());
 
   return *this;
 }

@@ -9,6 +9,7 @@
 #include "orbits.h"
 #include "perm.h"
 #include "perm_group.h"
+#include "perm_set.h"
 
 namespace cgtl
 {
@@ -117,10 +118,10 @@ bool BlockSystem::is_block(PermSet const &generators,
   return true;
 }
 
-std::vector<Perm> BlockSystem::block_stabilizers(
-  PermSet const &generators, std::vector<unsigned> const &block)
+PermSet BlockSystem::block_stabilizers(PermSet const &generators,
+                                       std::vector<unsigned> const &block)
 {
-  std::vector<Perm> res;
+  PermSet res;
 
   for (Perm const &gen : generators) {
     bool id = true;
@@ -139,7 +140,7 @@ std::vector<Perm> BlockSystem::block_stabilizers(
     }
 
     if (!id && stabilizes)
-      res.push_back(gen.restricted(block));
+      res.insert(gen.restricted(block));
   }
 
   return res;
@@ -353,7 +354,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
   unsigned first_base_elem = pg.bsgs().base[0];
   Dbg(Dbg::TRACE) << "First base element is: " << first_base_elem;
 
-  std::vector<Perm> stab = pg.bsgs().stabilizers(1);
+  PermSet stab = pg.bsgs().stabilizers(1);
 
   if (stab.empty()) {
     Dbg(Dbg::TRACE)

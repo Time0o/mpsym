@@ -6,6 +6,7 @@
 #include "bsgs.h"
 #include "perm.h"
 #include "perm_group.h"
+#include "perm_set.h"
 #include "schreier_structure.h"
 
 #include "test_main.cc"
@@ -13,6 +14,7 @@
 using cgtl::BSGS;
 using cgtl::Perm;
 using cgtl::PermGroup;
+using cgtl::PermSet;
 using cgtl::SchreierTree;
 
 TEST(BSGSTest, CanRemoveRedundantGenerators)
@@ -87,7 +89,7 @@ TEST(BSGSTest, CanRemoveRedundantGenerators)
 
 TEST(BSGSTest, CanSolveBSGS)
 {
-  std::vector<Perm> generators_solvable {
+  PermSet generators_solvable {
     Perm(4, {{2, 4}}),
     Perm(4, {{1, 2}, {3, 4}})
   };
@@ -102,7 +104,7 @@ TEST(BSGSTest, CanSolveBSGS)
     Perm(4, {{2, 4}})
   };
 
-  std::vector<Perm> generators_non_solvable(
+  PermSet generators_non_solvable(
     PermGroup::symmetric(5).bsgs().strong_generators);
 
   BSGS bsgs(4, generators_solvable, BSGS::CONSTRUCTION_SOLVE);
