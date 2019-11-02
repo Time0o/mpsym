@@ -299,7 +299,7 @@ public:
    *
    * \return `true` if this permutation group is trivial, else `false`
    */
-  bool is_trivial() const { return _bsgs.base.empty(); }
+  bool is_trivial() const { return _bsgs.base_empty(); }
 
   /** Check whether a permutation group is symmetric.
    *

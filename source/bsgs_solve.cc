@@ -138,7 +138,7 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
     ++i;
     Dbg(Dbg::TRACE) << "== Iteration " << i;
 
-    if (i > base.size()) {
+    if (i > base_size()) {
       for (unsigned j = 1u; j <= degree(); ++j) {
         if (h[j] != j) {
           extend_base(i);
@@ -146,12 +146,12 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
         }
       }
 
-      Dbg(Dbg::TRACE) << ">>> Updated base: " << base << " <<<";
+      Dbg(Dbg::TRACE) << ">>> Updated base: " << _base << " <<<";
     }
 
-    unsigned base_elem = base[i - 1u];
+    unsigned base_elem = base_point(i - 1u);
 
-    auto schreier_structure(schreier_structures[i - 1u]);
+    auto schreier_structure(_schreier_structures[i - 1u]);
 
     Dbg(Dbg::TRACE)
       << "Considering h = " << h << " and b_" << i << " = " << base_elem
@@ -178,18 +178,18 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
       Dbg(Dbg::TRACE) << "Enlarging:";
 
       for (unsigned j = 0u; j < i; ++j) { // TODO: avoid complete recomputation
-        PermSet s_j(schreier_structures[j]->labels());
+        PermSet s_j(_schreier_structures[j]->labels());
         s_j.insert(h);
 
         update_schreier_structure(j, s_j);
 
         Dbg(Dbg::TRACE) << "  S(" << j + 1u << ")" << " = " << s_j;
         Dbg(Dbg::TRACE) << "  O(" << j + 1u << ")" << " = "
-                        << schreier_structures[j]->nodes();
+                        << _schreier_structures[j]->nodes();
       }
 
-      strong_generators.insert(h);
-      Dbg(Dbg::TRACE) << "  >>> Updated SGS: " << strong_generators << " <<<";
+      _strong_generators.insert(h);
+      Dbg(Dbg::TRACE) << "  >>> Updated SGS: " << _strong_generators << " <<<";
     }
 
     h = h_m * ~u;

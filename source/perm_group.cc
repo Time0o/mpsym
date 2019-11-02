@@ -139,7 +139,7 @@ std::vector<PermGroup> disjoint_decomposition_complete_recursive(
     std::vector<Perm> restricted_gens2;
 
     bool recurse = true;
-    for (Perm const &gen : pg.bsgs().strong_generators) {
+    for (Perm const &gen : pg.bsgs().strong_generators()) {
       Dbg(Dbg::TRACE) << "Generator: " << gen;
 
       // decompose generator into disjoint cycles
@@ -369,7 +369,7 @@ PermGroup::PermGroup(unsigned degree,
 : _bsgs(degree, generators, construction, transversals)
 {
   _order = 1u;
-  for (unsigned i = 0u; i < _bsgs.base.size(); ++i)
+  for (unsigned i = 0u; i < _bsgs.base_size(); ++i)
     _order *= _bsgs.orbit(i).size();
 }
 
@@ -381,7 +381,7 @@ bool PermGroup::operator==(PermGroup const &rhs) const
   if (_order != rhs.order())
     return false;
 
-  for (Perm const &gen : rhs.bsgs().strong_generators) {
+  for (Perm const &gen : rhs.bsgs().strong_generators()) {
     if (!contains_element(gen))
       return false;
   }
@@ -522,8 +522,8 @@ PermGroup PermGroup::dihedral(std::vector<unsigned> const &support)
 
 PermGroup PermGroup::direct_product(PermGroup const &lhs, PermGroup const &rhs)
 {
-  return direct_product(lhs.bsgs().strong_generators,
-                        rhs.bsgs().strong_generators);
+  return direct_product(lhs.bsgs().strong_generators(),
+                        rhs.bsgs().strong_generators());
 }
 
 PermGroup PermGroup::direct_product(PermSet const &lhs, PermSet const &rhs)
@@ -546,8 +546,8 @@ PermGroup PermGroup::direct_product(PermSet const &lhs, PermSet const &rhs)
 
 PermGroup PermGroup::wreath_product(PermGroup const &lhs, PermGroup const &rhs)
 {
-  return wreath_product(lhs.bsgs().strong_generators,
-                        rhs.bsgs().strong_generators);
+  return wreath_product(lhs.bsgs().strong_generators(),
+                        rhs.bsgs().strong_generators());
 }
 
 PermGroup PermGroup::wreath_product(PermSet const &lhs, PermSet const &rhs)
@@ -643,7 +643,7 @@ bool PermGroup::is_transitive() const
     if (orbit_index1 == -1)
       return false;
 
-    for (Perm const &gen : _bsgs.strong_generators) {
+    for (Perm const &gen : _bsgs.strong_generators()) {
       unsigned j = gen[i];
 
       int orbit_index2 = orbit_indices[j];
@@ -671,10 +671,10 @@ Perm PermGroup::random_element() const
   static std::default_random_engine gen(time(0));
 
   Perm result(degree());
-  for (unsigned i = 0u; i < _bsgs.base.size(); ++i) {
+  for (unsigned i = 0u; i < _bsgs.base_size(); ++i) {
     std::vector<unsigned> orbit = _bsgs.orbit(i);
     std::uniform_int_distribution<> d(0u, orbit.size() - 1u);
-    result *= _bsgs.schreier_structures[i]->transversal(orbit[d(gen)]);
+    result *= _bsgs.transversal(i, orbit[d(gen)]);
   }
 
   return result;
@@ -738,7 +738,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_incomplete() const
   };
 
   std::vector<unsigned> moved;
-  for (Perm const &perm : _bsgs.strong_generators) {
+  for (Perm const &perm : _bsgs.strong_generators()) {
     moved.clear();
     for (unsigned i = 1u; i <= perm.degree(); ++i) {
       if (perm[i] != i)
@@ -815,7 +815,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_incomplete() const
   Dbg(Dbg::DBG) << "Disjunct subgroup generators are:";
 #ifndef NDEBUG
   for (PermGroup const &pg : decomp)
-    Dbg(Dbg::DBG) << pg.bsgs().strong_generators;
+    Dbg(Dbg::DBG) << pg.bsgs().strong_generators();
 #endif
 
   return decomp;
@@ -842,7 +842,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_complete(
     else
       orbit_id = orbit_ids[x - 1u];
 
-    for (Perm const &gen : _bsgs.strong_generators) {
+    for (Perm const &gen : _bsgs.strong_generators()) {
       unsigned y = gen[x];
 
       if (y != x) {
@@ -894,7 +894,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_complete(
 
   Dbg(Dbg::DBG) << "=== Disjoint subgroup generators";
   for (PermGroup const &pg : decomp)
-    Dbg(Dbg::DBG) << pg.bsgs().strong_generators;
+    Dbg(Dbg::DBG) << pg.bsgs().strong_generators();
 
   return decomp;
 }
@@ -905,7 +905,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
   Dbg(Dbg::DBG) << *this;
 
   auto blocksystems(BlockSystem::non_trivial(*this));
-  auto gens(_bsgs.strong_generators);
+  auto gens(_bsgs.strong_generators());
 
   for (BlockSystem const &bs : blocksystems) {
     Dbg(Dbg::TRACE) << "Considering block system: " << bs;
@@ -937,7 +937,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
     std::vector<Perm> block_permuter_generator_image;
 
     std::vector<unsigned> tmp_perm(degree());
-    for (Perm const &gen : block_permuter.bsgs().strong_generators) {
+    for (Perm const &gen : block_permuter.bsgs().strong_generators()) {
       for (unsigned i = 0u; i < d; ++i) {
         auto block(bs[i]);
 
@@ -1004,7 +1004,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
       << "==> Found wreath product decomposition, listing generators:";
 #ifndef NDEBUG
     for (PermGroup const &pg : res)
-      Dbg(Dbg::TRACE) << pg.bsgs().strong_generators;
+      Dbg(Dbg::TRACE) << pg.bsgs().strong_generators();
 #endif
 
     return res;
@@ -1015,12 +1015,12 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
 }
 
 PermGroup::const_iterator::const_iterator(PermGroup const &pg)
-  : _trivial(pg.bsgs().base.empty()), _end(false)
+  : _trivial(pg.bsgs().base_empty()), _end(false)
 {
   if (_trivial) {
     _current_result = Perm(pg.degree());
   } else {
-    for (unsigned i = 0u; i < pg.bsgs().base.size(); ++i) {
+    for (unsigned i = 0u; i < pg.bsgs().base_size(); ++i) {
       _state.push_back(0u);
 
       auto transv = pg.bsgs().transversals(i);

@@ -45,55 +45,59 @@ BSGS::BSGS(unsigned degree,
 
 std::vector<unsigned> BSGS::orbit(unsigned i) const
 {
-  return schreier_structures[i]->nodes();
+  return _schreier_structures[i]->nodes();
 }
 
 Perm BSGS::transversal(unsigned i, unsigned o) const
 {
-  return schreier_structures[i]->transversal(o);
+  return _schreier_structures[i]->transversal(o);
 }
 
 PermSet BSGS::transversals(unsigned i) const
 {
   PermSet transversals;
   for (unsigned o : orbit(i))
-    transversals.insert(schreier_structures[i]->transversal(o));
+    transversals.insert(_schreier_structures[i]->transversal(o));
 
   return transversals;
 }
 
 PermSet BSGS::stabilizers(unsigned i) const
 {
-  return schreier_structures[i]->labels();
+  return _schreier_structures[i]->labels();
 }
 
 std::pair<Perm, unsigned> BSGS::strip(Perm const &perm, unsigned offs) const
 {
   Perm result(perm);
 
-  for (unsigned i = offs; i < base.size(); ++i) {
-    unsigned beta = result[base[i]];
-    if (!schreier_structures[i]->contains(beta))
+  for (unsigned i = offs; i < base_size(); ++i) {
+    unsigned beta = result[base_point(i)];
+    if (!_schreier_structures[i]->contains(beta))
       return std::make_pair(result, i + 1u);
 
-    result *= ~schreier_structures[i]->transversal(beta);
+    result *= ~_schreier_structures[i]->transversal(beta);
   }
 
-  return std::make_pair(result, base.size() + 1u);
+  return std::make_pair(result, base_size() + 1u);
 }
 
 bool BSGS::strips_completely(Perm const &perm) const
 {
   auto strip_result(strip(perm));
 
-  return strip_result.first.id() && strip_result.second == base.size() + 1u;
+  return strip_result.first.id() && strip_result.second == base_size() + 1u;
 }
 
 void BSGS::extend_base(unsigned bp)
 {
-  base.push_back(bp);
+  _base.push_back(bp);
+  _schreier_structures.emplace_back(make_schreier_structure(bp));
+}
 
-  std::shared_ptr<SchreierStructure> st;
+BSGS::ss_type BSGS::make_schreier_structure(unsigned bp)
+{
+  ss_type st;
 
   switch (_transversals) {
     case BSGS::TRANSVERSALS_EXPLICIT:
@@ -109,13 +113,13 @@ void BSGS::extend_base(unsigned bp)
 
   st->create_root(bp);
 
-  schreier_structures.push_back(st);
+  return st;
 }
 
 void BSGS::update_schreier_structure(unsigned i, PermSet const &generators)
 {
-  unsigned bp = base[i];
-  auto st = schreier_structures[i];
+  unsigned bp = base_point(i);
+  auto st = _schreier_structures[i];
 
   st->create_root(bp);
   st->create_labels(generators);
@@ -149,18 +153,16 @@ void BSGS::remove_generators()
 
   Dbg(Dbg::TRACE) << "Stabilizers are:";
 #ifndef NDEBUG
-  for (auto i = 0u; i < base.size(); ++i)
+  for (auto i = 0u; i < base_size(); ++i)
     Dbg(Dbg::TRACE) << "S(" << i + 1u << ") = " << stabilizers(i);
 #endif
 
-  assert(base.size() > 0u);
+  assert(base_size() > 0u);
 
-  unsigned n = strong_generators[0].degree();
-  unsigned k = base.size();
+  unsigned k = base_size();
 
-  // TODO
   std::unordered_set<Perm> strong_generator_set(
-    strong_generators.begin(), strong_generators.end());
+    _strong_generators.begin(), _strong_generators.end());
 
   auto difference = [&](std::unordered_set<Perm> const &lhs,
                         std::unordered_set<Perm> const &rhs) {
@@ -185,7 +187,7 @@ void BSGS::remove_generators()
                             std::unordered_set<Perm> const &generators,
                             std::vector<unsigned> const &orbit) {
 
-    std::vector<int> in_orbit_ref(n + 1u, 0), in_orbit(n + 1u, 0);
+    std::vector<int> in_orbit_ref(degree() + 1u, 0), in_orbit(degree() + 1u, 0);
 
     for (unsigned x : orbit)
       in_orbit_ref[x] = 1;
@@ -259,9 +261,9 @@ void BSGS::remove_generators()
       orbit_gens.erase(*it);
 
       bool remove_stab = false;
-      if (produces_orbit(base[i], orbit_gens, orbit(i))) {
+      if (produces_orbit(base_point(i), orbit_gens, orbit(i))) {
 #ifndef NDEBUG
-        Dbg(Dbg::TRACE) << base[i] << "^" << reduced_stabilizers
+        Dbg(Dbg::TRACE) << base_point(i) << "^" << reduced_stabilizers
                         << " = " << orbit(i);
 #endif
 
@@ -271,7 +273,7 @@ void BSGS::remove_generators()
       }
 #ifndef NDEBUG
       else {
-        Dbg(Dbg::TRACE) << base[i] << "^" << reduced_stabilizers
+        Dbg(Dbg::TRACE) << base_point(i) << "^" << reduced_stabilizers
                         << " =/= " << orbit(i);
       }
 #endif
@@ -289,22 +291,22 @@ void BSGS::remove_generators()
     }
   }
 
-  strong_generators = PermSet(strong_generator_set.begin(),
-                              strong_generator_set.end());
+  _strong_generators = PermSet(strong_generator_set.begin(),
+                               strong_generator_set.end());
 
-  Dbg(Dbg::TRACE) << "Remaining strong generators: " << strong_generators;
+  Dbg(Dbg::TRACE) << "Remaining strong generators: " << _strong_generators;
 
-  std::vector<int> stabilizes(strong_generators.size(), 0);
+  std::vector<int> stabilizes(_strong_generators.size(), 0);
   PermSet stabilizers;
 
-  for (int i = static_cast<int>(base.size()) - 1; i >= 0; --i) {
-    for (auto j = 0u; j < strong_generators.size(); ++j) {
+  for (int i = static_cast<int>(base_size()) - 1; i >= 0; --i) {
+    for (auto j = 0u; j < _strong_generators.size(); ++j) {
       if (stabilizes[j])
         continue;
 
       bool stab = true;
       for (int k = 0; k < i; ++k) {
-        if (strong_generators[j][base[k]] != base[k]) {
+        if (_strong_generators[j][base_point(k)] != base_point(k)) {
           stab = false;
           break;
         }
@@ -312,7 +314,7 @@ void BSGS::remove_generators()
 
       if (stab) {
         stabilizes[j] = 1;
-        stabilizers.insert(strong_generators[j]);
+        stabilizers.insert(_strong_generators[j]);
       }
     }
 
@@ -326,17 +328,17 @@ std::ostream& operator<<(std::ostream& stream, BSGS const &bsgs)
 {
   stream << "BASE: [";
 
-  for (auto i = 0u; i < bsgs.base.size(); ++i) {
-    stream << bsgs.base[i];
-    if (i < bsgs.base.size() - 1u)
+  for (auto i = 0u; i < bsgs.base_size(); ++i) {
+    stream << bsgs.base_point(i);
+    if (i < bsgs.base_size() - 1u)
       stream << ", ";
   }
 
   stream << "]; SGS: [";
 
-  for (auto i = 0u; i < bsgs.strong_generators.size(); ++i) {
-    stream << bsgs.strong_generators[i];
-    if (i < bsgs.strong_generators.size() - 1u)
+  for (auto i = 0u; i < bsgs._strong_generators.size(); ++i) {
+    stream << bsgs._strong_generators[i];
+    if (i < bsgs._strong_generators.size() - 1u)
       stream << ", ";
   }
 

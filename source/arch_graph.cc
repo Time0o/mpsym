@@ -109,7 +109,7 @@ std::vector<unsigned> min_elem_approx(
   PermGroup const &ag, std::vector<unsigned> const &tasks,
   unsigned min_pe, unsigned max_pe)
 {
-  PermSet generators(ag.bsgs().strong_generators);
+  PermSet generators(ag.bsgs().strong_generators());
   std::vector<unsigned> min_element(tasks);
 
   bool stationary, new_minimum;

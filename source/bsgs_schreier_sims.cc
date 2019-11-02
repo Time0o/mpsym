@@ -26,14 +26,14 @@ void BSGS::schreier_sims(PermSet const &generators)
 {
   Dbg(Dbg::DBG) << "Executing schreier sims algorithm";
 
-  strong_generators = generators.vect(); // TODO
+  _strong_generators = generators;
 
   // intialize
-  std::vector<PermSet> strong_generators_;
+  std::vector<PermSet> strong_generators;
   std::vector<std::vector<unsigned>> fundamental_orbits;
   std::vector<SchreierGeneratorQueue> schreier_generator_queues;
 
-  schreier_sims_init(&strong_generators_,
+  schreier_sims_init(&strong_generators,
                      &fundamental_orbits,
                      &schreier_generator_queues);
 
@@ -43,12 +43,12 @@ void BSGS::schreier_sims(PermSet const &generators)
   Timer_create("update strong gens", Timer::MILLISECONDS);
 
   // main loop
-  unsigned i = base.size();
+  unsigned i = base_size();
   while (i >= 1u) {
 top:
-    schreier_generator_queues[i - 1].update(strong_generators_[i - 1],
+    schreier_generator_queues[i - 1].update(strong_generators[i - 1],
                                             fundamental_orbits[i - 1],
-                                            schreier_structures[i - 1]);
+                                            _schreier_structures[i - 1]);
 
     for (Perm const &schreier_generator : schreier_generator_queues[i - 1]) {
       Dbg(Dbg::TRACE) << "Schreier Generator: " << schreier_generator;
@@ -65,17 +65,17 @@ top:
 
       Timer_stop("strip");
 
-      if (strip_level < base.size() - i || !strip_perm.id()) {
-        bool do_extend_base = i == base.size();
+      if (strip_level < base_size() - i || !strip_perm.id()) {
+        bool do_extend_base = i == base_size();
 
         if (do_extend_base) {
           Timer_start("extend base");
 
           unsigned bp = 1u;
           for (;;) {
-            auto it = std::find(base.begin(), base.end(), bp);
+            auto it = std::find(_base.begin(), _base.end(), bp);
 
-            if (it == base.end() && strip_perm[bp] != bp)
+            if (it == _base.end() && strip_perm[bp] != bp)
               break;
 
             assert(++bp <= degree());
@@ -84,9 +84,9 @@ top:
           extend_base(bp);
 
           Dbg(Dbg::TRACE) << "Adjoined new basepoint:";
-          Dbg(Dbg::TRACE) << "B = " << base;
+          Dbg(Dbg::TRACE) << "B = " << _base;
 
-          strong_generators_.emplace_back();
+          strong_generators.emplace_back();
           fundamental_orbits.emplace_back();
 
           Timer_stop("extend base");
@@ -98,22 +98,22 @@ top:
         Dbg(Dbg::TRACE) << "Updating strong generators:";
 
         // add result of 'strip' to strong generating set
-        strong_generators_[i].insert(strip_perm);
+        strong_generators[i].insert(strip_perm);
 
         // redetermine schreier structure and fundamental orbit
-        update_schreier_structure(i, strong_generators_[i]);
+        update_schreier_structure(i, strong_generators[i]);
         fundamental_orbits[i] = orbit(i);
 
-        Dbg(Dbg::TRACE) << "S(" << i + 1 << ") = " << strong_generators_[i];
+        Dbg(Dbg::TRACE) << "S(" << i + 1 << ") = " << strong_generators[i];
         Dbg(Dbg::TRACE) << "O(" << i + 1 << ") = " << fundamental_orbits[i];
 
         Timer_stop("update strong gens");
 
         // update schreier generator queue
         if (do_extend_base) {
-          schreier_generator_queues.emplace_back(strong_generators_[i],
+          schreier_generator_queues.emplace_back(strong_generators[i],
                                                  fundamental_orbits[i],
-                                                 schreier_structures[i]);
+                                                 _schreier_structures[i]);
         } else {
           schreier_generator_queues[i].invalidate();
         }
@@ -139,16 +139,16 @@ void BSGS::schreier_sims_random(PermSet const &generators, unsigned w)
 
   generators.assert_not_empty();
 
-  strong_generators = generators.vect(); // TODO
+  _strong_generators = generators;
 
   // intialize
-  std::vector<PermSet> strong_generators_;
+  std::vector<PermSet> strong_generators;
   std::vector<std::vector<unsigned>> fundamental_orbits;
 
-  schreier_sims_init(&strong_generators_, &fundamental_orbits);
+  schreier_sims_init(&strong_generators, &fundamental_orbits);
 
   // random group element generator
-  PrRandomizer pr(strong_generators);
+  PrRandomizer pr(_strong_generators);
 
   unsigned c = 0u;
   while (c < w) {
@@ -164,7 +164,7 @@ void BSGS::schreier_sims_random(PermSet const &generators, unsigned w)
 
     Dbg(Dbg::TRACE) << "Strips to: " << strip_perm << ", " << strip_level;
 
-    if (strip_level <= base.size()) {
+    if (strip_level <= base_size()) {
       update_strong_generators = true;
 
     } else if (!strip_perm.id()) {
@@ -173,10 +173,10 @@ void BSGS::schreier_sims_random(PermSet const &generators, unsigned w)
       for (unsigned bp = 1u; bp <= degree(); ++bp) {
         if (strip_perm[bp] != bp) {
           extend_base(bp);
-          strong_generators.emplace();
+          _strong_generators.emplace();
 
           Dbg(Dbg::TRACE) << "Adjoined new basepoint:";
-          Dbg(Dbg::TRACE) << "B = " << base;
+          Dbg(Dbg::TRACE) << "B = " << _base;
 
           break;
         }
@@ -186,15 +186,15 @@ void BSGS::schreier_sims_random(PermSet const &generators, unsigned w)
     if (update_strong_generators) {
       Dbg(Dbg::TRACE) << "Updating strong generators:";
 
-      strong_generators_.resize(strip_level);
+      strong_generators.resize(strip_level);
       fundamental_orbits.resize(strip_level);
 
       for (unsigned i = 1u; i < strip_level; ++i) {
-        strong_generators_[i].insert(strip_perm);
-        update_schreier_structure(i, strong_generators_[i]);
+        strong_generators[i].insert(strip_perm);
+        update_schreier_structure(i, strong_generators[i]);
         fundamental_orbits[i] = orbit(i);
 
-        Dbg(Dbg::TRACE) << "S(" << (i + 1u) << ") = " << strong_generators_[i];
+        Dbg(Dbg::TRACE) << "S(" << (i + 1u) << ") = " << strong_generators[i];
         Dbg(Dbg::TRACE) << "O(" << (i + 1u) << ") = " << fundamental_orbits[i];
       }
 
@@ -207,28 +207,28 @@ void BSGS::schreier_sims_random(PermSet const &generators, unsigned w)
 }
 
 void BSGS::schreier_sims_init(
-  std::vector<PermSet> *strong_generators_,
+  std::vector<PermSet> *strong_generators,
   std::vector<std::vector<unsigned>> *fundamental_orbits,
   std::vector<SchreierGeneratorQueue> *schreier_generator_queues)
 {
   Dbg(Dbg::DBG) << "=== Input";
-  Dbg(Dbg::DBG) << "B = " << base;
-  Dbg(Dbg::DBG) << "S = " << strong_generators;
+  Dbg(Dbg::DBG) << "B = " << _base;
+  Dbg(Dbg::DBG) << "S = " << _strong_generators;
 
   // add initial base points
-  auto it = strong_generators.begin();
+  auto it = _strong_generators.begin();
 
-  while (it != strong_generators.end()) {
+  while (it != _strong_generators.end()) {
     Perm gen = *it;
 
     if (gen.id()) {
-      it = strong_generators.erase(it);
+      it = _strong_generators.erase(it);
 
     } else {
       ++it;
 
       bool stabilizes = true;
-      for (unsigned b : base) {
+      for (unsigned b : _base) {
         if (gen[b] != b) {
           stabilizes = false;
           break;
@@ -254,38 +254,38 @@ void BSGS::schreier_sims_init(
     }
   }
 
-  strong_generators_->resize(base.size());
-  fundamental_orbits->resize(base.size());
+  strong_generators->resize(base_size());
+  fundamental_orbits->resize(base_size());
 
   // calculate initial strong generator sets
-  for (unsigned i = 0u; i < base.size(); ++i) {
-    for (Perm const &gen : strong_generators) {
+  for (unsigned i = 0u; i < base_size(); ++i) {
+    for (Perm const &gen : _strong_generators) {
       bool stabilizes = true;
 
       for (unsigned k = 0u; k < i; ++k) {
-        if (gen[base[k]] != base[k]) {
+        if (gen[base_point(k)] != base_point(k)) {
           stabilizes = false;
           break;
         }
       }
 
       if (stabilizes)
-        (*strong_generators_)[i].insert(gen);
+        (*strong_generators)[i].insert(gen);
     }
 
-    update_schreier_structure(i, (*strong_generators_)[i]);
+    update_schreier_structure(i, (*strong_generators)[i]);
     (*fundamental_orbits)[i] = orbit(i);
 
     if (schreier_generator_queues)
-      schreier_generator_queues->emplace_back((*strong_generators_)[i],
+      schreier_generator_queues->emplace_back((*strong_generators)[i],
                                               (*fundamental_orbits)[i],
-                                              schreier_structures[i]);
+                                              _schreier_structures[i]);
   }
 
   Dbg(Dbg::DBG) << "=== Initial values";
-  Dbg(Dbg::DBG) << "B = " << base;
-  for (unsigned i = 0u; i < base.size(); ++i) {
-    Dbg(Dbg::DBG) << "S(" << (i + 1u) << ") = " << (*strong_generators_)[i];
+  Dbg(Dbg::DBG) << "B = " << _base;
+  for (unsigned i = 0u; i < base_size(); ++i) {
+    Dbg(Dbg::DBG) << "S(" << (i + 1u) << ") = " << (*strong_generators)[i];
     Dbg(Dbg::DBG) << "O(" << (i + 1u) << ") = " << fundamental_orbits[i];
   }
 }
@@ -294,19 +294,19 @@ void BSGS::schreier_sims_finish()
 {
   std::unordered_set<Perm> unique_generators;
 
-  for (auto const &st : schreier_structures) {
+  for (auto const &st : _schreier_structures) {
     auto stabilizers(st->labels());
     unique_generators.insert(stabilizers.begin(), stabilizers.end());
   }
 
-  strong_generators = PermSet(unique_generators.begin(),
-                              unique_generators.end());
+  _strong_generators = PermSet(unique_generators.begin(),
+                               unique_generators.end());
 
-  update_schreier_structure(0, strong_generators);
+  update_schreier_structure(0, _strong_generators);
 
   Dbg(Dbg::DBG) << "=== Result";
-  Dbg(Dbg::DBG) << "B = " << base;
-  Dbg(Dbg::DBG) << "SGS = " << strong_generators;
+  Dbg(Dbg::DBG) << "B = " << _base;
+  Dbg(Dbg::DBG) << "SGS = " << _strong_generators;
 }
 
 } // namespace cgtl

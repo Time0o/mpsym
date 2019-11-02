@@ -18,6 +18,10 @@ namespace cgtl
 
 class BSGS
 {
+friend std::ostream& operator<<(std::ostream& stream, BSGS const &bsgs);
+
+  using ss_type = std::shared_ptr<SchreierStructure>;
+
 public:
   struct SolveError : public std::runtime_error
   {
@@ -47,11 +51,15 @@ public:
 
   unsigned degree() const { return _degree; }
 
-  // TODO: make private
-  std::vector<unsigned> base;
-  std::vector<std::shared_ptr<SchreierStructure>> schreier_structures;
+  bool base_empty() const { return _base.empty(); }
+  unsigned base_size() const { return _base.size(); }
+  unsigned base_point(unsigned i) const {
+    assert(i < _base.size());
+    return _base[i];
+  }
 
-  PermSet strong_generators;
+  // TODO: remove?
+  PermSet strong_generators() const { return _strong_generators; }
 
   std::vector<unsigned> orbit(unsigned i) const;
   Perm transversal(unsigned i, unsigned o) const;
@@ -86,10 +94,14 @@ private:
 
   // convenience methods
   void extend_base(unsigned bp);
+  ss_type make_schreier_structure(unsigned bp);
   void update_schreier_structure(unsigned i, PermSet const &strong_generators);
 
   unsigned _degree;
-  Transversals _transversals; // TODO
+  Transversals _transversals;
+  std::vector<unsigned> _base;
+  std::vector<ss_type> _schreier_structures;
+  PermSet _strong_generators;
 };
 
 std::ostream& operator<<(std::ostream& stream, BSGS const &bsgs);
