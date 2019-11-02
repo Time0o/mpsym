@@ -313,7 +313,7 @@ PermGroup schreier_generators(unsigned i,
   Dbg(Dbg::TRACE) << "Strongly connected component of x is: " << _scc;
 #endif
 
-  std::vector<Perm> sg_gens;
+  PermSet sg_gens;
 
   for (auto j = 0u; j < scc.size(); ++j) {
     for (auto k = 0u; k < generators.size(); ++k) {
@@ -344,7 +344,7 @@ PermGroup schreier_generators(unsigned i,
       Dbg(Dbg::TRACE) << "=> Schreier generator is: " << sg;
 
       if (!sg.id())
-        sg_gens.push_back(sg.to_perm(im_max));
+        sg_gens.emplace(sg.to_perm(im_max));
     }
   }
 

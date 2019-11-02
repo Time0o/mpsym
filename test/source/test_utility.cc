@@ -8,13 +8,15 @@
 
 #include "perm.h"
 #include "perm_group.h"
+#include "perm_set.h"
 #include "test_utility.h"
 
 #define RESOURCE_DIR "resources/test/"
 
 using cgtl::Perm;
-using cgtl::PermWord;
 using cgtl::PermGroup;
+using cgtl::PermSet;
+using cgtl::PermWord;
 
 template <typename P>
 static testing::AssertionResult _perm_equal(
@@ -59,7 +61,7 @@ testing::AssertionResult perm_word_equal(std::vector<unsigned> const &expected,
 }
 
 static testing::AssertionResult perm_group_equal(
-  std::vector<Perm> const &expected_elements,
+  PermSet const &expected_elements,
   PermGroup const &actual)
 {
   std::vector<Perm> actual_elements;
@@ -67,7 +69,8 @@ static testing::AssertionResult perm_group_equal(
     actual_elements.push_back(perm);
 
   testing::Matcher<std::vector<Perm> const &> matcher(
-    testing::UnorderedElementsAreArray(expected_elements));
+    testing::UnorderedElementsAreArray(expected_elements.begin(),
+                                       expected_elements.end()));
 
   testing::StringMatchResultListener listener;
   if (matcher.MatchAndExplain(actual_elements, &listener))
@@ -104,9 +107,9 @@ static testing::AssertionResult perm_group_equal(
 testing::AssertionResult perm_group_equal(PermGroup const &expected,
                                           PermGroup const &actual)
 {
-  std::vector<Perm> expected_elements;
+  PermSet expected_elements;
   for (Perm const &perm : expected)
-    expected_elements.push_back(perm);
+    expected_elements.insert(perm);
 
   return perm_group_equal(expected_elements, actual);
 }
@@ -117,9 +120,9 @@ testing::AssertionResult perm_group_equal(
 {
   unsigned degree = actual.degree();
 
-  std::vector<Perm> expected_perms {Perm(degree)};
+  PermSet expected_perms {Perm(degree)};
   for (auto const &perm : expected_elements) {
-    expected_perms.push_back(Perm(degree, perm));
+    expected_perms.emplace(Perm(degree, perm));
   }
 
   return perm_group_equal(expected_perms, actual);
@@ -131,15 +134,15 @@ PermGroup verified_perm_group(VerifiedGroup group)
     PermutationGroupDescription() {}
 
     PermutationGroupDescription(unsigned degree,
-                          std::vector<Perm> generators,
-                          std::vector<Perm> elements)
+                                PermSet generators,
+                                PermSet elements)
      : degree(degree),
        generators(generators),
        elements(elements) {}
 
     unsigned degree;
-    std::vector<Perm> generators;
-    std::vector<Perm> elements;
+    PermSet generators;
+    PermSet elements;
 #ifndef NDEBUG
     bool verified = false;
 #endif

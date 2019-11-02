@@ -19,23 +19,14 @@ public:
   PermSet()
   {}
 
-  PermSet(std::initializer_list<Perm> const &perms)
-  : PermSet(perms.begin(), perms.end())
-  {}
-
-  // TODO: remove
-  PermSet(std::vector<Perm> const &perms)
+  PermSet(std::initializer_list<Perm> perms)
   : PermSet(perms.begin(), perms.end())
   {}
 
   template<typename IT>
   PermSet(IT b, IT e)
-  : _perms(b, e)
   {
-#ifndef NDEBUG
-    for (auto i = 1u; i < _perms.size(); ++i)
-      assert(_perms[i].degree() == degree());
-#endif
+    insert(b, e);
   }
 
   unsigned degree() const {
@@ -59,28 +50,43 @@ public:
   const_iterator begin() const { return _perms.begin(); }
   const_iterator end() const { return _perms.end(); }
 
-  void insert(Perm const &perm) { _perms.push_back(perm); }
-  void insert(Perm &&perm) { _perms.emplace_back(perm); }
+  void insert(Perm const &perm) {
+    assert_degree(perm.degree());
+    _perms.push_back(perm);
+  }
+
+  void insert(Perm &&perm) {
+    assert_degree(perm.degree());
+    _perms.emplace_back(perm); // TODO: forward
+  }
 
   template<typename IT>
-  void insert(IT b, IT e) { _perms.insert(_perms.end(), b, e); }
+  void insert(IT b, IT e) {
+#ifndef NDEBUG
+    for (auto it = b; it != e; ++it)
+      assert_degree(it->degree());
+#endif
+    _perms.insert(_perms.end(), b, e);
+  }
 
   template<typename ...ARGS>
-  void emplace(ARGS &&...args) {  _perms.emplace_back(args...); }
+  void emplace(ARGS &&...args) {
+    _perms.emplace_back(args...); // TODO: forward
+    assert_degree(_perms.back().degree());
+  }
 
   template<typename IT>
   IT erase(IT it) { return _perms.erase(it); }
+
+  void clear() { _perms.clear(); }
 
   void assert_not_empty() const {
     assert(!empty() && "permutation set not empty");
   }
 
-  void assert_degree(unsigned n) const {
-    assert((empty() || degree() == n) && "permutations have correct degree");
+  void assert_degree(unsigned deg) const {
+    assert((empty() || degree() == deg) && "permutations have correct degree");
   }
-
-  // TODO: remove
-  std::vector<Perm> vect() const { return _perms; }
 
 private:
   std::vector<Perm> _perms;

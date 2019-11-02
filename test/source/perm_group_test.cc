@@ -6,6 +6,7 @@
 
 #include "perm.h"
 #include "perm_group.h"
+#include "perm_set.h"
 #include "test_utility.h"
 
 #include "test_main.cc"
@@ -13,6 +14,7 @@
 using cgtl::BSGS;
 using cgtl::Perm;
 using cgtl::PermGroup;
+using cgtl::PermSet;
 
 using testing::ElementsAre;
 using testing::UnorderedElementsAre;
@@ -315,9 +317,9 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
   for (auto i = 0u; i < groups.size(); ++i) {
     unsigned degree = std::get<0>(groups[i]);
 
-    std::vector<Perm> generators;
+    PermSet generators;
     for (auto const &perm : std::get<1>(groups[i]))
-      generators.push_back(Perm(degree, perm));
+      generators.emplace(degree, perm);
 
     std::stringstream ss;
     ss << "Group generated correctly, generators are: ";
@@ -337,7 +339,7 @@ INSTANTIATE_TEST_CASE_P(ConstructionMethods, PermGroupConstructionMethodTest,
 
 TEST(PermGroupCombinationTest, CanConstructDirectProduct)
 {
-  std::vector<std::pair<std::vector<Perm>, std::vector<Perm>>> direct_products {
+  std::vector<std::pair<PermSet, PermSet>> direct_products {
     {
       {
         Perm(3, {{1, 2}}),
@@ -409,7 +411,7 @@ TEST(PermGroupCombinationTest, CanConstructDirectProduct)
 
 TEST(PermGroupCombinationTest, CanConstructWreathProduct)
 {
-  std::vector<std::pair<std::vector<Perm>, std::vector<Perm>>> wreath_products {
+  std::vector<std::pair<PermSet, PermSet>> wreath_products {
     {
       {
         Perm(5, {{1, 3, 2}}),

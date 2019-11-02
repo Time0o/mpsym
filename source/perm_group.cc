@@ -257,11 +257,17 @@ std::vector<PermGroup> disjoint_decomposition_complete_recursive(
 #endif
 
       // recurse for both orbit partition elements and return combined result
+      PermGroup pg1(pg.degree(),
+                    PermSet(restricted_gens1.begin(), restricted_gens1.end()));
+
       std::vector<PermGroup> res1 = disjoint_decomposition_complete_recursive(
-        PermGroup(pg.degree(), restricted_gens1), orbit_ids1, n_orbits1);
+        pg1, orbit_ids1, n_orbits1);
+
+      PermGroup pg2(pg.degree(),
+                    PermSet(restricted_gens2.begin(), restricted_gens2.end()));
 
       std::vector<PermGroup> res2 = disjoint_decomposition_complete_recursive(
-        PermGroup(pg.degree(), restricted_gens2), orbit_ids2, n_orbits2);
+        pg2, orbit_ids2, n_orbits2);
 
       for (PermGroup const &perm_group : res2)
         res1.push_back(perm_group);
@@ -451,9 +457,9 @@ PermGroup PermGroup::alternating(unsigned degree)
   if (degree == 2u)
     return PermGroup(2, {});
 
-  std::vector<Perm> gens;
+  PermSet gens;
   for (unsigned i = 3u; i <= degree; ++i)
-    gens.push_back(Perm(degree, {{1, 2, i}}));
+    gens.emplace(Perm(degree, {{1, 2, i}}));
 
   return PermGroup(degree, gens);
 }
@@ -462,9 +468,9 @@ PermGroup PermGroup::alternating(std::vector<unsigned> const &support)
 {
   unsigned degree = *std::max_element(support.begin(), support.end());
 
-  std::vector<Perm> gens;
+  PermSet gens;
   for (unsigned i = 2u; i < support.size(); ++i)
-    gens.push_back(Perm(degree, {{support[0], support[1], support[i]}}));
+    gens.emplace(Perm(degree, {{support[0], support[1], support[i]}}));
 
   return PermGroup(degree, gens);
 }
@@ -702,7 +708,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_incomplete() const
   Dbg(Dbg::DBG) << *this;
 
   struct EquivalenceClass {
-    std::vector<Perm> generators;
+    PermSet generators;
     std::vector<unsigned> moved;
   };
 
@@ -757,7 +763,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_incomplete() const
       if (!equivalent(moved, ec.moved))
         continue;
 
-      ec.generators.push_back(perm);
+      ec.generators.insert(perm);
       Dbg(Dbg::TRACE) << "Updated Equivalence class to " << ec.generators;
 
       ec.moved = moved_union(ec.moved, moved);
@@ -791,8 +797,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomposition_incomplete() const
         Dbg(Dbg::TRACE) << "Merging equivalence class " << ec2.generators
                         << " into " << ec1.generators;
 
-        ec1.generators.insert(ec1.generators.end(),
-                              ec2.generators.begin(), ec2.generators.end());
+        ec1.generators.insert(ec2.generators.begin(), ec2.generators.end());
 
         ec1.moved = moved_union(ec1.moved, ec2.moved);
 
@@ -934,7 +939,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
     }
 
     // try to find monomorphism from block permuter to group using heuristic
-    std::vector<Perm> block_permuter_generator_image;
+    PermSet block_permuter_generator_image;
 
     std::vector<unsigned> tmp_perm(degree());
     for (Perm const &gen : block_permuter.bsgs().strong_generators()) {
@@ -945,7 +950,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
           tmp_perm[block[j] - 1u] = bs[gen[i + 1u] - 1u][j];
       }
 
-      block_permuter_generator_image.push_back(Perm(tmp_perm));
+      block_permuter_generator_image.emplace(tmp_perm);
     }
 
     Dbg(Dbg::TRACE) << "Heuristic monomorphism image is:";
@@ -955,7 +960,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
 
     auto classes(bs.classes());
 
-    std::vector<Perm> block_permuter_generator_reconstruction;
+    PermSet block_permuter_generator_reconstruction;
 
     tmp_perm.resize(d);
     for (Perm const &gen : block_permuter_generator_image) {
@@ -973,7 +978,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
         break;
       }
 
-      block_permuter_generator_reconstruction.push_back(reconstructed_gen);
+      block_permuter_generator_reconstruction.insert(reconstructed_gen);
     }
 
     Dbg(Dbg::TRACE) << "Block permuter reconstruction yields generators:";

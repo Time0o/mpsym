@@ -7,12 +7,14 @@
 #include "block_system.h"
 #include "perm.h"
 #include "perm_group.h"
+#include "perm_set.h"
 
 #include "test_main.cc"
 
 using cgtl::BlockSystem;
 using cgtl::Perm;
 using cgtl::PermGroup;
+using cgtl::PermSet;
 
 static std::string block_to_string(std::vector<unsigned> const &block)
 {
@@ -72,7 +74,7 @@ static testing::AssertionResult block_system_equal(
 
 TEST(BlockSystemTest, CanFindMinimalBlockSystem)
 {
-  std::vector<Perm> generators {
+  PermSet generators {
     Perm(6, {{1, 2, 3, 4, 5, 6}}), Perm(6, {{2, 6}, {3, 5}})
   };
 

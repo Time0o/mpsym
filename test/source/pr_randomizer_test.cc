@@ -3,6 +3,8 @@
 
 #include "gmock/gmock.h"
 
+#include "perm.h"
+#include "perm_set.h"
 #include "pr_randomizer.h"
 
 #include "test_main.cc"
@@ -11,6 +13,7 @@
 #define RANDOMIZER_EPS_REL 5
 
 using cgtl::Perm;
+using cgtl::PermSet;
 using cgtl::PrRandomizer;
 
 class PRRandomizerTest : public testing::Test
@@ -80,19 +83,19 @@ TEST_F(PRRandomizerTest, CanTestForAltSym)
 {
   auto symmetric_generators = [](unsigned n) {
     if (n == 1u)
-      return std::vector<Perm> {Perm(1u)};
+      return PermSet {Perm(1u)};
 
     std::vector<unsigned> chain;
     for (unsigned i = 1u; i <= n; ++i)
       chain.push_back(i);
 
-    return std::vector<Perm> {Perm(n, {{1, 2}}), Perm(n, {chain})};
+    return PermSet {Perm(n, {{1, 2}}), Perm(n, {chain})};
   };
 
   auto alternating_generators = [](unsigned n) {
-    std::vector<Perm> gens;
+    PermSet gens;
     for (unsigned i = 3u; i <= n; ++i)
-      gens.push_back(Perm(n, {{1, 2, i}}));
+      gens.emplace(Perm(n, {{1, 2, i}}));
 
     return gens;
   };

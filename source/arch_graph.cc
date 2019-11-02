@@ -35,7 +35,7 @@ namespace
 {
 
 int generator_degree;
-std::vector<Perm> generators;
+PermSet generators;
 
 Perm to_perm(int *perm, int degree)
 {
@@ -48,7 +48,7 @@ Perm to_perm(int *perm, int degree)
 
 void save_generator(int, int *perm, int *, int, int, int)
 {
-  generators.push_back(to_perm(perm, generator_degree));
+  generators.emplace(to_perm(perm, generator_degree));
 }
 
 void nauty_free()

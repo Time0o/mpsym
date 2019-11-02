@@ -92,7 +92,8 @@ PermGroup BlockSystem::block_permuter(PermSet const &generators) const
     permuter_generators[i] = Perm(tmp_perm);
   }
 
-  return PermGroup(d, permuter_generators);
+  return PermGroup(
+    d, PermSet(permuter_generators.begin(), permuter_generators.end()));
 }
 
 bool BlockSystem::is_block(PermSet const &generators,
@@ -426,7 +427,10 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
     Dbg(Dbg::TRACE) << "Group generators restricted to " << orbits[i] << ":";
 	Dbg(Dbg::TRACE) << restricted_gens;
 
-    auto pg_restricted(PermGroup(orbit_high - orbit_low + 1u, restricted_gens));
+    PermGroup pg_restricted(
+      orbit_high - orbit_low + 1u,
+      PermSet(restricted_gens.begin(), restricted_gens.end()));
+
     auto block_systems(non_trivial(pg_restricted, true));
 
     partial_blocksystems[i] = block_systems;
