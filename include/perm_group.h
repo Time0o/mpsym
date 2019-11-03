@@ -289,7 +289,7 @@ public:
    *
    * \return this permutation group's order
    */
-  unsigned order() const { return _order; }
+  unsigned long long order() const { return _order; }
 
   /** Check whether a permutation group is *trivial*.
    *
@@ -434,7 +434,7 @@ private:
 
   std::vector<PermGroup> disjoint_decomp_incomplete() const;
 
-  unsigned _order;
+  unsigned long long _order;
   BSGS _bsgs;
 };
 

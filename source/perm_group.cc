@@ -93,9 +93,16 @@ PermGroup::PermGroup(unsigned degree,
                      BSGS::Transversals transversals)
 : _bsgs(degree, generators, construction, transversals)
 {
-  _order = 1u;
-  for (unsigned i = 0u; i < _bsgs.base_size(); ++i)
-    _order *= _bsgs.orbit(i).size();
+  _order = 1ULL;
+  for (unsigned i = 0u; i < _bsgs.base_size(); ++i) {
+    unsigned long long orbit_size = _bsgs.orbit(i).size();
+
+    // TODO: this restriction might need to be lifted
+    assert(_order <= ULLONG_MAX / orbit_size &&
+           "group order representable by unsigned long long");
+
+    _order *= orbit_size;
+  }
 }
 
 bool PermGroup::operator==(PermGroup const &rhs) const
