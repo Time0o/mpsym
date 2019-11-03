@@ -296,39 +296,31 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
 {
   auto method = GetParam();
 
-  typedef std::vector<std::vector<std::vector<unsigned>>> elemset;
-
-  std::vector<std::pair<unsigned, elemset>> groups {
-    {4, {{{2, 4}}, {{1, 2}, {3, 4}}}}
+  PermGroup groups[] = {
+    PermGroup(4,
+      {
+        Perm(4, {{2, 4}}),
+        Perm(4, {{1, 2}, {3, 4}})
+      },
+      method
+    )
   };
 
-  std::vector<elemset> expected_elements {
+  PermSet expected_elements[] = {
     {
-      {{1, 2, 3, 4}},
-      {{1, 2}, {3, 4}},
-      {{1, 3}, {2, 4}},
-      {{1, 3}},
-      {{1, 4, 3, 2}},
-      {{1, 4}, {2, 3}},
-      {{2, 4}}
+      Perm(4, {{1, 2, 3, 4}}),
+      Perm(4, {{1, 2}, {3, 4}}),
+      Perm(4, {{1, 3}, {2, 4}}),
+      Perm(4, {{1, 3}}),
+      Perm(4, {{1, 4, 3, 2}}),
+      Perm(4, {{1, 4}, {2, 3}}),
+      Perm(4, {{2, 4}})
     }
   };
 
-  for (auto i = 0u; i < groups.size(); ++i) {
-    unsigned degree = std::get<0>(groups[i]);
-
-    PermSet generators;
-    for (auto const &perm : std::get<1>(groups[i]))
-      generators.emplace(degree, perm);
-
-    std::stringstream ss;
-    ss << "Group generated correctly, generators are: ";
-    for (auto j = 0u; j < generators.size(); ++j)
-      ss << generators[j] << (j == generators.size() - 1u ? "" : ", ");
-
-    EXPECT_TRUE(perm_group_equal(
-      expected_elements[i], PermGroup(degree, generators, method)))
-      << ss.str();
+  for (auto i = 0u; i < sizeof(groups) / sizeof(groups[0]); ++i) {
+    EXPECT_TRUE(perm_group_equal(expected_elements[i], groups[i]))
+      << "Group generated correctly";
   }
 }
 
@@ -352,49 +344,49 @@ TEST(PermGroupCombinationTest, CanConstructDirectProduct)
     }
   };
 
-  std::vector<std::vector<std::vector<unsigned>>> expected_direct_products[] =  {
+  PermSet expected_direct_products[] = {
     {
-      {{1, 2, 3}, {4, 5, 6}},
-      {{1, 2, 3}, {4, 5}},
-      {{1, 2, 3}, {4, 6, 5}},
-      {{1, 2, 3}, {4, 6}},
-      {{1, 2, 3}, {5, 6}},
-      {{1, 2, 3}},
-      {{1, 2}, {4, 5, 6}},
-      {{1, 2}, {4, 5}},
-      {{1, 2}, {4, 6, 5}},
-      {{1, 2}, {4, 6}},
-      {{1, 2}, {5, 6}},
-      {{1, 2}},
-      {{1, 3, 2}, {4, 5, 6}},
-      {{1, 3, 2}, {4, 5}},
-      {{1, 3, 2}, {4, 6, 5}},
-      {{1, 3, 2}, {4, 6}},
-      {{1, 3, 2}, {5, 6}},
-      {{1, 3, 2}},
-      {{1, 3}, {4, 5, 6}},
-      {{1, 3}, {4, 5}},
-      {{1, 3}, {4, 6, 5}},
-      {{1, 3}, {4, 6}},
-      {{1, 3}, {5, 6}},
-      {{1, 3}},
-      {{2, 3}, {4, 5, 6}},
-      {{2, 3}, {4, 5}},
-      {{2, 3}, {4, 6, 5}},
-      {{2, 3}, {4, 6}},
-      {{2, 3}, {5, 6}},
-      {{2, 3}},
-      {{4, 5, 6}},
-      {{4, 5}},
-      {{4, 6, 5}},
-      {{4, 6}},
-      {{5, 6}},
+      Perm(6, {{1, 2, 3}, {4, 5, 6}}),
+      Perm(6, {{1, 2, 3}, {4, 5}}),
+      Perm(6, {{1, 2, 3}, {4, 6, 5}}),
+      Perm(6, {{1, 2, 3}, {4, 6}}),
+      Perm(6, {{1, 2, 3}, {5, 6}}),
+      Perm(6, {{1, 2, 3}}),
+      Perm(6, {{1, 2}, {4, 5, 6}}),
+      Perm(6, {{1, 2}, {4, 5}}),
+      Perm(6, {{1, 2}, {4, 6, 5}}),
+      Perm(6, {{1, 2}, {4, 6}}),
+      Perm(6, {{1, 2}, {5, 6}}),
+      Perm(6, {{1, 2}}),
+      Perm(6, {{1, 3, 2}, {4, 5, 6}}),
+      Perm(6, {{1, 3, 2}, {4, 5}}),
+      Perm(6, {{1, 3, 2}, {4, 6, 5}}),
+      Perm(6, {{1, 3, 2}, {4, 6}}),
+      Perm(6, {{1, 3, 2}, {5, 6}}),
+      Perm(6, {{1, 3, 2}}),
+      Perm(6, {{1, 3}, {4, 5, 6}}),
+      Perm(6, {{1, 3}, {4, 5}}),
+      Perm(6, {{1, 3}, {4, 6, 5}}),
+      Perm(6, {{1, 3}, {4, 6}}),
+      Perm(6, {{1, 3}, {5, 6}}),
+      Perm(6, {{1, 3}}),
+      Perm(6, {{2, 3}, {4, 5, 6}}),
+      Perm(6, {{2, 3}, {4, 5}}),
+      Perm(6, {{2, 3}, {4, 6, 5}}),
+      Perm(6, {{2, 3}, {4, 6}}),
+      Perm(6, {{2, 3}, {5, 6}}),
+      Perm(6, {{2, 3}}),
+      Perm(6, {{4, 5, 6}}),
+      Perm(6, {{4, 5}}),
+      Perm(6, {{4, 6, 5}}),
+      Perm(6, {{4, 6}}),
+      Perm(6, {{5, 6}})
     }
   };
 
   for (auto i = 0u; i < direct_products.size(); ++i) {
-    auto lhs(direct_products[i].first);
-    auto rhs(direct_products[i].second);
+    PermSet lhs(direct_products[i].first);
+    PermSet rhs(direct_products[i].second);
 
     EXPECT_TRUE(perm_group_equal(
       expected_direct_products[i],
@@ -403,8 +395,8 @@ TEST(PermGroupCombinationTest, CanConstructDirectProduct)
 
     EXPECT_TRUE(perm_group_equal(
       expected_direct_products[i],
-      PermGroup::direct_product(PermGroup(lhs[0].degree(), lhs),
-                                PermGroup(rhs[0].degree(), rhs))))
+      PermGroup::direct_product(PermGroup(lhs.degree(), lhs),
+                                PermGroup(rhs.degree(), rhs))))
         << "Direct product construction correct (group).";
   }
 }
@@ -769,25 +761,25 @@ TEST(SpecialPermGroupTest, CanConstructDihedralGroup)
 
 TEST(SpecialPermGroupTest, CanConstructSymmetricGroupWithSupport)
 {
-  std::vector<PermGroup> symmetric_groups {
+  PermGroup symmetric_groups[] = {
     PermGroup::symmetric({6, 9}),
     PermGroup::symmetric({7, 2, 4})
   };
 
-  std::vector<std::vector<std::vector<unsigned>>> expected_elements[] = {
+  PermSet expected_elements[] = {
     {
-      {{6, 9}}
+      Perm(9, {{6, 9}})
     },
     {
-      {{7, 2, 4}},
-      {{7, 2}},
-      {{7, 4, 2}},
-      {{7, 4}},
-      {{2, 4}}
+      Perm(7, {{7, 2, 4}}),
+      Perm(7, {{7, 2}}),
+      Perm(7, {{7, 4, 2}}),
+      Perm(7, {{7, 4}}),
+      Perm(7, {{2, 4}})
     }
   };
 
-  for (auto i = 0u; i < symmetric_groups.size(); ++i) {
+  for (auto i = 0u; i < sizeof(symmetric_groups) / sizeof(symmetric_groups[0]); ++i) {
     EXPECT_TRUE(perm_group_equal(expected_elements[i], symmetric_groups[i]))
       << "Symmetric group constructed for specific support has correct elements.";
   }
@@ -801,18 +793,18 @@ TEST(SpecialPermGroupTest, CanConstructCyclicGroupWithSupport)
     PermGroup::cyclic({1, 8, 4, 5})
   };
 
-  std::vector<std::vector<std::vector<unsigned>>> expected_elements[] = {
+  PermSet expected_elements[] = {
     {
-      {{6, 9}}
+      Perm(9, {{6, 9}})
     },
     {
-      {{7, 2, 4}},
-      {{7, 4, 2}}
+      Perm(7, {{7, 2, 4}}),
+      Perm(7, {{7, 4, 2}})
     },
     {
-      {{1, 8, 4, 5}},
-      {{1, 4}, {8, 5}},
-      {{1, 5, 4, 8}}
+      Perm(8, {{1, 8, 4, 5}}),
+      Perm(8, {{1, 4}, {8, 5}}),
+      Perm(8, {{1, 5, 4, 8}})
     }
   };
 
@@ -824,32 +816,32 @@ TEST(SpecialPermGroupTest, CanConstructCyclicGroupWithSupport)
 
 TEST(SpecialPermGroupTest, CanConstructAlternatingGroupWithSupport)
 {
-  std::vector<PermGroup> alternating_groups {
+  PermGroup alternating_groups[] = {
     PermGroup::alternating({7, 2, 4}),
     PermGroup::alternating({1, 8, 4, 5})
   };
 
-  std::vector<std::vector<std::vector<unsigned>>> expected_elements[] = {
+  PermSet expected_elements[] = {
     {
-      {{7, 2, 4}},
-      {{7, 4, 2}}
+      Perm(7, {{7, 2, 4}}),
+      Perm(7, {{7, 4, 2}})
     },
     {
-      {{1, 8, 4}},
-      {{1, 8, 5}},
-      {{1, 8}, {4, 5}},
-      {{1, 4, 8}},
-      {{1, 4, 5}},
-      {{1, 4}, {8, 5}},
-      {{1, 5, 8}},
-      {{1, 5, 4}},
-      {{1, 5}, {8, 4}},
-      {{8, 4, 5}},
-      {{8, 5, 4}}
+      Perm(8, {{1, 8, 4}}),
+      Perm(8, {{1, 8, 5}}),
+      Perm(8, {{1, 8}, {4, 5}}),
+      Perm(8, {{1, 4, 8}}),
+      Perm(8, {{1, 4, 5}}),
+      Perm(8, {{1, 4}, {8, 5}}),
+      Perm(8, {{1, 5, 8}}),
+      Perm(8, {{1, 5, 4}}),
+      Perm(8, {{1, 5}, {8, 4}}),
+      Perm(8, {{8, 4, 5}}),
+      Perm(8, {{8, 5, 4}})
     }
   };
 
-  for (auto i = 0u; i < alternating_groups.size(); ++i) {
+  for (auto i = 0u; i < sizeof(alternating_groups) / sizeof(alternating_groups[0]); ++i) {
     EXPECT_TRUE(perm_group_equal(expected_elements[i], alternating_groups[i]))
       << "Alternating group constructed for specific support has correct elements.";
   }
@@ -857,31 +849,31 @@ TEST(SpecialPermGroupTest, CanConstructAlternatingGroupWithSupport)
 
 TEST(SpecialPermGroupTest, CanConstructDihedralGroupWithSupport)
 {
-  std::vector<PermGroup> dihedral_groups {
+  PermGroup dihedral_groups[] = {
     PermGroup::dihedral({7, 2, 4}),
     PermGroup::dihedral({1, 8, 4, 5})
   };
 
-  std::vector<std::vector<std::vector<unsigned>>> expected_elements[] = {
+  PermSet expected_elements[] = {
     {
-      {{7, 2, 4}},
-      {{7, 2}},
-      {{7, 4, 2}},
-      {{7, 4}},
-      {{2, 4}}
+      Perm(7, {{7, 2, 4}}),
+      Perm(7, {{7, 2}}),
+      Perm(7, {{7, 4, 2}}),
+      Perm(7, {{7, 4}}),
+      Perm(7, {{2, 4}})
     },
     {
-      {{1, 8, 4, 5}},
-      {{1, 8}, {4, 5}},
-      {{1, 4}, {8, 5}},
-      {{1, 4}},
-      {{1, 5, 4, 8}},
-      {{1, 5}, {8, 4}},
-      {{8, 5}}
+      Perm(8, {{1, 8, 4, 5}}),
+      Perm(8, {{1, 8}, {4, 5}}),
+      Perm(8, {{1, 4}, {8, 5}}),
+      Perm(8, {{1, 4}}),
+      Perm(8, {{1, 5, 4, 8}}),
+      Perm(8, {{1, 5}, {8, 4}}),
+      Perm(8, {{8, 5}})
     }
   };
 
-  for (auto i = 0u; i < dihedral_groups.size(); ++i) {
+  for (auto i = 0u; i < sizeof(dihedral_groups) / sizeof(dihedral_groups[0]); ++i) {
     EXPECT_TRUE(perm_group_equal(expected_elements[i], dihedral_groups[i]))
       << "Dihedral group constructed for specific support has correct elements.";
   }

@@ -60,10 +60,30 @@ testing::AssertionResult perm_word_equal(std::vector<unsigned> const &expected,
   return _perm_equal<PermWord>(expected, pw);
 }
 
-static testing::AssertionResult perm_group_equal(
-  PermSet const &expected_elements,
-  PermGroup const &actual)
+testing::AssertionResult perm_group_equal(PermGroup const &expected,
+                                          PermGroup const &actual)
 {
+  PermSet expected_elements;
+  for (Perm const &perm : expected)
+    expected_elements.insert(perm);
+
+  return perm_group_equal(expected_elements, actual);
+}
+
+testing::AssertionResult perm_group_equal(PermSet expected_elements,
+                                          PermGroup const &actual)
+{
+  bool expected_has_id = false;
+  for (Perm const &perm : expected_elements) {
+    if (perm.id()) {
+      expected_has_id = true;
+      break;
+    }
+  }
+
+  if (!expected_has_id)
+    expected_elements.emplace(actual.degree());
+
   std::vector<Perm> actual_elements;
   for (Perm const &perm : actual)
     actual_elements.push_back(perm);
@@ -102,30 +122,6 @@ static testing::AssertionResult perm_group_equal(
   }
 
   return testing::AssertionFailure() << msg;
-}
-
-testing::AssertionResult perm_group_equal(PermGroup const &expected,
-                                          PermGroup const &actual)
-{
-  PermSet expected_elements;
-  for (Perm const &perm : expected)
-    expected_elements.insert(perm);
-
-  return perm_group_equal(expected_elements, actual);
-}
-
-testing::AssertionResult perm_group_equal(
-  std::vector<std::vector<std::vector<unsigned>>> const &expected_elements,
-  PermGroup const &actual)
-{
-  unsigned degree = actual.degree();
-
-  PermSet expected_perms {Perm(degree)};
-  for (auto const &perm : expected_elements) {
-    expected_perms.emplace(Perm(degree, perm));
-  }
-
-  return perm_group_equal(expected_perms, actual);
 }
 
 PermGroup verified_perm_group(VerifiedGroup group)

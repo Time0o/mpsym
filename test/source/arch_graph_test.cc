@@ -271,29 +271,42 @@ class ArchGraphTest : public ArchGraphTestBase<testing::Test>{};
 TEST_F(ArchGraphTest, CanObtainAutomorphisms)
 {
   EXPECT_TRUE(perm_group_equal({
-      {{1, 2, 3, 4}}, {{1, 3}, {2, 4}}, {{1, 4, 3, 2}}, {{1, 4}, {2, 3}},
-      {{1, 2}, {3, 4}}, {{1, 3}}, {{2, 4}}
+      Perm(4, {{1, 2, 3, 4}}),
+      Perm(4, {{1, 3}, {2, 4}}),
+      Perm(4, {{1, 4, 3, 2}}),
+      Perm(4, {{1, 4}, {2, 3}}),
+      Perm(4, {{1, 2}, {3, 4}}),
+      Perm(4, {{1, 3}}),
+      Perm(4, {{2, 4}})
     }, ag_nocol().automorphisms()))
     << "Automorphisms of uncolored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
-      {{1, 3}, {2, 4}}, {{1, 3}}, {{2, 4}}
+      Perm(4, {{1, 3}, {2, 4}}),
+      Perm(4, {{1, 3}}),
+      Perm(4, {{2, 4}})
     }, ag_vcol().automorphisms()))
     << "Automorphisms of processor colored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
-      {{1, 3}, {2, 4}}, {{1, 4}, {2, 3}}, {{1, 2}, {3, 4}}
+      Perm(4, {{1, 3}, {2, 4}}),
+      Perm(4, {{1, 4}, {2, 3}}),
+      Perm(4, {{1, 2}, {3, 4}})
     },
     ag_ecol().automorphisms()))
     << "Automorphisms of channel colored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
-      {{1, 3}, {2, 4}}
+      Perm(4, {{1, 3}, {2, 4}})
     }, ag_tcol().automorphisms()))
     << "Automorphisms of totally colored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
-      {{1, 2, 3}}, {{1, 2}}, {{1, 3, 2}}, {{1, 3}}, {{2, 3}}
+      Perm(3, {{1, 2, 3}}),
+      Perm(3, {{1, 2}}),
+      Perm(3, {{1, 3, 2}}),
+      Perm(3, {{1, 3}}),
+      Perm(3, {{2, 3}})
     }, ag_tri().automorphisms()))
     << "Automorphisms of minimal triangular architecture graph correct.";
 }
@@ -470,7 +483,9 @@ TEST_F(ArchGraphClusterTest, CanDetermineNumberOfChannels)
 TEST_F(ArchGraphClusterTest, CanObtainAutormorphisms)
 {
   EXPECT_TRUE(perm_group_equal({
-      {{1, 2}}, {{3, 4}}, {{1, 2}, {3, 4}},
+      Perm(4, {{1, 2}}),
+      Perm(4, {{3, 4}}),
+      Perm(4, {{1, 2}, {3, 4}})
     }, cluster_minimal.automorphisms()))
     << "Automorphisms of minimal architecture graph cluster correct.";
 }
