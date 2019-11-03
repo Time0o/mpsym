@@ -40,7 +40,7 @@ unsigned compress_generators(unsigned degree, PermSet &generators)
 
   std::queue<unsigned> non_moved_queue;
 
-  unsigned new_degree;
+  unsigned new_degree = 1u;
 
   for (unsigned i = 1u; i <= degree; ++i) {
     bool moved = false;
