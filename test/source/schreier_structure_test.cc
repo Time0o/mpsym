@@ -1,15 +1,18 @@
 #include <memory>
-#include <string>
 #include <vector>
 
 #include "gmock/gmock.h"
 
+#include "orbits.h"
+#include "perm.h"
+#include "perm_set.h"
 #include "schreier_structure.h"
 
 #include "test_main.cc"
 
 using cgtl::ExplicitTransversals;
 using cgtl::Perm;
+using cgtl::PermSet;
 using cgtl::SchreierTree;
 
 using testing::UnorderedElementsAreArray;
@@ -24,11 +27,9 @@ TYPED_TEST_CASE(SchreierStructureTest, SchreierStructureTypes);
 
 TYPED_TEST(SchreierStructureTest, CanConstructSchreierStructures)
 {
-  std::string display_type(typeid(TypeParam).name());
-
   unsigned n = 8;
 
-  std::vector<Perm> const generators {
+  PermSet const generators {
     Perm(n, {{1, 2, 3}}),
     Perm(n, {{1, 3}}),
     Perm(n, {{4, 6, 5}}),
@@ -46,7 +47,7 @@ TYPED_TEST(SchreierStructureTest, CanConstructSchreierStructures)
     {7, 8}
   };
 
-  std::vector<Perm> expected_transversals[] = {
+  PermSet expected_transversals[] = {
     {
       Perm(n),
       Perm(n, {{1, 2, 3}}),
@@ -88,49 +89,47 @@ TYPED_TEST(SchreierStructureTest, CanConstructSchreierStructures)
   };
 
   for (unsigned i = 0u; i < n; ++i) {
-    auto schreier_structure(std::make_shared<TypeParam>(n));
+    TypeParam schreier_structure(n);
 
-// TODO
-//    orbit(i + 1u, generators, schreier_structure);
-//
-//    EXPECT_EQ(i + 1u, schreier_structure->root())
-//      << "Root correct "
-//      << "(type is " << display_type << ").";
-//
-//    EXPECT_THAT(expected_orbits[i],
-//                UnorderedElementsAreArray(schreier_structure->nodes()))
-//      << "Node (orbit) correct "
-//      << "(root is " << i + 1u
-//      << ", type is " << display_type << ").";
-//
-//    for (unsigned x = 1u; x < n; ++x) {
-//      auto it(std::find(expected_orbits[i].begin(),
-//                        expected_orbits[i].end(), x));
-//
-//      bool contained = it != expected_orbits[i].end();
-//
-//      EXPECT_EQ(contained, schreier_structure->contains(x))
-//        << "Can identify contained elements "
-//        << "(root is " << i + 1u
-//        << ", element is " << x
-//        << ", type is " << display_type << ").";
-//    }
-//
-//    EXPECT_THAT(schreier_structure->labels(),
-//                UnorderedElementsAreArray(generators))
-//      << "Edge labels correct "
-//      << "(root is " << i + 1u
-//      << ", type is " << display_type << ").";
-//
-//    for (unsigned j = 0u; j < expected_orbits[i].size(); ++j) {
-//      unsigned origin = expected_orbits[i][j];
-//
-//      EXPECT_EQ(expected_transversals[i][j],
-//                schreier_structure->transversal(origin))
-//        << "Transversal correct "
-//        << "(root is " << i + 1u
-//        << ", origin is " << origin
-//        << ", type is " << display_type << ").";
-//    }
+    orbit_of(i + 1u, generators, &schreier_structure);
+
+    EXPECT_EQ(i + 1u, schreier_structure.root())
+      << "Root correct";
+
+    EXPECT_THAT(expected_orbits[i],
+                UnorderedElementsAreArray(schreier_structure.nodes()))
+      << "Node (orbit) correct "
+      << "(root is " << i + 1u << ").";
+
+    for (unsigned x = 1u; x < n; ++x) {
+      auto it(std::find(expected_orbits[i].begin(),
+                        expected_orbits[i].end(), x));
+
+      bool contained = it != expected_orbits[i].end();
+
+      EXPECT_EQ(contained, schreier_structure.contains(x))
+        << "Can identify contained elements "
+        << "(root is " << i + 1u
+        << ", element is " << x << ").";
+    }
+
+    auto labels(schreier_structure.labels());
+
+    std::vector<Perm> labels_vect(labels.begin(), labels.end());
+    std::vector<Perm> gen_vect(generators.begin(), generators.end());
+
+    EXPECT_THAT(labels_vect, UnorderedElementsAreArray(gen_vect))
+      << "Edge labels correct "
+      << "(root is " << i + 1u << ").";
+
+    for (unsigned j = 0u; j < expected_orbits[i].size(); ++j) {
+      unsigned origin = expected_orbits[i][j];
+
+      EXPECT_EQ(expected_transversals[i][j],
+                schreier_structure.transversal(origin))
+        << "Transversal correct "
+        << "(root is " << i + 1u
+        << ", origin is " << origin << ").";
+    }
   }
 }

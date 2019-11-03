@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "perm_set.h"
+#include "schreier_structure.h"
 
 /**
  * @file orbits.h
@@ -16,7 +17,9 @@ namespace cgtl
 {
 
 std::vector<unsigned>
-orbit_of(unsigned x, PermSet const &generators);
+orbit_of(unsigned x,
+         PermSet const &generators,
+         SchreierStructure *ss = nullptr);
 
 std::vector<std::vector<unsigned>>
 orbit_partition(PermSet const &generators);

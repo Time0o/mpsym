@@ -1,37 +1,42 @@
+#include <set>
 #include <vector>
 
 #include "orbits.h"
 #include "perm.h"
 #include "perm_set.h"
+#include "schreier_structure.h"
 
 namespace cgtl
 {
 
 std::vector<unsigned>
-orbit_of(unsigned x, PermSet const &generators)
+orbit_of(unsigned x, PermSet const &generators, SchreierStructure *ss)
 {
   std::vector<unsigned> res {x};
 
-  if (generators.empty())
-    return res;
-
-  std::vector<unsigned> in_orbit(generators.degree() + 1, 0);
-  in_orbit[x] = 1;
+  if (ss) {
+    ss->create_root(x);
+    ss->create_labels(generators);
+  }
 
   std::vector<unsigned> stack {x};
+  std::set<unsigned> done {x};
 
   while (!stack.empty()) {
-    unsigned y = stack.back();
+    unsigned beta = stack.back();
     stack.pop_back();
 
-    for (Perm const &gen : generators) {
-      unsigned y_prime = gen[y];
+    for (auto i = 0u; i < generators.size(); ++i) {
+      Perm gen = generators[i];
+      unsigned beta_prime = gen[beta];
 
-      if (!in_orbit[y_prime]) {
-        in_orbit[y_prime] = 1;
+      if (done.find(beta_prime) == done.end()) {
+        done.insert(beta_prime);
+        stack.push_back(beta_prime);
+        res.push_back(beta_prime);
 
-        stack.push_back(y_prime);
-        res.push_back(y_prime);
+        if (ss)
+          ss->create_edge(beta_prime, beta, i);
       }
     }
   }

@@ -9,6 +9,7 @@
 
 #include "bsgs.h"
 #include "dbg.h"
+#include "orbits.h"
 #include "perm.h"
 #include "schreier_structure.h"
 
@@ -133,28 +134,7 @@ void BSGS::update_schreier_structure(unsigned i, PermSet const &generators)
   unsigned bp = base_point(i);
   auto st = _schreier_structures[i];
 
-  st->create_root(bp);
-  st->create_labels(generators);
-
-  std::vector<unsigned> stack {bp};
-  std::set<unsigned> done {bp};
-
-  while (!stack.empty()) {
-    unsigned beta = stack.back();
-    stack.pop_back();
-
-    for (auto i = 0u; i < generators.size(); ++i) {
-      Perm gen = generators[i];
-      unsigned beta_prime = gen[beta];
-
-      if (done.find(beta_prime) == done.end()) {
-        done.insert(beta_prime);
-        stack.push_back(beta_prime);
-
-        st->create_edge(beta_prime, beta, i);
-      }
-    }
-  }
+  orbit_of(bp, generators, st.get());
 }
 
 void BSGS::remove_redundant_generators(bool preserve_original)
