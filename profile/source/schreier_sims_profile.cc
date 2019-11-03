@@ -7,14 +7,15 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <map>
 #include <memory>
 #include <numeric>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <type_traits>
-#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -109,32 +110,41 @@ enum TransversalImpl {
   TRANSVERSAL_SHALLOW_SCHREIER_TREE
 };
 
-std::unordered_map<std::string, LibraryImpl> library_impls {
+std::map<std::string, LibraryImpl> library_impls {
+  { "unset", LIBRARY_UNSET },
   { "mpsym", LIBRARY_MPSYM },
   { "permlib", LIBRARY_PERMLIB },
   { "gap", LIBRARY_GAP }
 };
 
-std::unordered_map<std::string, SchreierSimsImpl> schreier_sims_impls {
+std::map<std::string, SchreierSimsImpl> schreier_sims_impls {
+  { "unset", SCHREIER_SIMS_UNSET },
   { "deterministic", SCHREIER_SIMS_DETERMINISTIC },
   { "random", SCHREIER_SIMS_RANDOM }
 };
 
-std::unordered_map<std::string, TransversalImpl> transversal_impls {
+std::map<std::string, TransversalImpl> transversal_impls {
+  { "unset", TRANSVERSAL_UNSET },
   { "explicit", TRANSVERSAL_EXPLICIT },
   { "schreier-tree", TRANSVERSAL_SCHREIER_TREE },
   { "shallow-schreier-tree", TRANSVERSAL_SHALLOW_SCHREIER_TREE }
 };
 
 template<typename T>
-T choose_impl(std::unordered_map<std::string, T> params,
-              std::string const &choice)
+std::pair<std::string, T> default_impl(std::map<std::string, T> const &params)
+{
+  return *params.begin();
+}
+
+template<typename T>
+std::pair<std::string, T> choose_impl(std::map<std::string, T> const &params,
+                                      std::string const &choice)
 {
   auto it = params.find(choice);
-  if (it == params.end())
+  if (it->first == "unset" || it == params.end())
     throw std::invalid_argument("invalid parameter choice");
 
-  return it->second;
+  return *it;
 }
 
 void stoi_strict(std::string const &str, int *i)
@@ -532,9 +542,23 @@ int main(int argc, char **argv)
     {nullptr,               0,                 nullptr,  0 }
   };
 
-  LibraryImpl library_impl = LIBRARY_UNSET;
-  SchreierSimsImpl schreier_sims_impl = SCHREIER_SIMS_UNSET;
-  TransversalImpl transversal_impl = TRANSVERSAL_UNSET;
+  std::string library_impl_name;
+  LibraryImpl library_impl;
+
+  std::string schreier_sims_impl_name;
+  SchreierSimsImpl schreier_sims_impl;
+
+  std::string transversal_impl_name;
+  TransversalImpl transversal_impl;
+
+  std::tie(library_impl_name, library_impl) =
+    default_impl(library_impls);
+
+  std::tie(schreier_sims_impl_name, schreier_sims_impl) =
+    default_impl(schreier_sims_impls);
+
+  std::tie(transversal_impl_name, transversal_impl) =
+    default_impl(transversal_impls);
 
   std::string groups;
 
@@ -555,13 +579,16 @@ int main(int argc, char **argv)
         usage(std::cout);
         return EXIT_SUCCESS;
       case 'i':
-        library_impl = choose_impl(library_impls, optarg);
+        std::tie(library_impl_name, library_impl) =
+          choose_impl(library_impls, optarg);
         break;
       case 's':
-        schreier_sims_impl = choose_impl(schreier_sims_impls, optarg);
+        std::tie(schreier_sims_impl_name, schreier_sims_impl) =
+          choose_impl(schreier_sims_impls, optarg);
         break;
       case 't':
-        transversal_impl = choose_impl(transversal_impls, optarg);
+        std::tie(transversal_impl_name, transversal_impl) =
+          choose_impl(transversal_impls, optarg);
         break;
       case 'c':
         stoi_strict(optarg, &num_cycles);
@@ -579,7 +606,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
       }
     } catch (std::invalid_argument const &) {
-      error("invalid argument to", long_options[optind].name);
+      error("invalid option argument");
       return EXIT_FAILURE;
     }
   }
@@ -616,8 +643,22 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  if (verbose)
+  if (verbose) {
     Timer::enabled = true;
+
+    std::cout << "Implementation: " << library_impl_name
+              << std::endl;
+    std::cout << "Schreier-sims variant: " << schreier_sims_impl_name
+              << std::endl;
+    std::cout << "Transversals: " << transversal_impl_name
+              << std::endl;
+
+    if (num_cycles > 1)
+      std::cout << "Constructions per run: " << num_cycles
+                << std::endl;
+
+    std::cout << std::endl;
+  }
 
   std::regex re("degree:(\\d+),order:(\\d+),gens:(.*)");
   std::smatch m;
@@ -635,7 +676,7 @@ int main(int argc, char **argv)
     auto generators = m[3];
 
     if (verbose) {
-      std::cout << "profiling group " << lineno
+      std::cout << ">>> Constructing group " << lineno
                 << " with degree " << degree
                 << " and order " << order
                 << std::endl;
@@ -643,8 +684,15 @@ int main(int argc, char **argv)
 
     std::vector<double> ts;
     for (int r = 0; r < num_runs; ++r) {
-      if (verbose)
-        std::cout << "run " << r + 1 << '/' << num_runs << std::endl;
+      if (verbose) {
+        if (r > 0)
+          std::cout << '\r';
+
+        std::cout << "Executing run " << r + 1 << '/' << num_runs << std::flush;
+
+        if (r == num_runs - 1)
+          std::cout << std::endl;
+      }
 
       double t;
       if (library_impl == LIBRARY_GAP) {
@@ -682,8 +730,8 @@ int main(int argc, char **argv)
     util::mean_stddev(ts, &t_mean, &t_stddev);
 
     std::cout.precision(3);
-    std::cout << "mean: " << std::scientific << t_mean << "s, "
-              << "stddev: " << std::scientific << t_stddev << "s"
+    std::cout << "Mean: " << std::scientific << t_mean << "s, "
+              << "Stddev: " << std::scientific << t_stddev << "s"
               << std::endl;
 
     ++lineno;
