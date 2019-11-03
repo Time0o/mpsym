@@ -416,10 +416,23 @@ public:
   std::vector<PermGroup> wreath_decomposition() const;
 
 private:
-  std::vector<PermGroup> disjoint_decomposition_complete(
+  bool disjoint_decomp_complete_orbits_dependent(
+    std::vector<unsigned> orbit1,
+    std::vector<unsigned> orbit2) const;
+
+  unsigned disjoint_decomp_complete_generate_dependency_classes(
+    std::vector<unsigned> &orbit_ids,
+    unsigned n_orbits) const;
+
+  std::vector<PermGroup> disjoint_decomp_complete_recursive(
+    std::vector<unsigned> const &orbit_ids,
+    unsigned n_orbits,
+    PermGroup const *pg = nullptr) const;
+
+  std::vector<PermGroup> disjoint_decomp_complete(
     bool disjoint_orbit_optimization = true) const;
 
-  std::vector<PermGroup> disjoint_decomposition_incomplete() const;
+  std::vector<PermGroup> disjoint_decomp_incomplete() const;
 
   unsigned _order;
   BSGS _bsgs;
