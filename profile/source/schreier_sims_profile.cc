@@ -63,7 +63,7 @@ void usage(std::ostream &s)
     "[-h|--help]",
     "-i|--implementation        {mpsym|permlib|gap}",
     "-s|--schreier-sims         {deterministic|random}",
-    "[-t|--transversal-storage] {explicit|schreier-tree|random-schreier-tree}",
+    "[-t|--transversal-storage] {explicit|schreier-tree|shallow-schreier-tree}",
     "[-c|--num-cycles]",
     "[-r|--num-runs]",
     "[-v|--verbose]",
