@@ -44,10 +44,17 @@ public:
     TRANSVERSALS_AUTO
   };
 
+  enum Reduce {
+    REDUCE_REMOVE_REDUNDANT,
+    REDUCE_REMOVE_REDUNDANT_PRESERVE_ORIGINAL,
+    REDUCE_AUTO
+  };
+
   BSGS(unsigned degree,
        PermSet const &generators,
        Construction construction = CONSTRUCTION_AUTO,
-       Transversals transversals = TRANSVERSALS_AUTO);
+       Transversals transversals = TRANSVERSALS_AUTO,
+       Reduce reduce = REDUCE_AUTO);
 
   unsigned degree() const { return _degree; }
 
@@ -68,8 +75,6 @@ public:
 
   std::pair<Perm, unsigned> strip(Perm const &perm, unsigned offs = 0) const;
   bool strips_completely(Perm const &perm) const;
-
-  void remove_generators();
 
 private:
   // schreier sims initialization
@@ -94,8 +99,11 @@ private:
 
   // convenience methods
   void extend_base(unsigned bp);
+
   ss_type make_schreier_structure(unsigned bp);
   void update_schreier_structure(unsigned i, PermSet const &strong_generators);
+
+  void remove_redundant_generators(bool preserve_original);
 
   unsigned _degree;
   Transversals _transversals;

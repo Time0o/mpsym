@@ -18,7 +18,8 @@ namespace cgtl
 BSGS::BSGS(unsigned degree,
            PermSet const &generators,
            Construction construction,
-           Transversals transversals)
+           Transversals transversals,
+           Reduce reduce)
 : _degree(degree),
   _transversals(transversals)
 {
@@ -39,6 +40,17 @@ BSGS::BSGS(unsigned degree,
       break;
     case CONSTRUCTION_AUTO:
       schreier_sims(generators); // TODO
+      break;
+  }
+
+  switch (reduce) {
+    case REDUCE_REMOVE_REDUNDANT:
+      remove_redundant_generators(false);
+      break;
+    case REDUCE_REMOVE_REDUNDANT_PRESERVE_ORIGINAL:
+      remove_redundant_generators(true);
+      break;
+    case REDUCE_AUTO:
       break;
   }
 }
@@ -145,9 +157,11 @@ void BSGS::update_schreier_structure(unsigned i, PermSet const &generators)
   }
 }
 
-// TODO: add option to keep original generators
-void BSGS::remove_generators()
+void BSGS::remove_redundant_generators(bool preserve_original)
 {
+  if (preserve_original)
+    throw std::logic_error("TODO");
+
   Dbg(Dbg::DBG) << "Removing redundant strong generators from BSGS:";
   Dbg(Dbg::DBG) << *this;
 
