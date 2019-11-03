@@ -173,7 +173,7 @@ void BSGS::schreier_sims_random(PermSet const &generators, unsigned w)
       for (unsigned bp = 1u; bp <= degree(); ++bp) {
         if (strip_perm[bp] != bp) {
           extend_base(bp);
-          _strong_generators.emplace();
+          strong_generators.emplace_back();
 
           Dbg(Dbg::TRACE) << "Adjoined new basepoint:";
           Dbg(Dbg::TRACE) << "B = " << _base;
