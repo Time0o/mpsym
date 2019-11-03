@@ -27,6 +27,8 @@
 
 #include "perm.h"
 #include "perm_group.h"
+#include "perm_set.h"
+#include "timer.h"
 #include "util.h"
 
 namespace boost {
@@ -160,26 +162,28 @@ void make_mpsym_perm_group(SchreierSimsImpl schreier_sims_impl,
                            std::vector<cgtl::Perm> const &gens,
                            int num_cycles)
 {
+  using cgtl::BSGS;
   using cgtl::PermGroup;
+  using cgtl::PermSet;
 
-  PermGroup::ConstructionMethod constr =
+  BSGS::Construction constr =
     schreier_sims_impl == SCHREIER_SIMS_DETERMINISTIC ?
-     PermGroup::SCHREIER_SIMS :
+      BSGS::CONSTRUCTION_SCHREIER_SIMS :
     schreier_sims_impl == SCHREIER_SIMS_RANDOM ?
-      PermGroup::SCHREIER_SIMS_RANDOM :
+      BSGS::CONSTRUCTION_SCHREIER_SIMS_RANDOM :
     throw std::logic_error("unreachable");
 
-  PermGroup::TransversalStorageMethod transv =
+  BSGS::Transversals transv =
     transversal_impl == TRANSVERSAL_EXPLICIT ?
-      PermGroup::EXPLICIT_TRANSVERSALS :
+      BSGS::TRANSVERSALS_EXPLICIT :
     transversal_impl == TRANSVERSAL_SCHREIER_TREE ?
-      PermGroup::SCHREIER_TREES :
+      BSGS::TRANSVERSALS_SCHREIER_TREES :
     transversal_impl == TRANSVERSAL_SHALLOW_SCHREIER_TREE ?
-      PermGroup::SHALLOW_SCHREIER_TREES :
+      BSGS::TRANSVERSALS_SHALLOW_SCHREIER_TREES :
     throw std::logic_error("unreachable");
 
   for (int i = 0; i < num_cycles; ++i)
-    PermGroup g(degree, gens, constr, transv);
+    PermGroup g(degree, PermSet(gens.begin(), gens.end()), constr, transv);
 }
 
 template <typename T>

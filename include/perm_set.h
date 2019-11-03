@@ -85,7 +85,11 @@ public:
   }
 
   void assert_degree(unsigned deg) const {
+#ifndef NDEBUG
     assert((empty() || degree() == deg) && "permutations have correct degree");
+#else
+    (void)deg;
+#endif
   }
 
 private:
