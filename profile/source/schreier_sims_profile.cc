@@ -16,6 +16,7 @@
 #include <string>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -324,47 +325,50 @@ double timer_stop(pid_t maybe_child) {
   return t;
 }
 
-template<LibraryImpl L>
-bool run_cpp(SchreierSimsImpl schreier_sims_impl,
-             TransversalImpl transversal_impl,
-             std::string const &generators,
-             int num_cycles,
-             double *t)
+// generator parsing
+
+using gen_type = std::vector<std::vector<std::vector<unsigned>>>;
+
+std::vector<std::string> split_generators(std::string const &gen_str)
 {
   // validate generator expression
   std::string perm = R"((\(\)|(\((\d+,)+\d+\))+))";
 
   std::regex re("\\[(" + perm + ",)*(" + perm + ")?\\]");
 
-  if (!std::regex_match(generators, re)) {
-    error("malformed generator expression");
-    return false;
-  }
+  if (!std::regex_match(gen_str, re))
+    throw std::invalid_argument("malformed generator expression");
 
   // extract permutation expressions
   std::vector<std::string> gen_strs;
 
   std::size_t pos = 1, nextpos;
   for (;;) {
-    nextpos = generators.find("),", pos);
+    nextpos = gen_str.find("),", pos);
 
     if (nextpos == std::string::npos) {
-      gen_strs.push_back(generators.substr(pos, generators.size() - pos - 1));
+      gen_strs.push_back(gen_str.substr(pos, gen_str.size() - pos - 1));
       break;
     } else {
-      gen_strs.push_back(generators.substr(pos, nextpos - pos + 1));
+      gen_strs.push_back(gen_str.substr(pos, nextpos - pos + 1));
     }
 
     pos = nextpos + 2;
   }
 
-  // parse permutation expressions
+  return gen_strs;
+}
+
+std::pair<unsigned, gen_type> parse_generators(
+  std::vector<std::string> const &gen_strs)
+{
   unsigned degree = 0;
-  std::vector<std::vector<std::vector<unsigned>>> gens_;
+
+  gen_type gens;
 
   for (auto const &gen_str : gen_strs) {
-    std::vector<unsigned> cycle;
-    std::vector<std::vector<unsigned>> perm;
+    gen_type::value_type perm;
+    gen_type::value_type::value_type cycle;
 
     int n_beg = -1;
     for (int i = 0; i < static_cast<int>(gen_str.size()); ++i) {
@@ -379,11 +383,7 @@ bool run_cpp(SchreierSimsImpl schreier_sims_impl,
         {
           int n = 0;
 
-          try {
-            stoi_strict(gen_str.substr(n_beg, i - n_beg), &n);
-          } catch (std::invalid_argument const &) {
-            assert(false);
-          }
+          stoi_strict(gen_str.substr(n_beg, i - n_beg), &n);
 
           degree = std::max(degree, static_cast<unsigned>(n));
 
@@ -400,43 +400,86 @@ bool run_cpp(SchreierSimsImpl schreier_sims_impl,
       }
     }
 
-    gens_.push_back(perm);
+    gens.push_back(perm);
   }
 
-  typedef typename std::conditional<
-    L == LIBRARY_MPSYM, cgtl::Perm,
-    permlib::Permutation::ptr
-  >::type gen_type;
+  return {degree, gens};
+}
 
-  std::vector<gen_type> gens(gens_.size());
+std::vector<cgtl::Perm> convert_generators_mpsym(
+  unsigned degree, gen_type const &gens)
+{
+  std::vector<cgtl::Perm> gens_conv(gens.size());
 
-  // construct generators
-  if constexpr (L == LIBRARY_MPSYM) {
-    for (auto i = 0u; i < gens_.size(); ++i)
-      gens[i] = cgtl::Perm(degree, gens_[i]);
+  for (auto i = 0u; i < gens.size(); ++i)
+    gens_conv[i] = cgtl::Perm(degree, gens[i]);
 
-  } else { // LIBRARY_PERMLIB
-    for (auto i = 0u; i < gens_.size(); ++i) {
-      auto &gen(gens_[i]);
+  return gens_conv;
+}
 
-      std::stringstream gen_str;
-      for (auto j = 0u; j < gen.size(); ++j) {
-        auto &cycle(gens_[i][j]);
-        for (auto k = 0u; k < gens_[i][j].size(); ++k) {
-          gen_str << cycle[k];
+std::vector<permlib::Permutation::ptr> convert_generators_permlib(
+  unsigned degree, gen_type const &gens)
+{
+  (void)degree;
 
-          if (k == cycle.size() - 1) {
-            if (j < gen.size() - 1)
-              gen_str << ", ";
-          } else {
-            gen_str << " ";
-          }
+  std::vector<permlib::Permutation::ptr> gens_conv(gens.size());
+
+  for (auto i = 0u; i < gens.size(); ++i) {
+    auto &gen(gens[i]);
+
+    std::stringstream gen_str;
+    for (auto j = 0u; j < gen.size(); ++j) {
+      auto &cycle(gens[i][j]);
+      for (auto k = 0u; k < cycle.size(); ++k) {
+        gen_str << cycle[k];
+
+        if (k == cycle.size() - 1) {
+          if (j < gen.size() - 1)
+            gen_str << ", ";
+        } else {
+          gen_str << " ";
         }
       }
-
-      gens[i] = permlib::Permutation::ptr(
-        new permlib::Permutation(degree, gen_str.str()));
     }
+
+    gens_conv[i] = permlib::Permutation::ptr(
+      new permlib::Permutation(degree, gen_str.str()));
+  }
+
+  return gens_conv;
+}
+
+// execution wrappers
+
+template<LibraryImpl L>
+bool run_cpp(SchreierSimsImpl schreier_sims_impl,
+             TransversalImpl transversal_impl,
+             std::string const &gen_str,
+             int num_cycles,
+             double *t)
+{
+  // parse generators
+  unsigned degree;
+
+  typedef typename std::conditional<
+    L == LIBRARY_MPSYM, cgtl::Perm, permlib::Permutation::ptr
+  >::type gen_conv_type;
+
+  std::vector<gen_conv_type> gens;
+
+  try {
+    auto gen_strs(split_generators(gen_str));
+
+    gen_type gen_vect;
+    std::tie(degree, gen_vect) = parse_generators(gen_strs);
+
+    if constexpr (L == LIBRARY_MPSYM)
+      gens = convert_generators_mpsym(degree, gen_vect);
+    else // LIBRARY_PERMLIB
+      gens = convert_generators_permlib(degree, gen_vect);
+
+  } catch (std::invalid_argument const &) {
+    return false;
   }
 
   // run group creation in child process
