@@ -1,6 +1,7 @@
 #ifndef _GUARD_SCHREIER_GENERATOR_QUEUE_H
 #define _GUARD_SCHREIER_GENERATOR_QUEUE_H
 
+#include <cassert>
 #include <memory>
 #include <vector>
 
@@ -32,13 +33,11 @@ public:
     : _queue(queue),
       _end(false)
     {
-      if (_queue->_used)
-        _queue->next_sg();
-
-      _queue->_used = true;
+      _queue->advance();
+      _queue->mark_used();
     }
 
-    iterator operator++() { _queue->next_sg(); return *this; }
+    iterator operator++() { _queue->advance(); return *this; }
     iterator operator++(int) { throw std::logic_error("not implemented"); }
     Perm const & operator*() const { return _queue->_schreier_generator; }
     Perm const * operator->() const { return &_queue->_schreier_generator; }
@@ -90,8 +89,6 @@ public:
 
     _u_beta = u_beta();
 
-    next_sg();
-
     _valid = true;
     _used = false;
     _exhausted = false;
@@ -111,12 +108,8 @@ private:
 
   void next_sg()
   {
-    _schreier_generator = _u_beta * (*_sg_it) * ~u_beta_x();
-
     if (++_sg_it == _sg_end)
       next_beta();
-
-    // TODO: skip trivial by definition
   }
 
   void next_beta()
@@ -128,6 +121,22 @@ private:
       _u_beta = u_beta();
     }
   }
+
+  void advance()
+  {
+    if (_used)
+      next_sg();
+
+    while (!_exhausted && _schreier_structure->incoming(*_beta_it, *_sg_it))
+      next_sg();
+
+    if (_exhausted)
+      return;
+
+    _schreier_generator = _u_beta * (*_sg_it) * ~u_beta_x();
+  }
+
+  void mark_used() { _used = true; }
 
   sg_it_type _sg_it;
   sg_it_type _sg_begin;

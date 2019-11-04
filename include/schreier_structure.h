@@ -32,6 +32,7 @@ struct SchreierStructure
   virtual PermSet labels() const = 0;
 
   virtual bool contains(unsigned node) const = 0;
+  virtual bool incoming(unsigned node, Perm const &edge) const = 0;
   virtual Perm transversal(unsigned origin) const = 0;
 };
 
@@ -49,6 +50,7 @@ struct ExplicitTransversals : public SchreierStructure
   PermSet labels() const override;
 
   bool contains(unsigned node) const override;
+  bool incoming(unsigned node, Perm const &edge) const override;
   Perm transversal(unsigned origin) const override;
 
 private:
@@ -72,6 +74,7 @@ struct SchreierTree : public SchreierStructure
   PermSet labels() const override;
 
   bool contains(unsigned node) const override;
+  bool incoming(unsigned node, Perm const &edge) const override;
   Perm transversal(unsigned origin) const override;
 
 private:
