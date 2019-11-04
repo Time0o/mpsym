@@ -423,7 +423,7 @@ bool run_cpp(SchreierSimsImpl schreier_sims_impl,
       for (auto j = 0u; j < gen.size(); ++j) {
         auto &cycle(gens_[i][j]);
         for (auto k = 0u; k < gens_[i][j].size(); ++k) {
-          gen_str << i << cycle[k];
+          gen_str << cycle[k];
 
           if (k == cycle.size() - 1) {
             if (j < gen.size() - 1)
