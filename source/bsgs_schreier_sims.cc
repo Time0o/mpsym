@@ -78,7 +78,9 @@ top:
             if (it == _base.end() && strip_perm[bp] != bp)
               break;
 
-            assert(++bp <= degree());
+            ++bp;
+
+            assert(bp <= degree());
           }
 
           extend_base(bp);
