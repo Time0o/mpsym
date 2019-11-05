@@ -11,7 +11,8 @@
 #include "dbg.h"
 #include "orbits.h"
 #include "perm.h"
-#include "schreier_structure.h"
+#include "explicit_transversals.h"
+#include "schreier_tree.h"
 
 namespace cgtl
 {

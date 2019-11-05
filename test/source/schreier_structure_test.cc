@@ -3,10 +3,11 @@
 
 #include "gmock/gmock.h"
 
+#include "explicit_transversals.h"
 #include "orbits.h"
 #include "perm.h"
 #include "perm_set.h"
-#include "schreier_structure.h"
+#include "schreier_tree.h"
 
 #include "test_main.cc"
 

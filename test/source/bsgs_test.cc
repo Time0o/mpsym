@@ -15,7 +15,6 @@ using cgtl::BSGS;
 using cgtl::Perm;
 using cgtl::PermGroup;
 using cgtl::PermSet;
-using cgtl::SchreierTree;
 
 TEST(BSGSTest, CanSolveBSGS)
 {
