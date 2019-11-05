@@ -56,19 +56,8 @@ public:
     bool _end;
   };
 
-  SchreierGeneratorQueue(sg_type const &strong_generators,
-                         fo_type const &fundamental_orbit,
-                         std::shared_ptr<SchreierStructure> schreier_structure)
-  : _sg_it(strong_generators.begin()),
-    _sg_begin(strong_generators.begin()),
-    _sg_end(strong_generators.end()),
-    _beta_it(fundamental_orbit.begin()),
-    _beta_end(fundamental_orbit.end()),
-    _schreier_structure(schreier_structure),
-    _valid(false),
-    _used(false),
-    _exhausted(false),
-    _u_beta(u_beta())
+  SchreierGeneratorQueue()
+  : _valid(false)
   {}
 
   void update(sg_type const &strong_generators,

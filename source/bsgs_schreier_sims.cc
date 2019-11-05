@@ -113,9 +113,7 @@ top:
 
         // update schreier generator queue
         if (do_extend_base) {
-          schreier_generator_queues.emplace_back(strong_generators[i],
-                                                 fundamental_orbits[i],
-                                                 _schreier_structures[i]);
+          schreier_generator_queues.emplace_back();
         } else {
           schreier_generator_queues[i].invalidate();
         }
@@ -259,6 +257,9 @@ void BSGS::schreier_sims_init(
   strong_generators->resize(base_size());
   fundamental_orbits->resize(base_size());
 
+  if (schreier_generator_queues)
+    schreier_generator_queues->resize(base_size());
+
   // calculate initial strong generator sets
   for (unsigned i = 0u; i < base_size(); ++i) {
     for (Perm const &gen : _strong_generators) {
@@ -277,11 +278,6 @@ void BSGS::schreier_sims_init(
 
     update_schreier_structure(i, (*strong_generators)[i]);
     (*fundamental_orbits)[i] = orbit(i);
-
-    if (schreier_generator_queues)
-      schreier_generator_queues->emplace_back((*strong_generators)[i],
-                                              (*fundamental_orbits)[i],
-                                              _schreier_structures[i]);
   }
 
   Dbg(Dbg::DBG) << "=== Initial values";
