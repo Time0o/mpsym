@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "dbg.h"
-#include "timer.h"
 #include "util.h"
 
 #ifdef NTIMER
