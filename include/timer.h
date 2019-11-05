@@ -5,8 +5,8 @@
 #include <ctime>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "dbg.h"
@@ -43,21 +43,16 @@ public:
 
   static void create(char const *name, Precision precision)
   {
-    auto it = _timers.find(name);
-    if (it != _timers.end())
-      throw std::logic_error("timer already exists");
+    get_and_check(name, false);
 
     _timers.insert({name, Timer(name, precision)});
   }
 
-  static Timer &get(char const *name)
-  {
-    auto it = _timers.find(name);
-    if (it == _timers.end())
-      throw std::logic_error("no such timer");
+  static void destroy(char const *name)
+  { _timers.erase(get_and_check(name)); }
 
-    return it->second;
-  }
+  static Timer &get(char const *name)
+  { return get_and_check(name)->second; }
 
   void start()
   { _start = time(); }
@@ -105,6 +100,19 @@ public:
   { util::mean_stddev(_meas, mean, stddev); }
 
 private:
+  static std::map<std::string, Timer>::iterator
+  get_and_check(char const *name, bool should_exist = true)
+  {
+    auto it = _timers.find(name);
+
+    if (should_exist && it == _timers.end())
+      throw std::logic_error("timer does not exists");
+    else if (!should_exist && it != _timers.end())
+      throw std::logic_error("timer already exists");
+
+    return it;
+  }
+
 #ifdef TIMER_CPU
   std::clock_t time()
   { return std::clock(); }
@@ -135,10 +143,10 @@ private:
 
   std::vector<double> _meas;
 
-  static std::unordered_map<std::string, Timer> _timers;
+  static std::map<std::string, Timer> _timers;
 };
 
-inline std::ostream &operator<< (std::ostream &s, Timer const &timer)
+inline std::ostream &operator<<(std::ostream &s, Timer const &timer)
 {
   s << "TIMER (" << timer.name() << "): ";
 
@@ -163,11 +171,16 @@ inline std::ostream &operator<< (std::ostream &s, Timer const &timer)
   return s;
 }
 
-#define Timer_create(name, precision) Timer::create(name, precision)
-#define Timer_start(name) Timer::get(name).start()
-#define Timer_stop(name) Timer::get(name).stop()
+#define Timer_op(op) do { if (Timer::enabled) { op; } } while(0)
+
+#define Timer_create(name, precision) \
+  Timer_op(Timer::create(name, precision))
+#define Timer_start(name) \
+  Timer_op(Timer::get(name).start())
+#define Timer_stop(name) \
+  Timer_op(Timer::get(name).stop())
 #define Timer_dump(name) \
-  do { if (Timer::enabled) Timer::out << Timer::get(name) << std::endl; } while (0)
+  Timer_op(Timer::out << Timer::get(name) << std::endl; Timer::destroy(name))
 
 #endif
 
