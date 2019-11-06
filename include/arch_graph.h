@@ -48,6 +48,8 @@ public:
 
 class ArchGraph : public ArchGraphSystem
 {
+friend std::ostream& operator<<(std::ostream& os, ArchGraph const &ag);
+
   typedef boost::vecS vertex_selector;
   typedef boost::vecS edge_selector;
 
@@ -109,6 +111,10 @@ private:
                    unsigned height,
                    ProcessorType pe,
                    ChannelType ch);
+
+  void dump_processors(std::ostream& os) const;
+  void dump_channels(std::ostream& os) const;
+  void dump_automorphisms(std::ostream& os) const;
 
   adjacency_type _adj;
   PermGroup _automorphisms;
@@ -203,6 +209,8 @@ private:
   PermGroup _automorphisms;
   bool _automorphisms_valid = false;
 };
+
+std::ostream& operator<<(std::ostream& os, ArchGraph const &ag);
 
 }
 

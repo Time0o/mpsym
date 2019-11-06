@@ -3,6 +3,7 @@
 #include <fstream>
 #include <functional>
 #include <ostream>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <sstream>
@@ -925,6 +926,127 @@ PermGroup ArchUniformSuperGraph::automorphisms() const
   assert(_automorphisms_valid);
 
   return _automorphisms;
+}
+
+void ArchGraph::dump_processors(std::ostream& os) const
+{
+  std::vector<std::vector<unsigned>> pes_by_type(_processor_types.size());
+
+  for (auto pe : boost::make_iterator_range(boost::vertices(_adj))) {
+    auto pt = _adj[pe].type;
+
+    pes_by_type[pt].push_back(pe);
+  }
+
+  os << "processors: [";
+
+  for (auto pt = 0u; pt < pes_by_type.size(); ++pt) {
+    os << "\n  type " << pt;
+
+    auto pt_str = _processor_types[pt];
+    if (!pt_str.empty())
+      os << " (" << pt_str << ")";
+
+    os << ": [";
+
+    for (auto i = 0u; i < pes_by_type[pt].size(); ++i) {
+      os << pes_by_type[pt][i];
+      if (i < pes_by_type[pt].size() - 1u)
+        os << ", ";
+    }
+
+    os << "]";
+  }
+
+  os << "\n]";
+}
+
+void ArchGraph::dump_channels(std::ostream& os) const
+{
+  std::vector<std::vector<std::set<unsigned>>> chs_by_type(_channel_types.size());
+
+  for (auto &chs : chs_by_type)
+    chs.resize(num_processors());
+
+  for (auto pe1 : boost::make_iterator_range(boost::vertices(_adj))) {
+    for (auto e : boost::make_iterator_range(boost::out_edges(pe1, _adj))) {
+      auto pe2 = boost::target(e, _adj);
+      auto ch = _adj[e].type;
+
+      chs_by_type[ch][pe1].insert(pe2);
+    }
+  }
+
+  os << "channels: [";
+
+  for (auto ct = 0u; ct < chs_by_type.size(); ++ct) {
+    os << "\n  type " << ct;
+
+    auto ct_str = _channel_types[ct];
+    if (!ct_str.empty())
+      os << " (" << ct_str << ")";
+
+    os << ": [";
+
+    for (auto pe = 0u; pe < chs_by_type[ct].size(); ++pe) {
+      auto adj(chs_by_type[ct][pe]);
+
+      if (adj.empty())
+        continue;
+
+      os << "\n    " << pe << ": [";
+
+      auto it = adj.begin();
+      while (it != adj.end()) {
+        os << *it;
+        if (++it != adj.end())
+          os << ", ";
+      }
+
+      os << "]";
+    }
+
+    os << "\n  ]";
+  }
+
+  os << "\n]";
+}
+
+void ArchGraph::dump_automorphisms(std::ostream& os) const
+{
+  os << "automorphism group: [";
+
+  if (_automorphisms_valid) {
+    auto gens(_automorphisms.bsgs().strong_generators());
+
+    for (auto i = 0u; i < gens.size(); ++i) {
+      os << "\n  " << gens[i];
+
+      if (i < gens.size() - 1u)
+        os << ",";
+    }
+  } else {
+    os << "...";
+  }
+
+  os << "\n]";
+}
+
+std::ostream& operator<<(std::ostream& os, ArchGraph const &ag)
+{
+  if (ag.num_processors() == 0u) {
+    os << "empty architecture graph";
+    return os;
+  }
+
+  ag.dump_processors(os);
+  os << "\n";
+  ag.dump_channels(os);
+  os << "\n";
+  ag.dump_automorphisms(os);
+  os << "\n";
+
+  return os;
 }
 
 } // namespace cgtl
