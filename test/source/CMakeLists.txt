@@ -5,9 +5,6 @@ include_directories("${INCLUDE_DIR}" "${TEST_INCLUDE_DIR}")
 file(GLOB TEST_SOURCES "*_test.cc")
 set(TEST_UTILITY "test_utility.cc")
 
-file(GLOB TEST_RESOURCES "${TEST_RESOURCE_DIR}/*")
-file(COPY "${TEST_RESOURCES}" DESTINATION "${RESOURCE_DIR}/test")
-
 foreach(TEST_SOURCE ${TEST_SOURCES})
   get_filename_component(TEST_PROG "${TEST_SOURCE}" NAME)
   string(REPLACE "_test.cc" "" TEST_PROG "${TEST_PROG}")

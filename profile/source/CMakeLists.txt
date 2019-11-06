@@ -6,9 +6,6 @@ include_directories(SYSTEM "${PERMLIB_INCLUDE_DIR}") # to ignore all warnings
 file(GLOB PROFILE_SOURCES "*_profile.cc")
 set(PROFILE_UTILITY "profile_utility.cc")
 
-file(GLOB PROFILE_RESOURCES "${PROFILE_RESOURCE_DIR}/*")
-file(COPY "${PROFILE_RESOURCES}" DESTINATION "${RESOURCE_DIR}/profile")
-
 foreach(PROFILE_SOURCE ${PROFILE_SOURCES})
   get_filename_component(PROFILE_PROG "${PROFILE_SOURCE}" NAME)
   string(REPLACE "_profile.cc" "" PROFILE_PROG "${PROFILE_PROG}")

@@ -25,16 +25,18 @@ set(PERMLIB_CONFIG "${CMAKE_SCRIPT_DIR}/GetPermLib.cmake")
 
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/source")
 set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
-set(RESOURCE_DIR "${CMAKE_BINARY_DIR}/resources")
 
 set(TEST_SRC_DIR "${PROJECT_SOURCE_DIR}/test/source")
 set(TEST_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/test/include")
-set(TEST_RESOURCE_DIR "${PROJECT_SOURCE_DIR}/test/resources")
 
 set(PROFILE_SRC_DIR "${PROJECT_SOURCE_DIR}/profile/source")
 set(PROFILE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/profile/include")
-set(PROFILE_RESOURCE_DIR "${PROJECT_SOURCE_DIR}/profile/resources")
-set(PROFILE_BIN_DIR "${CMAKE_BINARY_DIR}/profile/source")
+
+set(RESOURCE_DIR "${PROJECT_SOURCE_DIR}/resources")
+set(BIN_RESOURCE_DIR "${CMAKE_BINARY_DIR}/resources")
+
+file(GLOB RESOURCES "${RESOURCE_DIR}/*")
+file(COPY "${RESOURCES}" DESTINATION "${BIN_RESOURCE_DIR}/")
 
 set(NAUTY_DIR "${CMAKE_BINARY_DIR}/nauty")
 set(NAUTY_DOWNLOAD_DIR "${NAUTY_DIR}/download")

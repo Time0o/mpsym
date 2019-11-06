@@ -2,7 +2,7 @@
 
 #include "profile_utility.h"
 
-#define RESOURCE_DIR "resources/profile/"
+#define RESOURCE_DIR "../resources/"
 
 std::string resource_path(std::string const &resource)
 {
