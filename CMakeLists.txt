@@ -32,6 +32,8 @@ set(TEST_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/test/include")
 set(PROFILE_SRC_DIR "${PROJECT_SOURCE_DIR}/profile/source")
 set(PROFILE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/profile/include")
 
+set(EXAMPLE_SRC_DIR "${PROJECT_SOURCE_DIR}/examples/source")
+
 set(RESOURCE_DIR "${PROJECT_SOURCE_DIR}/resources")
 set(BIN_RESOURCE_DIR "${CMAKE_BINARY_DIR}/resources")
 
@@ -310,6 +312,7 @@ endif()
 ################################################################################
 
 add_subdirectory("${SRC_DIR}")
+add_subdirectory("${EXAMPLE_SRC_DIR}")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   enable_testing()
