@@ -658,6 +658,7 @@ void ArchGraph::todot(std::string const &outfile) const
   out << "}\n";
 }
 
+
 ArchGraph ArchGraph::fully_connected(
   unsigned n, std::string const &pe_label, std::string const &ch_label)
 {
@@ -691,18 +692,65 @@ ArchGraph ArchGraph::regular_mesh(
   unsigned width, unsigned height,
   std::string const &pe_label, std::string const &ch_label)
 {
-  assert(width > 0u && height > 0u);
-
   ArchGraph ag;
 
   auto pe(ag.new_processor_type(pe_label));
   auto ch(ag.new_channel_type(ch_label));
 
+  ag.create_mesh(width, height, pe, ch);
+
+  if (height == width) {
+    ag._automorphisms = PermGroup::dihedral(8);
+    ag._automorphisms_valid = true;
+  } else {
+    ag.complete();
+  }
+
+  return ag;
+}
+
+ArchGraph ArchGraph::hyper_mesh(
+  unsigned width, unsigned height,
+  std::string const &pe_label, std::string const &ch_label)
+{
+  ArchGraph ag;
+
+  auto pe(ag.new_processor_type(pe_label));
+  auto ch(ag.new_channel_type(ch_label));
+
+  ag.create_mesh(width, height, pe, ch);
+
+  for (unsigned r = 0u; r < height; ++r) {
+    unsigned pe1 = r * width;
+    unsigned pe2 = pe1 + width - 1;
+
+    ag.add_channel(pe1, pe2, ch);
+  }
+
+  for (unsigned c = 0u; c < width; ++c) {
+    unsigned pe1 = c;
+    unsigned pe2 = pe1 + (height - 1) * width;
+
+    ag.add_channel(pe1, pe2, ch);
+  }
+
+  ag.complete();
+
+  return ag;
+}
+
+void ArchGraph::create_mesh(unsigned width,
+                            unsigned height,
+                            ProcessorType pe,
+                            ChannelType ch)
+{
+  assert(width > 0u && height > 0u);
+
   std::vector<std::vector<ArchGraph::ProcessorType>> processors(height);
 
   for (unsigned i = 0u; i < height; ++i) {
     for (unsigned j = 0u; j < width; ++j) {
-      processors[i].push_back(ag.add_processor(pe));
+      processors[i].push_back(add_processor(pe));
     }
   }
 
@@ -719,19 +767,10 @@ ArchGraph ArchGraph::regular_mesh(
         if (i_offs < 0 || i_offs >= iheight || j_offs < 0 || j_offs >= iwidth)
           continue;
 
-        ag.add_channel(processors[i][j], processors[i_offs][j_offs], ch);
+        add_channel(processors[i][j], processors[i_offs][j_offs], ch);
       }
     }
   }
-
-  if (height == width) {
-    ag._automorphisms = PermGroup::dihedral(8);
-    ag._automorphisms_valid = true;
-  } else {
-    ag.complete();
-  }
-
-  return ag;
 }
 
 void ArchGraphCluster::add_subsystem(

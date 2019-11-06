@@ -99,9 +99,17 @@ public:
   static ArchGraph regular_mesh(unsigned width, unsigned height,
     std::string const &pe_label = "", std::string const &ch_label = "");
 
+  static ArchGraph hyper_mesh(unsigned width, unsigned height,
+    std::string const &pe_label = "", std::string const &ch_label = "");
+
   //static ArchGraph fromlua(std::string const &infile);
 
 private:
+  void create_mesh(unsigned width,
+                   unsigned height,
+                   ProcessorType pe,
+                   ChannelType ch);
+
   adjacency_type _adj;
   PermGroup _automorphisms;
   bool _automorphisms_valid = false;
