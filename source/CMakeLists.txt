@@ -7,6 +7,8 @@ include_directories("${INCLUDE_DIR}"
 
 add_library("${MAIN_LIB}"
             "arch_graph.cc"
+            "arch_graph_cluster.cc"
+            "arch_uniform_super_graph.cc"
             "block_system.cc"
             "bsgs.cc"
             "bsgs_schreier_sims.cc"

@@ -105,6 +105,14 @@ public:
     std::string const &pe_label = "", std::string const &ch_label = "");
 
 private:
+  std::vector<unsigned> min_elem_bruteforce(std::vector<unsigned> const &tasks,
+                                            unsigned min_pe,
+                                            unsigned max_pe) const;
+
+  std::vector<unsigned> min_elem_approx(std::vector<unsigned> const &tasks,
+                                        unsigned min_pe,
+                                        unsigned max_pe) const;
+
   void create_mesh(unsigned width,
                    unsigned height,
                    ProcessorType pe,

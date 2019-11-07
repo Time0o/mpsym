@@ -7,7 +7,6 @@
 #include <stdexcept>
 #include <string>
 #include <sstream>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -51,108 +50,6 @@ void nauty_free()
   naugraph_freedyn();
   nautil_freedyn();
   nauty_freedyn();
-}
-
-std::vector<unsigned> min_elem_bruteforce(
-  PermGroup const &ag, std::vector<unsigned> const &tasks,
-  unsigned min_pe, unsigned max_pe)
-{
-  std::vector<unsigned> min_element(tasks);
-
-  Dbg(Dbg::DBG) << "Performing brute force mapping";
-
-  for (Perm const &perm : ag) {
-    bool minimal = true;
-
-    for (auto i = 0u; i < tasks.size(); ++i) {
-      unsigned task_base = tasks[i];
-      if (task_base < min_pe || task_base > max_pe)
-        continue;
-
-      unsigned task = task_base - min_pe;
-
-      unsigned permuted = perm[task + 1u] - 1u + min_pe;
-
-      if (permuted < min_element[i])
-        break;
-
-      if (permuted > min_element[i]) {
-        minimal = false;
-        break;
-      }
-    }
-
-    if (minimal) {
-      for (auto i = 0u; i < tasks.size(); ++i) {
-        unsigned task_base = tasks[i];
-        if (task_base < min_pe || task_base > max_pe)
-          continue;
-
-        unsigned task = task_base - min_pe;
-
-        min_element[i] = perm[task + 1u] - 1u + min_pe;
-      }
-    }
-  }
-
-  Dbg(Dbg::DBG) << "Found minimal orbit element: " << min_element;
-
-  return min_element;
-}
-
-std::vector<unsigned> min_elem_approx(
-  PermGroup const &ag, std::vector<unsigned> const &tasks,
-  unsigned min_pe, unsigned max_pe)
-{
-  PermSet generators(ag.bsgs().strong_generators());
-  std::vector<unsigned> min_element(tasks);
-
-  bool stationary, new_minimum;
-
-  Dbg(Dbg::TRACE) << "Performing approximate mapping";
-
-  do {
-    stationary = true;
-
-    for (Perm const &gen : generators) {
-      new_minimum = false;
-
-      for (unsigned task_base : min_element) {
-        if (task_base < min_pe || task_base > max_pe)
-          continue;
-
-        unsigned task = task_base - min_pe;
-
-        unsigned permuted = gen[task + 1u] - 1u;
-
-        if (permuted < task) {
-          new_minimum = true;
-          break;
-        }
-
-        if (permuted > task)
-          break;
-      }
-
-      if (new_minimum) {
-        for (unsigned &task_base : min_element) {
-          if (task_base < min_pe || task_base > max_pe)
-            continue;
-
-          unsigned task = task_base - min_pe;
-
-          task_base = gen[task + 1u] - 1u + min_pe;
-        }
-
-        stationary = false;
-        break;
-      }
-    }
-  } while (!stationary);
-
-  Dbg(Dbg::DBG) << "Found minimal orbit element: " << min_element;
-
-  return min_element;
 }
 
 } // anonymous namespace
@@ -458,11 +355,9 @@ TaskMapping ArchGraph::mapping(
 
   switch (mapping_variant) {
     case MAP_APPROX:
-      return TaskMapping(tasks, min_elem_approx(_automorphisms, tasks,
-                                                min_pe, max_pe));
+      return TaskMapping(tasks, min_elem_approx(tasks, min_pe, max_pe));
     default:
-      return TaskMapping(tasks, min_elem_bruteforce(_automorphisms, tasks,
-                                                    min_pe, max_pe));
+      return TaskMapping(tasks, min_elem_bruteforce(tasks, min_pe, max_pe));
   }
 }
 
@@ -592,6 +487,110 @@ ArchGraph ArchGraph::hyper_mesh(
   return ag;
 }
 
+std::vector<unsigned> ArchGraph::min_elem_bruteforce(
+  std::vector<unsigned> const &tasks,
+  unsigned min_pe,
+  unsigned max_pe) const
+{
+  std::vector<unsigned> min_element(tasks);
+
+  Dbg(Dbg::DBG) << "Performing brute force mapping";
+
+  for (Perm const &perm : _automorphisms) {
+    bool minimal = true;
+
+    for (auto i = 0u; i < tasks.size(); ++i) {
+      unsigned task_base = tasks[i];
+      if (task_base < min_pe || task_base > max_pe)
+        continue;
+
+      unsigned task = task_base - min_pe;
+
+      unsigned permuted = perm[task + 1u] - 1u + min_pe;
+
+      if (permuted < min_element[i])
+        break;
+
+      if (permuted > min_element[i]) {
+        minimal = false;
+        break;
+      }
+    }
+
+    if (minimal) {
+      for (auto i = 0u; i < tasks.size(); ++i) {
+        unsigned task_base = tasks[i];
+        if (task_base < min_pe || task_base > max_pe)
+          continue;
+
+        unsigned task = task_base - min_pe;
+
+        min_element[i] = perm[task + 1u] - 1u + min_pe;
+      }
+    }
+  }
+
+  Dbg(Dbg::DBG) << "Found minimal orbit element: " << min_element;
+
+  return min_element;
+}
+
+std::vector<unsigned> ArchGraph::min_elem_approx(
+  std::vector<unsigned> const &tasks,
+  unsigned min_pe,
+  unsigned max_pe) const
+{
+  PermSet generators(_automorphisms.bsgs().strong_generators());
+  std::vector<unsigned> min_element(tasks);
+
+  bool stationary, new_minimum;
+
+  Dbg(Dbg::TRACE) << "Performing approximate mapping";
+
+  do {
+    stationary = true;
+
+    for (Perm const &gen : generators) {
+      new_minimum = false;
+
+      for (unsigned task_base : min_element) {
+        if (task_base < min_pe || task_base > max_pe)
+          continue;
+
+        unsigned task = task_base - min_pe;
+
+        unsigned permuted = gen[task + 1u] - 1u;
+
+        if (permuted < task) {
+          new_minimum = true;
+          break;
+        }
+
+        if (permuted > task)
+          break;
+      }
+
+      if (new_minimum) {
+        for (unsigned &task_base : min_element) {
+          if (task_base < min_pe || task_base > max_pe)
+            continue;
+
+          unsigned task = task_base - min_pe;
+
+          task_base = gen[task + 1u] - 1u + min_pe;
+        }
+
+        stationary = false;
+        break;
+      }
+    }
+  } while (!stationary);
+
+  Dbg(Dbg::DBG) << "Found minimal orbit element: " << min_element;
+
+  return min_element;
+}
+
 void ArchGraph::create_mesh(unsigned width,
                             unsigned height,
                             ProcessorType pe,
@@ -624,160 +623,6 @@ void ArchGraph::create_mesh(unsigned width,
       }
     }
   }
-}
-
-void ArchGraphCluster::add_subsystem(
-  std::shared_ptr<ArchGraphSystem> const &ags)
-{
-  assert(!_automorphisms_valid);
-
-  _subsystems.push_back(ags);
-}
-
-unsigned ArchGraphCluster::num_processors() const
-{
-  unsigned res = 0u;
-  for (auto const &subsystem : _subsystems)
-    res += subsystem->num_processors();
-
-  return res;
-}
-
-unsigned ArchGraphCluster::num_channels() const
-{
-  unsigned res = 0u;
-  for (auto const &subsystem : _subsystems)
-    res += subsystem->num_channels();
-
-  return res;
-}
-
-void ArchGraphCluster::complete()
-{
-  assert(!_subsystems.empty());
-
-  for (auto const &subsystem : _subsystems)
-    subsystem->complete();
-
-  _automorphisms = _subsystems[0]->automorphisms();
-  for (auto i = 1u; i < _subsystems.size(); ++i) {
-    _automorphisms = PermGroup::direct_product(
-      _automorphisms, _subsystems[i]->automorphisms());
-  }
-
-  _automorphisms_valid = true;
-}
-
-PermGroup ArchGraphCluster::automorphisms() const
-{
-  assert(_automorphisms_valid);
-
-  return _automorphisms;
-}
-
-TaskMapping ArchGraphCluster::mapping(
-  std::vector<unsigned> const &tasks, unsigned offset,
-  MappingVariant mapping_variant) const
-{
-  Dbg(Dbg::DBG) << "Requested task mapping for: " << tasks;
-
-  assert(_subsystems.size() > 0u);
-
-  TaskMapping res(tasks, tasks);
-
-  unsigned offs = offset;
-  for (auto i = 0u; i < _subsystems.size(); ++i) {
-    unsigned next_offs = offs + _subsystems[i]->num_processors();
-
-    Dbg(Dbg::DBG) << "Subsystem (no. " << i << ", "
-                  << "pe's " << offs << "-" << next_offs - 1u << ")";
-
-    res = _subsystems[i]->mapping(res.equivalence_class(), offs, mapping_variant);
-
-    Dbg(Dbg::DBG) << "Yields: " << res.equivalence_class();
-
-    offs = next_offs;
-  }
-
-  return TaskMapping(tasks, res.equivalence_class());
-}
-
-ArchUniformSuperGraph::ArchUniformSuperGraph(
-  std::shared_ptr<ArchGraphSystem> const &subsystem_proto,
-  std::string const &subsystem_label)
-  : _subsystem_proto(subsystem_proto) {
-
-  _subsystem_proto->complete();
-
-  _subsystem_processor_type =
-     _subsystem_supergraph.new_processor_type(subsystem_label);
-}
-
-void ArchUniformSuperGraph::set_subsystem(
-  std::shared_ptr<ArchGraph> const &subsystem_proto,
-  std::string const &subsystem_label)
-{
-  _subsystem_proto = subsystem_proto;
-
-  _subsystem_proto->complete();
-
-  _subsystem_processor_type =
-     _subsystem_supergraph.new_processor_type(subsystem_label);
-}
-
-ArchUniformSuperGraph::SubsystemChannelType
-ArchUniformSuperGraph::new_subsystem_channel_type(std::string const &label)
-{
-  return _subsystem_supergraph.new_channel_type(label);
-}
-
-ArchUniformSuperGraph::SubsystemType ArchUniformSuperGraph::add_subsystem()
-{
-  assert(!_automorphisms_valid);
-
-  return _subsystem_supergraph.add_processor(_subsystem_processor_type);
-}
-
-void ArchUniformSuperGraph::add_subsystem_channel(
-  SubsystemType from, SubsystemType to, SubsystemChannelType ch)
-{
-  assert(!_automorphisms_valid);
-
-  _subsystem_supergraph.add_channel(from, to, ch);
-}
-
-unsigned ArchUniformSuperGraph::num_processors() const
-{
-  return _subsystem_supergraph.num_processors() *
-         _subsystem_proto->num_processors();
-}
-
-unsigned ArchUniformSuperGraph::num_channels() const
-{
-  unsigned res = _subsystem_supergraph.num_channels();
-  res += _subsystem_supergraph.num_processors() *
-         _subsystem_proto->num_channels();
-
-  return res;
-}
-
-void ArchUniformSuperGraph::complete()
-{
-  assert(_subsystem_proto->completed());
-
-  _subsystem_supergraph.complete();
-
-  _automorphisms = PermGroup::wreath_product(
-    _subsystem_proto->automorphisms(), _subsystem_supergraph.automorphisms());
-
-  _automorphisms_valid = true;
-}
-
-PermGroup ArchUniformSuperGraph::automorphisms() const
-{
-  assert(_automorphisms_valid);
-
-  return _automorphisms;
 }
 
 void ArchGraph::dump_processors(std::ostream& os) const
