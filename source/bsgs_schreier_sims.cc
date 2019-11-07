@@ -300,8 +300,6 @@ void BSGS::schreier_sims_finish()
   _strong_generators = PermSet(unique_generators.begin(),
                                unique_generators.end());
 
-  update_schreier_structure(0, _strong_generators);
-
   Dbg(Dbg::DBG) << "=== Result";
   Dbg(Dbg::DBG) << "B = " << _base;
   Dbg(Dbg::DBG) << "SGS = " << _strong_generators;
