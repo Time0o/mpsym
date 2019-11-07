@@ -115,18 +115,11 @@ std::unordered_set<Perm> BSGS::reduce_gens_set_difference(
   std::unordered_set<Perm> const &rhs,
   std::unordered_set<Perm> const &base) const
 {
-  int delta = static_cast<int>(lhs.size() - rhs.size());
-
-  assert(delta > 0);
-
   std::unordered_set<Perm> res;
 
   for (auto const &perm : lhs) {
-    if (rhs.find(perm) == rhs.end() && base.find(perm) != base.end()) {
+    if (rhs.find(perm) == rhs.end() && base.find(perm) != base.end())
       res.insert(perm);
-      if (--delta == 0)
-        break;
-    }
   }
 
   return res;
