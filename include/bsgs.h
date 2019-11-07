@@ -5,6 +5,7 @@
 #include <memory>
 #include <ostream>
 #include <stdexcept>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -97,13 +98,25 @@ private:
 
   void solve_adjoin_normalizing_generator(Perm const &gen);
 
+  // generator reduction
+  void reduce_gens(bool preserve_original);
+
+  std::unordered_set<Perm> reduce_gens_set_difference(
+    std::unordered_set<Perm> const &lhs,
+    std::unordered_set<Perm> const &rhs,
+    std::unordered_set<Perm> const &base) const;
+
+  bool reduce_gens_produces_orbit(unsigned root,
+                                  std::unordered_set<Perm> const &generators,
+                                  std::vector<unsigned> const &orbit) const;
+
+  void reduce_gens_redetermine_schreier_structures();
+
   // convenience methods
   void extend_base(unsigned bp);
 
   ss_type make_schreier_structure(unsigned bp);
   void update_schreier_structure(unsigned i, PermSet const &strong_generators);
-
-  void remove_redundant_generators(bool preserve_original);
 
   unsigned _degree;
   Transversals _transversals;

@@ -2,8 +2,6 @@
 #include <cassert>
 #include <memory>
 #include <ostream>
-#include <set>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -11,6 +9,7 @@
 #include "dbg.h"
 #include "orbits.h"
 #include "perm.h"
+#include "perm_set.h"
 #include "explicit_transversals.h"
 #include "schreier_tree.h"
 
@@ -47,10 +46,10 @@ BSGS::BSGS(unsigned degree,
 
   switch (reduce) {
     case REDUCE_REMOVE_REDUNDANT:
-      remove_redundant_generators(false);
+      reduce_gens(false);
       break;
     case REDUCE_REMOVE_REDUNDANT_PRESERVE_ORIGINAL:
-      remove_redundant_generators(true);
+      reduce_gens(true);
       break;
     case REDUCE_AUTO:
       break;
@@ -136,187 +135,6 @@ void BSGS::update_schreier_structure(unsigned i, PermSet const &generators)
   auto st = _schreier_structures[i];
 
   orbit_of(bp, generators, st.get());
-}
-
-void BSGS::remove_redundant_generators(bool preserve_original)
-{
-  if (preserve_original)
-    throw std::logic_error("TODO");
-
-  Dbg(Dbg::DBG) << "Removing redundant strong generators from BSGS:";
-  Dbg(Dbg::DBG) << *this;
-
-  Dbg(Dbg::TRACE) << "Stabilizers are:";
-#ifndef NDEBUG
-  for (auto i = 0u; i < base_size(); ++i)
-    Dbg(Dbg::TRACE) << "S(" << i + 1u << ") = " << stabilizers(i);
-#endif
-
-  assert(base_size() > 0u);
-
-  unsigned k = base_size();
-
-  std::unordered_set<Perm> strong_generator_set(
-    _strong_generators.begin(), _strong_generators.end());
-
-  auto difference = [&](std::unordered_set<Perm> const &lhs,
-                        std::unordered_set<Perm> const &rhs) {
-
-    int delta = static_cast<int>(lhs.size() - rhs.size());
-    std::unordered_set<Perm> res;
-
-    for (auto const &perm : lhs) {
-      if (rhs.find(perm) == rhs.end() &&
-          strong_generator_set.find(perm) != strong_generator_set.end()) {
-
-        res.insert(perm);
-        if (--delta == 0)
-          break;
-      }
-    }
-
-    return res;
-  };
-
-  auto produces_orbit = [&](unsigned root,
-                            std::unordered_set<Perm> const &generators,
-                            std::vector<unsigned> const &orbit) {
-
-    std::vector<int> in_orbit_ref(degree() + 1u, 0), in_orbit(degree() + 1u, 0);
-
-    for (unsigned x : orbit)
-      in_orbit_ref[x] = 1;
-
-    if (!in_orbit_ref[root])
-      return false;
-
-    in_orbit[root] = 1;
-
-    std::vector<unsigned> queue {root};
-    auto target = orbit.size() - 1u;
-
-    while (!queue.empty()) {
-      unsigned x = queue.back();
-      queue.pop_back();
-
-      for (auto const &gen : generators) {
-        unsigned y = gen[x];
-        if (!in_orbit_ref[y])
-          return false;
-
-        if (in_orbit[y] == 0) {
-          in_orbit[y] = 1;
-          queue.push_back(y);
-
-          if (--target == 0u) {
-            return true;
-          }
-        }
-      }
-    }
-
-    return false;
-  };
-
-  std::unordered_set<Perm> stabilizer_set;
-  std::unordered_set<Perm> stabilizer_intersection;
-
-  for (int i = static_cast<int>(k - 1u); i >= 0; --i) {
-    auto tmp(stabilizers(i));
-    std::unordered_set<Perm> stabilizer_set_next(tmp.begin(), tmp.end());
-
-    stabilizer_intersection = difference(stabilizer_set_next, stabilizer_set);
-
-    stabilizer_set = stabilizer_set_next;
-
-    Dbg(Dbg::TRACE) << "=== Considering S(" << i + 1u << ")/S(" << i + 2u << ")"
-                    << " = " << stabilizer_intersection;
-
-    if (stabilizer_intersection.size() < 2u)
-      continue;
-
-    auto it(stabilizer_intersection.begin());
-    while (it != stabilizer_intersection.end()) {
-      Dbg(Dbg::TRACE) << "Considering " << *it;
-
-#ifndef NDEBUG
-      std::unordered_set<Perm> reduced_stabilizers(stabilizer_set);
-
-      auto it_(reduced_stabilizers.begin());
-      while (it_ != reduced_stabilizers.end()) {
-        if (*it_ == *it) {
-          reduced_stabilizers.erase(it_++);
-          break;
-        } else {
-          ++it_;
-        }
-      }
-#endif
-      auto orbit_gens(stabilizer_set);
-      orbit_gens.erase(*it);
-
-      bool remove_stab = false;
-      if (produces_orbit(base_point(i), orbit_gens, orbit(i))) {
-#ifndef NDEBUG
-        Dbg(Dbg::TRACE) << base_point(i) << "^" << reduced_stabilizers
-                        << " = " << orbit(i);
-#endif
-
-        Dbg(Dbg::TRACE) << "=> Removing strong generator " << *it;
-
-        remove_stab = true;
-      }
-#ifndef NDEBUG
-      else {
-        Dbg(Dbg::TRACE) << base_point(i) << "^" << reduced_stabilizers
-                        << " =/= " << orbit(i);
-      }
-#endif
-
-      if (remove_stab) {
-        strong_generator_set.erase(*it);
-        stabilizer_set.erase(*it);
-#ifndef NDEBUG
-        reduced_stabilizers.erase(*it);
-#endif
-        stabilizer_intersection.erase(it++);
-      } else {
-        ++it;
-      }
-    }
-  }
-
-  _strong_generators = PermSet(strong_generator_set.begin(),
-                               strong_generator_set.end());
-
-  Dbg(Dbg::TRACE) << "Remaining strong generators: " << _strong_generators;
-
-  std::vector<int> stabilizes(_strong_generators.size(), 0);
-  PermSet stabilizers;
-
-  for (int i = static_cast<int>(base_size()) - 1; i >= 0; --i) {
-    for (auto j = 0u; j < _strong_generators.size(); ++j) {
-      if (stabilizes[j])
-        continue;
-
-      bool stab = true;
-      for (int k = 0; k < i; ++k) {
-        if (_strong_generators[j][base_point(k)] != base_point(k)) {
-          stab = false;
-          break;
-        }
-      }
-
-      if (stab) {
-        stabilizes[j] = 1;
-        stabilizers.insert(_strong_generators[j]);
-      }
-    }
-
-    Dbg(Dbg::TRACE) << "=> S(" << i + 1u << ") = " << stabilizers;
-
-    update_schreier_structure(i, stabilizers);
-  }
 }
 
 std::ostream& operator<<(std::ostream& stream, BSGS const &bsgs)
