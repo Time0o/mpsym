@@ -104,8 +104,6 @@ public:
   static ArchGraph hyper_mesh(unsigned width, unsigned height,
     std::string const &pe_label = "", std::string const &ch_label = "");
 
-  //static ArchGraph fromlua(std::string const &infile);
-
 private:
   void create_mesh(unsigned width,
                    unsigned height,
