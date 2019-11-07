@@ -108,8 +108,6 @@ void BSGS::reduce_gens(bool preserve_original)
 
   Dbg(Dbg::DBG) << "Reduced BSGS:";
   Dbg(Dbg::DBG) << *this;
-
-  reduce_gens_redetermine_schreier_structures();
 }
 
 std::unordered_set<Perm> BSGS::reduce_gens_set_difference(
@@ -173,39 +171,6 @@ bool BSGS::reduce_gens_produces_orbit(unsigned root,
   }
 
   return false;
-}
-
-void BSGS::reduce_gens_redetermine_schreier_structures()
-{
-  Dbg(Dbg::TRACE) << "Updating Schreier structures:";
-
-  std::vector<int> stabilizes(_strong_generators.size(), 0);
-
-  PermSet stabilizers;
-
-  for (int i = static_cast<int>(base_size()) - 1; i >= 0; --i) {
-    for (auto j = 0u; j < _strong_generators.size(); ++j) {
-      if (stabilizes[j])
-        continue;
-
-      bool stab = true;
-      for (int k = 0; k < i; ++k) {
-        if (_strong_generators[j][base_point(k)] != base_point(k)) {
-          stab = false;
-          break;
-        }
-      }
-
-      if (stab) {
-        stabilizes[j] = 1;
-        stabilizers.insert(_strong_generators[j]);
-      }
-    }
-
-    Dbg(Dbg::TRACE) << "=> S(" << i + 1u << ") = " << stabilizers;
-
-    update_schreier_structure(i, stabilizers);
-  }
 }
 
 } // namespace cgtl

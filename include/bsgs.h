@@ -110,8 +110,6 @@ private:
                                   std::unordered_set<Perm> const &generators,
                                   std::vector<unsigned> const &orbit) const;
 
-  void reduce_gens_redetermine_schreier_structures();
-
   // convenience methods
   void extend_base(unsigned bp);
 
