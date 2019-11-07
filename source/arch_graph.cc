@@ -28,21 +28,16 @@ namespace cgtl
 namespace
 {
 
-int generator_degree;
-PermSet generators;
+int nauty_generator_degree;
+PermSet nauty_generators;
 
-Perm to_perm(int *perm, int degree)
+void nauty_save_generator(int, int *perm, int *, int, int, int)
 {
-  std::vector<unsigned> tmp(degree);
-  for (int i = 0; i < degree; ++i)
+  std::vector<unsigned> tmp(nauty_generator_degree);
+  for (int i = 0; i < nauty_generator_degree; ++i)
     tmp[i] = perm[i] + 1;
 
-  return Perm(tmp);
-}
-
-void save_generator(int, int *perm, int *, int, int, int)
-{
-  generators.emplace(to_perm(perm, generator_degree));
+  nauty_generators.emplace(tmp);
 }
 
 void nauty_free()
@@ -117,7 +112,7 @@ void ArchGraph::complete()
 
   static DEFAULTOPTIONS_GRAPH(options);
   options.defaultptn = FALSE;
-  options.userautomproc = save_generator;
+  options.userautomproc = nauty_save_generator;
 
   statsblk stats;
 
@@ -209,8 +204,8 @@ void ArchGraph::complete()
   Dbg(Dbg::TRACE) << "Colored vertices";
 
   // call nauty
-  generators.clear();
-  generator_degree = n_orig;
+  nauty_generators.clear();
+  nauty_generator_degree = n_orig;
 
   densenauty(g, lab, ptn, orbits, &options, &stats, m, n, nullptr);
 
@@ -220,10 +215,11 @@ void ArchGraph::complete()
   DYNFREE(orbits, orbits_sz);
   nauty_free();
 
-  if (generators.empty())
-    _automorphisms = PermGroup(generator_degree, {Perm(generator_degree)});
+  if (nauty_generators.empty())
+    _automorphisms = PermGroup(nauty_generator_degree,
+                               {Perm(nauty_generator_degree)});
   else
-    _automorphisms = PermGroup(generator_degree, generators);
+    _automorphisms = PermGroup(nauty_generator_degree, nauty_generators);
 
   Dbg(Dbg::DBG) << "=== Result";
   Dbg(Dbg::DBG) << _automorphisms;
