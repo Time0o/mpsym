@@ -1,3 +1,4 @@
+#include <ostream>
 #include <vector>
 
 #include "perm.h"
@@ -62,6 +63,14 @@ Perm ExplicitTransversals::transversal(unsigned origin) const
   auto it(_orbit.find(origin));
 
   return it->second;
+}
+
+void ExplicitTransversals::dump(std::ostream &os) const
+{
+  os << "explicit transversals:\n";
+
+  for (auto const &tr : _orbit)
+    os << tr.first << ": " << tr.second << "\n";
 }
 
 } // namespace cgtl

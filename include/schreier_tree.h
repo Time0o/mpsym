@@ -2,6 +2,7 @@
 #define _GUARD_SCHREIER_TREE_H
 
 #include <map>
+#include <ostream>
 #include <vector>
 
 #include "perm.h"
@@ -31,6 +32,8 @@ struct SchreierTree : public SchreierStructure
   Perm transversal(unsigned origin) const override;
 
 private:
+  void dump(std::ostream &os) const override;
+
   unsigned _degree;
   unsigned _root = 0;
   std::map<unsigned, unsigned> _edges;

@@ -2,6 +2,7 @@
 #define _GUARD_EXPLICIT_TRANSVERSALS_H
 
 #include <map>
+#include <ostream>
 #include <vector>
 
 #include "perm.h"
@@ -31,6 +32,8 @@ struct ExplicitTransversals : public SchreierStructure
   Perm transversal(unsigned origin) const override;
 
 private:
+  void dump(std::ostream &os) const override;
+
   unsigned _degree;
   unsigned _root = 0;
   PermSet _labels;
