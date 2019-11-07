@@ -284,7 +284,7 @@ void BSGS::schreier_sims_init(
   Dbg(Dbg::DBG) << "B = " << _base;
   for (unsigned i = 0u; i < base_size(); ++i) {
     Dbg(Dbg::DBG) << "S(" << (i + 1u) << ") = " << (*strong_generators)[i];
-    Dbg(Dbg::DBG) << "O(" << (i + 1u) << ") = " << fundamental_orbits[i];
+    Dbg(Dbg::DBG) << "O(" << (i + 1u) << ") = " << (*fundamental_orbits)[i];
   }
 }
 
