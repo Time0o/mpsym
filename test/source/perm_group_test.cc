@@ -638,6 +638,9 @@ TEST(WreathProductTest, CanFindWreathProduct)
 
   std::vector<PermGroup> decomp = pg.wreath_decomposition();
 
+  ASSERT_EQ(4u, decomp.size())
+    << "Wreath product decomposition found.";
+
   PermGroup sigma_k(12,
     {
       Perm(12, {{1, 4}, {2, 5}, {3, 6}, {10, 11}}),
