@@ -2,6 +2,7 @@
 #define _GUARD_SCHREIER_STRUCTURE_H
 
 #include <ostream>
+#include <vector>
 
 #include "perm.h"
 #include "perm_set.h"
