@@ -120,7 +120,7 @@ std::ostream& operator<<(std::ostream& stream, const Perm &perm)
 
   std::vector<unsigned> cycle;
 
-  while (1) {
+  for (;;) {
     done.insert(current);
     cycle.push_back(current);
 
@@ -203,7 +203,7 @@ std::vector<std::vector<unsigned>> Perm::cycles() const
   unsigned first, current;
   first = current = 1u;
 
-  while (1) {
+  for (;;) {
     done.insert(current);
     cycle.push_back(current);
 
