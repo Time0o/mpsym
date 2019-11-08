@@ -12,6 +12,8 @@ namespace cgtl
 std::vector<unsigned>
 orbit_of(unsigned x, PermSet const &generators, SchreierStructure *ss)
 {
+  // TODO: empty generator set
+
   std::vector<unsigned> res {x};
 
   if (ss) {
@@ -47,36 +49,28 @@ orbit_of(unsigned x, PermSet const &generators, SchreierStructure *ss)
 std::vector<std::vector<unsigned>>
 orbit_partition(PermSet const &generators)
 {
+  // TODO: empty generator set
+
   std::vector<std::vector<unsigned>> res;
 
-  std::vector<int> orbit_indices(generators.degree() + 1u, -1);
+  std::vector<int> processed(generators.degree() + 1u, 0);
+  unsigned num_processed = 0u;
 
-  unsigned processed = 0u;
+  unsigned x = 1u;
 
-  for (auto i = 1u; i <= generators.degree(); ++i) {
-    int orbit_index1 = orbit_indices[i];
-    if (orbit_index1 == -1) {
-      orbit_index1 = static_cast<int>(res.size());
-      orbit_indices[i] = orbit_index1;
+  for (;;) {
+    auto orbit(orbit_of(x, generators));
 
-      res.push_back({i});
+    res.emplace_back(orbit);
 
-      if (++processed == generators.degree())
-        return res;
-    }
+    if ((num_processed += orbit.size()) == generators.degree())
+      break;
 
-    for (Perm const &gen : generators) {
-      unsigned j = gen[i];
+    for (unsigned y : orbit)
+      processed[y] = 1;
 
-      int orbit_index2 = orbit_indices[j];
-      if (orbit_index2 == -1) {
-        res[orbit_index1].push_back(j);
-        orbit_indices[j] = orbit_index1;
-
-        if (++processed == generators.degree())
-          return res;
-      }
-    }
+    while (processed[x])
+      ++x;
   }
 
   return res;
