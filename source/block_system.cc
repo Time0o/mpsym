@@ -315,7 +315,7 @@ BlockSystem BlockSystem::minimal(PermSet const &generators,
   BlockSystem res(std::vector<unsigned>(classpath.begin() + 1,
                                         classpath.end()));
 
-  Dbg(Dbg::TRACE) << "Resulting block system: " << res;
+  Dbg(Dbg::TRACE) << "==> Resulting minimal block system: " << res;
 
   return res;
 }
@@ -384,7 +384,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
     }
   }
 
-  Dbg(Dbg::TRACE) << "Resulting block systems are:";
+  Dbg(Dbg::TRACE) << "==> Resulting non-trivial block systems:";
   Dbg(Dbg::TRACE) << res;
 
   return res;
@@ -453,7 +453,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
     partial_blocksystems[i].push_back(BlockSystem(trivial_classes));
   }
 
-  Dbg(Dbg::TRACE) << "==> Relevant block systems for all group restrictions:";
+  Dbg(Dbg::TRACE) << "=> Relevant block systems for all group restrictions:";
 #ifndef NDEBUG
   for (auto const &bs : partial_blocksystems)
     Dbg(Dbg::TRACE) << bs;
@@ -546,7 +546,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
   std::vector<std::vector<unsigned>> repr_blocks;
   construct_blocks({}, 0u, false, repr_blocks);
 
-  Dbg(Dbg::TRACE) << "==> Representative blocks found:";
+  Dbg(Dbg::TRACE) << "=> Representative blocks found:";
 #ifndef NDEBUG
   for (auto const &block : repr_blocks)
     Dbg(Dbg::TRACE) << block;
