@@ -1,7 +1,5 @@
 #include <cassert>
 #include <memory>
-#include <set>
-#include <unordered_set>
 #include <vector>
 
 #include "bsgs.h"
@@ -290,15 +288,14 @@ void BSGS::schreier_sims_init(
 
 void BSGS::schreier_sims_finish()
 {
-  std::unordered_set<Perm> unique_generators;
+  _strong_generators.clear();
 
   for (auto const &st : _schreier_structures) {
     auto stabilizers(st->labels());
-    unique_generators.insert(stabilizers.begin(), stabilizers.end());
+    _strong_generators.insert(stabilizers.begin(), stabilizers.end());
   }
 
-  _strong_generators = PermSet(unique_generators.begin(),
-                               unique_generators.end());
+  _strong_generators.make_unique();
 
   Dbg(Dbg::DBG) << "=== Result";
   Dbg(Dbg::DBG) << "B = " << _base;

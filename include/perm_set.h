@@ -80,6 +80,10 @@ public:
 
   void clear() { _perms.clear(); }
 
+  void make_unique();
+
+  void minimize_degree();
+
   void assert_not_empty() const {
     assert(!empty() && "permutation set not empty");
   }

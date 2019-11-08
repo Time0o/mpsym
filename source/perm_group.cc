@@ -2,7 +2,6 @@
 #include <cassert>
 #include <climits>
 #include <ctime>
-#include <queue>
 #include <random>
 #include <set>
 #include <unordered_set>
@@ -27,66 +26,6 @@
 
 namespace cgtl
 {
-
-namespace
-{
-
-unsigned compress_generators(unsigned degree, PermSet &generators)
-{
-  std::vector<std::vector<unsigned>> moved_sets(generators.size());
-
-  std::vector<unsigned> compression_mapping(degree + 1u);
-  for (unsigned i = 1u; i <= degree; ++i)
-    compression_mapping[i] = i;
-
-  std::queue<unsigned> non_moved_queue;
-
-  unsigned new_degree = 1u;
-
-  for (unsigned i = 1u; i <= degree; ++i) {
-    bool moved = false;
-    for (auto j = 0u; j < generators.size(); ++j) {
-      if (generators[j][i] != i) {
-        moved_sets[j].push_back(i);
-        moved = true;
-      }
-    }
-
-    if (moved) {
-      if (!non_moved_queue.empty()) {
-        unsigned compress_to = non_moved_queue.front();
-        compression_mapping[i] = compress_to;
-        new_degree = compress_to;
-
-        non_moved_queue.pop();
-        non_moved_queue.push(i);
-      } else {
-        new_degree = i;
-      }
-    } else {
-      non_moved_queue.push(i);
-    }
-  }
-
-  std::vector<unsigned> id(new_degree);
-  for (unsigned i = 1u; i <= new_degree; ++i)
-    id[i - 1u] = i;
-
-  for (unsigned i = 0u; i < generators.size(); ++i) {
-    auto gen(id);
-    for (unsigned j = 0u; j < moved_sets[i].size(); ++j) {
-      unsigned x = moved_sets[i][j];
-      unsigned y = generators[i][x];
-      gen[compression_mapping[x] - 1u] = compression_mapping[y];
-    }
-
-    generators[i] = Perm(gen);
-  }
-
-  return new_degree;
-}
-
-} // anonymous namespace
 
 PermGroup::PermGroup(unsigned degree,
                      PermSet const &generators,
@@ -283,40 +222,37 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs, PermGroup const &rhs)
                         rhs.bsgs().strong_generators());
 }
 
-PermGroup PermGroup::wreath_product(PermSet const &lhs, PermSet const &rhs)
+PermGroup PermGroup::wreath_product(PermSet const &lhs_, PermSet const &rhs_)
 {
-  lhs.assert_not_empty();
-  rhs.assert_not_empty();
+  lhs_.assert_not_empty();
+  rhs_.assert_not_empty();
 
-  unsigned degree_lhs = lhs.degree();
-  unsigned degree_rhs = rhs.degree();
+  auto lhs(lhs_);
+  lhs.minimize_degree();
 
-  auto lhs_compressed(lhs);
-  degree_lhs = compress_generators(degree_lhs, lhs_compressed);
+  auto rhs(rhs_);
+  rhs.minimize_degree();
 
-  auto rhs_compressed(rhs);
-  degree_rhs = compress_generators(degree_rhs, rhs_compressed);
-
-  unsigned degree = degree_lhs * degree_rhs;
+  unsigned degree = lhs.degree() * rhs.degree();
 
   PermSet wreath_product_generators;
 
-  for (unsigned i = 0u; i < degree_rhs; ++i) {
-    for (Perm const &perm : lhs_compressed)
+  for (unsigned i = 0u; i < rhs.degree(); ++i) {
+    for (Perm const &perm : lhs)
       wreath_product_generators.insert(
-        perm.shifted(degree_lhs * i).extended(degree));
+        perm.shifted(lhs.degree() * i).extended(degree));
   }
 
-  for (Perm const &gen_rhs : rhs_compressed) {
+  for (Perm const &gen_rhs : rhs) {
     std::vector<std::vector<unsigned>> cycles {gen_rhs.cycles()};
     for (auto &cycle : cycles) {
       for (unsigned &x : cycle)
-        x = (x - 1u) * degree_lhs + 1u;
+        x = (x - 1u) * lhs.degree() + 1u;
     }
 
     std::vector<std::vector<unsigned>> shifted_cycles {cycles};
 
-    for (unsigned i = 1u; i < degree_lhs; ++i) {
+    for (unsigned i = 1u; i < lhs.degree(); ++i) {
       for (auto const &cycle : cycles) {
         std::vector<unsigned> shifted_cycle(cycle);
 
