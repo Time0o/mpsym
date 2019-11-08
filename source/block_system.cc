@@ -195,68 +195,9 @@ BlockSystem BlockSystem::minimal(PermSet const &generators,
 {
   assert(initial_class.size() >= 2u);
 
-  std::vector<unsigned> classpath(generators.degree() + 1u);
-  std::vector<unsigned> cardinalities(generators.degree() + 1u);
+  std::vector<unsigned> classpath(generators.degree());
+  std::vector<unsigned> cardinalities(generators.degree());
   std::vector<unsigned> queue;
-
-  auto rep = [&](unsigned k) {
-    // find class
-    unsigned res = k;
-    unsigned next = classpath[res];
-
-    while (next != res) {
-      res = next;
-      next = classpath[res];
-    }
-
-    // compress path
-    unsigned current = k;
-    next = classpath[k];
-    while (next != current) {
-      classpath[current] = res;
-      current = next;
-      next = classpath[current];
-    }
-
-    return res;
-  };
-
-  auto merge = [&](unsigned k1, unsigned k2) {
-    unsigned r1 = rep(k1);
-    unsigned r2 = rep(k2);
-
-    Dbg(Dbg::TRACE) << "Representatives are: "
-                    << k1 << " => " << r1 << ", " << k2 << " => " << r2;
-
-    if (r1 == r2)
-      return false;
-
-    unsigned tmp1, tmp2;
-    if (cardinalities[r1] >= cardinalities[r2]) {
-      tmp1 = r1;
-      tmp2 = r2;
-    } else {
-      tmp2 = r1;
-      tmp1 = r2;
-    }
-
-    Dbg(Dbg::TRACE) << "=> Merging classes:";
-
-    classpath[tmp2] = tmp1;
-    Dbg(Dbg::TRACE) << "Updated classpath: "
-                    << std::vector<unsigned>(classpath.begin() + 1,
-                                             classpath.end());
-
-    cardinalities[tmp1] += cardinalities[tmp2];
-    Dbg(Dbg::TRACE) << "Updated cardinalities: "
-                    << std::vector<unsigned>(cardinalities.begin() + 1,
-                                             cardinalities.end());
-
-	queue.push_back(tmp2);
-    Dbg(Dbg::TRACE) << "Updated queue: " << queue;
-
-    return true;
-  };
 
   Dbg(Dbg::DBG) << "Finding minimal block system for:";
   Dbg(Dbg::DBG) << generators;
@@ -264,27 +205,22 @@ BlockSystem BlockSystem::minimal(PermSet const &generators,
   Dbg(Dbg::DBG) << "Initial class is: " << initial_class;
 
   for (auto i = 1u; i <= generators.degree(); ++i) {
-    classpath[i] = i;
-    cardinalities[i] = 1u;
+    classpath[i - 1u] = i;
+    cardinalities[i - 1u] = 1u;
   }
 
   for (auto i = 0u; i < initial_class.size() - 1u; ++i) {
     unsigned tmp = initial_class[i + 1u];
 
-    classpath[tmp] = initial_class[0];
+    classpath[tmp - 1u] = initial_class[0];
 	queue.push_back(tmp);
   }
 
-  cardinalities[initial_class[0]] = static_cast<unsigned>(initial_class.size());
+  cardinalities[initial_class[0] - 1u] =
+    static_cast<unsigned>(initial_class.size());
 
-  Dbg(Dbg::TRACE) <<  "Initial classpath: "
-                  << std::vector<unsigned>(classpath.begin() + 1,
-                                           classpath.end());
-
-  Dbg(Dbg::TRACE) <<  "Initial cardinalities: "
-                  << std::vector<unsigned>(cardinalities.begin() + 1,
-                                           cardinalities.end());
-
+  Dbg(Dbg::TRACE) <<  "Initial classpath: " << classpath;
+  Dbg(Dbg::TRACE) <<  "Initial cardinalities: " << cardinalities;
   Dbg(Dbg::TRACE) <<  "Initial queue: " << queue;
 
   unsigned i = 0u;
@@ -298,22 +234,21 @@ BlockSystem BlockSystem::minimal(PermSet const &generators,
       Dbg(Dbg::TRACE) << "= gen: " << gen;
 
       unsigned c1 = gen[gamma];
-      unsigned c2 = gen[rep(gamma)];
+      unsigned c2 = gen[minimal_find_rep(gamma, &classpath)];
 
       Dbg(Dbg::TRACE) << "Considering classes " << c1 << " and " << c2;
 
-      if (merge(c1, c2))
+      if (minimal_merge_classes(c1, c2, &classpath, &cardinalities, &queue))
         ++l;
     }
   }
 
   for (auto i = 1u; i <= generators.degree(); ++i)
-    rep(i);
+    minimal_find_rep(i, &classpath);
 
   Dbg(Dbg::TRACE) << "Final classpath is: " << classpath;
 
-  BlockSystem res(std::vector<unsigned>(classpath.begin() + 1,
-                                        classpath.end()));
+  BlockSystem res(classpath);
 
   Dbg(Dbg::TRACE) << "==> Resulting minimal block system: " << res;
 
@@ -344,6 +279,64 @@ std::vector<BlockSystem> BlockSystem::non_trivial(PermGroup const &pg,
   } else {
     return non_trivial_non_transitive(pg);
   }
+}
+
+unsigned BlockSystem::minimal_find_rep(unsigned k,
+                                       std::vector<unsigned> *classpath)
+{
+  // find class
+  unsigned res = k;
+  unsigned next = (*classpath)[res - 1u];
+
+  while (next != res) {
+    res = next;
+    next = (*classpath)[res - 1u];
+  }
+
+  // compress path
+  unsigned current = k;
+  next = (*classpath)[k - 1u];
+
+  while (next != current) {
+    (*classpath)[current - 1u] = res;
+
+    current = next;
+    next = (*classpath)[current - 1u];
+  }
+
+  return res;
+}
+
+bool BlockSystem::minimal_merge_classes(unsigned k1,
+                                        unsigned k2,
+                                        std::vector<unsigned> *classpath,
+                                        std::vector<unsigned> *cardinalities,
+                                        std::vector<unsigned> *queue)
+{
+  unsigned r1 = minimal_find_rep(k1, classpath);
+  unsigned r2 = minimal_find_rep(k2, classpath);
+
+  Dbg(Dbg::TRACE) << "Representatives are: "
+                  << k1 << " => " << r1 << ", " << k2 << " => " << r2;
+
+  if (r1 == r2)
+    return false;
+
+  if ((*cardinalities)[r1 - 1u] < (*cardinalities)[r2 - 1u])
+    std::swap(r1, r2);
+
+  Dbg(Dbg::TRACE) << "=> Merging classes:";
+
+  (*classpath)[r2 - 1u] = r1;
+  Dbg(Dbg::TRACE) << "Updated classpath: " << *classpath;
+
+  (*cardinalities)[r1 - 1u] += (*cardinalities)[r2 - 1u];
+  Dbg(Dbg::TRACE) << "Updated cardinalities: " << *cardinalities;
+
+  queue->push_back(r2);
+  Dbg(Dbg::TRACE) << "Updated queue: " << *queue;
+
+  return true;
 }
 
 std::vector<BlockSystem> BlockSystem::non_trivial_transitive(

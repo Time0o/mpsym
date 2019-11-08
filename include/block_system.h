@@ -51,6 +51,15 @@ public:
                                               bool assume_transitivity = false);
 
 private:
+  static unsigned minimal_find_rep(unsigned k,
+                              std::vector<unsigned> *classpath);
+
+  static bool minimal_merge_classes(unsigned k1,
+                                    unsigned k2,
+                                    std::vector<unsigned> *classpath,
+                                    std::vector<unsigned> *cardinalities,
+                                    std::vector<unsigned> *queue);
+
   static std::vector<BlockSystem> non_trivial_transitive(PermGroup const &pg);
   static std::vector<BlockSystem> non_trivial_non_transitive(PermGroup const &pg);
 
