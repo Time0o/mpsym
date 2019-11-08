@@ -361,7 +361,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
 
   Dbg(Dbg::TRACE) << "Generators stabilizing first base element: " << stab;
 
-  std::vector<std::vector<unsigned>> stab_orbits = orbit_partition(stab);
+  std::vector<std::vector<unsigned>> stab_orbits = orbit_partition_expanded(stab);
   Dbg(Dbg::TRACE) << "Orbit decomposition of associated group is: " << stab_orbits;
 
   std::vector<BlockSystem> res;
@@ -389,7 +389,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
 std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
   PermGroup const &pg)
 {
-  auto orbits(orbit_partition(pg.bsgs().strong_generators()));
+  auto orbits(orbit_partition_expanded(pg.bsgs().strong_generators()));
   auto gens(pg.bsgs().strong_generators());
 
   Dbg(Dbg::TRACE) << "Group has " << orbits.size() << " distinct orbits:";

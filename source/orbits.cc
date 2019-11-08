@@ -46,8 +46,25 @@ orbit_of(unsigned x, PermSet const &generators, SchreierStructure *ss)
   return res;
 }
 
-std::vector<std::vector<unsigned>>
+std::pair<std::vector<unsigned>, unsigned>
 orbit_partition(PermSet const &generators)
+{
+  // TODO: empty generator set
+
+  std::vector<unsigned> res(generators.degree());
+
+  auto partition(orbit_partition_expanded(generators));
+
+  for (auto i = 0u; i < partition.size(); ++i) {
+    for (unsigned x : partition[i])
+      res[x - 1u] = i + 1u;
+  }
+
+  return {res, static_cast<unsigned>(partition.size())};
+}
+
+std::vector<std::vector<unsigned>>
+orbit_partition_expanded(PermSet const &generators)
 {
   // TODO: empty generator set
 

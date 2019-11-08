@@ -1,6 +1,7 @@
 #ifndef _GUARD_ORBITS_H
 #define _GUARD_ORBITS_H
 
+#include <utility>
 #include <vector>
 
 #include "perm_set.h"
@@ -21,8 +22,11 @@ orbit_of(unsigned x,
          PermSet const &generators,
          SchreierStructure *ss = nullptr);
 
-std::vector<std::vector<unsigned>>
+std::pair<std::vector<unsigned>, unsigned>
 orbit_partition(PermSet const &generators);
+
+std::vector<std::vector<unsigned>>
+orbit_partition_expanded(PermSet const &generators);
 
 } // namespace cgtl
 

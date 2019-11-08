@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "dbg.h"
+#include "orbits.h"
 #include "perm.h"
 #include "perm_group.h"
 #include "perm_set.h"
@@ -334,52 +335,9 @@ std::vector<PermGroup> PermGroup::disjoint_decomp_complete(
   Dbg(Dbg::DBG) << "Finding (complete) disjoint subgroup decomposition for:";
   Dbg(Dbg::DBG) << *this;
 
-  // determine complete orbit decomposition
-  std::vector<unsigned> orbit_ids(degree(), 0u);
-  orbit_ids[0u] = 1u;
-
-  unsigned n_processed = 1u;
-  unsigned n_orbits = 1u;
-  for (unsigned x = 1u; x <= degree(); ++x) {
-    unsigned orbit_id = 0u;
-    std::vector<unsigned> new_orbit_elems;
-
-    if (!orbit_ids[x - 1u])
-      new_orbit_elems.push_back(x);
-    else
-      orbit_id = orbit_ids[x - 1u];
-
-    for (Perm const &gen : _bsgs.strong_generators()) {
-      unsigned y = gen[x];
-
-      if (y != x) {
-        if (!orbit_ids[y - 1u]) {
-          auto it =
-            std::find(new_orbit_elems.begin(), new_orbit_elems.end(), y);
-
-          if (it == new_orbit_elems.end())
-            new_orbit_elems.push_back(y);
-        } else if (!orbit_id)
-          orbit_id = orbit_ids[y - 1u];
-      }
-    }
-
-    if (!orbit_id)
-      orbit_id = ++n_orbits;
-
-    bool done = false;
-    for (unsigned y : new_orbit_elems) {
-      orbit_ids[y - 1u] = orbit_id;
-
-      if (++n_processed == degree()) {
-        done = true;
-        break;
-      }
-    }
-
-    if (done)
-      break;
-  }
+  auto tmp(orbit_partition(_bsgs.strong_generators()));
+  auto orbit_ids(tmp.first);
+  auto n_orbits = tmp.second;
 
   Dbg(Dbg::TRACE) << "=== Orbit decomposition:";
 #ifndef NDEBUG
