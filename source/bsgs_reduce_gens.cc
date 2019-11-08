@@ -11,14 +11,8 @@
 namespace cgtl
 {
 
-void BSGS::reduce_gens(bool preserve_original)
+void BSGS::reduce_gens()
 {
-  if (preserve_original)
-    throw std::logic_error("TODO");
-
-  if (base_size() == 0u)
-    return; // TODO: remove?
-
   Dbg(Dbg::DBG) << "Removing redundant strong generators from BSGS:";
   Dbg(Dbg::DBG) << *this;
 

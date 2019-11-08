@@ -19,8 +19,7 @@ namespace cgtl
 BSGS::BSGS(unsigned degree,
            PermSet const &generators,
            Construction construction,
-           Transversals transversals,
-           Reduce reduce)
+           Transversals transversals)
 : _degree(degree),
   _transversals(transversals)
 {
@@ -44,16 +43,9 @@ BSGS::BSGS(unsigned degree,
       break;
   }
 
-  switch (reduce) {
-    case REDUCE_REMOVE_REDUNDANT:
-      reduce_gens(false);
-      break;
-    case REDUCE_REMOVE_REDUNDANT_PRESERVE_ORIGINAL:
-      reduce_gens(true);
-      break;
-    case REDUCE_AUTO:
-      break;
-  }
+  assert(base_size() > 0u);
+
+  reduce_gens();
 }
 
 std::vector<unsigned> BSGS::orbit(unsigned i) const

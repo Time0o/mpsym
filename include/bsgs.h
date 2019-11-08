@@ -45,17 +45,10 @@ public:
     TRANSVERSALS_AUTO
   };
 
-  enum Reduce {
-    REDUCE_REMOVE_REDUNDANT,
-    REDUCE_REMOVE_REDUNDANT_PRESERVE_ORIGINAL,
-    REDUCE_AUTO
-  };
-
   BSGS(unsigned degree,
        PermSet const &generators,
        Construction construction = CONSTRUCTION_AUTO,
-       Transversals transversals = TRANSVERSALS_AUTO,
-       Reduce reduce = REDUCE_AUTO);
+       Transversals transversals = TRANSVERSALS_AUTO);
 
   unsigned degree() const { return _degree; }
 
@@ -99,7 +92,7 @@ private:
   void solve_adjoin_normalizing_generator(Perm const &gen);
 
   // generator reduction
-  void reduce_gens(bool preserve_original);
+  void reduce_gens();
 
   std::unordered_set<Perm> reduce_gens_set_difference(
     std::unordered_set<Perm> const &lhs,
