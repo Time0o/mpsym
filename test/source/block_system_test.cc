@@ -16,7 +16,7 @@ using cgtl::Perm;
 using cgtl::PermGroup;
 using cgtl::PermSet;
 
-static std::string block_to_string(std::vector<unsigned> const &block)
+static std::string block_to_string(BlockSystem::Block const &block)
 {
    std::stringstream ss;
    ss << '{' << block[0];
@@ -28,7 +28,7 @@ static std::string block_to_string(std::vector<unsigned> const &block)
 }
 
 static testing::AssertionResult block_system_equal(
-  std::vector<std::vector<unsigned>> const &expected, BlockSystem const &bs)
+  std::vector<BlockSystem::Block> const &expected, BlockSystem const &bs)
 {
   if (static_cast<unsigned>(expected.size()) != bs.size()) {
     auto res = testing::AssertionFailure();
@@ -44,7 +44,7 @@ static testing::AssertionResult block_system_equal(
        if (block_found[i])
          continue;
 
-       testing::Matcher<std::vector<unsigned> const &> matcher(
+       testing::Matcher<BlockSystem::Block const &> matcher(
          testing::UnorderedElementsAreArray(expected[i]));
 
        testing::StringMatchResultListener dummy;
@@ -74,15 +74,37 @@ static testing::AssertionResult block_system_equal(
 
 TEST(BlockSystemTest, CanFindMinimalBlockSystem)
 {
-  PermSet generators {
-    Perm(6, {{1, 2, 3, 4, 5, 6}}), Perm(6, {{2, 6}, {3, 5}})
+  std::vector<PermSet> generators {
+    {
+       Perm(6, {{1, 2, 3, 4, 5, 6}}),
+       Perm(6, {{2, 6}, {3, 5}})
+    },
+    {
+      Perm(9, {{1, 3}}),
+      Perm(9, {{1, 4}, {2, 5}, {3, 6}}),
+      Perm(9, {{4, 6}}),
+      Perm(9, {{4, 7}, {5, 8}, {6, 9}}),
+      Perm(9, {{7, 8}}),
+      Perm(9, {{8, 9}})
+    }
   };
 
-  BlockSystem bs = BlockSystem::minimal(generators, {1, 3});
+  std::vector<std::vector<unsigned>> initial_classes {
+    {1, 3},
+    {1, 8}
+  };
 
-  EXPECT_TRUE(block_system_equal({{1, 3, 5}, {2, 4, 6}},
-                                 BlockSystem::minimal(generators, {1, 3})))
-    << "Minimal blocksystem correctly determined.";
+  std::vector<std::vector<BlockSystem::Block>> expected_block_systems {
+    {{1, 3, 5}, {2, 4, 6}},
+    {{1, 2, 3, 4, 5, 6, 7, 8, 9}}
+  };
+
+  for (auto i = 0u; i < generators.size(); ++i) {
+    BlockSystem bs(BlockSystem::minimal(generators[i], initial_classes[i]));
+
+    EXPECT_TRUE(block_system_equal(expected_block_systems[i], bs))
+      << "Minimal blocksystem correctly determined.";
+  }
 }
 
 TEST(BlockSystemTest, CanFindAllNonTrivialBlockSystemsForTransientGroup)

@@ -11,6 +11,7 @@
 
 #include "bsgs.h"
 #include "dbg.h"
+#include "orbits.h"
 #include "perm.h"
 #include "perm_group.h"
 #include "perm_set.h"
@@ -365,30 +366,7 @@ bool PermGroup::is_alternating() const
 
 bool PermGroup::is_transitive() const
 {
-  std::vector<int> orbit_indices(degree() + 1u, -1);
-  orbit_indices[1] = 0;
-
-  unsigned processed = 1u;
-
-  for (auto i = 1u; i <= degree(); ++i) {
-    int orbit_index1 = orbit_indices[i];
-    if (orbit_index1 == -1)
-      return false;
-
-    for (Perm const &gen : _bsgs.strong_generators()) {
-      unsigned j = gen[i];
-
-      int orbit_index2 = orbit_indices[j];
-      if (orbit_index2 == -1) {
-        orbit_indices[j] = orbit_index1;
-
-        if (++processed == degree())
-          return true;
-      }
-    }
-  }
-
-  throw std::logic_error("unreachable");
+  return orbit_of(1u, _bsgs.strong_generators()).size() == degree();
 }
 
 bool PermGroup::contains_element(Perm const &perm) const

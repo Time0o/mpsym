@@ -318,10 +318,10 @@ public:
 
   /** Check whether a permutation group is *transitive*.
    *
-   * A permutation group is transitive by definition if for the group orbit of
-   * any of its elements \f$x\f$ it holds that: \f$G(x) = \{g \cdot x \in \{1,
-   * \dots, n\} : g \in G\} = \{1, \dots, n\}\f$ (where \f$n\f$ is the group's
-   * degree()).
+   * A permutation group acting on a set \f$\Omega$\f is transitive by
+   * definition if the group orbit of any \f$x \in \Omega$\f,
+   * \f$G(x) = \{g \cdot x \in \{1, \dots, n\} : g \in G\} = \{1, \dots, n\}\f$
+   * (where \f$n\f$ is the group's degree()).
    *
    * \return `true` if this permutation group is transitive, else `false`.
    */

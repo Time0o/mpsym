@@ -57,6 +57,33 @@ TEST(PermGroupTest, CanComparePermGroups)
 
   EXPECT_TRUE(pg1 != pg3 && pg2 != pg3 && !(pg1 == pg3) && !(pg2 == pg3))
     << "Can recognize permutation groups as unequal.";
+
+  PermGroup pg4(9,
+    {
+      Perm(9, {{1, 4}, {2, 5}, {3, 6}}),
+      Perm(9, {{2, 3}}),
+      Perm(9, {{4, 7}, {5, 8}, {6, 9}}),
+      Perm(9, {{5, 6}}),
+      Perm(9, {{7, 8}}),
+      Perm(9, {{8, 9}})
+    }
+  );
+
+  PermGroup pg5(9,
+    {
+      Perm(9, {{1, 2}}),
+      Perm(9, {{1, 4}, {2, 5}, {3, 6}}),
+      Perm(9, {{2, 3}}),
+      Perm(9, {{4, 5}}),
+      Perm(9, {{4, 7}, {5, 8}, {6, 9}}),
+      Perm(9, {{5, 6}}),
+      Perm(9, {{7, 8}}),
+      Perm(9, {{8, 9}})
+    }
+  );
+
+  EXPECT_TRUE(perm_group_equal(pg4, pg5))
+    << "Equal permutation groups have same elements.";
 }
 
 TEST(PermGroupTest, CanObtainDegree)
@@ -594,7 +621,7 @@ INSTANTIATE_TEST_CASE_P(DisjointSubgroupProductVariants,
                                                std::make_pair(true, false),
                                                std::make_pair(true, true)));
 
-TEST(WreathProductTest, CanFindWreathProduct)
+TEST(DISABLED_WreathProductTest, CanFindWreathProduct)
 {
   PermGroup pg(12,
     {
@@ -610,6 +637,9 @@ TEST(WreathProductTest, CanFindWreathProduct)
   );
 
   std::vector<PermGroup> decomp = pg.wreath_decomposition();
+
+  ASSERT_EQ(4u, decomp.size())
+    << "Wreath product decomposition found.";
 
   PermGroup sigma_k(12,
     {

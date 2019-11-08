@@ -1,3 +1,5 @@
+#include <ostream>
+#include <utility>
 #include <vector>
 
 #include "perm.h"
@@ -69,6 +71,39 @@ Perm SchreierTree::transversal(unsigned origin) const
   }
 
   return result;
+}
+
+void SchreierTree::dump(std::ostream &os) const
+{
+  std::vector<std::vector<std::pair<unsigned, unsigned>>> adj(_degree + 1u);
+
+  for (auto const &e : _edges) {
+    auto label_it = _edge_labels.find(e.first);
+
+    adj[e.first].emplace_back(e.second, label_it->second);
+  }
+
+  os << "schreier tree: [\n";
+
+  for (auto origin = 1u; origin <= _degree; ++ origin) {
+    if (adj[origin].empty())
+      continue;
+
+    os << "  " << origin << ": [";
+
+    for (auto i = 0u; i < adj[origin].size(); ++i) {
+      auto e = adj[origin][i];
+
+      os << e.first << " " << _labels[e.second];
+
+      if (i < adj[origin].size() - 1u)
+        os << ", ";
+    }
+
+    os << "]\n";
+  }
+
+  os << "]\n";
 }
 
 } // namespace cgtl
