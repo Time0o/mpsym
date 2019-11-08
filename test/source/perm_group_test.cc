@@ -621,7 +621,7 @@ INSTANTIATE_TEST_CASE_P(DisjointSubgroupProductVariants,
                                                std::make_pair(true, false),
                                                std::make_pair(true, true)));
 
-TEST(WreathProductTest, CanFindWreathProduct)
+TEST(DISABLED_WreathProductTest, CanFindWreathProduct)
 {
   PermGroup pg(12,
     {

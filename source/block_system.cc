@@ -123,6 +123,9 @@ bool BlockSystem::is_block(PermSet const &generators, Block const &block)
 PermSet BlockSystem::block_stabilizers(PermSet const &generators,
                                        Block const &block)
 {
+  throw std::logic_error(
+    "TODO: block stabilizer group need to be found via backtracking");
+
   PermSet res;
 
   for (Perm const &gen : generators) {
