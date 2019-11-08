@@ -31,24 +31,24 @@ public:
     {}
   };
 
-  enum Construction {
-    CONSTRUCTION_SCHREIER_SIMS,
-    CONSTRUCTION_SCHREIER_SIMS_RANDOM,
-    CONSTRUCTION_SOLVE,
-    CONSTRUCTION_AUTO
+  enum class Construction {
+    SCHREIER_SIMS,
+    SCHREIER_SIMS_RANDOM,
+    SOLVE,
+    AUTO
   };
 
-  enum Transversals {
-    TRANSVERSALS_EXPLICIT,
-    TRANSVERSALS_SCHREIER_TREES,
-    TRANSVERSALS_SHALLOW_SCHREIER_TREES,
-    TRANSVERSALS_AUTO
+  enum class Transversals {
+    EXPLICIT,
+    SCHREIER_TREES,
+    SHALLOW_SCHREIER_TREES,
+    AUTO
   };
 
   BSGS(unsigned degree,
        PermSet const &generators,
-       Construction construction = CONSTRUCTION_AUTO,
-       Transversals transversals = TRANSVERSALS_AUTO);
+       Construction construction = Construction::AUTO,
+       Transversals transversals = Transversals::AUTO);
 
   unsigned degree() const { return _degree; }
 

@@ -352,8 +352,8 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
 }
 
 INSTANTIATE_TEST_CASE_P(ConstructionMethods, PermGroupConstructionMethodTest,
-  testing::Values(BSGS::CONSTRUCTION_SCHREIER_SIMS,
-                  BSGS::CONSTRUCTION_SCHREIER_SIMS_RANDOM));
+  testing::Values(BSGS::Construction::SCHREIER_SIMS,
+                  BSGS::Construction::SCHREIER_SIMS_RANDOM));
                   // TODO: AUTO
 
 TEST(PermGroupCombinationTest, CanConstructDirectProduct)

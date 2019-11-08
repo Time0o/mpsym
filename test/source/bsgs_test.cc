@@ -36,14 +36,14 @@ TEST(BSGSTest, CanSolveBSGS)
   PermSet generators_non_solvable(
     PermGroup::symmetric(5).bsgs().strong_generators());
 
-  BSGS bsgs(4, generators_solvable, BSGS::CONSTRUCTION_SOLVE);
+  BSGS bsgs(4, generators_solvable, BSGS::Construction::SOLVE);
 
   for (Perm const &perm : generators_solvable_expected_elements) {
     EXPECT_TRUE(bsgs.strips_completely(perm))
       << "Solvable group BSGS correct.";
   }
 
-  EXPECT_THROW(BSGS dummy(5, generators_non_solvable, BSGS::CONSTRUCTION_SOLVE),
+  EXPECT_THROW(BSGS dummy(5, generators_non_solvable, BSGS::Construction::SOLVE),
                BSGS::SolveError)
       << "Solving BSGS fails for non-solvable group generating set.";
 }

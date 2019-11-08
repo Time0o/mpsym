@@ -81,8 +81,8 @@ public:
    */
   PermGroup(unsigned degree,
             PermSet const &generators,
-            BSGS::Construction construction = BSGS::CONSTRUCTION_AUTO,
-            BSGS::Transversals transversals = BSGS::TRANSVERSALS_AUTO);
+            BSGS::Construction construction = BSGS::Construction::AUTO,
+            BSGS::Transversals transversals = BSGS::Transversals::AUTO);
 
   /** Check two permutation groups for equality.
    *

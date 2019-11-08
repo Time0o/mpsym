@@ -29,16 +29,16 @@ BSGS::BSGS(unsigned degree,
     return;
 
   switch (construction) {
-    case CONSTRUCTION_SCHREIER_SIMS:
+    case Construction::SCHREIER_SIMS:
       schreier_sims(generators);
       break;
-    case CONSTRUCTION_SCHREIER_SIMS_RANDOM:
+    case Construction::SCHREIER_SIMS_RANDOM:
       schreier_sims_random(generators);
       break;
-    case CONSTRUCTION_SOLVE:
+    case Construction::SOLVE:
       solve(generators);
       break;
-    case CONSTRUCTION_AUTO:
+    case Construction::AUTO:
       schreier_sims(generators); // TODO
       break;
   }
@@ -105,14 +105,14 @@ BSGS::ss_type BSGS::make_schreier_structure(unsigned bp)
   ss_type st;
 
   switch (_transversals) {
-    case BSGS::TRANSVERSALS_EXPLICIT:
+    case Transversals::EXPLICIT:
       st = std::make_shared<ExplicitTransversals>(degree());
       break;
-    case BSGS::TRANSVERSALS_SCHREIER_TREES:
-    case BSGS::TRANSVERSALS_AUTO:
+    case Transversals::SCHREIER_TREES:
+    case Transversals::AUTO:
       st = std::make_shared<SchreierTree>(degree());
       break;
-    case BSGS::TRANSVERSALS_SHALLOW_SCHREIER_TREES:
+    case Transversals::SHALLOW_SCHREIER_TREES:
       throw std::logic_error("TODO");
   }
 
