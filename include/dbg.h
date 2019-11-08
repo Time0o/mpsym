@@ -52,7 +52,7 @@ public:
     return *this;
   }
 
-  ~Dbg() { _buf << std::endl; out << _buf.str(); }
+  ~Dbg() { out << _buf.str() << std::endl; }
 
 private:
   std::string header_indent() {
