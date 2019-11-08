@@ -14,9 +14,10 @@
 namespace cgtl
 {
 
-BlockSystem::BlockSystem(
-  unsigned n, std::vector<std::vector<unsigned>> const &blocks)
-  : _n(n), _classes(n), _blocks(blocks)
+BlockSystem::BlockSystem(unsigned n, std::vector<Block> const &blocks)
+: _n(n),
+  _classes(n),
+  _blocks(blocks)
 {
 #ifndef NDEBUG
   for (auto const &block : _blocks)
@@ -30,7 +31,8 @@ BlockSystem::BlockSystem(
 }
 
 BlockSystem::BlockSystem(std::vector<unsigned> const &classes)
-  : _n(classes.size()), _classes(classes)
+: _n(classes.size()),
+  _classes(classes)
 {
   std::vector<int> block_indices(_n, -1);
 
@@ -56,7 +58,7 @@ BlockSystem::BlockSystem(std::vector<unsigned> const &classes)
 bool BlockSystem::trivial() const
 { return _blocks.size() == 1u || _blocks[0].size() == 1u; }
 
-std::vector<unsigned> const& BlockSystem::operator[](unsigned const i) const
+BlockSystem::Block const& BlockSystem::operator[](unsigned const i) const
 { return _blocks[i]; }
 
 BlockSystem::const_iterator BlockSystem::begin() const
@@ -96,8 +98,7 @@ PermGroup BlockSystem::block_permuter(PermSet const &generators) const
     d, PermSet(permuter_generators.begin(), permuter_generators.end()));
 }
 
-bool BlockSystem::is_block(PermSet const &generators,
-                           std::vector<unsigned> const &block)
+bool BlockSystem::is_block(PermSet const &generators, Block const &block)
 {
   for (Perm const &gen : generators) {
     bool maps_to_other_block =
@@ -120,7 +121,7 @@ bool BlockSystem::is_block(PermSet const &generators,
 }
 
 PermSet BlockSystem::block_stabilizers(PermSet const &generators,
-                                       std::vector<unsigned> const &block)
+                                       Block const &block)
 {
   PermSet res;
 
@@ -148,7 +149,7 @@ PermSet BlockSystem::block_stabilizers(PermSet const &generators,
 }
 
 BlockSystem BlockSystem::from_block(PermSet const &generators,
-                                    std::vector<unsigned> const &block)
+                                    Block const &block)
 {
   assert(is_block(generators, block));
 
@@ -157,7 +158,7 @@ BlockSystem BlockSystem::from_block(PermSet const &generators,
   for (unsigned x : block)
     classes[x] = 1u;
 
-  std::vector<std::vector<unsigned>> blocks {block};
+  std::vector<Block> blocks {block};
 
   unsigned block_idx = 0u;
   unsigned n_processed = block.size();
@@ -172,7 +173,7 @@ BlockSystem BlockSystem::from_block(PermSet const &generators,
       if (classes[y] != 0u)
         continue;
 
-      std::vector<unsigned> next_block(block.size());
+      Block next_block(block.size());
       for (auto i = 0u; i < current_block.size(); ++i) {
         unsigned tmp = gen[current_block[i]];
         next_block[i] = tmp;
@@ -342,8 +343,6 @@ bool BlockSystem::minimal_merge_classes(unsigned k1,
 std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
   PermGroup const &pg)
 {
-  auto sgs(pg.bsgs().strong_generators());
-
   // TODO: does the first base element HAVE to be one?
   unsigned first_base_elem = pg.bsgs().base_point(0);
   Dbg(Dbg::TRACE) << "First base element is: " << first_base_elem;
@@ -369,7 +368,8 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
     if (repr == first_base_elem)
       continue;
 
-    auto bs = BlockSystem::minimal(sgs, {first_base_elem, repr});
+    auto bs = BlockSystem::minimal(pg.bsgs().strong_generators(),
+                                   {first_base_elem, repr});
 
     if (!bs.trivial()) {
       Dbg(Dbg::TRACE) << "Found blocksystem: " << bs;
@@ -452,22 +452,37 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
     Dbg(Dbg::TRACE) << bs;
 #endif
 
-  auto shift_block = [](std::vector<unsigned> const &block, unsigned shift) {
-    std::vector<unsigned> res(block.size());
+  auto representatives(
+    non_trivial_find_representatives(gens, partial_blocksystems, domain_offsets));
 
-    for (auto i = 0u; i < block.size(); ++i)
-      res[i] = block[i] + shift;
+  return non_trivial_from_representatives(gens, representatives);
+}
 
-    return res;
-  };
+BlockSystem::Block BlockSystem::non_trivial_shift_block(Block const &block,
+                                                        unsigned shift)
+{
+  Block res(block.size());
 
-  std::function<void(
-    std::vector<BlockSystem const *> const &, unsigned,
-    bool, std::vector<std::vector<unsigned>> &)>
-  construct_blocks = [&](
-    std::vector<BlockSystem const *> const &current_blocksystems, unsigned i,
-    bool one_trivial, std::vector<std::vector<unsigned>> &res) {
+  for (auto i = 0u; i < block.size(); ++i)
+    res[i] = block[i] + shift;
 
+  return res;
+}
+
+std::vector<BlockSystem::Block> BlockSystem::non_trivial_find_representatives(
+  PermSet const &generators,
+  std::vector<std::vector<BlockSystem>> const &partial_blocksystems,
+  std::vector<unsigned> const &domain_offsets)
+{
+  Dbg(Dbg::TRACE) << "== Finding block system representatives";
+
+  std::vector<Block> res;
+
+  std::function<void(std::vector<BlockSystem const *> const &, unsigned, bool)>
+  recurse = [&](std::vector<BlockSystem const *> const &current_blocksystems,
+                unsigned i,
+                bool one_trivial)
+  {
     if (i == partial_blocksystems.size()) {
       Dbg(Dbg::TRACE) << "= Considering block system combination:";
 #ifndef NDEBUG
@@ -477,18 +492,15 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
       }
 #endif
 
-      std::vector<unsigned> current_block =
-        shift_block((*current_blocksystems[0])[0], domain_offsets[0]);
+      Block current_block(non_trivial_shift_block((*current_blocksystems[0])[0],
+                          domain_offsets[0]));
 
       for (auto j = 1u; j < current_blocksystems.size(); ++j) {
-
         bool next_block = false;
 
         BlockSystem const *bs = current_blocksystems[j];
-        for (std::vector<unsigned> const &block : *bs) {
-
-          std::vector<unsigned> shifted_block(
-            shift_block(block, domain_offsets[j]));
+        for (auto const &block : *bs) {
+          Block shifted_block(non_trivial_shift_block(block, domain_offsets[j]));
 
           std::vector<unsigned> extended_block(
             current_block.size() + shifted_block.size());
@@ -499,7 +511,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
 
           extended_block.resize(it - extended_block.begin());
 
-          if (is_block(gens, extended_block)) {
+          if (is_block(generators, extended_block)) {
             Dbg(Dbg::TRACE) << extended_block << " is a block";
             current_block = extended_block;
             next_block = true;
@@ -513,13 +525,13 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
           return;
       }
 
-      Dbg(Dbg::TRACE) << "=> Found representative block: " << current_block;
       res.push_back(current_block);
+      Dbg(Dbg::TRACE) << "=> Found representative block: " << current_block;
 
       return;
     }
 
-    for (BlockSystem &blocksystem : partial_blocksystems[i]) {
+    for (BlockSystem const &blocksystem : partial_blocksystems[i]) {
       if (blocksystem.trivial()) {
         if (one_trivial)
           return;
@@ -530,27 +542,32 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
       auto extended_blocksystems(current_blocksystems);
       extended_blocksystems.push_back(&blocksystem);
 
-      construct_blocks(extended_blocksystems, i + 1, one_trivial, res);
+      recurse(extended_blocksystems, i + 1, one_trivial);
     }
   };
 
-  Dbg(Dbg::TRACE) << "== Finding block system representatives";
-
-  std::vector<std::vector<unsigned>> repr_blocks;
-  construct_blocks({}, 0u, false, repr_blocks);
+  recurse({}, 0u, false);
 
   Dbg(Dbg::TRACE) << "=> Representative blocks found:";
 #ifndef NDEBUG
-  for (auto const &block : repr_blocks)
+  for (auto const &block : res)
     Dbg(Dbg::TRACE) << block;
 #endif
 
-  // construct block systems from block representatives
-  std::vector<BlockSystem> res(repr_blocks.size());
-  for (auto i = 0u; i < repr_blocks.size(); ++i)
-    res[i] = from_block(gens, repr_blocks[i]);
+  return res;
+}
 
-  Dbg(Dbg::TRACE) << "==> Respective block systems:";
+std::vector<BlockSystem> BlockSystem::non_trivial_from_representatives(
+  PermSet const &generators,
+  std::vector<Block> const &representatives)
+{
+  Dbg(Dbg::TRACE) << "== Finding block systems from representatives";
+
+  std::vector<BlockSystem> res(representatives.size());
+  for (auto i = 0u; i < representatives.size(); ++i)
+    res[i] = from_block(generators, representatives[i]);
+
+  Dbg(Dbg::TRACE) << "==> Resulting block systems:";
 #ifndef NDEBUG
   for (BlockSystem const &bs : res)
     Dbg(Dbg::TRACE) << bs;
