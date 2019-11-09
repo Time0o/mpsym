@@ -1,4 +1,5 @@
 #include <sstream>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -288,13 +289,15 @@ TEST(PermGroupTest, CanIterateElements)
     << "Iteration produces every element exactly once (explicit iterator).";
 }
 
-class PermGroupConstructionMethodTest
-  : public testing::TestWithParam<BSGS::Construction> {};
+class PermGroupConstructionMethodTest : public testing::TestWithParam<
+  std::tuple<BSGS::Construction, BSGS::Transversals>> {};
 
 // TODO: test more groups
 TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
 {
-  auto method = GetParam();
+  BSGS::Construction construction;
+  BSGS::Transversals transversals;
+  std::tie(construction, transversals) = GetParam();
 
   PermGroup groups[] = {
     PermGroup(4,
@@ -302,7 +305,8 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
         Perm(4, {{2, 4}}),
         Perm(4, {{1, 2}, {3, 4}})
       },
-      method
+      construction,
+      transversals
     )
   };
 
@@ -325,9 +329,14 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
 }
 
 INSTANTIATE_TEST_CASE_P(ConstructionMethods, PermGroupConstructionMethodTest,
-  testing::Values(BSGS::Construction::SCHREIER_SIMS,
-                  BSGS::Construction::SCHREIER_SIMS_RANDOM));
-                  // TODO: AUTO
+  testing::Combine(
+    testing::Values(BSGS::Construction::SCHREIER_SIMS,
+                    BSGS::Construction::SCHREIER_SIMS_RANDOM),
+                    // TODO: AUTO
+    testing::Values(BSGS::Transversals::EXPLICIT,
+                    BSGS::Transversals::SCHREIER_TREES)));
+                    // TODO: SHALLOW_SCHREIER_TREES
+                    // TODO: AUTO
 
 TEST(PermGroupCombinationTest, CanConstructDirectProduct)
 {
