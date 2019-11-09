@@ -55,16 +55,12 @@ def gap_script(group_class, min_degree, max_degree, degree_step, order_limit):
     if (max_degree - min_degree) % degree_step != 0:
         raise ValueError("--degree-step must divide --max-degree - --min-degree")
 
-    if max_degree == min_degree:
-        gap_cmd = GAP_CMD_NOLOOP.format(min_degree)
-        gap_order_skip = ""
-    else:
-        gap_cmd = GAP_CMD.format(min_degree, min_degree + degree_step, max_degree)
+    gap_cmd = GAP_CMD.format(min_degree, min_degree + degree_step, max_degree)
 
-        if order_limit is not None:
-            gap_order_skip = GAP_ORDER_SKIP.format(order_limit)
-        else:
-            gap_order_skip = ""
+    if order_limit is not None:
+        gap_order_skip = GAP_ORDER_SKIP.format(order_limit)
+    else:
+        gap_order_skip = ""
 
     if group_class == 'primitive':
         gap_group = GAP_PRIMITIVE_GROUP
