@@ -2,8 +2,10 @@
 #define _GUARD_UTIL_H
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstddef>
+#include <limits>
 #include <numeric>
 #include <vector>
 
@@ -42,6 +44,8 @@ T pow(T base, T exp)
     if (!(exp >>= 1))
       break;
 
+    assert(std::numeric_limits<T>::max() / base >= res);
+
     base *= base;
   }
 
@@ -63,8 +67,11 @@ template<typename T>
 T factorial(T x)
 {
   T res = 1u;
-  while (x > 1u)
+  while (x > 1u) {
+    assert(std::numeric_limits<T>::max() / x >= res);
+
     res *= x--;
+  }
 
   return res;
 }

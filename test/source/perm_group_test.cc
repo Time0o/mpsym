@@ -9,6 +9,7 @@
 #include "perm_group.h"
 #include "perm_set.h"
 #include "test_utility.h"
+#include "util.h"
 
 #include "test_main.cc"
 
@@ -20,15 +21,6 @@ using cgtl::PermSet;
 using testing::ElementsAre;
 using testing::UnorderedElementsAre;
 using testing::UnorderedElementsAreArray;
-
-static unsigned factorial(unsigned x)
-{
-  unsigned result = 1u;
-  while (x > 1u)
-    result *= x--;
-
-  return result;
-}
 
 TEST(PermGroupTest, CanComparePermGroups)
 {
@@ -74,7 +66,7 @@ TEST(PermGroupTest, CanObtainOrder)
     << "Order set correctly for trivial permutation group.";
 
   for (unsigned i = 1u; i <= 10u; ++i) {
-    EXPECT_EQ(factorial(i), PermGroup::symmetric(i).order())
+    EXPECT_EQ(util::factorial(i), PermGroup::symmetric(i).order())
       << "Order set correctly for symmetric group S" << i;
   }
 
@@ -84,7 +76,7 @@ TEST(PermGroupTest, CanObtainOrder)
   }
 
   for (unsigned i = 3u; i <= 10u; ++i) {
-    EXPECT_EQ(factorial(i) / 2, PermGroup::alternating(i).order())
+    EXPECT_EQ(util::factorial(i) / 2, PermGroup::alternating(i).order())
       << "Order set correctly for alternating group A" << i;
   }
 }
