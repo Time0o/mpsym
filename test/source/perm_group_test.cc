@@ -292,7 +292,6 @@ TEST(PermGroupTest, CanIterateElements)
 class PermGroupConstructionMethodTest : public testing::TestWithParam<
   std::tuple<BSGS::Construction, BSGS::Transversals>> {};
 
-// TODO: test more groups
 TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
 {
   BSGS::Construction construction;
@@ -304,6 +303,29 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
       {
         Perm(4, {{2, 4}}),
         Perm(4, {{1, 2}, {3, 4}})
+      },
+      construction,
+      transversals
+    ),
+    PermGroup(5,
+      {
+        Perm(5, {{2, 4}, {3, 5}}),
+        Perm(5, {{1, 2, 3, 5, 4}})
+      },
+      construction,
+      transversals
+    ),
+    PermGroup(6,
+      {
+        Perm(6, {{1, 2, 3, 4, 5, 6}})
+      },
+      construction,
+      transversals
+    ),
+    PermGroup(7,
+      {
+        Perm(7, {{2, 5}, {3, 6}, {4, 7}}),
+        Perm(7, {{1, 2, 4, 3, 6, 7, 5}})
       },
       construction,
       transversals
@@ -319,7 +341,40 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
       Perm(4, {{1, 4, 3, 2}}),
       Perm(4, {{1, 4}, {2, 3}}),
       Perm(4, {{2, 4}})
-    }
+    },
+    {
+      Perm(5, {{2, 4}, {3, 5}}),
+      Perm(5, {{1, 2}, {3, 4}}),
+      Perm(5, {{1, 2, 3, 5, 4}}),
+      Perm(5, {{1, 3}, {4, 5}}),
+      Perm(5, {{1, 3, 4, 2, 5}}),
+      Perm(5, {{1, 4, 5, 3, 2}}),
+      Perm(5, {{1, 4}, {2, 5}}),
+      Perm(5, {{1, 5}, {2, 3}}),
+      Perm(5, {{1, 5, 2, 4, 3}})
+    },
+    {
+      Perm(6, {{1, 2, 3, 4, 5, 6}}),
+      Perm(6, {{1, 3, 5}, {2, 4, 6}}),
+      Perm(6, {{1, 4}, {2, 5}, {3, 6}}),
+      Perm(6, {{1, 5, 3}, {2, 6, 4}}),
+      Perm(6, {{1, 6, 5, 4, 3, 2}})
+    },
+    {
+      Perm(7, {{2, 5}, {3, 6}, {4, 7}}),
+      Perm(7, {{1, 2}, {3, 7}, {4, 5}}),
+      Perm(7, {{1, 2, 4, 3, 6, 7, 5}}),
+      Perm(7, {{1, 3}, {2, 4}, {5, 6}}),
+      Perm(7, {{1, 3, 5, 4, 7, 2, 6}}),
+      Perm(7, {{1, 4}, {3, 5}, {6, 7}}),
+      Perm(7, {{1, 4, 6, 5, 2, 3, 7}}),
+      Perm(7, {{1, 5, 7, 6, 3, 4, 2}}),
+      Perm(7, {{1, 5}, {2, 7}, {4, 6}}),
+      Perm(7, {{1, 6}, {2, 3}, {5, 7}}),
+      Perm(7, {{1, 6, 2, 7, 4, 5, 3}}),
+      Perm(7, {{1, 7, 3, 2, 5, 6, 4}}),
+      Perm(7, {{1, 7}, {2, 6}, {3, 4}})
+    },
   };
 
   for (auto i = 0u; i < sizeof(groups) / sizeof(groups[0]); ++i) {
