@@ -14,9 +14,9 @@
 namespace cgtl
 {
 
-BlockSystem::BlockSystem(unsigned n, std::vector<Block> const &blocks)
-: _n(n),
-  _classes(n),
+BlockSystem::BlockSystem(unsigned degree, std::vector<Block> const &blocks)
+: _degree(degree),
+  _classes(degree),
   _blocks(blocks)
 {
 #ifndef NDEBUG
@@ -31,12 +31,12 @@ BlockSystem::BlockSystem(unsigned n, std::vector<Block> const &blocks)
 }
 
 BlockSystem::BlockSystem(std::vector<unsigned> const &classes)
-: _n(classes.size()),
+: _degree(classes.size()),
   _classes(classes)
 {
-  std::vector<int> block_indices(_n, -1);
+  std::vector<int> block_indices(degree(), -1);
 
-  for (auto i = 0u; i < _n; ++i) {
+  for (auto i = 0u; i < degree(); ++i) {
     unsigned c = _classes[i];
 
     if (block_indices[c - 1u] == -1) {

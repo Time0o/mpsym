@@ -47,10 +47,18 @@ friend std::size_t std::hash<PermWord>::operator()(PermWord const &permWord) con
 
 public:
   PermWord(Perm const &perm);
-  PermWord(unsigned degree = 1) : PermWord(Perm(degree)) {};
-  PermWord(std::vector<unsigned> const &perm) : PermWord(Perm(perm)) {};
-  PermWord(unsigned n, std::vector<std::vector<unsigned>> const &cycles)
-    : PermWord(Perm(n, cycles)) {};
+
+  PermWord(unsigned degree = 1)
+  : PermWord(Perm(degree))
+  {};
+
+  PermWord(std::vector<unsigned> const &perm)
+  : PermWord(Perm(perm))
+  {};
+
+  PermWord(unsigned degree, std::vector<std::vector<unsigned>> const &cycles)
+  : PermWord(Perm(degree, cycles))
+  {};
 
   unsigned operator[](unsigned const i) const;
   PermWord operator~() const;
@@ -58,12 +66,12 @@ public:
   bool operator!=(PermWord const &rhs) const;
   PermWord& operator*=(PermWord const &rhs);
 
-  unsigned degree() const { return _n; }
+  unsigned degree() const { return _degree; }
   bool id() const;
   Perm perm() const;
 
 private:
-  unsigned _n;
+  unsigned _degree;
   PermSet _perms;
   PermSet _invperms;
 };

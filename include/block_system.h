@@ -20,14 +20,17 @@ public:
 
   typedef std::vector<Block>::const_iterator const_iterator;
 
-  BlockSystem() : _n(0u) {};
-  BlockSystem(unsigned n, std::vector<Block> const &blocks);
+  BlockSystem()
+  : _degree(0u)
+  {};
+
+  BlockSystem(unsigned degree, std::vector<Block> const &blocks);
   BlockSystem(std::vector<unsigned> const &classes);
 
   std::vector<unsigned> classes() const { return _classes; }
   std::vector<Block> blocks() const { return _blocks; }
 
-  unsigned degree() const { return _n; }
+  unsigned degree() const { return _degree; }
   unsigned size() const { return static_cast<unsigned>(_blocks.size()); }
   bool trivial() const;
 
@@ -76,7 +79,7 @@ private:
     PermSet const &generators,
     std::vector<Block> const &representatives);
 
-  unsigned _n;
+  unsigned _degree;
   std::vector<unsigned> _classes;
   std::vector<std::vector<unsigned>> _blocks;
 };

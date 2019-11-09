@@ -12,7 +12,7 @@ namespace cgtl
 {
 
 PermWord::PermWord(Perm const &perm)
-: _n(perm.degree())
+: _degree(perm.degree())
 {
   _perms.insert(perm);
   _invperms.insert(~perm);
@@ -53,7 +53,8 @@ std::ostream& operator<<(std::ostream& stream, PermWord const &pw)
 
 bool PermWord::operator==(PermWord const &rhs) const
 {
-  assert(rhs.degree() == _n && "comparing permutation words of equal degree");
+  assert(rhs.degree() == degree() &&
+    "comparing permutation words of equal degree");
 
   for (unsigned i = 1u; i <= degree(); ++i) {
     if ((*this)[i] != rhs[i])
@@ -70,7 +71,8 @@ bool PermWord::operator!=(PermWord const &rhs) const
 
 PermWord& PermWord::operator*=(PermWord const &rhs)
 {
-  assert(rhs.degree() == _n && "multiplying permutation words of equal degree");
+  assert(rhs.degree() == degree() &&
+    "multiplying permutation words of equal degree");
 
   _perms.insert(rhs._perms.begin(), rhs._perms.end());
   _invperms.insert(rhs._invperms.begin(), rhs._invperms.end());
@@ -80,8 +82,8 @@ PermWord& PermWord::operator*=(PermWord const &rhs)
 
 Perm PermWord::perm() const
 {
-  std::vector<unsigned> perm(_n);
-  for (auto i = 0u; i < _n; ++i)
+  std::vector<unsigned> perm(degree());
+  for (auto i = 0u; i < degree(); ++i)
     perm[i] = (*this)[i + 1u];
 
   return perm;

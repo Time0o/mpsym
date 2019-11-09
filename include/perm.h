@@ -165,7 +165,7 @@ public:
    *
    * \return this permutation's degree
    */
-  unsigned degree() const { return _n; }
+  unsigned degree() const { return _degree; }
 
   /** Check whether a permutation is an *identity permutation*.
    *
@@ -254,7 +254,7 @@ public:
   Perm restricted(std::vector<unsigned> const &domain) const;
 
 private:
-  unsigned _n;
+  unsigned _degree;
   std::vector<unsigned> _perm;
 };
 
