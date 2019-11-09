@@ -8,16 +8,6 @@
 namespace cgtl
 {
 
-void SchreierTree::create_root(unsigned root)
-{
-  _root = root;
-}
-
-void SchreierTree::create_labels(PermSet const &labels)
-{
-  _labels = labels;
-}
-
 void SchreierTree::create_edge(
   unsigned origin, unsigned destination, unsigned label)
 {

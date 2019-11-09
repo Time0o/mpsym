@@ -21,8 +21,6 @@ class BSGS
 {
 friend std::ostream& operator<<(std::ostream& stream, BSGS const &bsgs);
 
-  using ss_type = std::shared_ptr<SchreierStructure>;
-
 public:
   struct SolveError : public std::runtime_error
   {
@@ -105,14 +103,12 @@ private:
 
   // convenience methods
   void extend_base(unsigned bp);
-
-  ss_type make_schreier_structure(unsigned bp);
   void update_schreier_structure(unsigned i, PermSet const &strong_generators);
 
   unsigned _degree;
   Transversals _transversals;
   std::vector<unsigned> _base;
-  std::vector<ss_type> _schreier_structures;
+  std::vector<std::shared_ptr<SchreierStructure>> _schreier_structures;
   PermSet _strong_generators;
 };
 

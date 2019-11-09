@@ -14,14 +14,17 @@ namespace cgtl
 
 struct ExplicitTransversals : public SchreierStructure
 {
-  ExplicitTransversals(unsigned degree)
-  : _degree(degree)
-  {}
+  ExplicitTransversals(unsigned degree, unsigned root, PermSet const &labels)
+  : _degree(degree),
+    _root(root),
+    _labels(labels)
+  {
+    _orbit[root] = Perm(_degree);
+  }
 
-  void create_root(unsigned root) override;
-  void create_labels(PermSet const &labels) override;
-  void create_edge(
-    unsigned origin, unsigned destination, unsigned label) override;
+  void create_edge(unsigned origin,
+                   unsigned destination,
+                   unsigned label) override;
 
   unsigned root() const override;
   std::vector<unsigned> nodes() const override;
@@ -35,7 +38,7 @@ private:
   void dump(std::ostream &os) const override;
 
   unsigned _degree;
-  unsigned _root = 0;
+  unsigned _root;
   PermSet _labels;
   std::map<unsigned, Perm> _orbit;
 };

@@ -7,17 +7,6 @@
 namespace cgtl
 {
 
-void ExplicitTransversals::create_root(unsigned root)
-{
-  _root = root;
-  _orbit[root] = Perm(_degree);
-}
-
-void ExplicitTransversals::create_labels(PermSet const &labels)
-{
-  _labels = labels;
-}
-
 void ExplicitTransversals::create_edge(
   unsigned origin, unsigned destination, unsigned label)
 {

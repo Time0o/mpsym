@@ -16,7 +16,7 @@ using cgtl::Perm;
 using cgtl::PermGroup;
 using cgtl::PermSet;
 
-TEST(BSGSTest, CanSolveBSGS)
+TEST(DISABLED_BSGSTest, CanSolveBSGS)
 {
   PermSet generators_solvable {
     Perm(4, {{2, 4}}),

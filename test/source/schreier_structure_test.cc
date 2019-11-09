@@ -90,7 +90,7 @@ TYPED_TEST(SchreierStructureTest, CanConstructSchreierStructures)
   };
 
   for (unsigned i = 0u; i < n; ++i) {
-    TypeParam schreier_structure(n);
+    TypeParam schreier_structure(n, i + 1u, generators);
 
     orbit_of(i + 1u, generators, &schreier_structure);
 

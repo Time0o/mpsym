@@ -97,36 +97,36 @@ bool BSGS::strips_completely(Perm const &perm) const
 void BSGS::extend_base(unsigned bp)
 {
   _base.push_back(bp);
-  _schreier_structures.emplace_back(make_schreier_structure(bp));
 }
 
-BSGS::ss_type BSGS::make_schreier_structure(unsigned bp)
+void BSGS::update_schreier_structure(unsigned i, PermSet const &generators)
 {
-  ss_type st;
+  std::shared_ptr<SchreierStructure> ss;
+
+  auto d = degree();
+  auto r = base_point(i);
+  auto gens(generators);
 
   switch (_transversals) {
     case Transversals::EXPLICIT:
-      st = std::make_shared<ExplicitTransversals>(degree());
+      ss = std::make_shared<ExplicitTransversals>(d, r, gens);
       break;
     case Transversals::SCHREIER_TREES:
     case Transversals::AUTO:
-      st = std::make_shared<SchreierTree>(degree());
+      ss = std::make_shared<SchreierTree>(d, r, gens);
       break;
     case Transversals::SHALLOW_SCHREIER_TREES:
       throw std::logic_error("TODO");
   }
 
-  st->create_root(bp);
+  orbit_of(r, gens, ss.get());
 
-  return st;
-}
-
-void BSGS::update_schreier_structure(unsigned i, PermSet const &generators)
-{
-  unsigned bp = base_point(i);
-  auto st = _schreier_structures[i];
-
-  orbit_of(bp, generators, st.get());
+  if (_schreier_structures.size() < base_size()) {
+    assert(i == _schreier_structures.size());
+    _schreier_structures.emplace_back(std::move(ss));
+  } else {
+    _schreier_structures[i].swap(ss);
+  }
 }
 
 std::ostream& operator<<(std::ostream& stream, BSGS const &bsgs)

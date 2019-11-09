@@ -16,11 +16,6 @@ orbit_of(unsigned x, PermSet const &generators, SchreierStructure *ss)
 
   std::vector<unsigned> res {x};
 
-  if (ss) {
-    ss->create_root(x);
-    ss->create_labels(generators);
-  }
-
   std::vector<unsigned> stack {x};
   std::set<unsigned> done {x};
 

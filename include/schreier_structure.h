@@ -15,10 +15,9 @@ struct SchreierStructure
   friend std::ostream & operator<<(std::ostream &os,
                                    SchreierStructure const &ss);
 
-  virtual void create_root(unsigned root) = 0;
-  virtual void create_labels(PermSet const &labels) = 0;
-  virtual void create_edge(
-    unsigned origin, unsigned destination, unsigned label) = 0;
+  virtual void create_edge(unsigned origin,
+                           unsigned destination,
+                           unsigned label) = 0;
 
   virtual unsigned root() const = 0;
   virtual std::vector<unsigned> nodes() const = 0;

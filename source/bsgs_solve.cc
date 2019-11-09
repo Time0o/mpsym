@@ -151,6 +151,8 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
 
     unsigned base_elem = base_point(i - 1u);
 
+    throw std::logic_error("TODO: schreier structure initialization");
+
     auto schreier_structure(_schreier_structures[i - 1u]);
 
     Dbg(Dbg::TRACE)
