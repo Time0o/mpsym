@@ -11,20 +11,10 @@
 #include "partial_perm.h"
 #include "partial_perm_inverse_semigroup.h"
 #include "perm_group.h"
+#include "task_mapping.h"
 
 namespace cgtl
 {
-
-struct TaskMapping {
-  TaskMapping(std::vector<unsigned> map, std::vector<unsigned> eq)
-    : _mapping(map), _equivalence_class(eq) {}
-
-  std::vector<unsigned> mapping() const { return _mapping; }
-  std::vector<unsigned> equivalence_class() const { return _equivalence_class; }
-
-private:
-  std::vector<unsigned> _mapping, _equivalence_class;
-};
 
 class ArchGraphSystem
 {
