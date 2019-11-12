@@ -319,28 +319,6 @@ TEST_F(ArchGraphTest, DISABLED_CanObtainPartialAutomorphisms)
   FAIL() << "TODO";
 }
 
-/*
-TEST_F(ArchGraphTest, CanLoadFromLua)
-{
-  ArchGraph ag(ArchGraph::fromlua(resource_path("mcsoc.lua")));
-
-  EXPECT_EQ(8u, ag.num_processors())
-    << "Loaded architecture graph has correct number of processors.";
-
-  EXPECT_EQ(64u, ag.num_channels())
-    << "Loaded architecture graph has correct number of channels.";
-}
-*/
-
-/*
-TEST_F(ArchGraphTest, CanProduceDotFile)
-{
-  ArchGraph ag(ArchGraph::fromlua(resource_path("mcsoc.lua")));
-
-  ag.todot(resource_path("mcsoc.dot"));
-}
-*/
-
 TEST(SpecialArchGraphTest, CanConstructFullyConnected)
 {
   for (unsigned i = 1u; i < 5u; ++i) {
