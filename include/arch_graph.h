@@ -83,8 +83,6 @@ public:
     std::vector<unsigned> const &tasks, unsigned offset = 0u,
     MappingVariant mapping_variant = MAP_AUTO) const override;
 
-  void todot(std::string const &outfile) const;
-
   static ArchGraph fully_connected(unsigned n,
     std::string const &pe_label = "", std::string const &ch_label = "");
 

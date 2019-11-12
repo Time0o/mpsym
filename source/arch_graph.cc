@@ -357,52 +357,6 @@ TaskMapping ArchGraph::mapping(
   }
 }
 
-void ArchGraph::todot(std::string const &outfile) const
-{
-  std::ofstream out(outfile);
-
-  if (!out.is_open())
-    throw std::runtime_error("failed to create architecture dotfile");
-
-  static char const * const COLORSCHEME = "accent";
-  static const unsigned COLORS = 8;
-  static char const * const NODESTYLE = "filled";
-  static const unsigned LINEWIDTH = 2;
-
-  assert(_processor_types.size() < COLORS
-         && "distinguishably many processor types in dot output");
-
-  assert(_channel_types.size() < COLORS
-         && "distinguishably many channel types in dot output");
-
-  // construct dotfile...
-  out << "graph {\n";
-  out << "layout=neato\n";
-  out << "splines=true\n";
-  out << "overlap=scalexy\n";
-  out << "sep=1\n";
-
-  // add vertices
-  for (auto v : boost::make_iterator_range(boost::vertices(_adj))) {
-    out << v << " [label=" << "PE" << v + 1u << ",style=" << NODESTYLE
-        << ",colorscheme=" << COLORSCHEME << COLORS << ",fillcolor="
-        << _adj[v].type + 1u << "]\n";
-  }
-
-  // add edges
-  for (auto e : boost::make_iterator_range(boost::edges(_adj))) {
-    auto source = boost::source(e, _adj);
-    auto target = boost::target(e, _adj);
-
-    out << source << " -- " << target << " [penwidth=" << LINEWIDTH
-        << ",colorscheme=" << COLORSCHEME << COLORS << ",color="
-        << _adj[e].type + 1u << "]\n";
-  }
-
-  out << "}\n";
-}
-
-
 ArchGraph ArchGraph::fully_connected(
   unsigned n, std::string const &pe_label, std::string const &ch_label)
 {
