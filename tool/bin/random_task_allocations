@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+
+from argparse import ArgumentParser, RawTextHelpFormatter
+from random import sample
+
+
+PROGNAME = os.path.basename(__file__)
+
+USAGE = \
+""" {} [-h]
+                                [--min-task MIN_TASK]
+                                 --max-task MAX_TASK
+                                 --num-tasks NUM_TASKS
+                                 NUM_ALLOCATIONS""".format(PROGNAME)
+
+DESC = "Generate random task allocations"
+
+
+def error(msg):
+  print("{}: error: {}".format(PROGNAME, msg), file=sys.stderr)
+  sys.exit(1)
+
+
+def generate_allocations(min_task, max_task, num_tasks, num_allocations):
+    tasks = list(range(min_task, max_task + 1))
+
+    task_allocations = set()
+
+    for _ in range(num_allocations):
+        while True:
+            task_allocation = tuple(sample(tasks, num_tasks))
+
+            if task_allocation not in task_allocations:
+                task_allocations.add(task_allocation)
+                break
+
+    for task_allocation in task_allocations:
+        print(' '.join([str(t) for t in task_allocation]))
+
+
+if __name__ == '__main__':
+    def formatter_class(prog):
+        return RawTextHelpFormatter(prog, max_help_position=80)
+
+    parser = ArgumentParser(
+        usage=USAGE,
+        description=DESC,
+        formatter_class=formatter_class)
+
+    parser.add_argument('--min-task', type=int, default=0,
+        help=str("minimum task id"))
+
+    parser.add_argument('--max-task', required=True, type=int,
+        help=str("maximum task id"))
+
+    parser.add_argument('--num-tasks', required=True, type=int,
+        help=str("tasks per allocation"))
+
+    parser.add_argument('num_allocations', metavar='NUM_ALLOCATIONS', type=int,
+        help=str("number of allocations to generate"))
+
+    ns = parser.parse_args()
+
+    if ns.min_task < 0 or ns.max_task < 0:
+        error("task ids must be positive")
+
+    if ns.min_task > ns.max_task:
+        error("--min-task must be <= --max-task")
+
+    if ns.max_task - ns.min_task + 1 < ns.num_tasks:
+        error("number of unique tasks smaller than tasks per allocation")
+
+    if ns.num_tasks < 0:
+        error("--num-tasks must be > 0")
+
+    if ns.num_allocations < 0:
+        error("--num-allocations must be > 0")
+
+    generate_allocations(ns.min_task,
+                         ns.max_task,
+                         ns.num_tasks,
+                         ns.num_allocations)
