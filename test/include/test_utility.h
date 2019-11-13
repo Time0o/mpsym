@@ -33,6 +33,4 @@ testing::AssertionResult perm_group_equal(cgtl::PermSet expected_elements,
 
 cgtl::PermGroup verified_perm_group(VerifiedGroup group);
 
-std::string resource_path(std::string const &resource);
-
 #endif // _GUARD_TEST_UTILITY_H

@@ -12,8 +12,6 @@
 #include "perm_set.h"
 #include "test_utility.h"
 
-#define RESOURCE_DIR "../resources/"
-
 using cgtl::Perm;
 using cgtl::PermGroup;
 using cgtl::PermSet;
@@ -630,15 +628,4 @@ PermGroup verified_perm_group(VerifiedGroup group)
 #endif
 
   return ret;
-}
-
-std::string resource_path(std::string const &resource)
-{
-  std::string path(RESOURCE_DIR + resource);
-
-  std::ifstream is(path.c_str());
-  if (!is.good())
-    throw std::runtime_error("requested resource does not exist");
-
-  return path;
 }

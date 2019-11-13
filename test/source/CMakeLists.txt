@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.6)
 
-include_directories("${INCLUDE_DIR}" "${TEST_INCLUDE_DIR}")
+include_directories("${INCLUDE_DIR}"
+                    "${TEST_INCLUDE_DIR}"
+                    "${RESOURCE_INCLUDE_DIR}")
 
 file(GLOB TEST_SOURCES "*_test.cc")
 set(TEST_UTILITY "test_utility.cc")
