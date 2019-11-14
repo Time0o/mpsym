@@ -124,6 +124,45 @@ std::vector<permlib::Permutation::ptr> convert_generators_permlib(
   return gens_conv;
 }
 
+std::vector<std::vector<unsigned>> split_task_allocations(
+  std::string const &task_allocations_str)
+{
+  static std::regex re_task_allocation(R"(\d+( \d+)*)");
+
+  unsigned num_tasks = 0u;
+  std::vector<std::vector<unsigned>> task_allocations;
+
+  std::stringstream ss(task_allocations_str);
+
+  std::string line;
+  while (std::getline(ss, line)) {
+    if (!std::regex_match(line, re_task_allocation))
+      throw std::invalid_argument("malformed task allocation expression");
+
+    std::vector<unsigned> task_allocation;
+
+    std::size_t pos_begin = 0u, pos_end;
+    while ((pos_end = line.find(' ', pos_begin)) != std::string::npos) {
+      unsigned pe = stox<unsigned>(line.substr(pos_begin, pos_end - pos_begin));
+
+      task_allocation.push_back(pe);
+
+      pos_begin = pos_end + 1u;
+    }
+
+    if (num_tasks == 0u) {
+      num_tasks = task_allocation.size();
+    } else if (task_allocation.size() != num_tasks) {
+      throw std::invalid_argument(
+        "currently only equally sized task sets are supported");
+    }
+
+    task_allocations.push_back(task_allocation);
+  }
+
+  return task_allocations;
+}
+
 } // namespace
 
 std::tuple<unsigned, unsigned, std::string> parse_group(
@@ -168,4 +207,20 @@ std::vector<permlib::Permutation::ptr> parse_generators_permlib(
    std::tie(degree, gen_vect) = parse_generators(split_generators(gen_str));
 
    return convert_generators_permlib(degree, gen_vect);
+}
+
+std::string parse_task_allocations_gap(std::string const &task_allocations_str)
+{
+  auto task_allocations(split_task_allocations(task_allocations_str));
+
+  std::stringstream ss;
+  for (auto const &task_allocation : task_allocations) {
+    ss << "[";
+    ss << task_allocation[0];
+    for (auto i = 0u; i < task_allocation.size(); ++i)
+      ss << "," << task_allocation[i];
+    ss << "],\n";
+  }
+
+  return ss.str();
 }
