@@ -1,5 +1,6 @@
 #include <chrono>
 #include <cstdlib>
+#include <stdexcept>
 
 #include <sys/times.h>
 #include <sys/types.h>
@@ -85,7 +86,7 @@ pid_t timer_start() {
 
 double timer_stop(pid_t child) {
   if (!stop_child(child)) {
-    error("the forked child process terminated prematurely");
+    throw std::runtime_error("the forked child process terminated prematurely");
     return 0.0;
   }
 

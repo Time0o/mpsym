@@ -55,7 +55,7 @@ void make_perm_group_mpsym(VariantOption const &schreier_sims_impl,
                            VariantOption const &transversals_impl,
                            unsigned degree,
                            std::vector<cgtl::Perm> const &gens,
-                           int num_cycles)
+                           unsigned num_cycles)
 {
   using cgtl::BSGS;
   using cgtl::PermGroup;
@@ -79,7 +79,7 @@ void make_perm_group_mpsym(VariantOption const &schreier_sims_impl,
   else
     throw std::logic_error("unreachable");
 
-  for (int i = 0; i < num_cycles; ++i)
+  for (unsigned i = 0u; i < num_cycles; ++i)
     PermGroup g(degree, PermSet(gens.begin(), gens.end()), constr, transv);
 }
 
@@ -109,7 +109,7 @@ void make_perm_group_permlib(VariantOption const &schreier_sims_impl,
                              VariantOption const &transversals_impl,
                              unsigned degree,
                              std::vector<permlib::Permutation::ptr> const &gens,
-                             int num_cycles)
+                             unsigned num_cycles)
 {
   using namespace permlib;
 
@@ -120,7 +120,7 @@ void make_perm_group_permlib(VariantOption const &schreier_sims_impl,
       SchreierSimsConstruction<Permutation, transv_type>
       construction(degree);
 
-      for (int i = 0; i < num_cycles; ++i)
+      for (unsigned i = 0; i < num_cycles; ++i)
         construction.construct(gens.begin(), gens.end());
 
     } else if (schreier_sims_impl.is("random")) {
@@ -133,10 +133,138 @@ void make_perm_group_permlib(VariantOption const &schreier_sims_impl,
       construction(degree, random_generator.get());
 
       bool guaranteed = true;
-      for (int i = 0; i < num_cycles; ++i)
+      for (unsigned i = 0; i < num_cycles; ++i)
         construction.construct(gens.begin(), gens.end(), guaranteed);
     }
   }, permlib_transversal_type(transversals_impl));
+}
+
+std::vector<double> run(VariantOption const &library_impl,
+                        VariantOption const &schreier_sims_impl,
+                        VariantOption const &transversals_impl,
+                        unsigned degree,
+                        std::string const &generators_str,
+                        unsigned num_cycles,
+                        unsigned num_runs,
+                        bool verbose)
+{
+  std::vector<double> ts;
+  for (unsigned r = 0; r < num_runs; ++r) {
+    if (verbose) {
+      if (r > 0)
+        std::cout << '\r';
+
+      std::cout << "Executing run " << r + 1 << '/' << num_runs << std::flush;
+
+      if (r == num_runs - 1)
+        std::cout << std::endl;
+    }
+
+    double t;
+    if (library_impl.is("gap")) {
+      auto generators(parse_generators_gap(generators_str));
+
+      std::stringstream ss;
+      ss << "for i in [1.." << num_cycles << "] do\n";
+      ss << "  StabChain(Group(" + generators + "));\n";
+      ss << "od;\n";
+
+      run_gap(ss.str(), &t);
+
+    } else {
+      if (library_impl.is("mpsym")) {
+        auto generators(parse_generators_mpsym(generators_str));
+
+        run_cpp([&]{
+          make_perm_group_mpsym(schreier_sims_impl,
+                                transversals_impl,
+                                degree,
+                                generators,
+                                num_cycles);
+          }, &t);
+
+      } else if (library_impl.is("permlib")) {
+        auto generators(parse_generators_permlib(generators_str));
+
+        run_cpp([&]{
+          make_perm_group_permlib(schreier_sims_impl,
+                                  transversals_impl,
+                                  degree,
+                                  generators,
+                                  num_cycles);
+          }, &t);
+      }
+    }
+
+    ts.push_back(t);
+  }
+
+  return ts;
+}
+
+void profile(VariantOption const &library_impl,
+             VariantOption const &schreier_sims_impl,
+             VariantOption const &transversals_impl,
+             std::ifstream &groups_stream,
+             unsigned num_cycles,
+             unsigned num_runs,
+             bool verbose)
+{
+  if (verbose) {
+    Timer::enabled = true;
+
+    std::cout << "Implementation: " << library_impl.get()
+              << std::endl;
+    std::cout << "Schreier-sims variant: " << schreier_sims_impl.get()
+              << std::endl;
+    std::cout << "Transversals: " << transversals_impl.get()
+              << std::endl;
+
+    if (num_cycles > 1)
+      std::cout << "Constructions per run: " << num_cycles
+                << std::endl;
+
+    std::cout << std::endl;
+  }
+
+  std::string line;
+  int lineno = 1;
+  while (std::getline(groups_stream, line)) {
+    unsigned degree;
+    unsigned order;
+    std::string generators_str;
+
+    std::tie(degree, order, generators_str) = parse_group(line);
+
+    if (verbose) {
+      std::cout << ">>> Constructing group " << lineno
+                << " with degree " << degree
+                << " and order " << order
+                << std::endl;
+    }
+
+    auto ts = run(library_impl,
+                  schreier_sims_impl,
+                  transversals_impl,
+                  degree,
+                  generators_str,
+                  num_cycles,
+                  num_runs,
+                  verbose);
+
+    double t_mean, t_stddev;
+    util::mean_stddev(ts, &t_mean, &t_stddev);
+
+    std::cout.precision(3);
+    std::cout << "Mean: " << std::scientific << t_mean << "s, "
+              << "Stddev: " << std::scientific << t_stddev << "s"
+              << std::endl;
+
+    ++lineno;
+  }
+
+  if (groups_stream.bad())
+    throw std::runtime_error("failed to read groups file");
 }
 
 } // namespace
@@ -164,8 +292,8 @@ int main(int argc, char **argv)
   VariantOption transversals_impl(
     {"explicit", "schreier-trees", "shallow-schreier-trees"});
 
-  int num_cycles = 1;
-  int num_runs = 1;
+  unsigned num_cycles = 1;
+  unsigned num_runs = 1;
   bool verbose = false;
 
   // TODO: detect superfluous non-argument options
@@ -190,10 +318,10 @@ int main(int argc, char **argv)
         transversals_impl.set(optarg);
         break;
       case 'c':
-        num_cycles = stox<int>(optarg);
+        num_cycles = stox<unsigned>(optarg);
         break;
       case 'r':
-        num_runs = stox<int>(optarg);
+        num_runs = stox<unsigned>(optarg);
         break;
       case 'v':
         verbose = true;
@@ -210,148 +338,29 @@ int main(int argc, char **argv)
     }
   }
 
-  if (!library_impl.is_set()) {
-    usage(std::cerr);
-    error("--implementation option is mandatory");
-    return EXIT_FAILURE;
-  }
+  CHECK_OPTION(library_impl.is_set(),
+               "--implementation option is mandatory");
 
-  if (!library_impl.is("gap") && !schreier_sims_impl.is_set()) {
-    usage(std::cerr);
-    error("--schreier-sims option is mandatory when not using gap");
-    return EXIT_FAILURE;
-  }
+  CHECK_OPTION((library_impl.is("gap") || schreier_sims_impl.is_set()),
+               "--schreier-sims option is mandatory when not using gap");
 
-  if (!library_impl.is("gap") && !transversals_impl.is_set()) {
-    usage(std::cerr);
-    error("--transversal-storage option is mandatory when not using gap");
-    return EXIT_FAILURE;
-  }
+  CHECK_OPTION((library_impl.is("gap") || transversals_impl.is_set()),
+               "--transversal-storage option is mandatory when not using gap");
 
-  if (optind == argc) {
-    usage(std::cerr);
-    error("GROUPS argument is mandatory");
-    return EXIT_FAILURE;
-  }
+  CHECK_FILE_ARGUMENT("GROUPS");
 
-  std::string groups_file = argv[optind];
+  std::ifstream groups_stream(argv[optind]);
 
-  std::ifstream f(groups_file);
-  if (f.fail()) {
-    error("failed to open " + groups_file);
-    return EXIT_FAILURE;
-  }
-
-  if (verbose) {
-    Timer::enabled = true;
-
-    std::cout << "Implementation: " << library_impl.get()
-              << std::endl;
-    std::cout << "Schreier-sims variant: " << schreier_sims_impl.get()
-              << std::endl;
-    std::cout << "Transversals: " << transversals_impl.get()
-              << std::endl;
-
-    if (num_cycles > 1)
-      std::cout << "Constructions per run: " << num_cycles
-                << std::endl;
-
-    std::cout << std::endl;
-  }
-
-  std::string line;
-  int lineno = 1;
-  while (std::getline(f, line)) {
-    unsigned degree;
-    unsigned order;
-    std::string gen_str;
-
-    try {
-      std::tie(degree, order, gen_str) = parse_group(line);
-    } catch (std::invalid_argument const &) {
-      error("failed to parse line no.", lineno, "in", groups_file);
-      return EXIT_FAILURE;
-    }
-
-    if (verbose) {
-      std::cout << ">>> Constructing group " << lineno
-                << " with degree " << degree
-                << " and order " << order
-                << std::endl;
-    }
-
-    std::vector<double> ts;
-    for (int r = 0; r < num_runs; ++r) {
-      if (verbose) {
-        if (r > 0)
-          std::cout << '\r';
-
-        std::cout << "Executing run " << r + 1 << '/' << num_runs << std::flush;
-
-        if (r == num_runs - 1)
-          std::cout << std::endl;
-      }
-
-      double t;
-      if (library_impl.is("gap")) {
-        auto generators(parse_generators_gap(gen_str));
-
-        std::stringstream ss;
-        ss << "for i in [1.." << num_cycles << "] do\n";
-        ss << "  StabChain(Group(" + generators + "));\n";
-        ss << "od;\n";
-
-        if (!run_gap(ss.str(), &t)) {
-          error("failed to run gap");
-          return EXIT_FAILURE;
-        }
-      } else {
-        bool success = true;
-
-        if (library_impl.is("mpsym")) {
-          auto generators(parse_generators_mpsym(gen_str));
-
-          success = run_cpp([&]{
-            make_perm_group_mpsym(schreier_sims_impl,
-                                  transversals_impl,
-                                  degree,
-                                  generators,
-                                  num_cycles);
-            }, &t);
-        } else if (library_impl.is("permlib")) {
-          auto generators(parse_generators_permlib(gen_str));
-
-          success = run_cpp([&]{
-            make_perm_group_permlib(schreier_sims_impl,
-                                    transversals_impl,
-                                    degree,
-                                    generators,
-                                    num_cycles);
-            }, &t);
-        }
-
-        if (!success) {
-          error("profiling failed");
-          return EXIT_FAILURE;
-        }
-      }
-
-      ts.push_back(t);
-    }
-
-    double t_mean, t_stddev;
-    util::mean_stddev(ts, &t_mean, &t_stddev);
-
-    std::cout.precision(3);
-    std::cout << "Mean: " << std::scientific << t_mean << "s, "
-              << "Stddev: " << std::scientific << t_stddev << "s"
-              << std::endl;
-
-    ++lineno;
-  }
-
-  if (f.bad()) {
-    error("failed to read " + groups_file);
+  try {
+    profile(library_impl,
+            schreier_sims_impl,
+            transversals_impl,
+            groups_stream,
+            num_cycles,
+            num_runs,
+            verbose);
+  } catch (std::exception const &e) {
+    error("profiling failed", e.what());
     return EXIT_FAILURE;
   }
 
