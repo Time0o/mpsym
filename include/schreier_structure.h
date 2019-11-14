@@ -12,8 +12,7 @@ namespace cgtl
 
 struct SchreierStructure
 {
-  friend std::ostream & operator<<(std::ostream &os,
-                                   SchreierStructure const &ss);
+  friend std::ostream &operator<<(std::ostream &os, SchreierStructure const &ss);
 
   virtual void create_edge(unsigned origin,
                            unsigned destination,
@@ -31,7 +30,7 @@ private:
   virtual void dump(std::ostream& os) const = 0;
 };
 
-inline std::ostream & operator<<(std::ostream &os, SchreierStructure const &ss)
+inline std::ostream &operator<<(std::ostream &os, SchreierStructure const &ss)
 {
   ss.dump(os);
   return os;

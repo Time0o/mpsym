@@ -15,6 +15,7 @@
 
 #include "arch_graph.h"
 #include "dbg.h"
+#include "dump.h"
 #include "nauty.h"
 #include "partial_perm.h"
 #include "partial_perm_inverse_semigroup.h"
@@ -594,15 +595,7 @@ void ArchGraph::dump_processors(std::ostream& os) const
     if (!pt_str.empty())
       os << " (" << pt_str << ")";
 
-    os << ": [";
-
-    for (auto i = 0u; i < pes_by_type[pt].size(); ++i) {
-      os << pes_by_type[pt][i];
-      if (i < pes_by_type[pt].size() - 1u)
-        os << ", ";
-    }
-
-    os << "]";
+    os << ": " << dump::dump(pes_by_type[pt]);
   }
 
   os << "\n]";
@@ -641,16 +634,7 @@ void ArchGraph::dump_channels(std::ostream& os) const
       if (adj.empty())
         continue;
 
-      os << "\n    " << pe << ": [";
-
-      auto it = adj.begin();
-      while (it != adj.end()) {
-        os << *it;
-        if (++it != adj.end())
-          os << ", ";
-      }
-
-      os << "]";
+      os << "\n    " << pe << ": " << dump::dump(adj);
     }
 
     os << "\n  ]";
@@ -679,7 +663,7 @@ void ArchGraph::dump_automorphisms(std::ostream& os) const
   os << "\n]";
 }
 
-std::ostream& operator<<(std::ostream& os, ArchGraph const &ag)
+std::ostream &operator<<(std::ostream &os, ArchGraph const &ag)
 {
   if (ag.num_processors() == 0u) {
     os << "empty architecture graph";

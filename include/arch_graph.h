@@ -38,7 +38,7 @@ public:
 
 class ArchGraph : public ArchGraphSystem
 {
-friend std::ostream& operator<<(std::ostream& os, ArchGraph const &ag);
+  friend std::ostream &operator<<(std::ostream &os, ArchGraph const &ag);
 
   typedef boost::vecS vertex_selector;
   typedef boost::vecS edge_selector;
@@ -204,7 +204,7 @@ private:
   bool _automorphisms_valid = false;
 };
 
-std::ostream& operator<<(std::ostream& os, ArchGraph const &ag);
+std::ostream &operator<<(std::ostream &os, ArchGraph const &ag);
 
 }
 

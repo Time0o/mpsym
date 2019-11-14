@@ -6,6 +6,7 @@
 #include <ostream>
 #include <vector>
 
+#include "dump.h"
 #include "perm.h"
 
 namespace cgtl
@@ -100,17 +101,10 @@ private:
   std::vector<Perm> _perms;
 };
 
-inline std::ostream& operator<<(std::ostream& stream, PermSet const &perm_set)
+inline std::ostream &operator<<(std::ostream &os, PermSet const &perm_set)
 {
-  stream << "[";
-  if (!perm_set.empty()) {
-    stream << perm_set[0];
-    for (auto i = 1u; i < perm_set.size(); ++i)
-      stream << ", " << perm_set[i];
-  }
-  stream << "]";
-
-  return stream;
+  os << dump::dump(perm_set);
+  return os;
 }
 
 }

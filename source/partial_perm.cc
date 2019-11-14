@@ -150,11 +150,11 @@ PartialPerm operator*(PartialPerm const &lhs, PartialPerm const &rhs)
   return result *= rhs;
 }
 
-std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm)
+std::ostream &operator<<(std::ostream &os, PartialPerm const &pperm)
 {
   if (pperm.dom().empty()) {
-    stream << "()";
-    return stream;
+    os << "()";
+    return os;
   }
 
   std::vector<std::vector<unsigned>> chains;
@@ -239,20 +239,20 @@ std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm)
   std::sort(unique_chains.begin(), unique_chains.end(), sort_pred_init_elem);
 
   for (auto const &chain : unique_chains) {
-     stream << '[' << chain[0];
+     os << '[' << chain[0];
      for (auto i = 1u; i < chain.size(); ++i)
-       stream << ' ' << chain[i];
-     stream << ']';
+       os << ' ' << chain[i];
+     os << ']';
   }
 
   for (auto const &cycle : cycles) {
-    stream << '(' << cycle[0];
+    os << '(' << cycle[0];
     for (auto i = 1u; i < cycle.size(); ++i)
-      stream << ' ' << cycle[i];
-    stream << ')';
+      os << ' ' << cycle[i];
+    os << ')';
   }
 
-  return stream;
+  return os;
 }
 
 bool PartialPerm::operator==(PartialPerm const &rhs) const

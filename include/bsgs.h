@@ -19,7 +19,7 @@ namespace cgtl
 
 class BSGS
 {
-friend std::ostream& operator<<(std::ostream& stream, BSGS const &bsgs);
+  friend std::ostream &operator<<(std::ostream &os, BSGS const &bsgs);
 
 public:
   struct SolveError : public std::runtime_error
@@ -112,7 +112,7 @@ private:
   PermSet _strong_generators;
 };
 
-std::ostream& operator<<(std::ostream& stream, BSGS const &bsgs);
+std::ostream &operator<<(std::ostream &os, BSGS const &bsgs);
 
 } // namespace cgtl
 

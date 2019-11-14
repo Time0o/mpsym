@@ -6,6 +6,7 @@
 
 #include "block_system.h"
 #include "dbg.h"
+#include "dump.h"
 #include "orbits.h"
 #include "perm.h"
 #include "perm_group.h"
@@ -579,21 +580,10 @@ std::vector<BlockSystem> BlockSystem::non_trivial_from_representatives(
   return res;
 }
 
-std::ostream& operator<<(std::ostream& stream, BlockSystem const &bs)
+std::ostream &operator<<(std::ostream &os, BlockSystem const &bs)
 {
-  stream << '{';
-  for (auto i = 0u; i < bs._blocks.size(); ++i) {
-    stream << '{' << bs._blocks[i][0];
-    for (auto j = 1u; j < bs._blocks[i].size(); ++j)
-      stream << ", " << bs._blocks[i][j];
-    stream << '}';
-
-    if (i != bs._blocks.size() - 1u)
-      stream << ", ";
-  }
-  stream << '}';
-
-  return stream;
+  os << dump::dump(bs._blocks);
+  return os;
 }
 
 } // namespace cgtl

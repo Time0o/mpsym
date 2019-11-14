@@ -13,7 +13,7 @@ namespace cgtl
 
 class BlockSystem
 {
-friend std::ostream& operator<<(std::ostream& stream, BlockSystem const &bs);
+  friend std::ostream &operator<<(std::ostream &os, BlockSystem const &bs);
 
 public:
   using Block = std::vector<unsigned>;
@@ -84,7 +84,7 @@ private:
   std::vector<std::vector<unsigned>> _blocks;
 };
 
-std::ostream& operator<<(std::ostream& stream, BlockSystem const &bs);
+std::ostream &operator<<(std::ostream &os, BlockSystem const &bs);
 
 } // namespace cgtl
 

@@ -14,6 +14,7 @@
 #include <boost/graph/random_spanning_tree.hpp>
 
 #include "dbg.h"
+#include "dump.h"
 #include "eemp.h"
 #include "partial_perm.h"
 #include "perm.h"
@@ -422,12 +423,11 @@ std::ostream& operator<<(
   return stream;
 }
 
-std::ostream& operator<<(
-  std::ostream& stream, eemp::OrbitGraph const &orbit_graph)
+std::ostream &operator<<(std::ostream &os, eemp::OrbitGraph const &orbit_graph)
 {
   if (orbit_graph.data.empty()) {
-    stream << "empty orbit graph";
-    return stream;
+    os << "empty orbit graph";
+    return os;
   }
 
   auto size = orbit_graph.data[0].size();
@@ -435,41 +435,33 @@ std::ostream& operator<<(
   auto cellwidth = std::to_string(size).length();
   auto pad = std::to_string(orbit_graph.data.size()).length();
 
-  stream << "i   " << std::string(pad, ' ') << "  |";
-  stream << std::setw(cellwidth) << 1u;
+  os << "i   " << std::string(pad, ' ') << "  |";
+  os << std::setw(cellwidth) << 1u;
   for (auto i = 1u; i < size; ++i)
-    stream << ' ' << std::setw(cellwidth) << i + 1u;
-  stream << '\n';
+    os << ' ' << std::setw(cellwidth) << i + 1u;
+  os << '\n';
 
-  stream << std::string(6u + pad, '-');
+  os << std::string(6u + pad, '-');
   for (auto i = 0u; i < size; ++i)
-    stream << std::string(cellwidth + 1, '-');
-  stream << '\n';
+    os << std::string(cellwidth + 1, '-');
+  os << '\n';
 
   for (auto j = 0u; j < orbit_graph.data.size(); ++j) {
-    stream << "g_i," << std::setw(pad) << j + 1u << "  |";
+    os << "g_i," << std::setw(pad) << j + 1u << "  |";
 
-    stream << std::setw(cellwidth) << orbit_graph.data[j][0] + 1u;
+    os << std::setw(cellwidth) << orbit_graph.data[j][0] + 1u;
     for (auto k = 1u; k < size; ++k)
-      stream << ' ' << std::setw(cellwidth) << orbit_graph.data[j][k] + 1u;
-    stream << '\n';
+      os << ' ' << std::setw(cellwidth) << orbit_graph.data[j][k] + 1u;
+    os << '\n';
   }
 
   auto tmp(strongly_connected_components(orbit_graph));
   auto scc(util::expand_partition<unsigned>(tmp.second));
 
-  stream << "s.c.c." << std::string(pad - 1u, ' ') << " | {";
-  for (auto i = 0u; i < scc.size(); ++i) {
-    stream << '{' << scc[i][0] + 1u;
-    for (auto j = 1u; j < scc[i].size(); ++j)
-      stream << ", " << scc[i][j] + 1u;
-    stream << '}';
-    if (i != scc.size() - 1u)
-      stream << ", ";
-  }
-  stream << '}';
+  os << "s.c.c." << std::string(pad - 1u, ' ') << " | "
+     << dump::dump(scc, {"{}", "{}"});
 
-  return stream;
+  return os;
 }
 
 } // namespace eemp

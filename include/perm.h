@@ -258,7 +258,7 @@ private:
   std::vector<unsigned> _perm;
 };
 
-std::ostream& operator<<(std::ostream& stream, Perm const &perm);
+std::ostream &operator<<(std::ostream &os, Perm const &perm);
 Perm operator*(Perm const &lhs, Perm const &rhs);
 
 } // namespace cgtl

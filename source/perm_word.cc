@@ -45,10 +45,10 @@ PermWord operator*(PermWord const &lhs, PermWord const &rhs)
   return result *= rhs;
 }
 
-std::ostream& operator<<(std::ostream& stream, PermWord const &pw)
+std::ostream &operator<<(std::ostream &os, PermWord const &pw)
 {
-  stream << pw.perm();
-  return stream;
+  os << pw.perm();
+  return os;
 }
 
 bool PermWord::operator==(PermWord const &rhs) const

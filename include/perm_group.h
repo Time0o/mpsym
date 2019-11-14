@@ -438,7 +438,7 @@ private:
   BSGS _bsgs;
 };
 
-std::ostream& operator<<(std::ostream& stream, PermGroup const &pg);
+std::ostream &operator<<(std::ostream &os, PermGroup const &pg);
 
 } // namespace cgtl
 

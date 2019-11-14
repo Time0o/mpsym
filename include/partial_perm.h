@@ -214,7 +214,7 @@ private:
  *
  * \return a reference to `stream`
  */
-std::ostream& operator<<(std::ostream& stream, PartialPerm const &pperm);
+std::ostream &operator<<(std::ostream &os, PartialPerm const &pperm);
 
 /** Chain two partial permutations together.
  *

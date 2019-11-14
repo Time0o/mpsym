@@ -76,7 +76,7 @@ private:
   PermSet _invperms;
 };
 
-std::ostream& operator<<(std::ostream& stream, PermWord const &pw);
+std::ostream &operator<<(std::ostream &os, PermWord const &pw);
 PermWord operator*(PermWord const &lhs, PermWord const &rhs);
 
 } // namespace cgtl

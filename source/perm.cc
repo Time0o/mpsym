@@ -108,7 +108,7 @@ Perm operator*(Perm const &lhs, Perm const &rhs)
   return result *= rhs;
 }
 
-std::ostream& operator<<(std::ostream& stream, const Perm &perm)
+std::ostream &operator<<(std::ostream &os, const Perm &perm)
 {
   std::set<unsigned> done;
 
@@ -129,10 +129,10 @@ std::ostream& operator<<(std::ostream& stream, const Perm &perm)
       if (cycle.size() > 1u) {
         id = false;
 
-        stream << "(" << cycle[0];
+        os << "(" << cycle[0];
         for (auto i = 1u; i < cycle.size(); ++i)
-          stream << " " << cycle[i];
-        stream << ")";
+          os << " " << cycle[i];
+        os << ")";
 
       }
 
@@ -140,8 +140,8 @@ std::ostream& operator<<(std::ostream& stream, const Perm &perm)
 
       if (done.size() == perm.degree()) {
         if (id)
-          stream << "()";
-        return stream;
+          os << "()";
+        return os;
       }
 
       for (unsigned i = 1u; i <= perm.degree(); ++i) {

@@ -401,9 +401,10 @@ void PermGroup::const_iterator::update_result()
     _current_result = _current_factors[j] * _current_result;
 }
 
-std::ostream& operator<<(std::ostream& stream, PermGroup const &pg) {
-  stream << pg.bsgs();
-  return stream;
+std::ostream &operator<<(std::ostream &os, PermGroup const &pg)
+{
+  os << pg.bsgs();
+  return os;
 }
 
 } // namespace cgtl

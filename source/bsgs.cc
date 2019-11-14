@@ -7,6 +7,7 @@
 
 #include "bsgs.h"
 #include "dbg.h"
+#include "dump.h"
 #include "orbits.h"
 #include "perm.h"
 #include "perm_set.h"
@@ -129,26 +130,12 @@ void BSGS::update_schreier_structure(unsigned i, PermSet const &generators)
   }
 }
 
-std::ostream& operator<<(std::ostream& stream, BSGS const &bsgs)
+std::ostream &operator<<(std::ostream &os, BSGS const &bsgs)
 {
-  stream << "BASE: [";
+  os << "BASE: " << dump::dump(bsgs._base)
+     << "; SGS: " << dump::dump(bsgs._strong_generators);
 
-  for (auto i = 0u; i < bsgs.base_size(); ++i) {
-    stream << bsgs.base_point(i);
-    if (i < bsgs.base_size() - 1u)
-      stream << ", ";
-  }
-
-  stream << "]; SGS: [";
-
-  for (auto i = 0u; i < bsgs._strong_generators.size(); ++i) {
-    stream << bsgs._strong_generators[i];
-    if (i < bsgs._strong_generators.size() - 1u)
-      stream << ", ";
-  }
-
-  stream << ']';
-  return stream;
+  return os;
 }
 
 } // namespace cgtl

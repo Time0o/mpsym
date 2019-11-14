@@ -237,8 +237,7 @@ std::vector<PartialPerm> r_class_representatives(
  *
  * \return `stream`
  */
-std::ostream& operator<<(
-  std::ostream& stream, SchreierTree const &schreier_tree);
+std::ostream &operator<<(std::ostream &os, SchreierTree const &schreier_tree);
 
 /** Print an orbit graph according to the notation in \cite east16.
  *
@@ -248,8 +247,7 @@ std::ostream& operator<<(
  *
  * \return a reference to `stream`
  */
-std::ostream& operator<<(
-  std::ostream& stream, OrbitGraph const &orbit_graph);
+std::ostream &operator<<(std::ostream &os, OrbitGraph const &orbit_graph);
 
 } // namespace eemp
 
