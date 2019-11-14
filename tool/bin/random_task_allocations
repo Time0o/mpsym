@@ -50,7 +50,7 @@ if __name__ == '__main__':
         description=DESC,
         formatter_class=formatter_class)
 
-    parser.add_argument('--min-task', type=int, default=0,
+    parser.add_argument('--min-task', type=int, default=1,
         help=str("minimum task id"))
 
     parser.add_argument('--max-task', required=True, type=int,
@@ -64,8 +64,8 @@ if __name__ == '__main__':
 
     ns = parser.parse_args()
 
-    if ns.min_task < 0 or ns.max_task < 0:
-        error("task ids must be positive")
+    if ns.min_task < 1 or ns.max_task < 1:
+        error("task ids must be > 0")
 
     if ns.min_task > ns.max_task:
         error("--min-task must be <= --max-task")
