@@ -2,18 +2,20 @@
 #include <memory>
 #include <vector>
 
-#include "arch_graph.h"
+#include "arch_graph_cluster.h"
+#include "arch_graph_system.h"
 #include "dbg.h"
+#include "task_mapping.h"
 
 namespace cgtl
 {
 
 void
-ArchGraphCluster::add_subsystem(std::shared_ptr<ArchGraphSystem> const &ags)
+ArchGraphCluster::add_subsystem(ArchGraphSubsystem &&subsystem)
 {
   assert(!_automorphisms_valid);
 
-  _subsystems.push_back(ags);
+  _subsystems.emplace_back(subsystem);
 }
 
 unsigned
@@ -42,7 +44,7 @@ ArchGraphCluster::complete()
   assert(!_subsystems.empty());
 
   for (auto const &subsystem : _subsystems)
-    subsystem->complete();
+    assert(subsystem->completed());
 
   _automorphisms = _subsystems[0]->automorphisms();
   for (auto i = 1u; i < _subsystems.size(); ++i) {
@@ -62,31 +64,29 @@ ArchGraphCluster::automorphisms() const
 }
 
 TaskMapping
-ArchGraphCluster::mapping(std::vector<unsigned> const &tasks,
-                          unsigned offset,
-                          MappingVariant mapping_variant) const
+ArchGraphCluster::mapping(TaskMappingRequest const &tmr_) const
 {
-  Dbg(Dbg::DBG) << "Requested task mapping for: " << tasks;
-
   assert(_subsystems.size() > 0u);
 
-  TaskMapping res(tasks, tasks);
+  Dbg(Dbg::DBG) << "Requested task mapping: " << tmr_;
 
-  unsigned offs = offset;
+  TaskMappingRequest tmr(tmr_);
+  TaskMapping res(tmr.allocation, tmr.allocation);
+
   for (auto i = 0u; i < _subsystems.size(); ++i) {
-    unsigned next_offs = offs + _subsystems[i]->num_processors();
+    Dbg(Dbg::DBG) << "Subsystem (no. " << i << ")";
 
-    Dbg(Dbg::DBG) << "Subsystem (no. " << i << ", "
-                  << "pe's " << offs << "-" << next_offs - 1u << ")";
+    auto tm = _subsystems[i]->mapping(tmr);
 
-    res = _subsystems[i]->mapping(res.equivalence_class(), offs, mapping_variant);
+    Dbg(Dbg::DBG) << "Yields: " << tm.representative;
 
-    Dbg(Dbg::DBG) << "Yields: " << res.equivalence_class();
+    res.representative = tm.representative;
 
-    offs = next_offs;
+    tmr.allocation = res.representative;
+    tmr.offset += _subsystems[i]->num_processors();
   }
 
-  return TaskMapping(tasks, res.equivalence_class());
+  return res;
 }
 
 } // namespace cgtl

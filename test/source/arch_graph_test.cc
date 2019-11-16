@@ -7,6 +7,9 @@
 #include "gmock/gmock.h"
 
 #include "arch_graph.h"
+#include "arch_graph_cluster.h"
+#include "arch_graph_system.h"
+#include "arch_uniform_super_graph.h"
 #include "partial_perm.h"
 #include "perm.h"
 #include "perm_group.h"
@@ -14,9 +17,10 @@
 
 #include "test_main.cc"
 
-using cgtl::ArchGraphSystem;
 using cgtl::ArchGraph;
 using cgtl::ArchGraphCluster;
+using cgtl::ArchGraphSubsystem;
+using cgtl::ArchGraphSystem;
 using cgtl::ArchUniformSuperGraph;
 using cgtl::PartialPerm;
 using cgtl::Perm;
@@ -28,17 +32,18 @@ using testing::UnorderedElementsAreArray;
 typedef std::vector<std::vector<unsigned>> orbit;
 
 static void expect_mapping_generates_orbits(
-  ArchGraphSystem const *ag, std::vector<orbit> expected_orbits,
-  ArchGraphSystem::MappingVariant mapping_variant)
+  std::shared_ptr<ArchGraphSystem> const &ag,
+  std::vector<orbit> expected_orbits,
+  bool approximate)
 {
   std::vector<TaskMapping> task_mappings;
   for (auto j = 0u; j < ag->num_processors(); ++j) {
     for (auto k = 0u; k < ag->num_processors(); ++k)
-      task_mappings.push_back(ag->mapping({j, k}, 0u, mapping_variant));
+      task_mappings.push_back(ag->mapping({{j, k}, 0u, approximate}));
   }
 
   for (auto const &tm1 : task_mappings) {
-    std::vector<unsigned> mapping1(tm1.mapping());
+    std::vector<unsigned> mapping1(tm1.allocation);
 
     std::stringstream ss; ss << "{ ";
     for (auto j = 0u; j < mapping1.size(); ++j)
@@ -46,14 +51,14 @@ static void expect_mapping_generates_orbits(
 
     std::vector<std::vector<unsigned>> equivalent_assignments;
     for (auto const &tm2 : task_mappings) {
-      if (tm1.equivalence_class() == tm2.equivalence_class())
-        equivalent_assignments.push_back(tm2.mapping());
+      if (tm1.representative == tm2.representative)
+        equivalent_assignments.push_back(tm2.allocation);
     }
 
     bool found_orbit = false;
     for (auto const &orbit : expected_orbits) {
-      if (std::find(orbit.begin(), orbit.end(), tm1.mapping()) != orbit.end()) {
-
+      auto it = std::find(orbit.begin(), orbit.end(), tm1.allocation);
+      if (it != orbit.end()) {
         EXPECT_THAT(equivalent_assignments, UnorderedElementsAreArray(orbit))
           << "Equivalent task mappings for " << ss.str() << " correct.";
 
@@ -341,18 +346,15 @@ TEST(SpecialArchGraphTest, CanConstructRegularMesh)
 }
 
 class ArchGraphMappingVariantTest :
-  public ArchGraphTestBase<
-    testing::TestWithParam<ArchGraph::MappingVariant>> {};
+  public ArchGraphTestBase<testing::TestWithParam<bool>> {};
 
 TEST_P(ArchGraphMappingVariantTest, CanTestMappingEquivalence)
 {
-  ArchGraph ag1(ag_nocol());
-  ArchGraph ag2(ag_vcol());
-  ArchGraph ag3(ag_ecol());
-  ArchGraph ag4(ag_tcol());
-
-  std::vector<ArchGraphSystem const *> const arch_graphs {
-    &ag1, &ag2, &ag3, &ag4
+  std::vector<std::shared_ptr<ArchGraphSystem>> const arch_graphs {
+    std::make_shared<ArchGraph>(ag_nocol()),
+    std::make_shared<ArchGraph>(ag_vcol()),
+    std::make_shared<ArchGraph>(ag_ecol()),
+    std::make_shared<ArchGraph>(ag_tcol())
   };
 
   std::vector<std::vector<orbit>> const expected_orbits {
@@ -393,23 +395,22 @@ TEST_P(ArchGraphMappingVariantTest, CanTestMappingEquivalence)
   }
 }
 
-INSTANTIATE_TEST_CASE_P(
-  ArchGraphMappingVariants, ArchGraphMappingVariantTest,
-  testing::Values(ArchGraphSystem::MAP_BRUTEFORCE,
-                  ArchGraphSystem::MAP_APPROX));
+INSTANTIATE_TEST_CASE_P(ArchGraphMappingVariants,
+                        ArchGraphMappingVariantTest,
+                        testing::Values(true, false));
 
 template<typename T>
 class ArchGraphClusterTestBase : public T
 {
 protected:
   void SetUp() {
-    cluster_minimal = construct_minimal();
+    construct_minimal();
   }
 
-  ArchGraphCluster cluster_minimal;
+  std::shared_ptr<ArchGraphCluster> cluster_minimal;
 
 private:
-  ArchGraphCluster construct_minimal() {
+  void construct_minimal() {
     /*
      * 1 -- 1 -- 2
      *
@@ -425,6 +426,8 @@ private:
 
     ag.add_channel(pe1, pe2, c);
 
+    ag.complete();
+
     /*
      * 1 -- 1 -- 2     3 -- 2 -- 4
      * |    |    |     |    |    |
@@ -434,13 +437,11 @@ private:
      * |    |    |     |    |    |
      * ===========================
      */
-    ArchGraphCluster cluster;
+    cluster_minimal = std::make_shared<ArchGraphCluster>();
+    cluster_minimal->add_subsystem(ag);
+    cluster_minimal->add_subsystem(ag);
 
-    cluster.add_subsystem(std::shared_ptr<ArchGraph>(new ArchGraph(ag)));
-    cluster.add_subsystem(std::shared_ptr<ArchGraph>(new ArchGraph(ag)));
-
-    cluster.complete();
-    return cluster;
+    cluster_minimal->complete();
   }
 };
 
@@ -448,13 +449,13 @@ class ArchGraphClusterTest : public ArchGraphClusterTestBase<testing::Test>{};
 
 TEST_F(ArchGraphClusterTest, CanDetermineNumberOfProcessors)
 {
-  EXPECT_EQ(4u, cluster_minimal.num_processors())
+  EXPECT_EQ(4u, cluster_minimal->num_processors())
     << "Number of processors in architecture graph cluster determined correctly.";
 }
 
 TEST_F(ArchGraphClusterTest, CanDetermineNumberOfChannels)
 {
-  EXPECT_EQ(2u, cluster_minimal.num_channels())
+  EXPECT_EQ(2u, cluster_minimal->num_channels())
     << "Number of channels in architecture graph cluster determined correctly.";
 }
 
@@ -464,17 +465,16 @@ TEST_F(ArchGraphClusterTest, CanObtainAutormorphisms)
       Perm(4, {{1, 2}}),
       Perm(4, {{3, 4}}),
       Perm(4, {{1, 2}, {3, 4}})
-    }, cluster_minimal.automorphisms()))
+    }, cluster_minimal->automorphisms()))
     << "Automorphisms of minimal architecture graph cluster correct.";
 }
 
 class ArchGraphClusterMappingVariantTest :
-  public ArchGraphClusterTestBase<
-    testing::TestWithParam<ArchGraphSystem::MappingVariant>> {};
+  public ArchGraphClusterTestBase<testing::TestWithParam<bool>> {};
 
 TEST_P(ArchGraphClusterMappingVariantTest, CanTestMappingEquivalence)
 {
-  std::vector<ArchGraphSystem const *> const clusters {&cluster_minimal};
+  std::vector<std::shared_ptr<ArchGraphSystem>> const clusters {cluster_minimal};
 
   std::vector<std::vector<orbit>> const expected_orbits {
     {
@@ -493,55 +493,54 @@ TEST_P(ArchGraphClusterMappingVariantTest, CanTestMappingEquivalence)
   }
 }
 
-INSTANTIATE_TEST_CASE_P(
-  ArchGraphClusterMappingVariants, ArchGraphClusterMappingVariantTest,
-  testing::Values(ArchGraphSystem::MAP_BRUTEFORCE,
-                  ArchGraphSystem::MAP_APPROX));
+INSTANTIATE_TEST_CASE_P(ArchGraphClusterMappingVariants,
+                        ArchGraphClusterMappingVariantTest,
+                        testing::Values(false, true));
 
 template<typename T>
 class ArchUniformSuperGraphTestBase : public T
 {
 protected:
   void SetUp() {
-    supergraph_minimal = construct_minimal();
+    construct_minimal();
   }
 
-  ArchUniformSuperGraph supergraph_minimal;
+  std::shared_ptr<ArchUniformSuperGraph> supergraph_minimal;
 
 private:
-  ArchUniformSuperGraph construct_minimal() {
+  void construct_minimal() {
     // construct subsystem prototype
-    ArchGraph proto;
+    ArchGraph ag;
 
-    auto p = proto.new_processor_type();
-    auto c = proto.new_channel_type();
+    auto p = ag.new_processor_type();
+    auto c = ag.new_channel_type();
 
-    auto pe1 = proto.add_processor(p);
-    auto pe2 = proto.add_processor(p);
-    auto pe3 = proto.add_processor(p);
+    auto pe1 = ag.add_processor(p);
+    auto pe2 = ag.add_processor(p);
+    auto pe3 = ag.add_processor(p);
 
-    proto.add_channel(pe1, pe2, c);
-    proto.add_channel(pe2, pe3, c);
-    proto.add_channel(pe3, pe1, c);
+    ag.add_channel(pe1, pe2, c);
+    ag.add_channel(pe2, pe3, c);
+    ag.add_channel(pe3, pe1, c);
+
+    ag.complete();
 
     // construct uniform supergraph
-    ArchUniformSuperGraph supergraph(std::make_shared<ArchGraph>(proto));
+    supergraph_minimal = std::make_shared<ArchUniformSuperGraph>(ag);
 
-    auto ssc = supergraph.new_subsystem_channel_type();
+    auto ssc = supergraph_minimal->new_subsystem_channel_type();
 
-    auto ss1 = supergraph.add_subsystem();
-    auto ss2 = supergraph.add_subsystem();
-    auto ss3 = supergraph.add_subsystem();
-    auto ss4 = supergraph.add_subsystem();
+    auto ss1 = supergraph_minimal->add_subsystem();
+    auto ss2 = supergraph_minimal->add_subsystem();
+    auto ss3 = supergraph_minimal->add_subsystem();
+    auto ss4 = supergraph_minimal->add_subsystem();
 
-    supergraph.add_subsystem_channel(ss1, ss2, ssc);
-    supergraph.add_subsystem_channel(ss2, ss3, ssc);
-    supergraph.add_subsystem_channel(ss3, ss4, ssc);
-    supergraph.add_subsystem_channel(ss4, ss1, ssc);
+    supergraph_minimal->add_subsystem_channel(ss1, ss2, ssc);
+    supergraph_minimal->add_subsystem_channel(ss2, ss3, ssc);
+    supergraph_minimal->add_subsystem_channel(ss3, ss4, ssc);
+    supergraph_minimal->add_subsystem_channel(ss4, ss1, ssc);
 
-    supergraph.complete();
-
-    return supergraph;
+    supergraph_minimal->complete();
   }
 };
 
@@ -550,13 +549,13 @@ class ArchUniformSuperGraphTest
 
 TEST_F(ArchUniformSuperGraphTest, CanDetermineNumberOfProcessors)
 {
-  EXPECT_EQ(12u, supergraph_minimal.num_processors())
+  EXPECT_EQ(12u, supergraph_minimal->num_processors())
     << "Number of processors in uniform architecture supergraph determined correctly.";
 }
 
 TEST_F(ArchUniformSuperGraphTest, CanDetermineNumberOfChannels)
 {
-  EXPECT_EQ(16u, supergraph_minimal.num_channels())
+  EXPECT_EQ(16u, supergraph_minimal->num_channels())
     << "Number of channels in uniform architecture supergraph determined correctly.";
 }
 
@@ -577,6 +576,6 @@ TEST_F(ArchUniformSuperGraphTest, CanObtainAutormorphisms)
     }
   );
 
-  EXPECT_EQ(expected_automorphisms, supergraph_minimal.automorphisms())
+  EXPECT_EQ(expected_automorphisms, supergraph_minimal->automorphisms())
     << "Automorphisms of uniform architecture supergraph correct.";
 }

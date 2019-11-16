@@ -1,29 +1,45 @@
 #ifndef _GUARD_TASK_MAPPING_H
 #define _GUARD_TASK_MAPPING_H
 
+#include <ostream>
 #include <vector>
 
 namespace cgtl
 {
 
+using TaskAllocation = std::vector<unsigned>;
+
+struct TaskMappingRequest
+{
+  TaskMappingRequest(TaskAllocation const &allocation,
+                     TaskAllocation::value_type offset = 0u,
+                     bool approximate = false)
+  : allocation(allocation),
+    offset(offset),
+    approximate(approximate)
+  {}
+
+  TaskAllocation allocation;
+  TaskAllocation::value_type offset;
+  bool approximate;
+};
+
+std::ostream &operator<<(std::ostream &os, TaskMappingRequest const &tmr);
+
 class TaskMapping
 {
 public:
-  TaskMapping(std::vector<unsigned> map, std::vector<unsigned> eq)
-  : _mapping(map),
-    _equivalence_class(eq)
+  TaskMapping(TaskAllocation allocation,
+              TaskAllocation representative)
+  : allocation(allocation),
+    representative(representative)
   {}
 
-  std::vector<unsigned> mapping() const
-  { return _mapping; }
-
-  std::vector<unsigned> equivalence_class() const
-  { return _equivalence_class; }
-
-private:
-  std::vector<unsigned> _mapping;
-  std::vector<unsigned> _equivalence_class;
+  TaskAllocation allocation;
+  TaskAllocation representative;
 };
+
+std::ostream &operator<<(std::ostream &os, TaskMapping const &tm);
 
 } // namespace cgtl
 

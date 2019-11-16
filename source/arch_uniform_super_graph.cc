@@ -1,41 +1,24 @@
 #include <cassert>
 #include <memory>
-#include <string>
 
-#include "arch_graph.h"
+#include "arch_graph_system.h"
+#include "arch_uniform_super_graph.h"
 
 namespace cgtl
 {
 
-ArchUniformSuperGraph::ArchUniformSuperGraph(
-  std::shared_ptr<ArchGraphSystem> const &subsystem_proto,
-  std::string const &subsystem_label)
-: _subsystem_proto(subsystem_proto)
+ArchUniformSuperGraph::ArchUniformSuperGraph(ArchGraphSubsystem &&subsystem)
+: _subsystem_proto(subsystem)
 {
-  _subsystem_proto->complete();
+  assert(_subsystem_proto->completed());
 
   _subsystem_processor_type =
-     _subsystem_supergraph.new_processor_type(subsystem_label);
-}
-
-void
-ArchUniformSuperGraph::set_subsystem(
-  std::shared_ptr<ArchGraph> const &subsystem_proto,
-  std::string const &subsystem_label)
-{
-  _subsystem_proto = subsystem_proto;
-
-  _subsystem_proto->complete();
-
-  _subsystem_processor_type =
-     _subsystem_supergraph.new_processor_type(subsystem_label);
+     _subsystem_supergraph.new_processor_type(subsystem.label());
 }
 
 ArchUniformSuperGraph::SubsystemChannelType
-ArchUniformSuperGraph::new_subsystem_channel_type(std::string const &label)
-{
-  return _subsystem_supergraph.new_channel_type(label);
-}
+ArchUniformSuperGraph::new_subsystem_channel_type(ChannelLabel cl)
+{ return _subsystem_supergraph.new_channel_type(cl); }
 
 ArchUniformSuperGraph::SubsystemType
 ArchUniformSuperGraph::add_subsystem()

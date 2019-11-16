@@ -29,6 +29,7 @@ add_library("${MAIN_LIB}"
             "perm_word.cc"
             "pr_randomizer.cc"
             "schreier_tree.cc"
+            "task_mapping.cc"
             "timer.cc")
 
 target_link_libraries("${MAIN_LIB}"

@@ -14,6 +14,7 @@
 #include <boost/range/iterator_range_core.hpp>
 
 #include "arch_graph.h"
+#include "arch_graph_system.h"
 #include "dbg.h"
 #include "dump.h"
 #include "nauty.h"
@@ -22,6 +23,7 @@
 #include "perm.h"
 #include "perm_group.h"
 #include "perm_set.h"
+#include "task_mapping.h"
 
 namespace cgtl
 {
@@ -50,19 +52,20 @@ void nauty_free()
 
 } // anonymous namespace
 
-ArchGraph::ProcessorType ArchGraph::new_processor_type(std::string const &label)
+ArchGraph::ProcessorType ArchGraph::new_processor_type(ProcessorLabel pl)
 {
   auto id = _processor_types.size();
-  _processor_types.push_back(label);
+  _processor_types.push_back(pl);
   _processor_type_instances.push_back(0u);
 
   return id;
 }
 
-ArchGraph::ChannelType ArchGraph::new_channel_type(std::string const &label)
+ArchGraph::ChannelType ArchGraph::new_channel_type(ChannelLabel cl)
 {
   auto id = _channel_types.size();
-  _channel_types.push_back(label);
+
+  _channel_types.push_back(cl);
   _channel_type_instances.push_back(0u);
 
   return id;
@@ -331,17 +334,16 @@ PartialPermInverseSemigroup ArchGraph::partial_automorphisms() const
   return res;
 }
 
-TaskMapping ArchGraph::mapping(
- std::vector<unsigned> const &tasks, unsigned offset,
- MappingVariant mapping_variant) const
+TaskMapping ArchGraph::mapping(TaskMappingRequest const &tmr) const
 {
-  Dbg(Dbg::DBG) << "Requested task mapping for: " << tasks;
-
-  unsigned min_pe = offset;
-  unsigned max_pe = offset + num_processors() - 1u;
+  assert(boost::num_vertices(_adj) > 0u);
 
   assert(_automorphisms_valid);
-  assert(boost::num_vertices(_adj) > 0u);
+
+  Dbg(Dbg::DBG) << "Requested task mapping: " << tmr;
+
+  unsigned min_pe = tmr.offset;
+  unsigned max_pe = min_pe + num_processors() - 1u;
 
 #ifndef NDEBUG
   if (min_pe != 0u) {
@@ -350,23 +352,23 @@ TaskMapping ArchGraph::mapping(
   }
 #endif
 
-  switch (mapping_variant) {
-    case MAP_APPROX:
-      return TaskMapping(tasks, min_elem_approx(tasks, min_pe, max_pe));
-    default:
-      return TaskMapping(tasks, min_elem_bruteforce(tasks, min_pe, max_pe));
-  }
+  TaskAllocation representative =
+    tmr.approximate ? min_elem_approx(tmr.allocation, min_pe, max_pe)
+                    : min_elem_bruteforce(tmr.allocation, min_pe, max_pe);
+
+  return TaskMapping(tmr.allocation, representative);
 }
 
-ArchGraph ArchGraph::fully_connected(
-  unsigned n, std::string const &pe_label, std::string const &ch_label)
+ArchGraph ArchGraph::fully_connected(unsigned n,
+                                     ProcessorLabel pl,
+                                     ChannelLabel cl)
 {
   assert(n > 0u);
 
   ArchGraph ag;
 
-  auto pe(ag.new_processor_type(pe_label));
-  auto ch(ag.new_channel_type(ch_label));
+  auto pe(ag.new_processor_type(pl));
+  auto ch(ag.new_channel_type(cl));
 
   std::vector<ArchGraph::ProcessorType> processors;
   for (unsigned i = 0u; i < n; ++i)
@@ -387,14 +389,15 @@ ArchGraph ArchGraph::fully_connected(
   return ag;
 }
 
-ArchGraph ArchGraph::regular_mesh(
-  unsigned width, unsigned height,
-  std::string const &pe_label, std::string const &ch_label)
+ArchGraph ArchGraph::regular_mesh(unsigned width,
+                                  unsigned height,
+                                  ProcessorLabel pl,
+                                  ChannelLabel cl)
 {
   ArchGraph ag;
 
-  auto pe(ag.new_processor_type(pe_label));
-  auto ch(ag.new_channel_type(ch_label));
+  auto pe(ag.new_processor_type(pl));
+  auto ch(ag.new_channel_type(cl));
 
   ag.create_mesh(width, height, pe, ch);
 
@@ -408,14 +411,15 @@ ArchGraph ArchGraph::regular_mesh(
   return ag;
 }
 
-ArchGraph ArchGraph::hyper_mesh(
-  unsigned width, unsigned height,
-  std::string const &pe_label, std::string const &ch_label)
+ArchGraph ArchGraph::hyper_mesh(unsigned width,
+                                unsigned height,
+                                ProcessorLabel pl,
+                                ChannelLabel cl)
 {
   ArchGraph ag;
 
-  auto pe(ag.new_processor_type(pe_label));
-  auto ch(ag.new_channel_type(ch_label));
+  auto pe(ag.new_processor_type(pl));
+  auto ch(ag.new_channel_type(cl));
 
   ag.create_mesh(width, height, pe, ch);
 
