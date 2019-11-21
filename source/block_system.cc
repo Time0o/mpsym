@@ -582,7 +582,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_from_representatives(
 
 std::ostream &operator<<(std::ostream &os, BlockSystem const &bs)
 {
-  os << dump::dump(bs._blocks);
+  os << dump::dump(bs._blocks, {"{}", "{}"});
   return os;
 }
 
