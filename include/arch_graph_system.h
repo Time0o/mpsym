@@ -24,13 +24,27 @@ public:
   virtual unsigned num_processors() const = 0;
   virtual unsigned num_channels() const = 0;
 
-  virtual void complete() = 0;
-  virtual bool completed() const = 0;
+  virtual PermGroup automorphisms()
+  {
+    if (!_automorphisms_valid) {
+      update_automorphisms();
+      _automorphisms_valid = true;
+    }
 
-  virtual PermGroup automorphisms() const = 0;
-  virtual PartialPermInverseSemigroup partial_automorphisms() const = 0;
+    return _automorphisms;
+  }
 
-  virtual TaskMapping mapping(TaskMappingRequest const &tmr) const = 0;
+  virtual PartialPermInverseSemigroup partial_automorphisms()
+  { throw std::logic_error("not implemented"); }
+
+  virtual TaskMapping mapping(TaskMappingRequest const &tmr) = 0;
+
+protected:
+  PermGroup _automorphisms;
+  bool _automorphisms_valid = false;
+
+private:
+  virtual void update_automorphisms() = 0;
 };
 
 class ArchGraphSubsystem

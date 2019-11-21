@@ -99,7 +99,6 @@ protected:
     ag.add_channel(pe3, pe4, c);
     ag.add_channel(pe4, pe1, c);
 
-    ag.complete();
     return ag;
   }
 
@@ -127,7 +126,6 @@ protected:
     ag.add_channel(pe3, pe4, c);
     ag.add_channel(pe4, pe1, c);
 
-    ag.complete();
     return ag;
   }
 
@@ -155,7 +153,6 @@ protected:
     ag.add_channel(pe3, pe4, c1);
     ag.add_channel(pe4, pe1, c2);
 
-    ag.complete();
     return ag;
   }
 
@@ -184,7 +181,6 @@ protected:
     ag.add_channel(pe3, pe4, c1);
     ag.add_channel(pe4, pe1, c2);
 
-    ag.complete();
     return ag;
   }
 
@@ -201,7 +197,6 @@ protected:
     ag.add_channel(pe2, pe3, c);
     ag.add_channel(pe3, pe1, c);
 
-    ag.complete();
     return ag;
   }
 
@@ -226,7 +221,6 @@ protected:
     ag.add_channel(pe2, pe4, c);
     ag.add_channel(pe3, pe4, c);
 
-    ag.complete();
     return ag;
   }
 
@@ -266,7 +260,6 @@ protected:
     ag.add_channel(pe7, pe8, c);
     ag.add_channel(pe8, pe9, c);
 
-    ag.complete();
     return ag;
   }
 };
@@ -426,8 +419,6 @@ private:
 
     ag.add_channel(pe1, pe2, c);
 
-    ag.complete();
-
     /*
      * 1 -- 1 -- 2     3 -- 2 -- 4
      * |    |    |     |    |    |
@@ -440,8 +431,6 @@ private:
     cluster_minimal = std::make_shared<ArchGraphCluster>();
     cluster_minimal->add_subsystem(ag);
     cluster_minimal->add_subsystem(ag);
-
-    cluster_minimal->complete();
   }
 };
 
@@ -523,8 +512,6 @@ private:
     ag.add_channel(pe2, pe3, c);
     ag.add_channel(pe3, pe1, c);
 
-    ag.complete();
-
     // construct uniform supergraph
     supergraph_minimal = std::make_shared<ArchUniformSuperGraph>(ag);
 
@@ -539,8 +526,6 @@ private:
     supergraph_minimal->add_subsystem_channel(ss2, ss3, ssc);
     supergraph_minimal->add_subsystem_channel(ss3, ss4, ssc);
     supergraph_minimal->add_subsystem_channel(ss4, ss1, ssc);
-
-    supergraph_minimal->complete();
   }
 };
 

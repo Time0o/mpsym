@@ -10,8 +10,6 @@ namespace cgtl
 ArchUniformSuperGraph::ArchUniformSuperGraph(ArchGraphSubsystem &&subsystem)
 : _subsystem_proto(subsystem)
 {
-  assert(_subsystem_proto->completed());
-
   _subsystem_processor_type =
      _subsystem_supergraph.new_processor_type(subsystem.label());
 }
@@ -23,7 +21,7 @@ ArchUniformSuperGraph::new_subsystem_channel_type(ChannelLabel cl)
 ArchUniformSuperGraph::SubsystemType
 ArchUniformSuperGraph::add_subsystem()
 {
-  assert(!_automorphisms_valid);
+  _automorphisms_valid = false;
 
   return _subsystem_supergraph.add_processor(_subsystem_processor_type);
 }
@@ -57,24 +55,10 @@ ArchUniformSuperGraph::num_channels() const
 }
 
 void
-ArchUniformSuperGraph::complete()
+ArchUniformSuperGraph::update_automorphisms()
 {
-  assert(_subsystem_proto->completed());
-
-  _subsystem_supergraph.complete();
-
   _automorphisms = PermGroup::wreath_product(
     _subsystem_proto->automorphisms(), _subsystem_supergraph.automorphisms());
-
-  _automorphisms_valid = true;
-}
-
-PermGroup
-ArchUniformSuperGraph::automorphisms() const
-{
-  assert(_automorphisms_valid);
-
-  return _automorphisms;
 }
 
 } // namespace cgtl

@@ -66,14 +66,9 @@ public:
   unsigned num_processors() const override;
   unsigned num_channels() const override;
 
-  void complete() override;
-  bool completed() const override
-  { return _automorphisms_valid; }
+  PartialPermInverseSemigroup partial_automorphisms() override;
 
-  PermGroup automorphisms() const override;
-  PartialPermInverseSemigroup partial_automorphisms() const override;
-
-  TaskMapping mapping(TaskMappingRequest const &tmr) const override;
+  TaskMapping mapping(TaskMappingRequest const &tmr) override;
 
 private:
   void create_mesh(unsigned width,
@@ -81,22 +76,21 @@ private:
                    ProcessorType pe,
                    ChannelType ch);
 
+  void update_automorphisms() override;
+
   TaskAllocation min_elem_bruteforce(TaskAllocation const &tasks,
                                      unsigned min_pe,
-                                     unsigned max_pe) const;
+                                     unsigned max_pe);
 
   TaskAllocation min_elem_approx(TaskAllocation const &tasks,
                                  unsigned min_pe,
-                                 unsigned max_pe) const;
+                                 unsigned max_pe);
 
   void dump_processors(std::ostream& os) const;
   void dump_channels(std::ostream& os) const;
   void dump_automorphisms(std::ostream& os) const;
 
   adjacency_type _adj;
-
-  PermGroup _automorphisms;
-  bool _automorphisms_valid = false;
 
   std::vector<std::string> _processor_types;
   std::vector<std::string> _channel_types;

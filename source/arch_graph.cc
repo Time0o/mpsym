@@ -73,7 +73,7 @@ ArchGraph::ChannelType ArchGraph::new_channel_type(ChannelLabel cl)
 
 unsigned ArchGraph::add_processor(ProcessorType pt)
 {
-  assert(!_automorphisms_valid);
+  _automorphisms_valid = false;
 
   _processor_type_instances[pt]++;
 
@@ -83,7 +83,7 @@ unsigned ArchGraph::add_processor(ProcessorType pt)
 
 void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType cht)
 {
-  assert(!_automorphisms_valid);
+  _automorphisms_valid = false;
 
   _channel_type_instances[cht]++;
 
@@ -101,11 +101,8 @@ unsigned ArchGraph::num_channels() const
   return static_cast<unsigned>(boost::num_edges(_adj));
 }
 
-void ArchGraph::complete()
+void ArchGraph::update_automorphisms()
 {
-  if (_automorphisms_valid)
-    return;
-
   Dbg(Dbg::DBG) << "=== Determining architecture graph automorphisms";
 
   // allocate nauty structures
@@ -219,26 +216,12 @@ void ArchGraph::complete()
   DYNFREE(orbits, orbits_sz);
   nauty_free();
 
-  if (nauty_generators.empty())
-    _automorphisms = PermGroup(nauty_generator_degree,
-                               {Perm(nauty_generator_degree)});
-  else
-    _automorphisms = PermGroup(nauty_generator_degree, nauty_generators);
-
-  Dbg(Dbg::DBG) << "=== Result";
-  Dbg(Dbg::DBG) << _automorphisms;
-
-  _automorphisms_valid = true;
+  _automorphisms = nauty_generators.empty()
+    ? PermGroup(nauty_generator_degree, {})
+    : PermGroup(nauty_generator_degree, nauty_generators);
 }
 
-PermGroup ArchGraph::automorphisms() const
-{
-  assert(_automorphisms_valid);
-
-  return _automorphisms;
-}
-
-PartialPermInverseSemigroup ArchGraph::partial_automorphisms() const
+PartialPermInverseSemigroup ArchGraph::partial_automorphisms()
 {
   unsigned n = num_processors();
 
@@ -334,11 +317,9 @@ PartialPermInverseSemigroup ArchGraph::partial_automorphisms() const
   return res;
 }
 
-TaskMapping ArchGraph::mapping(TaskMappingRequest const &tmr) const
+TaskMapping ArchGraph::mapping(TaskMappingRequest const &tmr)
 {
   assert(boost::num_vertices(_adj) > 0u);
-
-  assert(_automorphisms_valid);
 
   Dbg(Dbg::DBG) << "Requested task mapping: " << tmr;
 
@@ -404,8 +385,6 @@ ArchGraph ArchGraph::regular_mesh(unsigned width,
   if (height == width) {
     ag._automorphisms = PermGroup::dihedral(8);
     ag._automorphisms_valid = true;
-  } else {
-    ag.complete();
   }
 
   return ag;
@@ -437,21 +416,19 @@ ArchGraph ArchGraph::hyper_mesh(unsigned width,
     ag.add_channel(pe1, pe2, ch);
   }
 
-  ag.complete();
-
   return ag;
 }
 
 std::vector<unsigned> ArchGraph::min_elem_bruteforce(
   std::vector<unsigned> const &tasks,
   unsigned min_pe,
-  unsigned max_pe) const
+  unsigned max_pe)
 {
   std::vector<unsigned> min_element(tasks);
 
   Dbg(Dbg::DBG) << "Performing brute force mapping";
 
-  for (Perm const &perm : _automorphisms) {
+  for (Perm const &perm : automorphisms()) {
     bool minimal = true;
 
     for (auto i = 0u; i < tasks.size(); ++i) {
@@ -493,9 +470,9 @@ std::vector<unsigned> ArchGraph::min_elem_bruteforce(
 std::vector<unsigned> ArchGraph::min_elem_approx(
   std::vector<unsigned> const &tasks,
   unsigned min_pe,
-  unsigned max_pe) const
+  unsigned max_pe)
 {
-  PermSet generators(_automorphisms.bsgs().strong_generators());
+  PermSet generators(automorphisms().bsgs().strong_generators());
   std::vector<unsigned> min_element(tasks);
 
   bool stationary, new_minimum;

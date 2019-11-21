@@ -36,22 +36,13 @@ public:
   unsigned num_processors() const override;
   unsigned num_channels() const override;
 
-  void complete() override;
-  bool completed() const override
-  { return _automorphisms_valid; }
-
-  PermGroup automorphisms() const override;
-  PartialPermInverseSemigroup partial_automorphisms() const override
-  {  throw std::logic_error("not implemented"); }
-
-  TaskMapping mapping(TaskMappingRequest const &) const override
+  TaskMapping mapping(TaskMappingRequest const &) override
   { throw std::logic_error("not implemented"); }
 
 private:
   ArchUniformSuperGraph(ArchGraphSubsystem &&subsystem);
 
-  PermGroup _automorphisms;
-  bool _automorphisms_valid = false;
+  void update_automorphisms() override;
 
   ArchGraph _subsystem_supergraph;
   ArchGraphSubsystem _subsystem_proto;

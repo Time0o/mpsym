@@ -25,21 +25,12 @@ public:
   unsigned num_processors() const override;
   unsigned num_channels() const override;
 
-  void complete() override;
-  bool completed() const override
-  { return _automorphisms_valid; }
-
-  PermGroup automorphisms() const override;
-  PartialPermInverseSemigroup partial_automorphisms() const override
-  { throw std::logic_error("not implemented"); }
-
-  TaskMapping mapping(TaskMappingRequest const &tmr) const override;
+  TaskMapping mapping(TaskMappingRequest const &tmr) override;
 
 private:
   void add_subsystem(ArchGraphSubsystem &&subsystem);
 
-  PermGroup _automorphisms;
-  bool _automorphisms_valid = false;
+  void update_automorphisms() override;
 
   std::vector<ArchGraphSubsystem> _subsystems;
 };
