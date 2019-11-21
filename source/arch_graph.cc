@@ -638,7 +638,7 @@ void ArchGraph::dump_automorphisms(std::ostream& os) const
         os << ",";
     }
   } else {
-    os << "...";
+    os << "\n  ...";
   }
 
   os << "\n]";
