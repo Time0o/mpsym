@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstdint>
 #include <initializer_list>
+#include <iostream>
 #include <ostream>
 #include <set>
 #include <type_traits>
@@ -18,6 +19,18 @@ class Dumper
 {
   template<typename U>
   friend std::ostream &operator<<(std::ostream &os, Dumper<U> const &dumper);
+
+  template<typename U>
+  class is_dumpable
+  {
+    template<typename V>
+    static auto dumpable(V const *v) -> decltype(std::cout << *v);
+
+    static auto dumpable(...) -> std::false_type;
+
+  public:
+    enum { value = !std::is_same<decltype(dumpable((U*)0)), std::false_type>::value };
+  };
 
   template<typename U>
   class is_iterable
@@ -53,12 +66,12 @@ public:
 
 private:
   template<typename U>
-  typename std::enable_if<!is_iterable<U>::value>::type
+  typename std::enable_if<is_dumpable<U>::value || !is_iterable<U>::value>::type
   do_dump(std::ostream &os, U const &obj, unsigned) const
   { os << obj; }
 
   template<typename U>
-  typename std::enable_if<is_iterable<U>::value>::type
+  typename std::enable_if<!is_dumpable<U>::value && is_iterable<U>::value>::type
   do_dump(std::ostream &os, U const &obj, unsigned level) const
   {
     os << opening_bracket<U>(level);

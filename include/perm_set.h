@@ -101,12 +101,6 @@ private:
   std::vector<Perm> _perms;
 };
 
-inline std::ostream &operator<<(std::ostream &os, PermSet const &perm_set)
-{
-  os << dump::dump(perm_set);
-  return os;
-}
-
 }
 
 #endif // _GUARD_PERM_SET_H
