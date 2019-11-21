@@ -20,19 +20,15 @@ class Dumper
   friend std::ostream &operator<<(std::ostream &os, Dumper<U> const &dumper);
 
   template<typename U>
-  struct is_iterable
+  class is_iterable
   {
-    typedef uint8_t true_type;
-    typedef uint16_t false_type;
+    template<typename V>
+    static auto iterable(V const *v) -> decltype(V().begin());
 
-    template<typename V> static true_type iterable(
-      int,
-      typename V::const_iterator = V().begin(),
-      typename V::const_iterator = V().end());
+    static auto iterable(...) -> std::false_type;
 
-    template<typename V> static false_type iterable(...) ;
-
-    enum { value = sizeof(iterable<U>(0)) == sizeof(true_type) };
+  public:
+    enum { value = !std::is_same<decltype(iterable((U*)0)), std::false_type>::value };
   };
 
   template<typename U, template<typename ...> class V>
