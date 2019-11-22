@@ -21,8 +21,20 @@ using SubsystemLabel = char const *;
 class ArchGraphSystem
 {
 public:
-  virtual unsigned num_processors() const = 0;
-  virtual unsigned num_channels() const = 0;
+  ArchGraphSystem()
+  : _automorphisms_valid(false)
+  {}
+
+  ArchGraphSystem(PermGroup const &automorphisms)
+  : _automorphisms(automorphisms),
+    _automorphisms_valid(true)
+  {}
+
+  virtual unsigned num_processors() const
+  { throw std::logic_error("not implemented"); }
+
+  virtual unsigned num_channels() const
+  { throw std::logic_error("not implemented"); }
 
   virtual PermGroup automorphisms()
   {
@@ -37,14 +49,23 @@ public:
   virtual PartialPermInverseSemigroup partial_automorphisms()
   { throw std::logic_error("not implemented"); }
 
-  virtual TaskMapping mapping(TaskMappingRequest const &tmr) = 0;
+  virtual TaskMapping mapping(TaskMappingRequest const &tmr);
 
 protected:
   PermGroup _automorphisms;
-  bool _automorphisms_valid = false;
+  bool _automorphisms_valid;
 
 private:
-  virtual void update_automorphisms() = 0;
+  virtual void update_automorphisms()
+  { throw std::logic_error("not implemented"); }
+
+  TaskAllocation min_elem_bruteforce(TaskAllocation const &tasks,
+                                     unsigned min_pe,
+                                     unsigned max_pe);
+
+  TaskAllocation min_elem_approx(TaskAllocation const &tasks,
+                                 unsigned min_pe,
+                                 unsigned max_pe);
 };
 
 class ArchGraphSubsystem

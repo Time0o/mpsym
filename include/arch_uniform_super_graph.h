@@ -36,9 +36,6 @@ public:
   unsigned num_processors() const override;
   unsigned num_channels() const override;
 
-  TaskMapping mapping(TaskMappingRequest const &) override
-  { throw std::logic_error("not implemented"); }
-
 private:
   ArchUniformSuperGraph(ArchGraphSubsystem &&subsystem);
 

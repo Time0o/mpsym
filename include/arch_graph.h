@@ -68,8 +68,6 @@ public:
 
   PartialPermInverseSemigroup partial_automorphisms() override;
 
-  TaskMapping mapping(TaskMappingRequest const &tmr) override;
-
 private:
   void create_mesh(unsigned width,
                    unsigned height,
@@ -77,14 +75,6 @@ private:
                    ChannelType ch);
 
   void update_automorphisms() override;
-
-  TaskAllocation min_elem_bruteforce(TaskAllocation const &tasks,
-                                     unsigned min_pe,
-                                     unsigned max_pe);
-
-  TaskAllocation min_elem_approx(TaskAllocation const &tasks,
-                                 unsigned min_pe,
-                                 unsigned max_pe);
 
   void dump_processors(std::ostream& os) const;
   void dump_channels(std::ostream& os) const;
