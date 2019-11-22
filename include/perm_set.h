@@ -1,6 +1,7 @@
 #ifndef _GUARD_PERM_SET_H
 #define _GUARD_PERM_SET_H
 
+#include <algorithm>
 #include <cassert>
 #include <initializer_list>
 #include <ostream>
@@ -15,7 +16,9 @@ namespace cgtl
 class PermSet
 {
 public:
+  typedef std::vector<Perm>::iterator iterator;
   typedef std::vector<Perm>::const_iterator const_iterator;
+  typedef std::vector<Perm>::size_type size_type;
 
   PermSet()
   {}
@@ -74,6 +77,22 @@ public:
   void emplace(ARGS &&...args) {
     _perms.emplace_back(args...); // TODO: forward
     assert_degree(_perms.back().degree());
+  }
+
+  size_type erase(Perm const &perm) {
+    size_type removed = 0u;
+
+    auto it = _perms.begin();
+    while (it != _perms.end()) {
+      if (*it == perm) {
+        it = erase(it);
+        ++removed;
+      } else {
+        ++it;
+      }
+    }
+
+    return removed;
   }
 
   template<typename IT>

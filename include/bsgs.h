@@ -97,10 +97,6 @@ private:
     std::unordered_set<Perm> const &rhs,
     std::unordered_set<Perm> const &base) const;
 
-  bool reduce_gens_produces_orbit(unsigned root,
-                                  std::unordered_set<Perm> const &generators,
-                                  std::vector<unsigned> const &orbit) const;
-
   // convenience methods
   void extend_base(unsigned bp);
   void update_schreier_structure(unsigned i, PermSet const &strong_generators);

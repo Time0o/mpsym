@@ -5,6 +5,7 @@
 
 #include "bsgs.h"
 #include "dbg.h"
+#include "orbits.h"
 #include "perm.h"
 #include "perm_set.h"
 
@@ -63,11 +64,11 @@ void BSGS::reduce_gens()
         }
       }
 #endif
-      auto orbit_gens(stabilizer_set);
+      PermSet orbit_gens(stabilizer_set.begin(), stabilizer_set.end());
       orbit_gens.erase(*it);
 
       bool remove_stab = false;
-      if (reduce_gens_produces_orbit(base_point(i), orbit_gens, orbit(i))) {
+      if (orbit_check(base_point(i), orbit_gens, orbit(i))) {
 #ifndef NDEBUG
         Dbg(Dbg::TRACE) << base_point(i) << "^" << reduced_stabilizers
                         << " = " << orbit(i);
@@ -119,45 +120,5 @@ std::unordered_set<Perm> BSGS::reduce_gens_set_difference(
   return res;
 }
 
-bool BSGS::reduce_gens_produces_orbit(unsigned root,
-                                      std::unordered_set<Perm> const &generators,
-                                      std::vector<unsigned> const &orbit) const
-{
-  std::vector<int> in_orbit_ref(degree() + 1u, 0);
-  std::vector<int> in_orbit(degree() + 1u, 0);
-
-  for (unsigned x : orbit)
-    in_orbit_ref[x] = 1;
-
-  if (!in_orbit_ref[root])
-    return false;
-
-  in_orbit[root] = 1;
-
-  std::vector<unsigned> queue {root};
-  auto target = orbit.size() - 1u;
-
-  while (!queue.empty()) {
-    unsigned x = queue.back();
-    queue.pop_back();
-
-    for (auto const &gen : generators) {
-      unsigned y = gen[x];
-      if (!in_orbit_ref[y])
-        return false;
-
-      if (in_orbit[y] == 0) {
-        in_orbit[y] = 1;
-        queue.push_back(y);
-
-        if (--target == 0u) {
-          return true;
-        }
-      }
-    }
-  }
-
-  return false;
-}
 
 } // namespace cgtl

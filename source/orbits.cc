@@ -41,6 +41,50 @@ orbit_of(unsigned x, PermSet const &generators, SchreierStructure *ss)
   return res;
 }
 
+bool orbit_check(unsigned x,
+                 PermSet const &generators,
+                 std::vector<unsigned> const &orbit)
+{
+  if (generators.empty())
+    return orbit.size() == 1u && orbit[0] == x;
+
+  std::vector<int> in_orbit_ref(generators.degree() + 1u, 0);
+  std::vector<int> in_orbit(generators.degree() + 1u, 0);
+
+  for (unsigned x : orbit)
+    in_orbit_ref[x] = 1;
+
+  if (!in_orbit_ref[x])
+    return false;
+
+  in_orbit[x] = 1;
+
+  std::vector<unsigned> queue {x};
+  auto target = orbit.size() - 1u;
+
+  while (!queue.empty()) {
+    unsigned x = queue.back();
+    queue.pop_back();
+
+    for (auto const &gen : generators) {
+      unsigned y = gen[x];
+      if (!in_orbit_ref[y])
+        return false;
+
+      if (in_orbit[y] == 0) {
+        in_orbit[y] = 1;
+        queue.push_back(y);
+
+        if (--target == 0u) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
 std::pair<std::vector<unsigned>, unsigned>
 orbit_partition(PermSet const &generators)
 {

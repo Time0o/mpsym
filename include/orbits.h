@@ -22,6 +22,11 @@ orbit_of(unsigned x,
          PermSet const &generators,
          SchreierStructure *ss = nullptr);
 
+bool
+orbit_check(unsigned x,
+            PermSet const &generators,
+            std::vector<unsigned> const &orbit);
+
 std::pair<std::vector<unsigned>, unsigned>
 orbit_partition(PermSet const &generators);
 
