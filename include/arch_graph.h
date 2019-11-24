@@ -18,7 +18,7 @@ namespace cgtl
 
 class ArchGraph : public ArchGraphSystem
 {
-  friend std::ostream &operator<<(std::ostream &os, ArchGraph const &ag);
+  friend std::ostream &operator<<(std::ostream &os, ArchGraph &ag);
 
   typedef boost::vecS vertex_selector;
   typedef boost::vecS edge_selector;
@@ -78,7 +78,7 @@ private:
 
   void dump_processors(std::ostream& os) const;
   void dump_channels(std::ostream& os) const;
-  void dump_automorphisms(std::ostream& os) const;
+  void dump_automorphisms(std::ostream& os);
 
   adjacency_type _adj;
 
@@ -89,7 +89,7 @@ private:
   std::vector<edges_size_type> _channel_type_instances;
 };
 
-std::ostream &operator<<(std::ostream &os, ArchGraph const &ag);
+std::ostream &operator<<(std::ostream &os, ArchGraph &ag);
 
 }
 

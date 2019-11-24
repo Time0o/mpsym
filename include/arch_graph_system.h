@@ -46,6 +46,9 @@ public:
     return _automorphisms;
   }
 
+  PermSet automorphisms_generators()
+  { return automorphisms().bsgs().strong_generators(); }
+
   virtual PartialPermInverseSemigroup partial_automorphisms()
   { throw std::logic_error("not implemented"); }
 

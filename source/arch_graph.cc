@@ -497,12 +497,12 @@ void ArchGraph::dump_channels(std::ostream& os) const
   os << "\n]";
 }
 
-void ArchGraph::dump_automorphisms(std::ostream& os) const
+void ArchGraph::dump_automorphisms(std::ostream& os)
 {
   os << "automorphism group: [";
 
   if (_automorphisms_valid) {
-    auto gens(_automorphisms.bsgs().strong_generators());
+    auto gens(automorphisms_generators());
 
     for (auto i = 0u; i < gens.size(); ++i) {
       os << "\n  " << gens[i];
@@ -517,7 +517,7 @@ void ArchGraph::dump_automorphisms(std::ostream& os) const
   os << "\n]";
 }
 
-std::ostream &operator<<(std::ostream &os, ArchGraph const &ag)
+std::ostream &operator<<(std::ostream &os, ArchGraph &ag)
 {
   if (ag.num_processors() == 0u) {
     os << "empty architecture graph";
