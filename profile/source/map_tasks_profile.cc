@@ -27,6 +27,8 @@ void usage(std::ostream &s)
   char const *opts[] = {
     "[-h|--help]",
     "-i|--implementation {gap|mpsym}",
+    "[--realtime-clock]",
+    "[-v|--verbose]",
     "GROUP",
     "TASK_ALLOCATIONS"
   };
