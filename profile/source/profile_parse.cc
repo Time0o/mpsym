@@ -6,9 +6,11 @@
 #include <tuple>
 
 #include "perm.h"
+#include "perm_set.h"
 #include "permlib.h"
 #include "profile_parse.h"
 #include "profile_utility.h"
+#include "task_mapping.h"
 
 namespace
 {
@@ -81,13 +83,12 @@ std::pair<unsigned, gen_type> parse_generators(
   return {degree, gens};
 }
 
-std::vector<cgtl::Perm> convert_generators_mpsym(
-  unsigned degree, gen_type const &gens)
+cgtl::PermSet convert_generators_mpsym(unsigned degree, gen_type const &gens)
 {
-  std::vector<cgtl::Perm> gens_conv(gens.size());
+  cgtl::PermSet gens_conv;
 
-  for (auto i = 0u; i < gens.size(); ++i)
-    gens_conv[i] = cgtl::Perm(degree, gens[i]);
+  for (auto const &gen : gens)
+    gens_conv.emplace(degree, gen);
 
   return gens_conv;
 }
@@ -190,7 +191,7 @@ std::tuple<unsigned, unsigned, std::string> parse_group(
 std::string parse_generators_gap(std::string const &gen_str)
 { return gen_str; }
 
-std::vector<cgtl::Perm> parse_generators_mpsym(std::string const &gen_str)
+cgtl::PermSet parse_generators_mpsym(std::string const &gen_str)
 {
    unsigned degree;
    gen_type gen_vect;
@@ -224,3 +225,7 @@ std::string parse_task_allocations_gap(std::string const &task_allocations_str)
 
   return ss.str();
 }
+
+std::vector<cgtl::TaskAllocation> parse_task_allocations_mpsym(
+  std::string const &task_allocations_str)
+{ return split_task_allocations(task_allocations_str); }

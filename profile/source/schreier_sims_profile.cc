@@ -54,7 +54,7 @@ void usage(std::ostream &s)
 void make_perm_group_mpsym(VariantOption const &schreier_sims_impl,
                            VariantOption const &transversals_impl,
                            unsigned degree,
-                           std::vector<cgtl::Perm> const &gens,
+                           cgtl::PermSet const &gens,
                            unsigned num_cycles)
 {
   using cgtl::BSGS;
@@ -80,7 +80,7 @@ void make_perm_group_mpsym(VariantOption const &schreier_sims_impl,
     throw std::logic_error("unreachable");
 
   for (unsigned i = 0u; i < num_cycles; ++i)
-    PermGroup g(degree, PermSet(gens.begin(), gens.end()), constr, transv);
+    PermGroup g(degree, gens, constr, transv);
 }
 
 template <typename T>

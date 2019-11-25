@@ -4,6 +4,8 @@
 #include <ostream>
 #include <vector>
 
+#include "util.h"
+
 namespace cgtl
 {
 
@@ -42,5 +44,17 @@ public:
 std::ostream &operator<<(std::ostream &os, TaskMapping const &tm);
 
 } // namespace cgtl
+
+namespace std
+{
+
+template<>
+struct hash<cgtl::TaskAllocation>
+{
+  std::size_t operator()(cgtl::TaskAllocation const &ta) const
+  { return util::vector_hash(ta); }
+};
+
+} // namespace std
 
 #endif // _GUARD_TASK_MAPPING_H
