@@ -35,9 +35,9 @@ std::pair<TaskAllocation, bool> find_representative(
       if (task_base < min_pe || task_base > max_pe)
         continue;
 
-      unsigned task = task_base - min_pe;
+      unsigned task = task_base - (min_pe - 1u);
 
-      unsigned permuted = perm[task + 1u] - 1u + min_pe;
+      unsigned permuted = perm[task] + (min_pe - 1u);
 
       if (permuted < representative[i]) {
         new_minimum = true;
@@ -54,9 +54,9 @@ std::pair<TaskAllocation, bool> find_representative(
         if (task_base < min_pe || task_base > max_pe)
           continue;
 
-        unsigned task = task_base - min_pe;
+        unsigned task = task_base - (min_pe - 1u);
 
-        representative[i] = perm[task + 1u] - 1u + min_pe;
+        representative[i] = perm[task] + (min_pe - 1u);
       }
 
       stationary = false;
@@ -78,7 +78,7 @@ TaskMapping ArchGraphSystem::mapping(TaskMappingRequest const &tmr)
 {
   Dbg(Dbg::DBG) << "Requested task mapping: " << tmr;
 
-  unsigned min_pe = tmr.offset;
+  unsigned min_pe = tmr.offset + 1u;
   unsigned max_pe = min_pe + automorphisms().degree() - 1u;
 
 #ifndef NDEBUG
