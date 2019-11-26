@@ -66,18 +66,27 @@ std::string map_tasks_gap(unsigned degree,
 
   ss << "orbit_options:=rec(lookingfor:=orbit_representatives_hash);\n";
 
+  ss << "n:=1;\n";
   ss << "for task_allocation in task_allocations do\n";
+
+  if (verbose)
+    ss << "  Print(\"Mapping task \", n, \" of \", Length(task_allocations), \"\\r\");\n";
+
   ss << "  orbit:=Orb(automorphisms, task_allocation, OnTuples, orbit_options);\n";
+
   ss << "  if not PositionOfFound(orbit) then\n";
   ss << "    orbit_repr:=Elements(Enumerate(orbit))[1];\n";
+
   ss << "    if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then\n";
   ss << "      Append(orbit_representatives, [orbit_repr]);\n";
   ss << "    fi;\n";
   ss << "  fi;\n";
+
+  ss << "  n:=n+1;\n";
   ss << "od;\n";
 
   if (verbose) {
-    ss << "Print(\"Found \", Length(orbit_representatives), \" equivalence classes:\\n\");\n";
+    ss << "Print(\"\\nFound \", Length(orbit_representatives), \" equivalence classes:\\n\");\n";
     ss << "for orbit_repr in orbit_representatives do\n";
     ss << "  Print(orbit_repr, \"\\n\");\n";
     ss << "od;\n";
@@ -99,11 +108,16 @@ void map_tasks_mpsym(bool approximate,
   ArchGraphSystem ag(PermGroup(degree, generators));
 
   TaskOrbits task_orbits;
-  for (auto const &ta : task_allocations)
-    task_orbits.insert(ag.mapping({ta, 0u, approximate}));
+  for (auto i = 0u; i < task_allocations.size(); ++i) {
+    if (verbose)
+      std::cout << "Mapping task " << i + 1u << " of " << task_allocations.size()
+                << "\r";
+
+    task_orbits.insert(ag.mapping({task_allocations[i], 0u, approximate}));
+  }
 
   if (verbose) {
-    std::cout << "Found " << task_orbits.num_orbits() << " equivalence classes:"
+    std::cout << "\nFound " << task_orbits.num_orbits() << " equivalence classes:"
               << std::endl;
 
     for (auto repr : task_orbits)
