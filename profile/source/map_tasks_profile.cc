@@ -12,6 +12,7 @@
 #include <libgen.h>
 
 #include "arch_graph_system.h"
+#include "dump.h"
 #include "perm_set.h"
 #include "profile_args.h"
 #include "profile_parse.h"
@@ -60,19 +61,27 @@ std::string map_tasks_gap(unsigned degree,
   ss << task_allocations;
   ss << "];\n";
 
-  ss << "orbit_representatives:=HTCreate([1,2,3]);\n";
-  ss << "orbit_options:=rec(lookingfor:=orbit_representatives);\n";
+  ss << "orbit_representatives:=[];\n";
+  ss << "orbit_representatives_hash:=HTCreate([1,2,3]);\n";
+
+  ss << "orbit_options:=rec(lookingfor:=orbit_representatives_hash);\n";
 
   ss << "for task_allocation in task_allocations do\n";
   ss << "  orbit:=Orb(automorphisms, task_allocation, OnTuples, orbit_options);\n";
   ss << "  if not PositionOfFound(orbit) then\n";
-  ss << "    orbit_representative:=Elements(Enumerate(orbit))[1];\n";
-  ss << "    HTAdd(orbit_representatives, orbit_representative, true);\n";
+  ss << "    orbit_repr:=Elements(Enumerate(orbit))[1];\n";
+  ss << "    if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then\n";
+  ss << "      Append(orbit_representatives, [orbit_repr]);\n";
+  ss << "    fi;\n";
   ss << "  fi;\n";
   ss << "od;\n";
 
-  if (verbose)
-    ss << "Print(\"Found \", orbit_representatives!.nr, \" equivalence classes\\n\");\n";
+  if (verbose) {
+    ss << "Print(\"Found \", Length(orbit_representatives), \" equivalence classes:\\n\");\n";
+    ss << "for orbit_repr in orbit_representatives do\n";
+    ss << "  Print(orbit_repr, \"\\n\");\n";
+    ss << "od;\n";
+  }
 
   return ss.str();
 }
@@ -93,9 +102,13 @@ void map_tasks_mpsym(bool approximate,
   for (auto const &ta : task_allocations)
     task_orbits.insert(ag.mapping({ta, 0u, approximate}));
 
-  if (verbose)
-    std::cout << "Found " << task_orbits.num_orbits() << " equivalence classes"
+  if (verbose) {
+    std::cout << "Found " << task_orbits.num_orbits() << " equivalence classes:"
               << std::endl;
+
+    for (auto repr : task_orbits)
+      std::cout << dump::dump(repr) << std::endl;
+  }
 }
 
 double run(VariantOption const &library_impl,
