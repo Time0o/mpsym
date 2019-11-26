@@ -5,6 +5,7 @@
 #include <sstream>
 #include <tuple>
 
+#include "dump.h"
 #include "perm.h"
 #include "perm_set.h"
 #include "permlib.h"
@@ -142,14 +143,19 @@ std::vector<std::vector<unsigned>> split_task_allocations(
 
     std::vector<unsigned> task_allocation;
 
-    std::size_t pos_begin = 0u, pos_end;
-    while ((pos_end = line.find(' ', pos_begin)) != std::string::npos) {
-      unsigned pe = stox<unsigned>(line.substr(pos_begin, pos_end - pos_begin));
+    std::size_t pos_begin = 0u;
+    std::size_t pos_end;
+    unsigned pe;
 
+    while ((pos_end = line.find(' ', pos_begin)) != std::string::npos) {
+      pe = stox<unsigned>(line.substr(pos_begin, pos_end - pos_begin));
       task_allocation.push_back(pe);
 
       pos_begin = pos_end + 1u;
     }
+
+    pe = stox<unsigned>(line.substr(pos_begin));
+    task_allocation.push_back(pe);
 
     if (num_tasks == 0u) {
       num_tasks = task_allocation.size();
@@ -215,13 +221,8 @@ std::string parse_task_allocations_gap(std::string const &task_allocations_str)
   auto task_allocations(split_task_allocations(task_allocations_str));
 
   std::stringstream ss;
-  for (auto const &task_allocation : task_allocations) {
-    ss << "[";
-    ss << task_allocation[0];
-    for (auto i = 0u; i < task_allocation.size(); ++i)
-      ss << "," << task_allocation[i];
-    ss << "],\n";
-  }
+  for (auto const &task_allocation : task_allocations)
+    ss << dump::dump(task_allocation) << ",\n";
 
   return ss.str();
 }
