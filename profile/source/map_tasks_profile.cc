@@ -70,7 +70,8 @@ std::string map_tasks_gap(unsigned degree,
   ss << "for task_allocation in task_allocations do\n";
 
   if (verbose)
-    ss << "  Print(\"Mapping task \", n, \" of \", Length(task_allocations), \"\\r\");\n";
+    ss << "  Print(\"INFO: Mapping task \", n, \" of \", "
+          "        Length(task_allocations), \"\\r\");\n";
 
   ss << "  orbit:=Orb(automorphisms, task_allocation, OnTuples, orbit_options);\n";
 
@@ -86,9 +87,10 @@ std::string map_tasks_gap(unsigned degree,
   ss << "od;\n";
 
   if (verbose) {
-    ss << "Print(\"\\nFound \", Length(orbit_representatives), \" equivalence classes:\\n\");\n";
+    ss << "Print(\"\\nINFO: Found \", Length(orbit_representatives), "
+          "      \" equivalence classes:\\n\");\n";
     ss << "for orbit_repr in orbit_representatives do\n";
-    ss << "  Print(orbit_repr, \"\\n\");\n";
+    ss << "  Print(\"INFO: \", orbit_repr, \"\\n\");\n";
     ss << "od;\n";
   }
 
@@ -110,18 +112,19 @@ void map_tasks_mpsym(bool approximate,
   TaskOrbits task_orbits;
   for (auto i = 0u; i < task_allocations.size(); ++i) {
     if (verbose)
-      std::cout << "Mapping task " << i + 1u << " of " << task_allocations.size()
-                << "\r";
+      progress("Mapping task", i + 1u, "of", task_allocations.size());
 
     task_orbits.insert(ag.mapping({task_allocations[i], 0u, approximate}));
   }
 
+  if (verbose)
+    progress_done();
+
   if (verbose) {
-    std::cout << "\nFound " << task_orbits.num_orbits() << " equivalence classes:"
-              << std::endl;
+    info("Found", task_orbits.num_orbits(), "equivalence classes:");
 
     for (auto repr : task_orbits)
-      std::cout << dump::dump(repr) << std::endl;
+      info(dump::dump(repr));
   }
 }
 
@@ -171,11 +174,9 @@ void profile(VariantOption const &library_impl,
   std::tie(degree, order, generators_str) = parse_group(line);
 
   if (verbose) {
-    std::cout << ">>> Using automorphism group "
-              << " with degree " << degree
-              << ", order " << order
-              << " and generators " << generators_str
-              << std::endl;
+    info("Using automorphism group with degree", degree,
+         "order", order,
+         "and generators", generators_str);
   }
 
   std::string task_allocations_str(
@@ -189,7 +190,7 @@ void profile(VariantOption const &library_impl,
                  task_allocations_str,
                  verbose);
 
-  std::cout << "Runtime: " << std::scientific << t << std::endl;
+  result("Runtime:", t);
 }
 
 } // namespace

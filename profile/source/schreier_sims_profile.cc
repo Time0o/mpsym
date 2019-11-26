@@ -150,15 +150,8 @@ std::vector<double> run(VariantOption const &library_impl,
 {
   std::vector<double> ts;
   for (unsigned r = 0; r < num_runs; ++r) {
-    if (verbose) {
-      if (r > 0)
-        std::cout << '\r';
-
-      std::cout << "Executing run " << r + 1 << '/' << num_runs << std::flush;
-
-      if (r == num_runs - 1)
-        std::cout << std::endl;
-    }
+    if (verbose)
+      progress("Executing run", r + 1, "/", num_runs);
 
     double t;
     if (library_impl.is("gap")) {
@@ -199,6 +192,9 @@ std::vector<double> run(VariantOption const &library_impl,
     ts.push_back(t);
   }
 
+  if (verbose)
+    progress_done();
+
   return ts;
 }
 
@@ -213,18 +209,12 @@ void profile(VariantOption const &library_impl,
   if (verbose) {
     Timer::enabled = true;
 
-    std::cout << "Implementation: " << library_impl.get()
-              << std::endl;
-    std::cout << "Schreier-sims variant: " << schreier_sims_impl.get()
-              << std::endl;
-    std::cout << "Transversals: " << transversals_impl.get()
-              << std::endl;
+    info("Implementation:", library_impl.get());
+    info("Schreier-sims variant:", schreier_sims_impl.get());
+    info("Transversals:", transversals_impl.get());
 
     if (num_cycles > 1)
-      std::cout << "Constructions per run: " << num_cycles
-                << std::endl;
-
-    std::cout << std::endl;
+      info("Constructions per run:", num_cycles);
   }
 
   std::string line;
@@ -237,10 +227,9 @@ void profile(VariantOption const &library_impl,
     std::tie(degree, order, generators_str) = parse_group(line);
 
     if (verbose) {
-      std::cout << ">>> Constructing group " << lineno
-                << " with degree " << degree
-                << " and order " << order
-                << std::endl;
+      info("Constructing group", lineno,
+           "with degree", degree,
+           "and order", order);
     }
 
     auto ts = run(library_impl,
@@ -255,10 +244,8 @@ void profile(VariantOption const &library_impl,
     double t_mean, t_stddev;
     util::mean_stddev(ts, &t_mean, &t_stddev);
 
-    std::cout.precision(3);
-    std::cout << "Mean: " << std::scientific << t_mean << "s, "
-              << "Stddev: " << std::scientific << t_stddev << "s"
-              << std::endl;
+    result("Mean:", t_mean, "s");
+    result("Stddev:", t_stddev, "s");
 
     ++lineno;
   }

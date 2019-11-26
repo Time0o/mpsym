@@ -9,20 +9,40 @@
 
 #include <sys/types.h>
 
-template<typename Arg, typename... Args>
-void error(Arg &&arg, Args&&... args)
+template<typename ...ARGS>
+void print(std::ostream &os, char const *prefix, char const *endl, ARGS &&...args)
 {
-  // TODO: progname
-
-  std::cerr << "error: ";
-
-  std::cerr << std::forward<Arg>(arg);
+  os << prefix;
 
   using expander = int[];
-  (void)expander{0, (void(std::cerr << ' ' << std::forward<Args>(args)), 0)...};
+  (void)expander{0, (void(os << " " << std::forward<ARGS>(args)), 0)...};
 
-  std::cerr << '\n';
+  os << endl;
 }
+
+template<typename... ARGS>
+void info(ARGS &&...args)
+{ print(std::cout, "INFO:", "\n", std::forward<ARGS>(args)...); }
+
+template<typename... ARGS>
+void progress(ARGS &&...args)
+{ print(std::cout, "INFO:", "\r", std::forward<ARGS>(args)...); }
+
+inline void progress_done()
+{ std::cout << "\n"; }
+
+template<typename... ARGS>
+void result(ARGS &&...args)
+{
+  std::cout << std::scientific;
+  std::cout.precision(3);
+
+  print(std::cout, "RESULT:", "\n", std::forward<ARGS>(args)...);
+}
+
+template<typename... ARGS>
+void error(ARGS &&...args)
+{ print(std::cerr, "ERROR: ", "\n", std::forward<ARGS>(args)...); }
 
 template<typename T>
 T stox(std::string const &str)
