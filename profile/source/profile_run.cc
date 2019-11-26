@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <fcntl.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "profile_run.h"
@@ -37,6 +39,10 @@ void run_gap(std::string const &script, double *t)
     throw std::runtime_error("failed to fork child process");
   case 0:
     {
+      int dev_null = open("/dev/null", O_WRONLY);
+      if (dev_null != -1)
+        dup2(dev_null, STDERR_FILENO);
+
       if (execlp("gap", "gap", "--nointeract", "-q", ftmp, nullptr) == -1)
         _Exit(EXIT_FAILURE);
 
