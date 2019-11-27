@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
+import operator as op
 import os
 import sys
 
 from argparse import ArgumentParser, RawTextHelpFormatter
+from functools import reduce
+from itertools import combinations
 from random import sample
 
 
@@ -24,7 +27,17 @@ def error(msg):
   sys.exit(1)
 
 
-def generate_allocations(min_task, max_task, num_tasks, num_allocations):
+def count_max_allocations(min_tasks, max_tasks, num_tasks):
+  unique_tasks = max_tasks - min_tasks + 1
+
+  return reduce(op.mul, range(unique_tasks, unique_tasks - num_tasks, -1), 1)
+
+
+def generate_all_allocations(min_task, max_task, num_tasks):
+    return list(combinations(range(min_task, max_task + 1), num_tasks))
+
+
+def generate_random_allocations(min_task, max_task, num_tasks, num_allocations):
     tasks = list(range(min_task, max_task + 1))
 
     task_allocations = set()
@@ -37,8 +50,7 @@ def generate_allocations(min_task, max_task, num_tasks, num_allocations):
                 task_allocations.add(task_allocation)
                 break
 
-    for task_allocation in task_allocations:
-        print(' '.join([str(t) for t in task_allocation]))
+    return list(task_allocations)
 
 
 if __name__ == '__main__':
@@ -77,9 +89,25 @@ if __name__ == '__main__':
         error("--num-tasks must be > 0")
 
     if ns.num_allocations < 0:
-        error("--num-allocations must be > 0")
+        error("NUM_ALLOCATIONS must be > 0")
 
-    generate_allocations(ns.min_task,
-                         ns.max_task,
-                         ns.num_tasks,
-                         ns.num_allocations)
+    max_allocations = count_max_allocations(ns.min_task,
+                                            ns.max_task,
+                                            ns.num_tasks)
+
+    if ns.num_allocations > max_allocations:
+        fmt = "NUM_ALLOCATIONS is too large (must be {} at most)"
+        error(fmt.format(max_allocations))
+
+    if ns.num_allocations == max_allocations:
+        task_allocations = generate_all_allocations(ns.min_task,
+                                                    ns.max_task,
+                                                    ns.num_tasks)
+    else:
+        task_allocations = generate_random_allocations(ns.min_task,
+                                                       ns.max_task,
+                                                       ns.num_tasks,
+                                                       ns.num_allocations)
+
+    for task_allocation in task_allocations:
+        print(' '.join([str(t) for t in task_allocation]))
