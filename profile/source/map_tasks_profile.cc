@@ -14,13 +14,15 @@
 #include "arch_graph_system.h"
 #include "dump.h"
 #include "perm_set.h"
+#include "task_mapping.h"
+#include "task_orbits.h"
+#include "timer.h"
+
 #include "profile_args.h"
 #include "profile_parse.h"
 #include "profile_run.h"
 #include "profile_timer.h"
 #include "profile_utility.h"
-#include "task_mapping.h"
-#include "task_orbits.h"
 
 namespace
 {
@@ -119,14 +121,17 @@ void map_tasks_mpsym(cgtl::PermSet const &generators,
     task_orbits.insert(ag.mapping({task_allocations[i], 0u, options.approximate}));
   }
 
-  if (options.verbose)
+  if (options.verbose) {
     progress_done();
 
-  if (options.verbose) {
     info("Found", task_orbits.num_orbits(), "equivalence classes:");
 
     for (auto repr : task_orbits)
       info(dump::dump(repr));
+
+    info("Timer dumps:");
+    Timer_dump("find repr");
+    Timer_dump(options.approximate ? "map approx" : "map bruteforce");
   }
 }
 
@@ -223,6 +228,7 @@ int main(int argc, char **argv)
         break;
       case 'v':
         verbose = true;
+        Timer::enabled = true;
         break;
       case 1:
         timer_enable_realtime();

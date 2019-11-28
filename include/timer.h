@@ -43,16 +43,15 @@ public:
 
   static void create(char const *name, Precision precision)
   {
-    get_and_check(name, false);
-
-    _timers.insert({name, Timer(name, precision)});
+    if (!exists(name))
+      _timers.insert({name, Timer(name, precision)});
   }
 
   static void destroy(char const *name)
-  { _timers.erase(get_and_check(name)); }
+  { _timers.erase(find(name)); }
 
   static Timer &get(char const *name)
-  { return get_and_check(name)->second; }
+  { return find(name)->second; }
 
   void start()
   { _start = time(); }
@@ -100,15 +99,15 @@ public:
   { util::mean_stddev(_meas, mean, stddev); }
 
 private:
-  static std::map<std::string, Timer>::iterator
-  get_and_check(char const *name, bool should_exist = true)
+  static bool exists(char const *name)
+  { return _timers.find(name) != _timers.end(); }
+
+  static std::map<std::string, Timer>::iterator find(char const *name)
   {
     auto it = _timers.find(name);
 
-    if (should_exist && it == _timers.end())
-      throw std::logic_error("timer does not exists");
-    else if (!should_exist && it != _timers.end())
-      throw std::logic_error("timer already exists");
+    if (it == _timers.end())
+      throw std::logic_error("timer does not exist");
 
     return it;
   }

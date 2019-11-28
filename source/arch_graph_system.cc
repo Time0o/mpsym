@@ -9,6 +9,7 @@
 #include "perm.h"
 #include "perm_set.h"
 #include "task_mapping.h"
+#include "timer.h"
 
 namespace
 {
@@ -24,6 +25,8 @@ std::pair<TaskAllocation, bool> find_representative(
   unsigned max_pe,
   bool approximate)
 {
+  Timer_start("find repr");
+
   TaskAllocation representative(allocation);
   bool stationary = true;
 
@@ -66,6 +69,8 @@ std::pair<TaskAllocation, bool> find_representative(
     }
   }
 
+  Timer_stop("find repr");
+
   return {representative, stationary};
 }
 
@@ -88,6 +93,10 @@ TaskMapping ArchGraphSystem::mapping(TaskMappingRequest const &tmr)
   }
 #endif
 
+  Timer_create("find repr", Timer::MILLISECONDS);
+  Timer_create("map approx", Timer::MILLISECONDS);
+  Timer_create("map bruteforce", Timer::MILLISECONDS);
+
   TaskAllocation representative =
     tmr.approximate ? min_elem_approx(tmr.allocation, min_pe, max_pe)
                     : min_elem_bruteforce(tmr.allocation, min_pe, max_pe);
@@ -99,11 +108,14 @@ TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks,
                                                     unsigned min_pe,
                                                     unsigned max_pe)
 {
-
   Dbg(Dbg::DBG) << "Performing brute force mapping";
+
+  Timer_start("map bruteforce");
 
   auto repr(find_representative(tasks, automorphisms(), min_pe, max_pe, false));
   TaskAllocation representative = repr.first;
+
+  Timer_stop("map bruteforce");
 
   Dbg(Dbg::DBG) << "Found minimal orbit element: " << representative;
 
@@ -115,6 +127,8 @@ TaskAllocation ArchGraphSystem::min_elem_approx(TaskAllocation const &tasks,
                                                 unsigned max_pe)
 {
   Dbg(Dbg::TRACE) << "Performing approximate mapping";
+
+  Timer_start("map approx");
 
   TaskAllocation representative(tasks);
   bool stationary;
@@ -129,6 +143,8 @@ TaskAllocation ArchGraphSystem::min_elem_approx(TaskAllocation const &tasks,
     if (stationary)
       break;
   }
+
+  Timer_stop("map approx");
 
   Dbg(Dbg::DBG) << "Found approximate minimal orbit element: " << representative;
 

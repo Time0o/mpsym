@@ -183,8 +183,16 @@ std::vector<double> run(std::string const &generators,
     ts.push_back(t);
   }
 
-  if (options.verbose)
+  if (options.verbose) {
     progress_done();
+
+    if (options.library.is("mpsym")) {
+      info("Timer dumps:");
+      Timer_dump("strip");
+      Timer_dump("extend base");
+      Timer_dump("update strong gens");
+    }
+  }
 
   return ts;
 }
@@ -289,6 +297,7 @@ int main(int argc, char **argv)
         break;
       case 'v':
         verbose = true;
+        Timer::enabled = true;
         break;
       case 1:
         timer_enable_realtime();

@@ -123,11 +123,6 @@ top:
     --i;
   }
 
-  // dump performance statistics
-  Timer_dump("strip");
-  Timer_dump("extend base");
-  Timer_dump("update strong gens");
-
   schreier_sims_finish();
 }
 
