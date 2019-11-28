@@ -130,7 +130,6 @@ void map_tasks_mpsym(cgtl::PermSet const &generators,
       info(dump::dump(repr));
 
     info("Timer dumps:");
-    Timer_dump("find repr");
     Timer_dump(options.approximate ? "map approx" : "map bruteforce");
   }
 }

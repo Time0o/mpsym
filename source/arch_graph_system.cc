@@ -11,71 +11,6 @@
 #include "task_mapping.h"
 #include "timer.h"
 
-namespace
-{
-
-using cgtl::Perm;
-using cgtl::TaskAllocation;
-
-template<typename AUT>
-std::pair<TaskAllocation, bool> find_representative(
-  TaskAllocation const &allocation,
-  AUT const &automorphisms,
-  unsigned min_pe,
-  unsigned max_pe,
-  bool approximate)
-{
-  Timer_start("find repr");
-
-  TaskAllocation representative(allocation);
-  bool stationary = true;
-
-  for (Perm const &perm : automorphisms) {
-    bool new_minimum = false;
-
-    for (auto i = 0u; i < allocation.size(); ++i) {
-      unsigned task_base = allocation[i];
-      if (task_base < min_pe || task_base > max_pe)
-        continue;
-
-      unsigned task = task_base - (min_pe - 1u);
-
-      unsigned permuted = perm[task] + (min_pe - 1u);
-
-      if (permuted < representative[i]) {
-        new_minimum = true;
-        break;
-      }
-
-      if (permuted > representative[i])
-        break;
-    }
-
-    if (new_minimum) {
-      for (auto i = 0u; i < allocation.size(); ++i) {
-        unsigned task_base = allocation[i];
-        if (task_base < min_pe || task_base > max_pe)
-          continue;
-
-        unsigned task = task_base - (min_pe - 1u);
-
-        representative[i] = perm[task] + (min_pe - 1u);
-      }
-
-      stationary = false;
-
-      if (approximate)
-        break;
-    }
-  }
-
-  Timer_stop("find repr");
-
-  return {representative, stationary};
-}
-
-} // namespace
-
 namespace cgtl
 {
 
@@ -93,7 +28,6 @@ TaskMapping ArchGraphSystem::mapping(TaskMappingRequest const &tmr)
   }
 #endif
 
-  Timer_create("find repr", Timer::MILLISECONDS);
   Timer_create("map approx", Timer::MILLISECONDS);
   Timer_create("map bruteforce", Timer::MILLISECONDS);
 
@@ -112,8 +46,12 @@ TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks,
 
   Timer_start("map bruteforce");
 
-  auto repr(find_representative(tasks, automorphisms(), min_pe, max_pe, false));
-  TaskAllocation representative = repr.first;
+  TaskAllocation representative(tasks);
+
+  for (Perm const &element : automorphisms()) {
+    if (representative.minimizes(element, min_pe, max_pe))
+      representative.permute(element, min_pe, max_pe);
+  }
 
   Timer_stop("map bruteforce");
 
@@ -128,20 +66,21 @@ TaskAllocation ArchGraphSystem::min_elem_approx(TaskAllocation const &tasks,
 {
   Dbg(Dbg::TRACE) << "Performing approximate mapping";
 
+  TaskAllocation representative(tasks);
+
   Timer_start("map approx");
 
-  TaskAllocation representative(tasks);
-  bool stationary;
+  bool stationary = false;
+  while (!stationary) {
+    stationary = true;
 
-  for (;;) {
-    auto repr(find_representative(
-      representative, automorphisms_generators(), min_pe, max_pe, true));
+    for (Perm const &generator : automorphisms_generators()) {
+      if (representative.minimizes(generator, min_pe, max_pe)) {
+        representative.permute(generator, min_pe, max_pe);
 
-    representative = repr.first;
-    stationary = repr.second;
-
-    if (stationary)
-      break;
+        stationary = false;
+      }
+    }
   }
 
   Timer_stop("map approx");

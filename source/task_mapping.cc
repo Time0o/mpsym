@@ -9,7 +9,7 @@ namespace cgtl
 
 std::ostream &operator<<(std::ostream &os, TaskMappingRequest const &tmr)
 {
-  TaskAllocation ta(tmr.allocation.size());
+  std::vector<unsigned> ta(tmr.allocation.size());
 
   std::transform(tmr.allocation.begin(),
                  tmr.allocation.end(),

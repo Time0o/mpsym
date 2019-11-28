@@ -124,13 +124,13 @@ permlib::PermSet convert_generators_permlib(unsigned degree,
   return {degree, gens_conv};
 }
 
-std::vector<std::vector<unsigned>> split_task_allocations(
+std::vector<cgtl::TaskAllocation> split_task_allocations(
   std::string const &task_allocations_str)
 {
   static std::regex re_task_allocation(R"(\d+( \d+)*)");
 
   unsigned num_tasks = 0u;
-  std::vector<std::vector<unsigned>> task_allocations;
+  std::vector<cgtl::TaskAllocation> task_allocations;
 
   std::stringstream ss(task_allocations_str);
 

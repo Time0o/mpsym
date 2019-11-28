@@ -390,7 +390,7 @@ TEST_P(ArchGraphMappingVariantTest, CanTestMappingEquivalence)
 
 INSTANTIATE_TEST_CASE_P(ArchGraphMappingVariants,
                         ArchGraphMappingVariantTest,
-                        testing::Values(true, false));
+                        testing::Values(false, true));
 
 template<typename T>
 class ArchGraphClusterTestBase : public T

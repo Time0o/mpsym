@@ -5,11 +5,10 @@
 #include <vector>
 
 #include "util.h"
+#include "task_allocation.h"
 
 namespace cgtl
 {
-
-using TaskAllocation = std::vector<unsigned>;
 
 struct TaskMappingRequest
 {
@@ -44,17 +43,5 @@ public:
 std::ostream &operator<<(std::ostream &os, TaskMapping const &tm);
 
 } // namespace cgtl
-
-namespace std
-{
-
-template<>
-struct hash<cgtl::TaskAllocation>
-{
-  std::size_t operator()(cgtl::TaskAllocation const &ta) const
-  { return util::vector_hash(ta); }
-};
-
-} // namespace std
 
 #endif // _GUARD_TASK_MAPPING_H
