@@ -44,13 +44,17 @@ void usage(std::ostream &s)
     s << "  " << opt << '\n';
 }
 
-std::string map_tasks_gap(unsigned degree,
-                          std::string const &generators,
-                          std::string const &task_allocations,
-                          bool verbose)
+struct ProfileOptions
 {
-  (void) degree;
+  VariantOption library;
+  bool approximate;
+  bool verbose;
+};
 
+std::string map_tasks_gap(std::string const &generators,
+                          std::string const &task_allocations,
+                          ProfileOptions const &options)
+{
   std::stringstream ss;
 
   ss << "LoadPackage(\"orb\");\n";
@@ -69,7 +73,7 @@ std::string map_tasks_gap(unsigned degree,
   ss << "n:=1;\n";
   ss << "for task_allocation in task_allocations do\n";
 
-  if (verbose)
+  if (options.verbose)
     ss << "  Print(\"INFO: Mapping task \", n, \" of \", "
           "        Length(task_allocations), \"\\r\");\n";
 
@@ -86,7 +90,7 @@ std::string map_tasks_gap(unsigned degree,
   ss << "  n:=n+1;\n";
   ss << "od;\n";
 
-  if (verbose) {
+  if (options.verbose) {
     ss << "Print(\"\\nINFO: Found \", Length(orbit_representatives), "
           "      \" equivalence classes:\\n\");\n";
     ss << "for orbit_repr in orbit_representatives do\n";
@@ -97,30 +101,28 @@ std::string map_tasks_gap(unsigned degree,
   return ss.str();
 }
 
-void map_tasks_mpsym(bool approximate,
-                     unsigned degree,
-                     cgtl::PermSet const &generators,
+void map_tasks_mpsym(cgtl::PermSet const &generators,
                      std::vector<cgtl::TaskAllocation> const &task_allocations,
-                     bool verbose)
+                     ProfileOptions const &options)
 {
   using cgtl::ArchGraphSystem;
   using cgtl::PermGroup;
   using cgtl::TaskOrbits;
 
-  ArchGraphSystem ag(PermGroup(degree, generators));
+  ArchGraphSystem ag(PermGroup(generators.degree(), generators));
 
   TaskOrbits task_orbits;
   for (auto i = 0u; i < task_allocations.size(); ++i) {
-    if (verbose)
+    if (options.verbose)
       progress("Mapping task", i + 1u, "of", task_allocations.size());
 
-    task_orbits.insert(ag.mapping({task_allocations[i], 0u, approximate}));
+    task_orbits.insert(ag.mapping({task_allocations[i], 0u, options.approximate}));
   }
 
-  if (verbose)
+  if (options.verbose)
     progress_done();
 
-  if (verbose) {
+  if (options.verbose) {
     info("Found", task_orbits.num_orbits(), "equivalence classes:");
 
     for (auto repr : task_orbits)
@@ -128,40 +130,32 @@ void map_tasks_mpsym(bool approximate,
   }
 }
 
-double run(VariantOption const &library_impl,
-           bool approximate,
-           unsigned degree,
-           std::string const &generators_str,
+double run(std::string const &generators_str,
            std::string const &task_allocations_str,
-           bool verbose)
+           ProfileOptions const &options)
 {
   double t;
-  if (library_impl.is("gap")) {
+  if (options.library.is("gap")) {
     run_gap(
-      map_tasks_gap(degree,
-                    parse_generators_gap(generators_str),
+      map_tasks_gap(parse_generators_gap(generators_str),
                     parse_task_allocations_gap(task_allocations_str),
-                    verbose),
+                    options),
       &t);
 
-  } else if (library_impl.is("mpsym")) {
+  } else if (options.library.is("mpsym")) {
     run_cpp([&]{
-      map_tasks_mpsym(approximate,
-                      degree,
-                      parse_generators_mpsym(generators_str),
+      map_tasks_mpsym(parse_generators_mpsym(generators_str),
                       parse_task_allocations_mpsym(task_allocations_str),
-                      verbose);
+                      options);
       }, &t);
   }
 
   return t;
 }
 
-void profile(VariantOption const &library_impl,
-             bool approximate,
-             std::ifstream &group_stream,
+void profile(std::ifstream &group_stream,
              std::ifstream &task_allocations_stream,
-             bool verbose)
+             ProfileOptions const &options)
 {
   std::string line;
   if (!std::getline(group_stream, line))
@@ -173,7 +167,7 @@ void profile(VariantOption const &library_impl,
 
   std::tie(degree, order, generators_str) = parse_group(line);
 
-  if (verbose) {
+  if (options.verbose) {
     info("Using automorphism group with degree", degree,
          "order", order,
          "and generators", generators_str);
@@ -183,12 +177,9 @@ void profile(VariantOption const &library_impl,
     (std::istreambuf_iterator<char>(task_allocations_stream)),
     std::istreambuf_iterator<char>());
 
-  double t = run(library_impl,
-                 approximate,
-                 degree,
-                 generators_str,
+  double t = run(generators_str,
                  task_allocations_str,
-                 verbose);
+                 options);
 
   result("Runtime:", t);
 }
@@ -203,13 +194,12 @@ int main(int argc, char **argv)
     {"help",                no_argument,       0,       'h'},
     {"implementation",      required_argument, 0,       'i'},
     {"approximate",         no_argument,       0,       'a'},
-// TODO: check correctness
     {"realtime-clock",      no_argument,       0,        1 },
     {"verbose",             no_argument,       0,       'v'},
     {nullptr,               0,                 nullptr,  0 }
   };
 
-  VariantOption library_impl({"gap", "mpsym"});
+  VariantOption library({"gap", "mpsym"});
 
   bool approximate = false;
 
@@ -226,7 +216,7 @@ int main(int argc, char **argv)
         usage(std::cout);
         return EXIT_SUCCESS;
       case 'i':
-        library_impl.set(optarg);
+        library.set(optarg);
         break;
       case 'a':
         approximate = true;
@@ -246,26 +236,20 @@ int main(int argc, char **argv)
     }
   }
 
-  CHECK_OPTION(library_impl.is_set(),
+  CHECK_OPTION(library.is_set(),
                "--implementation option is mandatory");
 
-  CHECK_FILE_ARGUMENT("GROUP");
+  CHECK_FILE_ARGUMENT(group_stream, "GROUP");
 
-  std::ifstream group_stream(argv[optind++]);
+  CHECK_FILE_ARGUMENT(task_allocations_stream, "TASK_ALLOCATIONS");
 
-  CHECK_FILE_ARGUMENT("TASK_ALLOCATIONS");
-
-  std::ifstream task_allocations_stream(argv[optind]);
-
-  CHECK_OPTION((!approximate || !library_impl.is("gap")),
+  CHECK_OPTION((!approximate || !library.is("gap")),
                "--approximate not supported when using gap");
 
   try {
-    profile(library_impl,
-            approximate,
-            group_stream,
+    profile(group_stream,
             task_allocations_stream,
-            verbose);
+            {library, approximate, verbose});
   } catch (std::exception const &e) {
     error("profiling failed", e.what());
     return EXIT_FAILURE;

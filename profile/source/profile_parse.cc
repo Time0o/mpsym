@@ -94,11 +94,9 @@ cgtl::PermSet convert_generators_mpsym(unsigned degree, gen_type const &gens)
   return gens_conv;
 }
 
-std::vector<permlib::Permutation::ptr> convert_generators_permlib(
-  unsigned degree, gen_type const &gens)
+permlib::PermSet convert_generators_permlib(unsigned degree,
+                                            gen_type const &gens)
 {
-  (void)degree;
-
   std::vector<permlib::Permutation::ptr> gens_conv(gens.size());
 
   for (auto i = 0u; i < gens.size(); ++i) {
@@ -123,7 +121,7 @@ std::vector<permlib::Permutation::ptr> convert_generators_permlib(
       new permlib::Permutation(degree, gen_str.str()));
   }
 
-  return gens_conv;
+  return {degree, gens_conv};
 }
 
 std::vector<std::vector<unsigned>> split_task_allocations(
@@ -206,8 +204,7 @@ cgtl::PermSet parse_generators_mpsym(std::string const &gen_str)
    return convert_generators_mpsym(degree, gen_vect);
 }
 
-std::vector<permlib::Permutation::ptr> parse_generators_permlib(
-  std::string const &gen_str)
+permlib::PermSet parse_generators_permlib(std::string const &gen_str)
 {
    unsigned degree;
    gen_type gen_vect;

@@ -48,29 +48,26 @@ private:
   std::vector<char const *>::size_type _current_choice;
 };
 
-#define CHECK_OPTION(cond, msg) do { \
-                                  if (!cond) { \
-                                    usage(std::cerr); \
-                                    error(msg); \
-                                    return EXIT_FAILURE; \
-                                  } \
-                                } while (0)
+#define CHECK_OPTION(cond, msg) \
+  if (!cond) { \
+    usage(std::cerr); \
+    error(msg); \
+    return EXIT_FAILURE; \
+  }
 
-#define CHECK_ARGUMENT(arg) do { \
-                              if (optind == argc) { \
-                                usage(std::cerr); \
-                                error(arg, "argument is mandatory"); \
-                                return EXIT_FAILURE; \
-                              } \
-                            } while (0)
+#define CHECK_ARGUMENT(arg) \
+  if (optind == argc) { \
+    usage(std::cerr); \
+    error(arg, "argument is mandatory"); \
+    return EXIT_FAILURE; \
+  }
 
-#define CHECK_FILE_ARGUMENT(arg) do { \
-                                   CHECK_ARGUMENT(arg); \
-                                   std::ifstream f(argv[optind]); \
-                                   if (f.fail()) { \
-                                     error("failed to open", argv[optind]); \
-                                     return EXIT_FAILURE; \
-                                   } \
-                                 } while (0)
+#define CHECK_FILE_ARGUMENT(var, arg) \
+  CHECK_ARGUMENT(arg); \
+  std::ifstream var(argv[optind++]); \
+  if (var.fail()) { \
+    error("failed to open", argv[optind]); \
+    return EXIT_FAILURE; \
+  }
 
 #endif // _GUARD_PROFILE_ARGS_H
