@@ -93,7 +93,7 @@ top:
         }
 
         // update strong generators and fundamental orbits
-        Timer_stop("update strong gens");
+        Timer_start("update strong gens");
 
         Dbg(Dbg::TRACE) << "Updating strong generators:";
 
