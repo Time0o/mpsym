@@ -20,11 +20,10 @@ using cgtl::PermGroup;
 using cgtl::eemp::OrbitGraph;
 using cgtl::eemp::SchreierTree;
 using cgtl::eemp::action_component;
+using cgtl::eemp::expand_partition;
 using cgtl::eemp::r_class_representatives;
 using cgtl::eemp::scc_spanning_tree;
 using cgtl::eemp::strongly_connected_components;
-
-using util::expand_partition;
 
 using testing::ElementsAreArray;
 using testing::UnorderedElementsAreArray;
@@ -38,7 +37,7 @@ protected:
 
     auto tmp(strongly_connected_components(orbit_graph));
     scc = tmp.second;
-    scc_expanded = expand_partition<unsigned>(scc);
+    scc_expanded = expand_partition(scc);
   }
 
   std::vector<unsigned> const dom {1, 2, 3, 4, 5, 6, 7, 8, 9};

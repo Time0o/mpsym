@@ -383,6 +383,25 @@ std::vector<PartialPerm> r_class_representatives(
   return res;
 }
 
+std::vector<std::vector<unsigned>> expand_partition(
+  std::vector<unsigned> partition)
+{
+  auto mm = std::minmax_element(partition.begin(), partition.end());
+
+  auto first = *mm.first;
+  auto last = *mm.second;
+
+  std::vector<std::vector<unsigned>> res(last - first + 1);
+  for (unsigned x = 0u; x < partition.size(); ++x)
+    res[partition[x] - first].push_back(x);
+
+  std::sort(res.begin(), res.end(),
+           [](std::vector<unsigned> const &a,
+              std::vector<unsigned> const &b){ return a[0] < b[0]; });
+
+  return res;
+}
+
 std::ostream& operator<<(
   std::ostream& stream, eemp::SchreierTree const &schreier_tree)
 {
@@ -456,7 +475,7 @@ std::ostream &operator<<(std::ostream &os, eemp::OrbitGraph const &orbit_graph)
   }
 
   auto tmp(strongly_connected_components(orbit_graph));
-  auto scc(util::expand_partition<unsigned>(tmp.second));
+  auto scc(expand_partition(tmp.second));
 
   os << "s.c.c." << std::string(pad - 1u, ' ') << " | "
      << dump::dump(scc, {"{}", "{}"});

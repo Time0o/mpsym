@@ -229,6 +229,21 @@ std::vector<PartialPerm> r_class_representatives(
   SchreierTree const &schreier_tree,
   std::vector<PartialPerm> const &generators);
 
+/** Expand a compact set partition representation into an explicit which allows
+ *  iteration over the partitions.
+ *
+ * \param partition
+ *     a partition in form of a vector in which set elements correspond to
+ *     indices and elements belonging to the same partition are marked by equal
+ *     vector elements at their repective indices
+ *
+ * \return a vector of vectors, where each subvector contains all subelements in
+ *         a single partition (in ascending order) and in which the subvectors
+ *         are ordered according to their minimum elements (in ascending order)
+ */
+std::vector<std::vector<unsigned>> expand_partition(
+  std::vector<unsigned> partition);
+
 /** Print a Schreier tree according to the notation in \cite east16.
  *
  * \param stream a stream object

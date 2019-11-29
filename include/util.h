@@ -92,38 +92,6 @@ void mean_stddev(std::vector<T> const &vals, U *mean, U *stddev) {
     std::inner_product(d.begin(), d.end(), d.begin(), zero) / size);
 }
 
-/** Expand a compact set partition representation into an explicit which allows
- *  iteration over the partitions.
- *
- * T must be an unsigned integer type, `I` must by a type implementing
- * `operator==` (usually also some integer type).
- *
- * \param partition
- *     a partition in form of a vector in which set elements correspond to
- *     indices and elements belonging to the same partition are marked by equal
- *     vector elements at their repective indices
- *
- * \return a vector of vectors, where each subvector contains all subelements in
- *         a single partition (in ascending order) and in which the subvectors
- *         are ordered according to their minimum elements (in ascending order)
- */
-template<typename T, typename I>
-std::vector<std::vector<T>> expand_partition(std::vector<I> partition)
-{
-  auto mm = std::minmax_element(partition.begin(), partition.end());
-  auto first = *mm.first;
-  auto last = *mm.second;
-
-  std::vector<std::vector<T>> res(last - first + 1);
-  for (T x = 0u; x < partition.size(); ++x)
-    res[partition[x] - first].push_back(x);
-
-  std::sort(res.begin(), res.end(),
-           [](std::vector<T> a, std::vector<T> b){ return a[0] < b[0]; });
-
-  return res;
-}
-
 /** Compute a hash value for a vector of (hashable) elements.
  *
  * T must be a hashable type, the result depends both on the values contained in
