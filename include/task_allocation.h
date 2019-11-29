@@ -67,7 +67,7 @@ template<>
 struct hash<cgtl::TaskAllocation>
 {
   std::size_t operator()(cgtl::TaskAllocation const &ta) const
-  { return util::vector_hash(ta); }
+  { return util::container_hash(ta.begin(), ta.end()); }
 };
 
 } // namespace std

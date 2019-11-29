@@ -295,8 +295,6 @@ namespace std
 {
 
 std::size_t hash<cgtl::Perm>::operator()(cgtl::Perm const &perm) const
-{
-  return util::vector_hash(perm._perm);
-}
+{ return util::container_hash(perm._perm.begin() + 1u, perm._perm.end()); }
 
 } // namespace std

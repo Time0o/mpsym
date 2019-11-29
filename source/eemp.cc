@@ -66,7 +66,7 @@ std::vector<std::vector<unsigned>> action_component(
 
   std::vector<std::vector<ComponentElemId>> elem_ids(dom_max + 1u);
 
-  std::size_t hash = util::vector_hash(alpha);
+  std::size_t hash = util::container_hash(alpha.begin(), alpha.end());
   elem_ids[alpha.size()].push_back(ComponentElemId(0u, hash));
 
   // if beta is a component element, set 'id' to it's component index,
@@ -74,7 +74,7 @@ std::vector<std::vector<unsigned>> action_component(
   auto in_component = [&](std::vector<unsigned> const &beta, unsigned &id) {
     bool contained = true;
 
-    std::size_t beta_hash = util::vector_hash(beta);
+    std::size_t beta_hash = util::container_hash(beta.begin(), beta.end());
 
     auto const size_idx = beta.size();
     if (!elem_size_present[size_idx]) {

@@ -32,12 +32,6 @@ namespace cgtl
  */
 class PartialPermInverseSemigroup
 {
-  struct VectorHash {
-    std::size_t operator()(std::vector<unsigned> const &v) const {
-      return util::vector_hash(v);
-    }
-  };
-
   struct SccRepr {
     SccRepr() {}
     SccRepr(unsigned i,
@@ -129,7 +123,9 @@ private:
   std::vector<PartialPerm> _generators;
 
   std::vector<std::vector<unsigned>> _ac_im;
-  std::unordered_map<std::vector<unsigned>, unsigned, VectorHash> _ac_im_ht;
+  std::unordered_map<std::vector<unsigned>,
+                     unsigned,
+                     util::ContainerHash<std::vector<unsigned>>> _ac_im_ht;
   eemp::SchreierTree _st_im;
   eemp::OrbitGraph _og_im;
 

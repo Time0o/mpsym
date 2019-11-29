@@ -424,8 +424,6 @@ namespace std
 
 std::size_t hash<cgtl::PartialPerm>::operator()(
   cgtl::PartialPerm const &pperm) const
-{
-  return util::vector_hash(pperm._pperm);
-}
+{ return util::container_hash(pperm._pperm.begin(), pperm._pperm.end()); }
 
 } // namespace std
