@@ -333,7 +333,7 @@ int main(int argc, char **argv)
               verbose
             });
   } catch (std::exception const &e) {
-    error("profiling failed", e.what());
+    error("profiling failed:", e.what());
     return EXIT_FAILURE;
   }
 

@@ -42,7 +42,7 @@ void result(ARGS &&...args)
 
 template<typename... ARGS>
 void error(ARGS &&...args)
-{ print(std::cerr, "ERROR: ", "\n", std::forward<ARGS>(args)...); }
+{ print(std::cerr, "ERROR:", "\n", std::forward<ARGS>(args)...); }
 
 template<typename T>
 T stox(std::string const &str)

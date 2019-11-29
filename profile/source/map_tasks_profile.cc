@@ -256,7 +256,7 @@ int main(int argc, char **argv)
             task_allocations_stream,
             {library, approximate, verbose});
   } catch (std::exception const &e) {
-    error("profiling failed", e.what());
+    error("profiling failed:", e.what());
     return EXIT_FAILURE;
   }
 
