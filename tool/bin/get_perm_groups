@@ -7,14 +7,14 @@ from argparse import ArgumentParser, RawTextHelpFormatter
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 
+from util import error, usage
 
-USAGE = \
-""" {} [-h]
-                        [--min-degree MIN_DEGREE]
-                         --max-degree MAX_DEGREE
-                        [--degree-step DEGREE_STEP]
-                        [--order-limit ORDER_LIMIT]
-                        CLASS""".format(os.path.basename(__file__))
+
+USAGE = usage(__file__, """[--min-degree MIN_DEGREE]
+                            --max-degree MAX_DEGREE
+                           [--degree-step DEGREE_STEP]
+                           [--order-limit ORDER_LIMIT]
+                           CLASS""")
 
 DESC = "Obtain generators of known permutation groups"
 
@@ -49,12 +49,6 @@ GAP_SPECIAL_GROUP = \
 
 
 def gap_script(group_class, min_degree, max_degree, degree_step, order_limit):
-    if max_degree < min_degree:
-        raise ValueError("--max-degree must be >= --min-degree")
-
-    if (max_degree - min_degree) % degree_step != 0:
-        raise ValueError("--degree-step must divide --max-degree - --min-degree")
-
     gap_cmd = GAP_CMD.format(min_degree, min_degree + degree_step, max_degree)
 
     if order_limit is not None:
@@ -103,6 +97,12 @@ if __name__ == '__main__':
         help=str("group order limit, default is %(default)d"))
 
     ns = parser.parse_args()
+
+    if ns.max_degree < ns.min_degree:
+        error(__file__, "--max-degree must be >= --min-degree")
+
+    if (ns.max_degree - ns.min_degree) % ns.degree_step != 0:
+        error(__file__, "--degree-step must divide --max-degree - --min-degree")
 
     script = gap_script(ns.group_class,
                         ns.min_degree,

@@ -9,22 +9,15 @@ from functools import reduce
 from itertools import combinations
 from random import sample
 
+from util import error, progress, progress_done, usage
 
-PROGNAME = os.path.basename(__file__)
 
-USAGE = \
-""" {} [-h]
-                                [--min-task MIN_TASK]
-                                 --max-task MAX_TASK
-                                 --num-tasks NUM_TASKS
-                                 NUM_ALLOCATIONS""".format(PROGNAME)
+USAGE = usage(__file__, """[--min-task MIN_TASK]
+                           --max-task MAX_TASK
+                           --num-tasks NUM_TASKS
+                           NUM_ALLOCATIONS""")
 
 DESC = "Generate random task allocations"
-
-
-def error(msg):
-  print("{}: error: {}".format(PROGNAME, msg), file=sys.stderr)
-  sys.exit(1)
 
 
 def count_max_allocations(min_tasks, max_tasks, num_tasks):
@@ -42,13 +35,17 @@ def generate_random_allocations(min_task, max_task, num_tasks, num_allocations):
 
     task_allocations = set()
 
-    for _ in range(num_allocations):
+    for i in range(num_allocations):
+        progress("generating task allocation", i, num_allocations)
+
         while True:
             task_allocation = tuple(sample(tasks, num_tasks))
 
             if task_allocation not in task_allocations:
                 task_allocations.add(task_allocation)
                 break
+
+    progress_done()
 
     return list(task_allocations)
 
@@ -77,19 +74,19 @@ if __name__ == '__main__':
     ns = parser.parse_args()
 
     if ns.min_task < 1 or ns.max_task < 1:
-        error("task ids must be > 0")
+        error(__file__, "task ids must be > 0")
 
     if ns.min_task > ns.max_task:
-        error("--min-task must be <= --max-task")
+        error(__file__, "--min-task must be <= --max-task")
 
     if ns.max_task - ns.min_task + 1 < ns.num_tasks:
-        error("number of unique tasks smaller than tasks per allocation")
+        error(__file__, "number of unique tasks smaller than tasks per allocation")
 
     if ns.num_tasks < 0:
-        error("--num-tasks must be > 0")
+        error(__file__, "--num-tasks must be > 0")
 
     if ns.num_allocations < 0:
-        error("NUM_ALLOCATIONS must be > 0")
+        error(__file__, "NUM_ALLOCATIONS must be > 0")
 
     max_allocations = count_max_allocations(ns.min_task,
                                             ns.max_task,
@@ -97,7 +94,7 @@ if __name__ == '__main__':
 
     if ns.num_allocations > max_allocations:
         fmt = "NUM_ALLOCATIONS is too large (must be {} at most)"
-        error(fmt.format(max_allocations))
+        error(__file__, fmt.format(max_allocations))
 
     if ns.num_allocations == max_allocations:
         task_allocations = generate_all_allocations(ns.min_task,

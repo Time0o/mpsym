@@ -8,6 +8,8 @@ import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
 from typing import List, Optional
 
+from util import error
+
 
 DESC = """\
 Reconstructs valid GAP partial permutation construction statements from their
@@ -31,8 +33,8 @@ def pperm_constructor(chains: Optional[List[List[int]]],
 
     def map_to(x: int, y: int):
         if x in mapping:
-            fmt = "ambigous image given for domain element ''"
-            raise ValueError(fmt.format(x))
+            error(__file__,
+                  "ambigous image given for domain element:\n{}".format(x))
 
         mapping[x] = y
 
@@ -101,10 +103,7 @@ if __name__ == '__main__':
                 line = line.replace(', <', '; <')
         else:
             if listmode:
-                fmt = "{}: error: can only parse one input line in list mode\n{}"
-                print(fmt.format(progname, line), file=sys.stderr)
-
-                sys.exit(1)
+                error(__file__, "can only parse one input line in list mode")
 
         if listmode:
             pperms = [pperm.strip() for pperm in line[1:-1].split(';')]
@@ -117,10 +116,8 @@ if __name__ == '__main__':
 
                 match_pperm = matcher_pperm.match(pperm)
                 if match_pperm is None:
-                    fmt = "{}: error: failed to parse input line:\n{}"
-                    print(fmt.format(progname, line), file=sys.stderr)
-
-                    sys.exit(1)
+                    error(__file__,
+                          "failed to parse input line:\n{}".format(line))
 
                 chains, cycles = match_pperm.groups()
 

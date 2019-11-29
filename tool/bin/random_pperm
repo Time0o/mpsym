@@ -7,6 +7,8 @@ from argparse import ArgumentParser
 from random import randrange
 from typing import List, Optional, Tuple
 
+from util import error
+
 
 def rand_pperm(X: List[int],
                dmin: int = 0,
@@ -70,17 +72,12 @@ if __name__ == '__main__':
     ns = parser.parse_args()
 
     if re.match(r'([1-9]+,)*([1-9]+)', ns.DOMAIN) is None:
-        err = "DOMAIN has invalid format, should be 'x1,x2, ...'",
-        print(err, file=sys.stderr)
-        parser.print_help(file=sys.stderr)
-        sys.exit(1)
+        error(__file__, "DOMAIN has invalid format, should be 'x1,x2, ...'")
 
     X = [int(x) for x in ns.DOMAIN.split(',')]
 
     if len(set(X)) != len(X):
-        print("DOMAIN contains duplicates", file=sys.stderr)
-        parser.print_help(file=sys.stderr)
-        sys.exit(1)
+        error(__file__, "DOMAIN contains duplicates")
 
     res = []
     for _ in range(ns.n):

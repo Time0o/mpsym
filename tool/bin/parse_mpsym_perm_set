@@ -17,7 +17,7 @@ PERM_VECT = r'\[({p}(, {p})*)?\]'.format(p=PERM)
 
 def convert_perm_vect(perm_vect):
     if not re.match(PERM_VECT, perm_vect):
-      raise ValueError("invalid permutation vector: {}".format(perm_vect))
+      error(__file__, "invalid permutation vector: {}".format(perm_vect))
 
     perms = perm_vect[1:-1].split(', ')
 
