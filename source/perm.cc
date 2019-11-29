@@ -20,17 +20,17 @@ namespace cgtl
 
 Perm::Perm(unsigned deg)
 : _degree(deg),
-  _perm(deg)
+  _perm(deg + 1u)
 {
   assert(degree() > 0u && "permutation degree > 0");
 
-  for (unsigned i = 0u; i < degree(); ++i)
-     _perm[i] = i + 1u;
+  for (unsigned i = 1u; i <= degree(); ++i)
+    _perm[i] = i;
 }
 
 Perm::Perm(std::vector<unsigned> const &perm)
 : _degree(*std::max_element(perm.begin(), perm.end())),
-  _perm(perm)
+  _perm(perm.size() + 1u)
 {
   assert(perm.size() == degree() &&
     "explicit permutation description has correct length");
@@ -43,11 +43,13 @@ Perm::Perm(std::vector<unsigned> const &perm)
   bool full_range = (*tmp.begin() == 1u) && (*tmp.rbegin() == degree());
 #endif
 
-  assert(tmp.size() == perm.size() &&
+  assert(tmp.size() == degree() &&
     "explicit permutation description does not contain duplicate elements");
 
   assert(full_range &&
     "explicit permutation description contains all elements from 1 to N");
+
+  std::copy(perm.begin(), perm.end(), _perm.begin() + 1u);
 }
 
 Perm::Perm(unsigned n, std::vector<std::vector<unsigned>> const &cycles)
@@ -75,10 +77,10 @@ Perm::Perm(unsigned n, std::vector<std::vector<unsigned>> const &cycles)
     for (auto i = 1u; i < cycle.size(); ++i) {
       unsigned tmp = cycle[i];
       assert(tmp <= degree() && "cycle element <= N");
-      _perm[cycle[i - 1u] - 1u] = tmp;
+      _perm[cycle[i - 1u]] = tmp;
     }
 
-    _perm[cycle.back() - 1u] = cycle[0];
+    _perm[cycle.back()] = cycle[0];
 
   } else {
     for (auto i = cycles.begin(); i != cycles.end(); ++i)
@@ -89,15 +91,15 @@ Perm::Perm(unsigned n, std::vector<std::vector<unsigned>> const &cycles)
 unsigned const& Perm::operator[](unsigned const i) const
 {
   assert(i > 0u && i <= degree() && "permutation index valid");
-  return _perm[i - 1u];
+  return _perm[i];
 }
 
 Perm Perm::operator~() const
 {
   std::vector<unsigned> inverse(degree());
 
-  for (unsigned i = 0u; i < degree(); ++i)
-    inverse[_perm[i] - 1u] = i + 1u;
+  for (unsigned i = 1u; i <= degree(); ++i)
+    inverse[(*this)[i] - 1u] = i;
 
   return Perm(inverse);
 }
@@ -176,16 +178,16 @@ Perm& Perm::operator*=(Perm const &rhs)
 {
   assert(rhs.degree() == degree() && "multiplying permutations of equal degree");
 
-  for (unsigned i = 0u; i < rhs.degree(); ++i)
-    _perm[i] = rhs[(*this)[i + 1u]];
+  for (unsigned i = 1u; i <= rhs.degree(); ++i)
+    _perm[i] = rhs[(*this)[i]];
 
   return *this;
 }
 
 bool Perm::id() const
 {
-  for (unsigned i = 0u; i < degree(); ++i) {
-    if (_perm[i] != i + 1u)
+  for (unsigned i = 1u; i <= degree(); ++i) {
+    if ((*this)[i] != i)
       return false;
   }
   return true;
@@ -238,7 +240,7 @@ Perm Perm::extended(unsigned deg) const
   std::vector<unsigned> perm(deg);
 
   for (unsigned i = 0u; i < degree(); ++i)
-    perm[i] = _perm[i];
+    perm[i] = (*this)[i + 1u];
 
   for (unsigned i = degree() + 1u; i <= deg; ++i)
     perm[i - 1u] = i;
@@ -251,7 +253,7 @@ Perm Perm::normalized(unsigned low, unsigned high) const
   std::vector<unsigned> perm_normalized(high - low + 1u);
 
   for (auto i = low; i <= high; ++i)
-    perm_normalized[i - low] = _perm[i - 1u] - low + 1u;
+    perm_normalized[i - low] = (*this)[i] - low + 1u;
 
   return Perm(perm_normalized);
 }
@@ -281,9 +283,8 @@ Perm Perm::restricted(std::vector<unsigned> const &domain) const
     restricted_perm[i - 1u] = i;
 
   for (unsigned x : domain) {
-    if (_perm[x - 1u] != x) {
-      restricted_perm[x - 1u] = _perm[x - 1u];
-    }
+    if ((*this)[x] != x)
+      restricted_perm[x - 1u] = (*this)[x];
   }
 
   return Perm(restricted_perm);
