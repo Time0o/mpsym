@@ -1,9 +1,9 @@
 #include <algorithm>
 #include <regex>
 #include <string>
+#include <utility>
 #include <vector>
 #include <sstream>
-#include <tuple>
 
 #include "dump.h"
 #include "perm.h"
@@ -170,8 +170,7 @@ std::vector<cgtl::TaskAllocation> split_task_allocations(
 
 } // namespace
 
-std::tuple<unsigned, unsigned, std::string> parse_group(
-  std::string const &group_str)
+std::pair<unsigned, std::string> parse_group(std::string const &group_str)
 {
   static std::regex re_group("degree:(\\d+),order:(\\d+),gens:(.*)");
 
@@ -183,13 +182,12 @@ std::tuple<unsigned, unsigned, std::string> parse_group(
     throw std::invalid_argument("malformed group expression");
 
   unsigned degree = stox<unsigned>(m[1]);
-  unsigned order = stox<unsigned>(m[2]);
   std::string gen_str = m[3];
 
   if (!std::regex_match(gen_str, re_generators))
     throw std::invalid_argument("malformed generator expression");
 
-  return std::make_tuple(degree, order, gen_str);
+  return {degree, gen_str};
 }
 
 std::string parse_generators_gap(std::string const &gen_str)

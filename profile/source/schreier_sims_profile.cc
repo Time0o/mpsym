@@ -7,7 +7,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <tuple>
 #include <type_traits>
 #include <variant>
 #include <vector>
@@ -214,16 +213,15 @@ void profile(std::ifstream &groups_stream,
   std::string line;
   int lineno = 1;
   while (std::getline(groups_stream, line)) {
-    unsigned degree;
-    unsigned order;
-    std::string generators;
+    auto group(parse_group(line));
 
-    std::tie(degree, order, generators) = parse_group(line);
+    unsigned degree = group.first;
+    std::string generators = group.second;
 
     if (options.verbose) {
       info("Constructing group", lineno,
            "with degree", degree,
-           "and order", order);
+           "and generators", generators);
     }
 
     auto ts = run(generators, options);

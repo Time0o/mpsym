@@ -2,7 +2,7 @@
 #define _GUARD_PROFILE_PARSE_H
 
 #include <string>
-#include <tuple>
+#include <utility>
 #include <vector>
 
 #include "perm.h"
@@ -19,8 +19,7 @@ namespace permlib
   };
 }
 
-std::tuple<unsigned, unsigned, std::string> parse_group(
-  std::string const &group_str);
+std::pair<unsigned, std::string> parse_group(std::string const &group_str);
 
 std::string parse_generators_gap(std::string const &gen_str);
 

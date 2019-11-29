@@ -134,22 +134,22 @@ void map_tasks_mpsym(cgtl::PermSet const &generators,
   }
 }
 
-double run(std::string const &generators_str,
-           std::string const &task_allocations_str,
+double run(std::string const &generators,
+           std::string const &task_allocations,
            ProfileOptions const &options)
 {
   double t;
   if (options.library.is("gap")) {
     run_gap(
-      map_tasks_gap(parse_generators_gap(generators_str),
-                    parse_task_allocations_gap(task_allocations_str),
+      map_tasks_gap(parse_generators_gap(generators),
+                    parse_task_allocations_gap(task_allocations),
                     options),
       &t);
 
   } else if (options.library.is("mpsym")) {
     run_cpp([&]{
-      map_tasks_mpsym(parse_generators_mpsym(generators_str),
-                      parse_task_allocations_mpsym(task_allocations_str),
+      map_tasks_mpsym(parse_generators_mpsym(generators),
+                      parse_task_allocations_mpsym(task_allocations),
                       options);
       }, &t);
   }
@@ -165,25 +165,21 @@ void profile(std::ifstream &group_stream,
   if (!std::getline(group_stream, line))
     throw std::runtime_error("failed to read group file");
 
-  unsigned degree;
-  unsigned order;
-  std::string generators_str;
+  auto group(parse_group(line));
 
-  std::tie(degree, order, generators_str) = parse_group(line);
+  unsigned degree = group.first;
+  std::string generators = group.second;
 
   if (options.verbose) {
     info("Using automorphism group with degree", degree,
-         "order", order,
-         "and generators", generators_str);
+         "and generators", generators);
   }
 
-  std::string task_allocations_str(
+  std::string task_allocations(
     (std::istreambuf_iterator<char>(task_allocations_stream)),
     std::istreambuf_iterator<char>());
 
-  double t = run(generators_str,
-                 task_allocations_str,
-                 options);
+  double t = run(generators, task_allocations, options);
 
   result("Runtime:", t);
 }
