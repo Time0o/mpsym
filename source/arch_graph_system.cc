@@ -14,6 +14,28 @@
 namespace cgtl
 {
 
+PermSet ArchGraphSystem::automorphisms_generators(bool augmented)
+{
+  static PermSet augmented_generators;
+  static bool augmented_generators_valid = false;
+
+  if (!augmented)
+    return automorphisms().bsgs().strong_generators();
+
+  if (!augmented_generators_valid) {
+    augmented_generators.clear();
+
+    for (Perm const &generator : automorphisms_generators(false)) {
+      augmented_generators.insert(generator);
+      augmented_generators.insert(~generator);
+    }
+
+    augmented_generators_valid = true;
+  }
+
+  return augmented_generators;
+}
+
 TaskMapping ArchGraphSystem::mapping(TaskMappingRequest const &tmr)
 {
   Dbg(Dbg::DBG) << "Requested task mapping: " << tmr;
@@ -74,7 +96,7 @@ TaskAllocation ArchGraphSystem::min_elem_approx(TaskAllocation const &tasks,
   while (!stationary) {
     stationary = true;
 
-    for (Perm const &generator : automorphisms_generators()) {
+    for (Perm const &generator : automorphisms_generators(true)) {
       if (representative.minimizes(generator, min_pe, max_pe)) {
         representative.permute(generator, min_pe, max_pe);
 
