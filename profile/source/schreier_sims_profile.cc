@@ -264,6 +264,8 @@ int main(int argc, char **argv)
   VariantOption transversals(
     {"explicit", "schreier-trees", "shallow-schreier-trees"});
 
+  std::ifstream groups_stream;
+
   unsigned num_cycles = 1;
   unsigned num_runs = 1;
   bool verbose = false;
@@ -318,7 +320,9 @@ int main(int argc, char **argv)
   CHECK_OPTION((library.is("gap") || transversals.is_set()),
                "--transversal-storage option is mandatory when not using gap");
 
-  CHECK_FILE_ARGUMENT(groups_stream, "GROUPS");
+  CHECK_ARGUMENT("GROUPS");
+
+  OPEN_STREAM(groups_stream, argv[optind]);
 
   try {
     profile(groups_stream,

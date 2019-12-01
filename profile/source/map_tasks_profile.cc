@@ -1,10 +1,12 @@
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <numeric>
+#include <random>
 #include <sstream>
 #include <stdexcept>
-#include <streambuf>
 #include <string>
 #include <vector>
 
@@ -20,6 +22,7 @@
 
 #include "profile_args.h"
 #include "profile_parse.h"
+#include "profile_read.h"
 #include "profile_run.h"
 #include "profile_timer.h"
 #include "profile_utility.h"
@@ -33,12 +36,14 @@ void usage(std::ostream &s)
 {
   char const *opts[] = {
     "[-h|--help]",
-    "-i|--implementation {gap|mpsym}",
-    "[-a|--approximate]",
+    "-i|--implementation {gap|mpsym|mpsym_approx}",
+    "-g|--group GROUP",
+    "[-t|--task-allocations TASK_ALLOCATIONS]",
+    "[--num-tasks-min NUM_TASKS_MIN]",
+    "[--num-tasks-max NUM_TASKS_MAX]",
+    "[--num-task-allocations NUM_TASK_ALLOCATIONS]",
     "[--realtime-clock]",
-    "[-v|--verbose]",
-    "GROUP",
-    "TASK_ALLOCATIONS"
+    "[-v|--verbose]"
   };
 
   s << "usage: " << progname << '\n';
@@ -49,9 +54,42 @@ void usage(std::ostream &s)
 struct ProfileOptions
 {
   VariantOption library;
-  bool approximate;
   bool verbose;
 };
+
+std::string generate_task_allocations(unsigned min_pe,
+                                      unsigned max_pe,
+                                      unsigned num_tasks_min,
+                                      unsigned num_tasks_max,
+                                      unsigned num_task_allocations)
+{
+  static std::random_device rd{};
+  static std::mt19937 m{rd()};
+
+  std::stringstream ss;
+
+  // sample number of tasks
+  std::uniform_int_distribution<unsigned> num_tasks_distr(num_tasks_min,
+                                                          num_tasks_max);
+
+  unsigned num_tasks = num_tasks_distr(m);
+
+  // sample task allocations
+  std::vector<unsigned> pes(max_pe - min_pe + 1u);
+  std::iota(pes.begin(), pes.end(), min_pe);
+
+  std::vector<unsigned> sample(num_tasks);
+  for (unsigned i = 0u; i < num_task_allocations; ++i) {
+    std::sample(pes.begin(), pes.end(), sample.begin(), num_tasks, m);
+
+    ss << sample[0];
+    for (unsigned j = 1u; j < num_tasks; ++j)
+      ss << " " << sample[j];
+    ss << "\n";
+  }
+
+  return ss.str();
+}
 
 std::string map_tasks_gap(std::string const &generators,
                           std::string const &task_allocations,
@@ -118,7 +156,10 @@ void map_tasks_mpsym(cgtl::PermSet const &generators,
     if (options.verbose)
       progress("Mapping task", i + 1u, "of", task_allocations.size());
 
-    task_orbits.insert(ag.mapping({task_allocations[i], 0u, options.approximate}));
+    auto mapping(ag.mapping(
+      {task_allocations[i], 0u, options.library.is("mpsym_approx")}));
+
+    task_orbits.insert(mapping);
   }
 
   if (options.verbose) {
@@ -130,7 +171,8 @@ void map_tasks_mpsym(cgtl::PermSet const &generators,
       info(dump::dump(repr));
 
     info("Timer dumps:");
-    Timer_dump(options.approximate ? "map approx" : "map bruteforce");
+    Timer_dump(options.library.is("mpsym_approx") ? "map approx"
+                                                  : "map bruteforce");
   }
 }
 
@@ -140,44 +182,29 @@ double run(std::string const &generators,
 {
   double t;
   if (options.library.is("gap")) {
-    run_gap(
-      map_tasks_gap(parse_generators_gap(generators),
-                    parse_task_allocations_gap(task_allocations),
-                    options),
-      &t);
+    auto generators_gap(parse_generators_gap(generators));
+    auto task_allocations_gap(parse_task_allocations_gap(task_allocations));
 
-  } else if (options.library.is("mpsym")) {
+    run_gap(map_tasks_gap(generators_gap, task_allocations_gap, options), &t);
+
+  } else if (options.library.is("mpsym") || options.library.is("mpsym_approx")) {
+    auto generators_mpsym(parse_generators_mpsym(generators));
+    auto task_allocations_mpsym(parse_task_allocations_mpsym(task_allocations));
+
     run_cpp([&]{
-      map_tasks_mpsym(parse_generators_mpsym(generators),
-                      parse_task_allocations_mpsym(task_allocations),
-                      options);
-      }, &t);
+      map_tasks_mpsym(generators_mpsym, task_allocations_mpsym, options);
+    }, &t);
   }
 
   return t;
 }
 
-void profile(std::ifstream &group_stream,
-             std::ifstream &task_allocations_stream,
+void profile(std::string const &generators,
+             std::string const &task_allocations,
              ProfileOptions const &options)
 {
-  std::string line;
-  if (!std::getline(group_stream, line))
-    throw std::runtime_error("failed to read group file");
-
-  auto group(parse_group(line));
-
-  unsigned degree = group.first;
-  std::string generators = group.second;
-
-  if (options.verbose) {
-    info("Using automorphism group with degree", degree,
-         "and generators", generators);
-  }
-
-  std::string task_allocations(
-    (std::istreambuf_iterator<char>(task_allocations_stream)),
-    std::istreambuf_iterator<char>());
+  if (options.verbose)
+    info("Using automorphism group with generators", generators);
 
   double t = run(generators, task_allocations, options);
 
@@ -191,22 +218,34 @@ int main(int argc, char **argv)
   progname = basename(argv[0]);
 
   struct option long_options[] = {
-    {"help",                no_argument,       0,       'h'},
-    {"implementation",      required_argument, 0,       'i'},
-    {"approximate",         no_argument,       0,       'a'},
-    {"realtime-clock",      no_argument,       0,        1 },
-    {"verbose",             no_argument,       0,       'v'},
-    {nullptr,               0,                 nullptr,  0 }
+    {"help",                 no_argument,       0,       'h'},
+    {"implementation",       required_argument, 0,       'i'},
+    {"group",                required_argument, 0,       'g'},
+    {"task-allocations",     required_argument, 0,       't'},
+    {"num-tasks-min",        required_argument, 0,        2 },
+    {"num-tasks-max",        required_argument, 0,        3 },
+    {"num-task-allocations", required_argument, 0,        4 },
+    {"realtime-clock",       no_argument,       0,        5 },
+    {"verbose",              no_argument,       0,       'v'},
+    {nullptr,                0,                 nullptr,  0 }
   };
 
-  VariantOption library({"gap", "mpsym"});
+  VariantOption library({"gap", "mpsym", "mpsym_approx"});
 
-  bool approximate = false;
+  std::ifstream group_stream;
+  bool group_stream_valid = false;
+
+  std::ifstream task_allocations_stream;
+  bool task_allocations_stream_valid = false;
+
+  unsigned num_tasks_min = 0u;
+  unsigned num_tasks_max = 0u;
+  unsigned num_task_allocations = 0u;
 
   bool verbose = false;
 
   for (;;) {
-    int c = getopt_long(argc, argv, "hi:av", long_options, nullptr);
+    int c = getopt_long(argc, argv, "hi:g:t:v", long_options, nullptr);
     if (c == -1)
       break;
 
@@ -218,14 +257,28 @@ int main(int argc, char **argv)
       case 'i':
         library.set(optarg);
         break;
-      case 'a':
-        approximate = true;
+      case 'g':
+        OPEN_STREAM(group_stream, optarg);
+        group_stream_valid = true;
+        break;
+      case 't':
+        OPEN_STREAM(task_allocations_stream, optarg);
+        task_allocations_stream_valid = true;
+        break;
+      case 2:
+        num_tasks_min = stox<unsigned>(optarg);
+        break;
+      case 3:
+        num_tasks_max = stox<unsigned>(optarg);
+        break;
+      case 4:
+        num_task_allocations = stox<unsigned>(optarg);
         break;
       case 'v':
         verbose = true;
         Timer::enabled = true;
         break;
-      case 1:
+      case 5:
         timer_enable_realtime();
         break;
       default:
@@ -237,20 +290,37 @@ int main(int argc, char **argv)
     }
   }
 
-  CHECK_OPTION(library.is_set(),
-               "--implementation option is mandatory");
+  CHECK_OPTION(library.is_set(), "--implementation option is mandatory");
 
-  CHECK_FILE_ARGUMENT(group_stream, "GROUP");
+  CHECK_OPTION(group_stream_valid, "--groups option is mandatory");
 
-  CHECK_FILE_ARGUMENT(task_allocations_stream, "TASK_ALLOCATIONS");
+  // parse group
+  unsigned degree;
+  std::string generators;
 
-  CHECK_OPTION((!approximate || !library.is("gap")),
-               "--approximate not supported when using gap");
+  std::tie(degree, generators) = parse_group(read_line(group_stream));
+
+  // parse/generate task allocations
+  std::string task_allocations;
+
+  if (task_allocations_stream_valid) {
+    if (num_tasks_min > 0 || num_tasks_max > 0 || num_task_allocations > 0)
+       warning("task allocations explicitly given,"
+               "--num-tasks-min, --num-tasks-max, --num-task-allocations ignored");
+
+    task_allocations = read_file(task_allocations_stream);
+
+  } else {
+    CHECK_OPTION(num_tasks_min > 0 || num_tasks_max > 0 || num_task_allocations > 0,
+                 "task allocations not explicitly given,"
+                 "--num-tasks-min, --num-tasks-max, --num-task-allocations missing");
+
+    task_allocations = generate_task_allocations(
+      1u, degree, num_tasks_min, num_tasks_max, num_task_allocations);
+  }
 
   try {
-    profile(group_stream,
-            task_allocations_stream,
-            {library, approximate, verbose});
+    profile(generators, task_allocations, {library, verbose});
   } catch (std::exception const &e) {
     error("profiling failed:", e.what());
     return EXIT_FAILURE;

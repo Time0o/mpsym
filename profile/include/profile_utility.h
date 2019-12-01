@@ -41,6 +41,10 @@ void result(ARGS &&...args)
 }
 
 template<typename... ARGS>
+void warning(ARGS &&...args)
+{ print(std::cerr, "WARNING:", "\n", std::forward<ARGS>(args)...); }
+
+template<typename... ARGS>
 void error(ARGS &&...args)
 { print(std::cerr, "ERROR:", "\n", std::forward<ARGS>(args)...); }
 

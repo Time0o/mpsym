@@ -49,7 +49,7 @@ private:
 };
 
 #define CHECK_OPTION(cond, msg) \
-  if (!cond) { \
+  if (!(cond)) { \
     usage(std::cerr); \
     error(msg); \
     return EXIT_FAILURE; \
@@ -62,11 +62,10 @@ private:
     return EXIT_FAILURE; \
   }
 
-#define CHECK_FILE_ARGUMENT(var, arg) \
-  CHECK_ARGUMENT(arg); \
-  std::ifstream var(argv[optind++]); \
+#define OPEN_STREAM(var, arg) \
+  var = std::ifstream(arg); \
   if (var.fail()) { \
-    error("failed to open", argv[optind]); \
+    error("failed to open", arg); \
     return EXIT_FAILURE; \
   }
 
