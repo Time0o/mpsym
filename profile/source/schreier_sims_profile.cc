@@ -41,6 +41,7 @@ void usage(std::ostream &s)
     "[-t|--transversal-storage] {explicit|schreier-trees|shallow-schreier-trees}",
     "[-c|--num-cycles]",
     "[-r|--num-runs]",
+    "[--realtime-clock]",
     "[-v|--verbose]",
     "GROUPS"
   };
