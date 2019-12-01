@@ -21,4 +21,17 @@ inline std::string read_file(std::ifstream &stream)
                       std::istreambuf_iterator<char>());
 }
 
+template<typename FUNC>
+void foreach_line(std::ifstream &stream, FUNC &&f)
+{
+  std::string line;
+  unsigned lineno = 1;
+
+  while (std::getline(stream, line))
+    f(line, lineno++);
+
+  if (stream.bad())
+    throw std::runtime_error("failed to read file");
+}
+
 #endif // _GUARD_PROFILE_READ_H

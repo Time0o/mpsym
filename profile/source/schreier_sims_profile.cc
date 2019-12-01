@@ -23,6 +23,7 @@
 
 #include "profile_parse.h"
 #include "profile_args.h"
+#include "profile_read.h"
 #include "profile_run.h"
 #include "profile_timer.h"
 #include "profile_utility.h"
@@ -211,9 +212,7 @@ void profile(std::ifstream &groups_stream,
       info("Constructions per run:", options.num_cycles);
   }
 
-  std::string line;
-  int lineno = 1;
-  while (std::getline(groups_stream, line)) {
+  foreach_line(groups_stream, [&](std::string const &line, unsigned lineno){
     auto group(parse_group(line));
 
     unsigned degree = group.first;
@@ -232,12 +231,7 @@ void profile(std::ifstream &groups_stream,
 
     result("Mean:", t_mean, "s");
     result("Stddev:", t_stddev, "s");
-
-    ++lineno;
-  }
-
-  if (groups_stream.bad())
-    throw std::runtime_error("failed to read groups file");
+  });
 }
 
 } // namespace
