@@ -202,8 +202,6 @@ void profile(std::ifstream &groups_stream,
              ProfileOptions const &options)
 {
   if (options.verbose) {
-    Timer::enabled = true;
-
     info("Implementation:", options.library.get());
     info("Schreier-sims variant:", options.schreier_sims.get());
     info("Transversals:", options.transversals.get());
