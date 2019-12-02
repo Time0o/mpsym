@@ -6,6 +6,21 @@
 #include <stdexcept>
 #include <string>
 
+struct Stream
+{
+  std::ifstream stream;
+  bool valid = false;
+
+  void open(char const *file)
+  {
+    stream = std::ifstream(file);
+    if (stream.bad())
+      throw std::runtime_error("failed to open file");
+
+    valid = true;
+  }
+};
+
 inline std::string read_line(std::ifstream &stream)
 {
   std::string line;

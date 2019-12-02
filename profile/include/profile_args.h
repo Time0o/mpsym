@@ -63,9 +63,10 @@ private:
   }
 
 #define OPEN_STREAM(var, arg) \
-  var = std::ifstream(arg); \
-  if (var.fail()) { \
-    error("failed to open", arg); \
+  try { \
+    var.open(arg); \
+  } catch (std::runtime_error const &e) { \
+    error(e.what(), ":", arg); \
     return EXIT_FAILURE; \
   }
 
