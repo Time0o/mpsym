@@ -62,12 +62,12 @@ struct ProfileOptions
   bool verbose;
 };
 
-std::string make_perm_group_gap(std::string const &generators,
+std::string make_perm_group_gap(gap::PermSet const &generators,
                                 ProfileOptions const &options)
 {
   std::stringstream ss;
   ss << "for i in [1.." << options.num_cycles << "] do\n";
-  ss << "  StabChain(Group(" + generators + "));\n";
+  ss << "  StabChain(Group(" + generators.permutations + "));\n";
   ss << "od;\n";
 
   return ss.str();
@@ -213,16 +213,13 @@ void profile(std::ifstream &groups_stream,
   foreach_line(groups_stream, [&](std::string const &line, unsigned lineno){
     auto group(parse_group(line));
 
-    unsigned degree = group.first;
-    std::string generators = group.second;
-
     if (options.verbose) {
       info("Constructing group", lineno,
-           "with degree", degree,
-           "and generators", generators);
+           "with degree", group.degree,
+           "and generators", group.generators);
     }
 
-    auto ts = run(generators, options);
+    auto ts = run(group.generators, options);
 
     double t_mean, t_stddev;
     util::mean_stddev(ts, &t_mean, &t_stddev);

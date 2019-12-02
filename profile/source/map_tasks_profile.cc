@@ -83,18 +83,18 @@ std::string generate_task_allocations(unsigned num_pes,
   return ss.str();
 }
 
-std::string map_tasks_gap(std::string const &generators,
-                          std::string const &task_allocations,
+std::string map_tasks_gap(gap::PermSet const &generators,
+                          gap::TaskAllocationVector const &task_allocation_vector,
                           ProfileOptions const &options)
 {
   std::stringstream ss;
 
   ss << "LoadPackage(\"orb\");\n";
 
-  ss << "automorphisms:=Group(" << generators << ");\n";
+  ss << "automorphisms:=Group(" << generators.permutations << ");\n";
 
   ss << "task_allocations:=[\n";
-  ss << task_allocations;
+  ss << task_allocation_vector.task_allocations;
   ss << "];\n";
 
   ss << "orbit_representatives:=[];\n";
@@ -134,7 +134,7 @@ std::string map_tasks_gap(std::string const &generators,
 }
 
 void map_tasks_mpsym(cgtl::PermSet const &generators,
-                     std::vector<cgtl::TaskAllocation> const &task_allocations,
+                     cgtl::TaskAllocationVector const &task_allocation_vector,
                      ProfileOptions const &options)
 {
   using cgtl::ArchGraphSystem;
@@ -142,6 +142,7 @@ void map_tasks_mpsym(cgtl::PermSet const &generators,
   using cgtl::TaskOrbits;
 
   ArchGraphSystem ag(PermGroup(generators.degree(), generators));
+  auto task_allocations(task_allocation_vector.task_allocations);
 
   TaskOrbits task_orbits;
   for (auto i = 0u; i < task_allocations.size(); ++i) {
@@ -177,11 +178,17 @@ double run(std::string const &generators,
     auto generators_gap(parse_generators_gap(generators));
     auto task_allocations_gap(parse_task_allocations_gap(task_allocations));
 
+    if (task_allocations_gap.max_pe > generators_gap.degree)
+      throw std::invalid_argument("pe index out of range");
+
     run_gap(map_tasks_gap(generators_gap, task_allocations_gap, options), &t);
 
   } else if (options.library.is("mpsym") || options.library.is("mpsym_approx")) {
     auto generators_mpsym(parse_generators_mpsym(generators));
     auto task_allocations_mpsym(parse_task_allocations_mpsym(task_allocations));
+
+    if (task_allocations_mpsym.max_pe > generators_mpsym.degree())
+      throw std::invalid_argument("pe index out of range");
 
     run_cpp([&]{
       map_tasks_mpsym(generators_mpsym, task_allocations_mpsym, options);
@@ -206,20 +213,17 @@ void profile(Stream &groups_stream,
   foreach_line(groups_stream.stream, [&](std::string const &line, unsigned lineno){
     auto group(parse_group(line));
 
-    unsigned degree = group.first;
-    std::string generators = group.second;
-
     if (!task_allocations_stream.valid)
       task_allocations = generate_task_allocations(
-        degree, options.num_tasks, options.num_task_allocations);
+        group.degree, options.num_tasks, options.num_task_allocations);
 
     if (options.verbose) {
       info("Using automorphism group", lineno,
-           "with degree", degree,
-           "and generators", generators);
+           "with degree", group.degree,
+           "and generators", group.generators);
     }
 
-    double t = run(generators, task_allocations, options);
+    double t = run(group.generators, task_allocations, options);
 
     result("Runtime:", t);
   });

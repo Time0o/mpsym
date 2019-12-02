@@ -124,12 +124,13 @@ permlib::PermSet convert_generators_permlib(unsigned degree,
   return {degree, gens_conv};
 }
 
-std::vector<cgtl::TaskAllocation> split_task_allocations(
-  std::string const &task_allocations_str)
+std::pair<unsigned, std::vector<cgtl::TaskAllocation>>
+split_task_allocations(std::string const &task_allocations_str)
 {
   static std::regex re_task_allocation(R"(\d+( \d+)*)");
 
   unsigned num_tasks = 0u;
+  unsigned max_pe = 0u;
   std::vector<cgtl::TaskAllocation> task_allocations;
 
   std::stringstream ss(task_allocations_str);
@@ -147,6 +148,7 @@ std::vector<cgtl::TaskAllocation> split_task_allocations(
 
     while ((pos_end = line.find(' ', pos_begin)) != std::string::npos) {
       pe = stox<unsigned>(line.substr(pos_begin, pos_end - pos_begin));
+      max_pe = std::max(pe, max_pe);
       task_allocation.push_back(pe);
 
       pos_begin = pos_end + 1u;
@@ -165,12 +167,12 @@ std::vector<cgtl::TaskAllocation> split_task_allocations(
     task_allocations.push_back(task_allocation);
   }
 
-  return task_allocations;
+  return {max_pe, task_allocations};
 }
 
 } // namespace
 
-std::pair<unsigned, std::string> parse_group(std::string const &group_str)
+GenericGroup parse_group(std::string const &group_str)
 {
   static std::regex re_group("degree:(\\d+),order:(\\d+),gens:(.*)");
 
@@ -190,8 +192,12 @@ std::pair<unsigned, std::string> parse_group(std::string const &group_str)
   return {degree, gen_str};
 }
 
-std::string parse_generators_gap(std::string const &gen_str)
-{ return gen_str; }
+gap::PermSet parse_generators_gap(std::string const &gen_str)
+{
+  unsigned degree = parse_generators(split_generators(gen_str)).first;
+
+  return {degree, gen_str};
+}
 
 cgtl::PermSet parse_generators_mpsym(std::string const &gen_str)
 {
@@ -211,17 +217,22 @@ permlib::PermSet parse_generators_permlib(std::string const &gen_str)
    return convert_generators_permlib(degree, gen_vect);
 }
 
-std::string parse_task_allocations_gap(std::string const &task_allocations_str)
+gap::TaskAllocationVector parse_task_allocations_gap(
+  std::string const &task_allocations_str)
 {
   auto task_allocations(split_task_allocations(task_allocations_str));
 
   std::stringstream ss;
-  for (auto const &task_allocation : task_allocations)
+  for (auto const &task_allocation : task_allocations.second)
     ss << dump::dump(task_allocation) << ",\n";
 
-  return ss.str();
+  return {task_allocations.first, ss.str()};
 }
 
-std::vector<cgtl::TaskAllocation> parse_task_allocations_mpsym(
+cgtl::TaskAllocationVector parse_task_allocations_mpsym(
   std::string const &task_allocations_str)
-{ return split_task_allocations(task_allocations_str); }
+{
+  auto task_allocations(split_task_allocations(task_allocations_str));
+
+  return {task_allocations.first, task_allocations.second};
+}
