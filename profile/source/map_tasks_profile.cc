@@ -107,7 +107,7 @@ std::string map_tasks_gap(gap::PermSet const &generators,
 
   if (options.verbose)
     ss << "  Print(\"INFO: Mapping task \", n, \" of \", "
-          "        Length(task_allocations), \"\\r\");\n";
+          "        Length(task_allocations), \"\\r\\c\");\n";
 
   ss << "  orbit:=Orb(automorphisms, task_allocation, OnTuples, orbit_options);\n";
 

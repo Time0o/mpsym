@@ -8,7 +8,7 @@
 #include "profile_timer.h"
 #include "profile_utility.h"
 
-void run_gap(std::string const &script, double *t);
+std::string run_gap(std::string const &script, double *t);
 
 template<typename FUNC>
 void run_cpp(FUNC &&f, double *t)
