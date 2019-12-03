@@ -4,7 +4,6 @@
 #include <fstream>
 #include <iostream>
 #include <numeric>
-#include <random>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -21,6 +20,7 @@
 #include "timer.h"
 
 #include "profile_args.h"
+#include "profile_generate.h"
 #include "profile_parse.h"
 #include "profile_read.h"
 #include "profile_run.h"
@@ -57,31 +57,6 @@ struct ProfileOptions
   unsigned num_task_allocations;
   bool verbose;
 };
-
-std::string generate_task_allocations(unsigned num_pes,
-                                      unsigned num_tasks,
-                                      unsigned num_task_allocations)
-{
-  static std::random_device rd{};
-  static std::mt19937 m{rd()};
-
-  std::stringstream ss;
-
-  std::vector<unsigned> pes(num_pes);
-  std::iota(pes.begin(), pes.end(), 1u);
-
-  std::vector<unsigned> sample(num_tasks);
-  for (unsigned i = 0u; i < num_task_allocations; ++i) {
-    std::sample(pes.begin(), pes.end(), sample.begin(), num_tasks, m);
-
-    ss << sample[0];
-    for (unsigned j = 1u; j < num_tasks; ++j)
-      ss << " " << sample[j];
-    ss << "\n";
-  }
-
-  return ss.str();
-}
 
 std::string map_tasks_gap(gap::PermSet const &generators,
                           gap::TaskAllocationVector const &task_allocation_vector,
