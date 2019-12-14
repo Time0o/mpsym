@@ -135,7 +135,7 @@ void map_tasks_mpsym(cgtl::PermSet const &generators,
 
     info("Found", task_orbits.num_orbits(), "equivalence classes:");
 
-    for (auto repr : task_orbits)
+    for (auto const &repr : task_orbits)
       info(dump::dump(repr));
 
     info("Timer dumps:");
@@ -275,12 +275,12 @@ int main(int argc, char **argv)
   if (task_allocations_stream.valid) {
     if (options.num_tasks > 0 || options.num_task_allocations > 0)
        warning("task allocations explicitly given,"
-               "--num-tasks, --num-task-allocations ignored");
+               " --num-tasks, --num-task-allocations ignored");
 
   } else {
     CHECK_OPTION(options.num_tasks > 0 || options.num_task_allocations > 0,
                  "task allocations not explicitly given,"
-                 "--num-tasks, --num-task-allocations missing");
+                 " --num-tasks, --num-task-allocations missing");
   }
 
   try {
