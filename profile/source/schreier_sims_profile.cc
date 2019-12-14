@@ -54,12 +54,12 @@ void usage(std::ostream &s)
 
 struct ProfileOptions
 {
-  VariantOption library;
-  VariantOption schreier_sims;
-  VariantOption transversals;
-  unsigned num_cycles;
-  unsigned num_runs;
-  bool verbose;
+  VariantOption library{"gap", "mpsym", "permlib"};
+  VariantOption schreier_sims{"deterministic", "random"};
+  VariantOption transversals{"explicit", "schreier-trees", "shallow-schreier-trees"};
+  unsigned num_cycles = 1u;
+  unsigned num_runs = 1u;
+  bool verbose = false;
 };
 
 std::string make_perm_group_gap(gap::PermSet const &generators,
@@ -247,18 +247,9 @@ int main(int argc, char **argv)
     {nullptr,               0,                 nullptr,  0 }
   };
 
-  VariantOption library({"gap", "mpsym", "permlib"});
-
-  VariantOption schreier_sims({"deterministic", "random"});
-
-  VariantOption transversals(
-    {"explicit", "schreier-trees", "shallow-schreier-trees"});
+  ProfileOptions options;
 
   std::ifstream groups_stream;
-
-  unsigned num_cycles = 1;
-  unsigned num_runs = 1;
-  bool verbose = false;
 
   for (;;) {
     int c = getopt_long(argc, argv, "hi:s:t:r:c:v", long_options, nullptr);
@@ -271,22 +262,22 @@ int main(int argc, char **argv)
         usage(std::cout);
         return EXIT_SUCCESS;
       case 'i':
-        library.set(optarg);
+        options.library.set(optarg);
         break;
       case 's':
-        schreier_sims.set(optarg);
+        options.schreier_sims.set(optarg);
         break;
       case 't':
-        transversals.set(optarg);
+        options.transversals.set(optarg);
         break;
       case 'c':
-        num_cycles = stox<unsigned>(optarg);
+        options.num_cycles = stox<unsigned>(optarg);
         break;
       case 'r':
-        num_runs = stox<unsigned>(optarg);
+        options.num_runs = stox<unsigned>(optarg);
         break;
       case 'v':
-        verbose = true;
+        options.verbose = true;
         Timer::enabled = true;
         break;
       case 1:
@@ -301,13 +292,13 @@ int main(int argc, char **argv)
     }
   }
 
-  CHECK_OPTION(library.is_set(),
+  CHECK_OPTION(options.library.is_set(),
                "--implementation option is mandatory");
 
-  CHECK_OPTION((library.is("gap") || schreier_sims.is_set()),
+  CHECK_OPTION((options.library.is("gap") || options.schreier_sims.is_set()),
                "--schreier-sims option is mandatory when not using gap");
 
-  CHECK_OPTION((library.is("gap") || transversals.is_set()),
+  CHECK_OPTION((options.library.is("gap") || options.transversals.is_set()),
                "--transversal-storage option is mandatory when not using gap");
 
   CHECK_ARGUMENT("GROUPS");
@@ -315,15 +306,7 @@ int main(int argc, char **argv)
   OPEN_STREAM(groups_stream, argv[optind]);
 
   try {
-    profile(groups_stream,
-            {
-              library,
-              schreier_sims,
-              transversals,
-              num_cycles,
-              num_runs,
-              verbose
-            });
+    profile(groups_stream, options);
   } catch (std::exception const &e) {
     error("profiling failed:", e.what());
     return EXIT_FAILURE;

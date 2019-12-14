@@ -52,10 +52,10 @@ void usage(std::ostream &s)
 
 struct ProfileOptions
 {
-  VariantOption library;
-  unsigned num_tasks;
-  unsigned num_task_allocations;
-  bool verbose;
+  VariantOption library{"gap", "mpsym", "mpsym_approx"};
+  unsigned num_tasks = 0u;
+  unsigned num_task_allocations = 0u;
+  bool verbose = false;
 };
 
 std::string map_tasks_gap(gap::PermSet const &generators,
@@ -222,15 +222,10 @@ int main(int argc, char **argv)
     {nullptr,                0,                 nullptr,  0 }
   };
 
-  VariantOption library({"gap", "mpsym", "mpsym_approx"});
+  ProfileOptions options;
 
   Stream groups_stream;
   Stream task_allocations_stream;
-
-  unsigned num_tasks = 0u;
-  unsigned num_task_allocations = 0u;
-
-  bool verbose = false;
 
   for (;;) {
     int c = getopt_long(argc, argv, "hi:g:t:v", long_options, nullptr);
@@ -243,7 +238,7 @@ int main(int argc, char **argv)
         usage(std::cout);
         return EXIT_SUCCESS;
       case 'i':
-        library.set(optarg);
+        options.library.set(optarg);
         break;
       case 'g':
         OPEN_STREAM(groups_stream, optarg);
@@ -252,13 +247,13 @@ int main(int argc, char **argv)
         OPEN_STREAM(task_allocations_stream, optarg);
         break;
       case 2:
-        num_tasks = stox<unsigned>(optarg);
+        options.num_tasks = stox<unsigned>(optarg);
         break;
       case 3:
-        num_task_allocations = stox<unsigned>(optarg);
+        options.num_task_allocations = stox<unsigned>(optarg);
         break;
       case 'v':
-        verbose = true;
+        options.verbose = true;
         Timer::enabled = true;
         break;
       case 4:
@@ -273,25 +268,23 @@ int main(int argc, char **argv)
     }
   }
 
-  CHECK_OPTION(library.is_set(), "--implementation option is mandatory");
+  CHECK_OPTION(options.library.is_set(), "--implementation option is mandatory");
 
   CHECK_OPTION(groups_stream.valid, "--groups option is mandatory");
 
   if (task_allocations_stream.valid) {
-    if (num_tasks > 0 || num_task_allocations > 0)
+    if (options.num_tasks > 0 || options.num_task_allocations > 0)
        warning("task allocations explicitly given,"
                "--num-tasks, --num-task-allocations ignored");
 
   } else {
-    CHECK_OPTION(num_tasks > 0 || num_task_allocations > 0,
+    CHECK_OPTION(options.num_tasks > 0 || options.num_task_allocations > 0,
                  "task allocations not explicitly given,"
                  "--num-tasks, --num-task-allocations missing");
   }
 
   try {
-    profile(groups_stream,
-            task_allocations_stream,
-            {library, num_tasks, num_task_allocations, verbose});
+    profile(groups_stream, task_allocations_stream, options);
   } catch (std::exception const &e) {
     error("profiling failed:", e.what());
     return EXIT_FAILURE;
