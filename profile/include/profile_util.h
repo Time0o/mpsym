@@ -1,5 +1,5 @@
-#ifndef _GUARD_PROFILE_UTILITY_H
-#define _GUARD_PROFILE_UTILITY_H
+#ifndef _GUARD_PROFILE_UTIL_H
+#define _GUARD_PROFILE_UTIL_H
 
 #include <iostream>
 #include <limits>
@@ -73,4 +73,4 @@ T stox(std::string const &str)
   return static_cast<T>(i);
 }
 
-#endif // _GUARD_PROFILE_UTILITY_H
+#endif // _GUARD_PROFILE_UTIL_H

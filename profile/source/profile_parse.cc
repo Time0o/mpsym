@@ -10,7 +10,7 @@
 #include "perm_set.h"
 #include "permlib.h"
 #include "profile_parse.h"
-#include "profile_utility.h"
+#include "profile_util.h"
 #include "task_mapping.h"
 
 namespace

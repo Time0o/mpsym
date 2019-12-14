@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #include "profile_timer.h"
-#include "profile_utility.h"
+#include "profile_util.h"
 
 namespace
 {
