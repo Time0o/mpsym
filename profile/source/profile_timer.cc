@@ -69,7 +69,7 @@ bool stop_child(pid_t child)
 
 } // namespace
 
-void timer_enable_realtime()
+void timer_realtime_enable()
 { realtime_timer.enable(); }
 
 bool timer_realtime_enabled()

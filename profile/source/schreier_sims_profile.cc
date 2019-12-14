@@ -281,7 +281,7 @@ int main(int argc, char **argv)
         Timer::enabled = true;
         break;
       case 1:
-        timer_enable_realtime();
+        timer_realtime_enable();
         break;
       default:
         return EXIT_FAILURE;

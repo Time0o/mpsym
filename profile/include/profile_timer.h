@@ -3,7 +3,7 @@
 
 #include <sys/types.h>
 
-void timer_enable_realtime();
+void timer_realtime_enable();
 bool timer_realtime_enabled();
 
 pid_t timer_start();
