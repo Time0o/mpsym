@@ -16,7 +16,15 @@ USAGE = usage(__file__, """[--min-degree MIN_DEGREE]
                            [--order-limit ORDER_LIMIT]
                            CLASS""")
 
-DESC = "Obtain generators of known permutation groups"
+DESC = """\
+Obtain generators of known permutation groups
+
+CLASS should be one of:
+* primitive
+* symmetric
+* cyclic
+* alternating
+* dihedral"""
 
 GAP_CMD = \
 """for d in [{},{}..{}] do
