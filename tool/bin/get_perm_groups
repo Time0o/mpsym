@@ -11,8 +11,9 @@ from util import error, usage
 
 
 USAGE = usage(__file__, """[--min-degree MIN_DEGREE]
-                            --max-degree MAX_DEGREE
+                           [--max-degree MAX_DEGREE]
                            [--degree-step DEGREE_STEP]
+                           [--max-num MAX_NUM]
                            [--order-limit ORDER_LIMIT]
                            CLASS""")
 
@@ -27,13 +28,12 @@ CLASS should be one of:
 * dihedral"""
 
 GAP_CMD = \
-"""for d in [{},{}..{}] do
+"""num := 0;
+   done := false;
+   for d in [{},{}..{}] do
      {{}}
+     if done then break; fi;
    od;"""
-
-GAP_CMD_NOLOOP = \
-"""d := {};
-   {{}}"""
 
 GAP_ORDER_SKIP = "if Order(g) > {} then continue; fi;"
 
@@ -41,9 +41,12 @@ GAP_GET_GENERATORS = "gens := GeneratorsOfGroup(g);"
 
 GAP_PRINT = 'Print("degree:", d, ",order:", Order(g), ",gens:", gens, "\\n");'
 
+GAP_MAX_NUM_BREAK = "num := num + 1; if num = {} then done:=true; break; fi;"
+
 GAP_PRIMITIVE_GROUP = \
 """for n in [1..NrPrimitiveGroups(d)] do
     g := PrimitiveGroup(d, n);
+    {}
     {}
     {}
     {}
@@ -53,10 +56,11 @@ GAP_SPECIAL_GROUP = \
 """g := {}(d);
    {{}}
    {{}}
+   {{}}
    {{}}"""
 
 
-def gap_script(group_class, min_degree, max_degree, degree_step, order_limit):
+def gap_script(group_class, min_degree, max_degree, degree_step, max_num, order_limit):
     gap_cmd = GAP_CMD.format(min_degree, min_degree + degree_step, max_degree)
 
     if order_limit is not None:
@@ -74,7 +78,10 @@ def gap_script(group_class, min_degree, max_degree, degree_step, order_limit):
             'dihedral':    'DihedralGroup'
         }[group_class])
 
-    gap_group = gap_group.format(gap_order_skip, GAP_GET_GENERATORS, GAP_PRINT)
+    gap_group = gap_group.format(gap_order_skip,
+                                 GAP_GET_GENERATORS,
+                                 GAP_PRINT,
+                                 GAP_MAX_NUM_BREAK.format(max_num))
 
     return gap_cmd.format(gap_group)
 
@@ -95,27 +102,38 @@ if __name__ == '__main__':
     parser.add_argument('--min-degree', type=int, default=1,
         help="minimum group degree, default is %(default)d")
 
-    parser.add_argument('--max-degree', required=True, type=int,
-        help="maximum group degree")
+    parser.add_argument('--max-degree', type=int, default=101,
+        help="maximum group degree, default is %(default)d")
 
     parser.add_argument('--degree-step', type=int, default=1,
         help="group degree step, default is %(default)d")
+
+    parser.add_argument('--max-num', type=int, default=100,
+        help="maximum number of groups, default is %(default)d")
 
     parser.add_argument('--order-limit', type=int, default=2**63-1,
         help=str("group order limit, default is %(default)d"))
 
     ns = parser.parse_args()
 
-    if ns.max_degree < ns.min_degree:
-        error(__file__, "--max-degree must be >= --min-degree")
+    if ns.max_degree is None and ns.max_num is None:
+      error(__file__, "at least one of --max-degree/--max-num must be given")
 
-    if (ns.max_degree - ns.min_degree) % ns.degree_step != 0:
-        error(__file__, "--degree-step must divide --max-degree - --min-degree")
+    if ns.max_degree is not None:
+      if ns.max_degree < ns.min_degree:
+          error(__file__, "--max-degree must be >= --min-degree")
+
+      if (ns.max_degree - ns.min_degree) % ns.degree_step != 0:
+          error(__file__, "--degree-step must divide --max-degree - --min-degree")
+
+      if (ns.max_degree is None and - ns.min_degree) % ns.degree_step != 0:
+          error(__file__, "--degree-step must divide --max-degree - --min-degree")
 
     script = gap_script(ns.group_class,
                         ns.min_degree,
                         ns.max_degree,
                         ns.degree_step,
+                        ns.max_num,
                         ns.order_limit)
 
     with NamedTemporaryFile(mode='w+', delete=False) as f:
