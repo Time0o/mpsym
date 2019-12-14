@@ -16,18 +16,18 @@ class TaskOrbits
 public:
   typedef std::vector<TaskAllocation>::const_iterator const_iterator;
 
-  std::pair<bool, unsigned> insert(TaskMapping const &tm)
+  std::pair<bool, unsigned> insert(TaskAllocation const &tr)
   {
     bool new_orbit;
     unsigned equivalence_class;
 
-    auto it = _orbit_index_hash.find(tm.representative);
+    auto it = _orbit_index_hash.find(tr);
     if (it == _orbit_index_hash.end()) {
       new_orbit = true;
       equivalence_class = num_orbits();
 
-      _orbit_representatives.push_back(tm.representative);
-      _orbit_index_hash[tm.representative] = equivalence_class;
+      _orbit_representatives.push_back(tr);
+      _orbit_index_hash[tr] = equivalence_class;
 
     } else {
       new_orbit = false;
@@ -35,6 +35,16 @@ public:
     }
 
     return {new_orbit, equivalence_class};
+  }
+
+  std::pair<bool, unsigned> insert(TaskMapping const &tm)
+  { return insert(tm.representative); }
+
+  template<typename IT>
+  void insert_all(IT first, IT last)
+  {
+    for (auto it = first; it != last; ++it)
+      insert(*it);
   }
 
   unsigned num_orbits() const
