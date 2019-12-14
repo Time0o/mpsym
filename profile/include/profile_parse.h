@@ -25,6 +25,7 @@ namespace gap
 
   struct TaskAllocationVector
   {
+    unsigned min_pe;
     unsigned max_pe;
     std::string task_allocations;
   };
@@ -34,6 +35,7 @@ namespace cgtl
 {
   struct TaskAllocationVector
   {
+    unsigned min_pe;
     unsigned max_pe;
     std::vector<cgtl::TaskAllocation> task_allocations;
   };
@@ -61,5 +63,8 @@ gap::TaskAllocationVector parse_task_allocations_gap(
 
 cgtl::TaskAllocationVector parse_task_allocations_mpsym(
   std::string const &task_allocations_str);
+
+cgtl::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
+  std::string const &gap_output_str);
 
 #endif // _GUARD_PROFILE_PARSE_H

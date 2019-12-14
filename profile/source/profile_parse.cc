@@ -1,9 +1,10 @@
 #include <algorithm>
 #include <regex>
+#include <sstream>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
-#include <sstream>
 
 #include "dump.h"
 #include "perm.h"
@@ -124,38 +125,52 @@ permlib::PermSet convert_generators_permlib(unsigned degree,
   return {degree, gens_conv};
 }
 
-std::pair<unsigned, std::vector<cgtl::TaskAllocation>>
-split_task_allocations(std::string const &task_allocations_str)
+std::tuple<unsigned, unsigned, std::vector<cgtl::TaskAllocation>>
+split_task_allocations(std::string const &task_allocations_str,
+                       std::string const &regex_str,
+                       char delim)
 {
-  static std::regex re_task_allocation(R"(\d+( \d+)*)");
-
   unsigned num_tasks = 0u;
+
+  unsigned min_pe = UINT_MAX;
   unsigned max_pe = 0u;
+
   std::vector<cgtl::TaskAllocation> task_allocations;
 
   std::stringstream ss(task_allocations_str);
+  std::regex re_task_allocation(regex_str);
 
   std::string line;
   while (std::getline(ss, line)) {
-    if (!std::regex_match(line, re_task_allocation))
+    std::smatch m;
+    if (!std::regex_match(line, m, re_task_allocation))
       throw std::invalid_argument("malformed task allocation expression");
 
     std::vector<unsigned> task_allocation;
 
+    std::string task_allocation_str(m[1]);
     std::size_t pos_begin = 0u;
     std::size_t pos_end;
     unsigned pe;
 
-    while ((pos_end = line.find(' ', pos_begin)) != std::string::npos) {
-      pe = stox<unsigned>(line.substr(pos_begin, pos_end - pos_begin));
+    for (;;) {
+      pos_end = task_allocation_str.find(delim, pos_begin);
+
+      pe = stox<unsigned>(
+        pos_end == std::string::npos ?
+          task_allocation_str.substr(pos_begin) :
+          task_allocation_str.substr(pos_begin, pos_end - pos_begin));
+
+      min_pe = std::min(pe, min_pe);
       max_pe = std::max(pe, max_pe);
+
       task_allocation.push_back(pe);
+
+      if (pos_end == std::string::npos)
+        break;
 
       pos_begin = pos_end + 1u;
     }
-
-    pe = stox<unsigned>(line.substr(pos_begin));
-    task_allocation.push_back(pe);
 
     if (num_tasks == 0u) {
       num_tasks = task_allocation.size();
@@ -167,7 +182,7 @@ split_task_allocations(std::string const &task_allocations_str)
     task_allocations.push_back(task_allocation);
   }
 
-  return {max_pe, task_allocations};
+  return {min_pe, max_pe, task_allocations};
 }
 
 } // namespace
@@ -220,19 +235,42 @@ permlib::PermSet parse_generators_permlib(std::string const &gen_str)
 gap::TaskAllocationVector parse_task_allocations_gap(
   std::string const &task_allocations_str)
 {
-  auto task_allocations(split_task_allocations(task_allocations_str));
+  auto task_allocations(
+    split_task_allocations(task_allocations_str, R"((\d+(?: \d+)*))", ' '));
 
   std::stringstream ss;
-  for (auto const &task_allocation : task_allocations.second)
+  for (auto const &task_allocation : std::get<2>(task_allocations))
     ss << dump::dump(task_allocation) << ",\n";
 
-  return {task_allocations.first, ss.str()};
+  return {std::get<0>(task_allocations),
+          std::get<1>(task_allocations),
+          ss.str()};
 }
 
 cgtl::TaskAllocationVector parse_task_allocations_mpsym(
   std::string const &task_allocations_str)
 {
-  auto task_allocations(split_task_allocations(task_allocations_str));
+  auto task_allocations(
+    split_task_allocations(task_allocations_str, R"((\d+(?: \d+)*))", ' '));
 
-  return {task_allocations.first, task_allocations.second};
+  return {std::get<0>(task_allocations),
+          std::get<1>(task_allocations),
+          std::get<2>(task_allocations)};
+}
+
+cgtl::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
+  std::string const &gap_output_str)
+{
+  static std::regex re_task_allocations(R"(equivalence classes:\n((?:.*\n))*)");
+
+  std::smatch m;
+  if (!std::regex_search(gap_output_str, m, re_task_allocations))
+    throw std::invalid_argument("malformed gap output");
+
+  auto task_allocations(split_task_allocations(
+    m[1], R"(.*\[ (\d+(?:, \d+)*) \])", ','));
+
+  return {std::get<0>(task_allocations),
+          std::get<1>(task_allocations),
+          std::get<2>(task_allocations)};
 }

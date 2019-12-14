@@ -168,7 +168,9 @@ std::vector<double> run(std::string const &generators,
 
     double t;
     if (options.library.is("gap")) {
-      run_gap(make_perm_group_gap(parse_generators_gap(generators), options), &t);
+      run_gap(make_perm_group_gap(parse_generators_gap(generators), options),
+              options.verbose,
+              &t);
     } else {
       if (options.library.is("mpsym")) {
         run_cpp([&]{
@@ -276,12 +278,12 @@ int main(int argc, char **argv)
       case 'r':
         options.num_runs = stox<unsigned>(optarg);
         break;
+      case 1:
+        timer_realtime_enable();
+        break;
       case 'v':
         options.verbose = true;
         Timer::enabled = true;
-        break;
-      case 1:
-        timer_realtime_enable();
         break;
       default:
         return EXIT_FAILURE;

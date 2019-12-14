@@ -75,26 +75,26 @@ void timer_realtime_enable()
 bool timer_realtime_enabled()
 { return realtime_timer.enabled(); }
 
-pid_t timer_start() {
+void timer_start() {
   if (realtime_timer.enabled())
     realtime_timer.start();
   else
     child_timer.start();
-
-  return fork();
 }
 
 double timer_stop(pid_t child) {
-  if (!stop_child(child)) {
-    throw std::runtime_error("the forked child process terminated prematurely");
-    return 0.0;
-  }
-
   double t;
-  if (realtime_timer.enabled())
+  if (realtime_timer.enabled()) {
     realtime_timer.stop(&t);
-  else
+  } else {
+    if (child == 0)
+      throw std::logic_error("no child pid given");
+
+    if (!stop_child(child))
+      throw std::runtime_error("the forked child process terminated prematurely");
+
     child_timer.stop(&t);
+  }
 
   return t;
 }

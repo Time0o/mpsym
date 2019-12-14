@@ -28,7 +28,7 @@ namespace
     }
   }
 
-  std::string read_output(int from)
+  std::string read_output(int from, bool verbose)
   {
     static char buf[256];
 
@@ -47,7 +47,10 @@ namespace
         break;
       } else {
         std::string block(buf, buf + count);
-        std::cout << block << std::flush;
+
+        if (verbose)
+          std::cout << block << std::flush;
+
         res += block;
       }
     }
@@ -56,7 +59,7 @@ namespace
   }
 }
 
-std::string run_gap(std::string const &script, double *t)
+std::string run_gap(std::string const &script, bool verbose, double *t)
 {
   // create temporary gap script
 
@@ -89,8 +92,10 @@ std::string run_gap(std::string const &script, double *t)
 
   // run gap in a child process
 
-  pid_t maybe_child;
-  switch ((maybe_child = timer_start())) {
+  timer_start();
+
+  pid_t child;
+  switch ((child = fork())) {
   case -1:
     throw std::runtime_error("failed to fork child process");
   case 0:
@@ -115,11 +120,12 @@ std::string run_gap(std::string const &script, double *t)
 
   close(fds[1]);
 
-  auto output(read_output(fds[0]));
+  auto output(read_output(fds[0], verbose));
 
   close(fds[0]);
 
-  *t = timer_stop(maybe_child);
+  if (t)
+    *t = timer_stop(child);
 
   return output;
 }

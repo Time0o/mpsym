@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -13,21 +14,71 @@ namespace cgtl
 
 class TaskOrbits
 {
+  using orbit_representatives_map = std::unordered_map<TaskAllocation, unsigned>;
+
 public:
-  typedef std::vector<TaskAllocation>::const_iterator const_iterator;
+  class const_iterator
+  {
+  public:
+    const_iterator(orbit_representatives_map::const_iterator current_it,
+                   orbit_representatives_map::const_iterator end_it)
+    : _current_it(current_it),
+      _end_it(end_it),
+      _current_key(current_it == _end_it ? TaskAllocation({}) : _current_it->first)
+    {}
+
+    const_iterator operator++()
+    {
+      const_iterator ret = *this;
+      next();
+      return ret;
+    }
+
+    const_iterator operator++(int)
+    {
+      next();
+      return *this;
+    }
+
+    TaskAllocation const & operator*() const
+    { return _current_key; }
+    TaskAllocation const * operator->() const
+    { return &_current_key; }
+    bool operator==(const_iterator const &rhs) const
+    { return _current_it == rhs._current_it; };
+    bool operator!=(const_iterator const &rhs) const
+    { return !((*this) == rhs); }
+
+  private:
+    void next()
+    {
+      if (++_current_it != _end_it)
+        _current_key = _current_it->first;
+    }
+
+    orbit_representatives_map::const_iterator _current_it;
+    orbit_representatives_map::const_iterator _end_it;
+
+    TaskAllocation _current_key;
+  };
+
+  bool operator==(TaskOrbits const &rhs) const
+  { return orbit_representative_set() == rhs.orbit_representative_set(); }
+
+  bool operator!=(TaskOrbits const &rhs) const
+  { return !(*this == rhs); }
 
   std::pair<bool, unsigned> insert(TaskAllocation const &tr)
   {
     bool new_orbit;
     unsigned equivalence_class;
 
-    auto it = _orbit_index_hash.find(tr);
-    if (it == _orbit_index_hash.end()) {
+    auto it = _orbit_representatives.find(tr);
+    if (it == _orbit_representatives.end()) {
       new_orbit = true;
       equivalence_class = num_orbits();
 
-      _orbit_representatives.push_back(tr);
-      _orbit_index_hash[tr] = equivalence_class;
+      _orbit_representatives[tr] = equivalence_class;
 
     } else {
       new_orbit = false;
@@ -51,14 +102,28 @@ public:
   { return static_cast<unsigned>(_orbit_representatives.size()); }
 
   const_iterator begin() const
-  { return _orbit_representatives.begin(); }
+  {
+    return const_iterator(_orbit_representatives.begin(),
+                          _orbit_representatives.end());
+  }
 
   const_iterator end() const
-  { return _orbit_representatives.end(); }
+  {
+    return const_iterator(_orbit_representatives.end(),
+                          _orbit_representatives.end());
+  }
 
 private:
-  std::vector<TaskAllocation> _orbit_representatives;
-  std::unordered_map<TaskAllocation, unsigned> _orbit_index_hash;
+  std::unordered_set<TaskAllocation> orbit_representative_set() const
+  {
+    std::unordered_set<TaskAllocation> ret;
+    for (auto const &repr : _orbit_representatives)
+      ret.insert(repr.first);
+
+    return ret;
+  }
+
+  orbit_representatives_map _orbit_representatives;
 };
 
 } // namespace cgtl

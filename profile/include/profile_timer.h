@@ -6,7 +6,7 @@
 void timer_realtime_enable();
 bool timer_realtime_enabled();
 
-pid_t timer_start();
-double timer_stop(pid_t child);
+void timer_start();
+double timer_stop(pid_t child = 0);
 
 #endif // _GUARD_PROFILE_TIMER_H
