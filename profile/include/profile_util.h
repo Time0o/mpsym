@@ -25,13 +25,6 @@ void info(ARGS &&...args)
 { print(std::cout, "INFO:", "\n", std::forward<ARGS>(args)...); }
 
 template<typename... ARGS>
-void progress(ARGS &&...args)
-{ print(std::cout, "INFO:", "\r", std::forward<ARGS>(args)...); }
-
-inline void progress_done()
-{ std::cout << "\n"; }
-
-template<typename... ARGS>
 void result(ARGS &&...args)
 {
   std::cout << std::scientific;
@@ -39,6 +32,17 @@ void result(ARGS &&...args)
 
   print(std::cout, "RESULT:", "\n", std::forward<ARGS>(args)...);
 }
+
+template<typename... ARGS>
+void debug(ARGS &&...args)
+{ print(std::cout, "DEBUG:", "\n", std::forward<ARGS>(args)...); }
+
+template<typename... ARGS>
+void debug_progress(ARGS &&...args)
+{ print(std::cout, "DEBUG:", "\r", std::forward<ARGS>(args)...); }
+
+inline void debug_progress_done()
+{ std::cout << "\n"; }
 
 template<typename... ARGS>
 void warning(ARGS &&...args)

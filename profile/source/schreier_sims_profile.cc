@@ -164,7 +164,7 @@ std::vector<double> run(std::string const &generators,
   std::vector<double> ts;
   for (unsigned r = 0; r < options.num_runs; ++r) {
     if (options.verbose)
-      progress("Executing run", r + 1, "/", options.num_runs);
+      debug_progress("Executing run", r + 1, "/", options.num_runs);
 
     double t;
     if (options.library.is("gap")) {
@@ -187,10 +187,10 @@ std::vector<double> run(std::string const &generators,
   }
 
   if (options.verbose) {
-    progress_done();
+    debug_progress_done();
 
     if (options.library.is("mpsym")) {
-      info("Timer dumps:");
+      debug("Timer dumps:");
       Timer_dump("strip");
       Timer_dump("extend base");
       Timer_dump("update strong gens");
@@ -204,12 +204,12 @@ void profile(std::ifstream &groups_stream,
              ProfileOptions const &options)
 {
   if (options.verbose) {
-    info("Implementation:", options.library.get());
-    info("Schreier-sims variant:", options.schreier_sims.get());
-    info("Transversals:", options.transversals.get());
+    debug("Implementation:", options.library.get());
+    debug("Schreier-sims variant:", options.schreier_sims.get());
+    debug("Transversals:", options.transversals.get());
 
     if (options.num_cycles > 1)
-      info("Constructions per run:", options.num_cycles);
+      debug("Constructions per run:", options.num_cycles);
   }
 
   foreach_line(groups_stream, [&](std::string const &line, unsigned lineno){
@@ -219,6 +219,9 @@ void profile(std::ifstream &groups_stream,
       info("Constructing group", lineno,
            "with degree", group.degree,
            "and generators", group.generators);
+    } else {
+      info("Constructing group", lineno,
+           "with degree", group.degree);
     }
 
     auto ts = run(group.generators, options);

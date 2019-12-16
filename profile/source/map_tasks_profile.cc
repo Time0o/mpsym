@@ -125,7 +125,7 @@ cgtl::TaskOrbits map_tasks_mpsym(
   TaskOrbits task_orbits;
   for (auto i = 0u; i < task_allocations.size(); ++i) {
     if (options.verbose)
-      progress("Mapping task", i + 1u, "of", task_allocations.size());
+      debug_progress("Mapping task", i + 1u, "of", task_allocations.size());
 
     auto mapping(ag.mapping(
       {task_allocations[i], 0u, options.library.is("mpsym_approx")}));
@@ -134,14 +134,14 @@ cgtl::TaskOrbits map_tasks_mpsym(
   }
 
   if (options.verbose) {
-    progress_done();
+    debug_progress_done();
 
-    info("Found", task_orbits.num_orbits(), "equivalence classes:");
+    debug("Found", task_orbits.num_orbits(), "equivalence classes:");
 
     for (auto const &repr : task_orbits)
-      info(dump::dump(repr));
+      debug(dump::dump(repr));
 
-    info("Timer dumps:");
+    debug("Timer dumps:");
     Timer_dump(options.library.is("mpsym_approx") ? "map approx"
                                                   : "map bruteforce");
   }
@@ -273,7 +273,7 @@ void profile(Stream &groups_stream,
              ProfileOptions const &options)
 {
   if (options.verbose)
-    info("Implementation:", options.library.get());
+    debug("Implementation:", options.library.get());
 
   std::string task_allocations;
 
@@ -291,6 +291,9 @@ void profile(Stream &groups_stream,
       info("Using automorphism group", lineno,
            "with degree", group.degree,
            "and generators", group.generators);
+    } else {
+      info("Using automorphism group", lineno,
+           "with degree", group.degree);
     }
 
     double t = run(group.generators, task_allocations, options);
