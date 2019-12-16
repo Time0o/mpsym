@@ -110,8 +110,9 @@ private:
 };
 
 template<typename T>
-Dumper<T> dump(T const &obj, std::initializer_list<char const *> brackets = {})
-{ return Dumper<T>(obj, brackets); }
+dump::Dumper<T> make_dumper(T const &obj,
+                            std::initializer_list<char const *> brackets = {})
+{ return dump::Dumper<T>(obj, brackets); }
 
 template<typename T>
 std::ostream &operator<<(std::ostream &os, Dumper<T> const &dumper)
@@ -121,5 +122,9 @@ std::ostream &operator<<(std::ostream &os, Dumper<T> const &dumper)
 }
 
 } // namespace dump
+
+#define DUMP(obj, ...) dump::make_dumper(obj, { __VA_ARGS__ })
+
+//template<typename T>
 
 #endif // _GUARD_DUMP_H

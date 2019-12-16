@@ -10,10 +10,13 @@
 
 #include "dump.h"
 
+namespace dbg
+{
+
 class Dbg
 {
 public:
-  enum { TRACE = 1, DBG = 2, INFO = 3, WARN = 4};
+  enum { TRACE = 1, DEBUG = 2, INFO = 3, WARN = 4};
 
   static int loglevel;
   static std::ostream &out;
@@ -31,7 +34,7 @@ public:
   template<typename T>
   Dbg &operator<<(T const &val)
   {
-    _buf << dump::dump(val);
+    _buf << DUMP(val);
     return *this;
   }
 
@@ -48,15 +51,26 @@ private:
   std::ostringstream _buf;
 };
 
+} // namespace dbg
+
 #ifdef NDEBUG
 
-#define Dbg(level) if (0) Dbg()
+#define DBG(level) if (0) dbg::Dbg()
+
+#define DBG_SET_LOGLEVEL(loglevel)
 
 #else
 
-#define Dbg(level) \
-  if (level < Dbg::loglevel) {} \
-  else Dbg(level)
+#define DBG(level) \
+  if (level < dbg::Dbg::loglevel) {} \
+  else dbg::Dbg(level)
+
+#define TRACE dbg::Dbg::TRACE
+#define DEBUG dbg::Dbg::DEBUG
+#define INFO dbg::Dbg::INFO
+#define WARN dbg::Dbg::WARN
+
+#define DBG_SET_LOGLEVEL(level) do { dbg::Dbg::loglevel = level; } while (0)
 
 #endif
 

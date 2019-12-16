@@ -41,16 +41,16 @@ int main(int argc, char** argv) {
 
   switch(verbosity) {
     case 0:
-      Dbg::loglevel = Dbg::WARN;
+      DBG_SET_LOGLEVEL(WARN);
       break;
     case 1:
-      Dbg::loglevel = Dbg::INFO;
+      DBG_SET_LOGLEVEL(INFO);
       break;
     case 2:
-      Dbg::loglevel = Dbg::DBG;
+      DBG_SET_LOGLEVEL(DEBUG);
       break;
     default:
-      Dbg::loglevel = Dbg::TRACE;
+      DBG_SET_LOGLEVEL(TRACE);
       break;
   }
 

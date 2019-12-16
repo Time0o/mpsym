@@ -14,16 +14,20 @@
 
 #ifdef NTIMER
 
-#define Timer_create(name, precision)
-#define Timer_start(name)
-#define Timer_stop(name)
-#define Timer_dump(name)
+#define TIMER_CREATE(name)
+#define TIMER_CREATE_WITH_PRECISION(name, precision)
+#define TIMER_START(name)
+#define TIMER_STOP(name)
+#define TIMER_DUMP(name)
 
 #else
 
 #ifdef TIMER_CPU
 #warning "Available CPU timer has low resolution"
 #endif
+
+namespace timer
+{
 
 class Timer
 {
@@ -41,7 +45,7 @@ public:
     _precision(precision)
   {}
 
-  static void create(char const *name, Precision precision)
+  static void create(char const *name, Precision precision = MILLISECONDS)
   {
     if (!exists(name))
       _timers.insert({name, Timer(name, precision)});
@@ -170,16 +174,27 @@ inline std::ostream &operator<<(std::ostream &s, Timer const &timer)
   return s;
 }
 
-#define Timer_op(op) do { if (Timer::enabled) { op; } } while(0)
+} // namespace timer
 
-#define Timer_create(name, precision) \
-  Timer_op(Timer::create(name, precision))
-#define Timer_start(name) \
-  Timer_op(Timer::get(name).start())
-#define Timer_stop(name) \
-  Timer_op(Timer::get(name).stop())
-#define Timer_dump(name) \
-  Timer_op(Timer::out << Timer::get(name) << std::endl; Timer::destroy(name))
+#define TIMER_ENABLE() do { timer::Timer::enabled = true; } while (0)
+
+#define TIMER_OP(op) do { if (timer::Timer::enabled) { op; } } while (0)
+
+#define TIMER_CREATE(name) \
+  TIMER_OP(timer::Timer::create(name))
+#define TIMER_CREATE_WITH_PRECISION(name, precision) \
+  TIMER_OP(timer::Timer::create(name, precision))
+#define TIMER_START(name) \
+  TIMER_OP(timer::Timer::get(name).start())
+#define TIMER_STOP(name) \
+  TIMER_OP(timer::Timer::get(name).stop())
+#define TIMER_DUMP(name) \
+  TIMER_OP(timer::Timer::out << timer::Timer::get(name) << std::endl; \
+           timer::Timer::destroy(name))
+
+#define TIMER_SECONDS timer::Timer::SECONDS
+#define TIMER_MILLISECONDS timer::Timer::MILLISECONDS
+#define TIMER_MICROSECONDS timer::Timer::MICROSECONDS
 
 #endif
 

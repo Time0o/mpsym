@@ -38,20 +38,18 @@ PermSet ArchGraphSystem::automorphisms_generators(bool augmented)
 
 TaskMapping ArchGraphSystem::mapping(TaskMappingRequest const &tmr)
 {
-  Dbg(Dbg::DBG) << "Requested task mapping: " << tmr;
+  DBG(DEBUG) << "Requested task mapping: " << tmr;
 
   unsigned min_pe = tmr.offset + 1u;
   unsigned max_pe = min_pe + automorphisms().degree() - 1u;
 
 #ifndef NDEBUG
-  if (min_pe != 0u) {
-    Dbg(Dbg::TRACE) << "Mapping shifted range ["
-                    << min_pe << ", " << max_pe << "]";
-  }
+  if (min_pe != 0u)
+    DBG(TRACE) << "Mapping shifted range [" << min_pe << ", " << max_pe << "]";
 #endif
 
-  Timer_create("map approx", Timer::MILLISECONDS);
-  Timer_create("map bruteforce", Timer::MILLISECONDS);
+  TIMER_CREATE("map approx");
+  TIMER_CREATE("map bruteforce");
 
   TaskAllocation representative =
     tmr.approximate ? min_elem_approx(tmr.allocation, min_pe, max_pe)
@@ -64,9 +62,9 @@ TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks,
                                                     unsigned min_pe,
                                                     unsigned max_pe)
 {
-  Dbg(Dbg::DBG) << "Performing brute force mapping";
+  DBG(DEBUG) << "Performing brute force mapping";
 
-  Timer_start("map bruteforce");
+  TIMER_START("map bruteforce");
 
   TaskAllocation representative(tasks);
 
@@ -75,9 +73,9 @@ TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks,
       representative.permute(element, min_pe, max_pe);
   }
 
-  Timer_stop("map bruteforce");
+  TIMER_STOP("map bruteforce");
 
-  Dbg(Dbg::DBG) << "Found minimal orbit element: " << representative;
+  DBG(DEBUG) << "Found minimal orbit element: " << representative;
 
   return representative;
 }
@@ -86,11 +84,11 @@ TaskAllocation ArchGraphSystem::min_elem_approx(TaskAllocation const &tasks,
                                                 unsigned min_pe,
                                                 unsigned max_pe)
 {
-  Dbg(Dbg::TRACE) << "Performing approximate mapping";
+  DBG(TRACE) << "Performing approximate mapping";
 
   TaskAllocation representative(tasks);
 
-  Timer_start("map approx");
+  TIMER_START("map approx");
 
   bool stationary = false;
   while (!stationary) {
@@ -105,9 +103,9 @@ TaskAllocation ArchGraphSystem::min_elem_approx(TaskAllocation const &tasks,
     }
   }
 
-  Timer_stop("map approx");
+  TIMER_STOP("map approx");
 
-  Dbg(Dbg::DBG) << "Found approximate minimal orbit element: " << representative;
+  DBG(DEBUG) << "Found approximate minimal orbit element: " << representative;
 
   return representative;
 }

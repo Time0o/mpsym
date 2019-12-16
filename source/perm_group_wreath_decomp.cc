@@ -19,36 +19,36 @@ namespace cgtl
 
 std::vector<PermGroup> PermGroup::wreath_decomposition() const
 {
-  Dbg(Dbg::DBG) << "Finding wreath product decomposition for:";
-  Dbg(Dbg::DBG) << *this;
+  DBG(DEBUG) << "Finding wreath product decomposition for:";
+  DBG(DEBUG) << *this;
 
   auto blocksystems(BlockSystem::non_trivial(*this));
   auto gens(_bsgs.strong_generators());
 
   for (BlockSystem const &bs : blocksystems) {
-    Dbg(Dbg::TRACE) << "Considering block system: " << bs;
+    DBG(TRACE) << "Considering block system: " << bs;
     unsigned d = bs.size();
 
     PermGroup block_permuter = bs.block_permuter(gens);
-    Dbg(Dbg::TRACE) << "Block permuter is:";
-    Dbg(Dbg::TRACE) << block_permuter;
+    DBG(TRACE) << "Block permuter is:";
+    DBG(TRACE) << block_permuter;
 
     std::vector<PermSet> sigma(d);
 
     sigma[0] = BlockSystem::block_stabilizers(gens, bs[0]);
-    Dbg(Dbg::TRACE) << "Block stabilizer of " << bs[0] << " is: " << sigma[0];
+    DBG(TRACE) << "Block stabilizer of " << bs[0] << " is: " << sigma[0];
 
     unsigned tmp = PermGroup(degree(), sigma[0]).order();
     if (_order != util::pow(tmp, d) * block_permuter.order()) {
-      Dbg(Dbg::TRACE)
+      DBG(TRACE)
         << "Group order equality not satisfied, skipping block system";
       continue;
     }
 
-    Dbg(Dbg::TRACE) << "Stabilizers of remaining blocks are:";
+    DBG(TRACE) << "Stabilizers of remaining blocks are:";
     for (unsigned i = 1u; i < d; ++i) {
       sigma[i] = BlockSystem::block_stabilizers(gens, bs[i]);
-      Dbg(Dbg::TRACE) << bs[i] << " => " << sigma[i];
+      DBG(TRACE) << bs[i] << " => " << sigma[i];
     }
 
     // try to find monomorphism from block permuter to group using heuristic
@@ -66,8 +66,8 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
       block_permuter_generator_image.emplace(tmp_perm);
     }
 
-    Dbg(Dbg::TRACE) << "Heuristic monomorphism image is:";
-    Dbg(Dbg::TRACE) << block_permuter_generator_image;
+    DBG(TRACE) << "Heuristic monomorphism image is:";
+    DBG(TRACE) << block_permuter_generator_image;
 
     bool found_monomorphism = true;
 
@@ -94,8 +94,8 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
       block_permuter_generator_reconstruction.insert(reconstructed_gen);
     }
 
-    Dbg(Dbg::TRACE) << "Block permuter reconstruction yields generators:";
-    Dbg(Dbg::TRACE) << block_permuter_generator_reconstruction;
+    DBG(TRACE) << "Block permuter reconstruction yields generators:";
+    DBG(TRACE) << block_permuter_generator_reconstruction;
 
     if (found_monomorphism) {
       PermGroup block_permuter_reconstructed(
@@ -106,7 +106,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
     }
 
     if (!found_monomorphism) {
-      Dbg(Dbg::WARN)
+      DBG(WARN)
         << "Wreath decomposition exists but was not found by heuristic";
 
       break;
@@ -118,17 +118,17 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
     for (unsigned i = 0u; i < d; ++i)
       res[i + 1u] = PermGroup(degree(), sigma[i]);
 
-    Dbg(Dbg::TRACE)
+    DBG(TRACE)
       << "==> Found wreath product decomposition, listing generators:";
 #ifndef NDEBUG
     for (PermGroup const &pg : res)
-      Dbg(Dbg::TRACE) << pg.bsgs().strong_generators();
+      DBG(TRACE) << pg.bsgs().strong_generators();
 #endif
 
     return res;
   }
 
-  Dbg(Dbg::TRACE) << "==> No wreath product decomposition found";
+  DBG(TRACE) << "==> No wreath product decomposition found";
   return std::vector<PermGroup>();
 }
 

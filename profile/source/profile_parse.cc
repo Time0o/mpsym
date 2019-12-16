@@ -240,7 +240,7 @@ gap::TaskAllocationVector parse_task_allocations_gap(
 
   std::stringstream ss;
   for (auto const &task_allocation : std::get<2>(task_allocations))
-    ss << dump::dump(task_allocation) << ",\n";
+    ss << DUMP(task_allocation) << ",\n";
 
   return {std::get<0>(task_allocations),
           std::get<1>(task_allocations),

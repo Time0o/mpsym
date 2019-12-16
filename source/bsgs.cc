@@ -132,8 +132,8 @@ void BSGS::update_schreier_structure(unsigned i, PermSet const &generators)
 
 std::ostream &operator<<(std::ostream &os, BSGS const &bsgs)
 {
-  os << "BASE: " << dump::dump(bsgs._base)
-     << "; SGS: " << dump::dump(bsgs._strong_generators);
+  os << "BASE: " << DUMP(bsgs._base)
+     << "; SGS: " << DUMP(bsgs._strong_generators);
 
   return os;
 }

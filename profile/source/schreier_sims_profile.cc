@@ -191,9 +191,9 @@ std::vector<double> run(std::string const &generators,
 
     if (options.library.is("mpsym")) {
       debug("Timer dumps:");
-      Timer_dump("strip");
-      Timer_dump("extend base");
-      Timer_dump("update strong gens");
+      TIMER_DUMP("strip");
+      TIMER_DUMP("extend base");
+      TIMER_DUMP("update strong gens");
     }
   }
 
@@ -286,7 +286,7 @@ int main(int argc, char **argv)
         break;
       case 'v':
         options.verbose = true;
-        Timer::enabled = true;
+        TIMER_ENABLE();
         break;
       default:
         return EXIT_FAILURE;

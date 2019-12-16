@@ -14,13 +14,13 @@ namespace cgtl
 
 void BSGS::reduce_gens()
 {
-  Dbg(Dbg::DBG) << "Removing redundant strong generators from BSGS:";
-  Dbg(Dbg::DBG) << *this;
+  DBG(DEBUG) << "Removing redundant strong generators from BSGS:";
+  DBG(DEBUG) << *this;
 
-  Dbg(Dbg::TRACE) << "Stabilizers are:";
+  DBG(TRACE) << "Stabilizers are:";
 #ifndef NDEBUG
   for (auto i = 0u; i < base_size(); ++i)
-    Dbg(Dbg::TRACE) << "S(" << i + 1u << ") = " << stabilizers(i);
+    DBG(TRACE) << "S(" << i + 1u << ") = " << stabilizers(i);
 #endif
 
   std::unordered_set<Perm> strong_generator_set(_strong_generators.begin(),
@@ -41,15 +41,15 @@ void BSGS::reduce_gens()
 
     stabilizer_set = stabilizer_set_next;
 
-    Dbg(Dbg::TRACE) << "=== Considering S(" << i + 1u << ")/S(" << i + 2u << ")"
-                    << " = " << stabilizer_intersection;
+    DBG(TRACE) << "=== Considering S(" << i + 1u << ")/S(" << i + 2u << ")"
+               << " = " << stabilizer_intersection;
 
     if (stabilizer_intersection.size() < 2u)
       continue;
 
     auto it(stabilizer_intersection.begin());
     while (it != stabilizer_intersection.end()) {
-      Dbg(Dbg::TRACE) << "Considering " << *it;
+      DBG(TRACE) << "Considering " << *it;
 
 #ifndef NDEBUG
       std::unordered_set<Perm> reduced_stabilizers(stabilizer_set);
@@ -70,18 +70,18 @@ void BSGS::reduce_gens()
       bool remove_stab = false;
       if (orbit_check(base_point(i), orbit_gens, orbit(i))) {
 #ifndef NDEBUG
-        Dbg(Dbg::TRACE) << base_point(i) << "^" << reduced_stabilizers
-                        << " = " << orbit(i);
+        DBG(TRACE) << base_point(i) << "^" << reduced_stabilizers
+                   << " = " << orbit(i);
 #endif
 
-        Dbg(Dbg::TRACE) << "=> Removing strong generator " << *it;
+        DBG(TRACE) << "=> Removing strong generator " << *it;
 
         remove_stab = true;
       }
 #ifndef NDEBUG
       else {
-        Dbg(Dbg::TRACE) << base_point(i) << "^" << reduced_stabilizers
-                        << " =/= " << orbit(i);
+        DBG(TRACE) << base_point(i) << "^" << reduced_stabilizers
+                   << " =/= " << orbit(i);
       }
 #endif
 
@@ -101,8 +101,8 @@ void BSGS::reduce_gens()
   _strong_generators = PermSet(strong_generator_set.begin(),
                                strong_generator_set.end());
 
-  Dbg(Dbg::DBG) << "Reduced BSGS:";
-  Dbg(Dbg::DBG) << *this;
+  DBG(DEBUG) << "Reduced BSGS:";
+  DBG(DEBUG) << *this;
 }
 
 std::unordered_set<Perm> BSGS::reduce_gens_set_difference(

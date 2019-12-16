@@ -16,15 +16,14 @@ std::ostream &operator<<(std::ostream &os, TaskMappingRequest const &tmr)
                  ta.begin(),
                  [&](TaskAllocation::value_type pe){ return pe + tmr.offset; });
 
-  os << dump::dump(ta);
+  os << DUMP(ta);
 
   return os;
 }
 
 std::ostream &operator<<(std::ostream &os, TaskMapping const &tm)
 {
-  os << dump::dump(tm.allocation) << " => " << dump::dump(tm.representative);
-
+  os << DUMP(tm.allocation) << " => " << DUMP(tm.representative);
   return os;
 }
 

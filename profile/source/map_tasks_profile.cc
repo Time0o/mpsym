@@ -139,10 +139,10 @@ cgtl::TaskOrbits map_tasks_mpsym(
     debug("Found", task_orbits.num_orbits(), "equivalence classes:");
 
     for (auto const &repr : task_orbits)
-      debug(dump::dump(repr));
+      debug(DUMP(repr));
 
     debug("Timer dumps:");
-    Timer_dump(options.library.is("mpsym_approx") ? "map approx"
+    TIMER_DUMP(options.library.is("mpsym_approx") ? "map approx"
                                                   : "map bruteforce");
   }
 
@@ -233,13 +233,13 @@ void check_accuracy(cgtl::TaskOrbits const &task_orbits_mpsym,
     info("=> Missing representatives:");
     for (auto const &repr : reprs_gap) {
       if (reprs_mpsym.find(repr) == reprs_mpsym.end())
-        info(dump::dump(repr));
+        info(DUMP(repr));
     }
 
     info("=> Extra representatives:");
     for (auto const &repr : reprs_mpsym) {
       if (reprs_gap.find(repr) == reprs_gap.end())
-        info(dump::dump(repr));
+        info(DUMP(repr));
     }
   }
 }
@@ -359,7 +359,7 @@ int main(int argc, char **argv)
         break;
       case 'v':
         options.verbose = true;
-        Timer::enabled = true;
+        TIMER_ENABLE();
         break;
       default:
         return EXIT_FAILURE;

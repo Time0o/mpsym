@@ -103,7 +103,7 @@ unsigned ArchGraph::num_channels() const
 
 void ArchGraph::update_automorphisms()
 {
-  Dbg(Dbg::DBG) << "=== Determining architecture graph automorphisms";
+  DBG(DEBUG) << "=== Determining architecture graph automorphisms";
 
   // allocate nauty structures
   DYNALLSTAT(graph, g, g_sz);
@@ -134,8 +134,8 @@ void ArchGraph::update_automorphisms()
   DYNALLOC1(int, orbits, orbits_sz, n, "malloc orbits");
 
   // construct nauty graph
-  Dbg(Dbg::TRACE) << "=== Constructing isomorphic vertex colored graph "
-                  << "(" << n << " vertices)";
+  DBG(TRACE) << "=== Constructing isomorphic vertex colored graph "
+             << "(" << n << " vertices)";
 
   EMPTYGRAPH(g, m, n);
 
@@ -162,8 +162,8 @@ void ArchGraph::update_automorphisms()
 
     if (level > 0) {
       for (int v = 0; v < n_orig; ++v) {
-        Dbg(Dbg::TRACE) << "Adding (vertical) edge: " << v + level * n_orig
-                        << " => " << v + (level - 1) * n_orig;
+        DBG(TRACE) << "Adding (vertical) edge: " << v + level * n_orig
+                   << " => " << v + (level - 1) * n_orig;
 
         ADDONEEDGE(g, v + level * n_orig, v + (level - 1) * n_orig, m);
       }
@@ -176,9 +176,9 @@ void ArchGraph::update_automorphisms()
         int source = static_cast<int>(boost::source(e, _adj));
         int target = static_cast<int>(boost::target(e, _adj));
 
-        Dbg(Dbg::TRACE) << "Adding (horizontal) edge: "
-                        << source + level * n_orig << " => "
-                        << target + level * n_orig;
+        DBG(TRACE) << "Adding (horizontal) edge: "
+                   << source + level * n_orig << " => "
+                   << target + level * n_orig;
 
         ADDONEEDGE(g, source + level * n_orig, target + level * n_orig, m);
       }
@@ -202,7 +202,7 @@ void ArchGraph::update_automorphisms()
     }
   }
 
-  Dbg(Dbg::TRACE) << "Colored vertices";
+  DBG(TRACE) << "Colored vertices";
 
   // call nauty
   nauty_generators.clear();
@@ -273,16 +273,16 @@ PartialPermInverseSemigroup ArchGraph::partial_automorphisms()
     }
 
     PartialPerm pperm(tmp);
-    Dbg(Dbg::TRACE) << "Considering " << pperm << ':';
+    DBG(TRACE) << "Considering " << pperm << ':';
 
     if (is_partial_automorphism(pperm)) {
-      Dbg(Dbg::TRACE) << "=> Is a partial automorphism";
+      DBG(TRACE) << "=> Is a partial automorphism";
       if (!pperm.id()) {
-        Dbg(Dbg::TRACE) << "==> Adjoining new generator";
+        DBG(TRACE) << "==> Adjoining new generator";
         res.adjoin({pperm}, true);
       }
     } else {
-      Dbg(Dbg::TRACE)
+      DBG(TRACE)
         << "=> Is not a partial automorphism, pruning backtrack tree...";
       return;
     }
@@ -308,9 +308,9 @@ PartialPermInverseSemigroup ArchGraph::partial_automorphisms()
     }
   };
 
-  Dbg(Dbg::DBG)
+  DBG(DEBUG)
     << "Finding partial automorphisms for arch graph with automorphism group:";
-  Dbg(Dbg::DBG) << _automorphisms;
+  DBG(DEBUG) << _automorphisms;
 
   backtrack(Domain(std::vector<bool>(num_processors(), false), 0u), {});
 
@@ -449,7 +449,7 @@ void ArchGraph::dump_processors(std::ostream& os) const
     if (!pt_str.empty())
       os << " (" << pt_str << ")";
 
-    os << ": " << dump::dump(pes_by_type[pt]);
+    os << ": " << DUMP(pes_by_type[pt]);
   }
 
   os << "\n]";
@@ -488,7 +488,7 @@ void ArchGraph::dump_channels(std::ostream& os) const
       if (adj.empty())
         continue;
 
-      os << "\n    " << pe << ": " << dump::dump(adj);
+      os << "\n    " << pe << ": " << DUMP(adj);
     }
 
     os << "\n  ]";

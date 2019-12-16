@@ -6,8 +6,13 @@
 
 #ifndef NTIMER
 
+namespace timer
+{
+
 bool Timer::enabled = false;
 std::ostream &Timer::out = std::cout;
 std::map<std::string, Timer> Timer::_timers;
+
+} // namespace timer
 
 #endif

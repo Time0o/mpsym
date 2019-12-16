@@ -54,7 +54,7 @@ struct TaskAllocation : public std::vector<unsigned>
 
 inline std::ostream &operator<<(std::ostream &os, TaskAllocation const &ta)
 {
-  os << dump::dump(static_cast<std::vector<unsigned> const &>(ta));
+  os << DUMP(static_cast<std::vector<unsigned> const &>(ta));
   return os;
 }
 

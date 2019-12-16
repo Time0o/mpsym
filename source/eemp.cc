@@ -40,12 +40,12 @@ std::vector<std::vector<unsigned>> action_component(
   SchreierTree &schreier_tree, OrbitGraph &orbit_graph)
 {
 #ifndef NDEBUG
-  Dbg(Dbg::TRACE) << "Computing component of action of generators:";
+  DBG(TRACE) << "Computing component of action of generators:";
   for (PartialPerm const &gen : generators)
-    Dbg(Dbg::TRACE) << gen;
+    DBG(TRACE) << gen;
 
-  Dbg(Dbg::TRACE) << "on:";
-  Dbg(Dbg::TRACE) << alpha;
+  DBG(TRACE) << "on:";
+  DBG(TRACE) << alpha;
 #endif
 
   // compute domain range over all generators
@@ -94,7 +94,7 @@ std::vector<std::vector<unsigned>> action_component(
     if (contained)
       return true;
 
-    Dbg(Dbg::TRACE) << "Adjoining " << beta;
+    DBG(TRACE) << "Adjoining " << beta;
     elem_size_present[size_idx] = true;
     elem_ids[size_idx].push_back(ComponentElemId(id, beta_hash));
 
@@ -109,11 +109,11 @@ std::vector<std::vector<unsigned>> action_component(
   unsigned i = 0u, n = 0u;
   while (i < component.size()) {
     std::vector<unsigned> beta = component[i];
-    Dbg(Dbg::TRACE) << "=== Looking at Component element " << beta
-                    << " (i = " << i  << ')';
+    DBG(TRACE) << "=== Looking at Component element " << beta
+               << " (i = " << i  << ')';
 
     for (auto j = 0u; j < generators.size(); ++j) {
-      Dbg(Dbg::TRACE) << "== Considering generator " << generators[j];
+      DBG(TRACE) << "== Considering generator " << generators[j];
 
       std::vector<unsigned> beta_prime = generators[j].image(beta);
 
@@ -125,17 +125,17 @@ std::vector<std::vector<unsigned>> action_component(
         ++n;
 
         schreier_tree_data.push_back(std::make_pair(i, j));
-        Dbg(Dbg::TRACE) << "=> v_" << n + 1u << " = " << i + 1u;
-        Dbg(Dbg::TRACE) << "=> w_" << n  + 1u<< " = " << j + 1u;
+        DBG(TRACE) << "=> v_" << n + 1u << " = " << i + 1u;
+        DBG(TRACE) << "=> w_" << n  + 1u<< " = " << j + 1u;
 
         orbit_graph_data[j].push_back(n);
-        Dbg(Dbg::TRACE) << "=> g_" << i + 1u << "," << j + 1u << " = " << n + 1u;
+        DBG(TRACE) << "=> g_" << i + 1u << "," << j + 1u << " = " << n + 1u;
 
       } else {
-        Dbg(Dbg::TRACE) << beta_prime << " already processed";
+        DBG(TRACE) << beta_prime << " already processed";
 
         orbit_graph_data[j].push_back(id);
-        Dbg(Dbg::TRACE) << "=> g_" << i + 1u << "," << j + 1u << " = " << id + 1u;
+        DBG(TRACE) << "=> g_" << i + 1u << "," << j + 1u << " = " << id + 1u;
       }
     }
 
@@ -145,16 +145,16 @@ std::vector<std::vector<unsigned>> action_component(
   schreier_tree.data = schreier_tree_data;
 
 #ifndef NDEBUG
-  Dbg(Dbg::TRACE) << "Resulting action component";
+  DBG(TRACE) << "Resulting action component";
   for (auto i = 0u; i < component.size(); ++i)
-    Dbg(Dbg::TRACE) << i + 1u << ": " << component[i];
+    DBG(TRACE) << i + 1u << ": " << component[i];
 #endif
 
-  Dbg(Dbg::TRACE) << "Resulting schreier tree:\n" << schreier_tree;
+  DBG(TRACE) << "Resulting schreier tree:\n" << schreier_tree;
 
   orbit_graph.data = orbit_graph_data;
 
-  Dbg(Dbg::TRACE) << "Resulting orbit graph:\n" << orbit_graph;
+  DBG(TRACE) << "Resulting orbit graph:\n" << orbit_graph;
 
   return component;
 }
@@ -187,8 +187,8 @@ SchreierTree scc_spanning_tree(
 {
   static std::default_random_engine re;
 
-  Dbg(Dbg::TRACE) << "Finding spanning tree for s.c.c rooted at node " << i + 1u
-                  << " in orbit graph:\n" << orbit_graph;
+  DBG(TRACE) << "Finding spanning tree for s.c.c rooted at node " << i + 1u
+             << " in orbit graph:\n" << orbit_graph;
 
   // construct s.c.c. subgraph
   struct VertexProperty { unsigned i; };
@@ -200,7 +200,7 @@ SchreierTree scc_spanning_tree(
   std::vector<unsigned> scc_i;
   std::vector<unsigned> vertex_map(scc.size(), 0u);
 
-  Dbg(Dbg::TRACE) << "== Constructing temporary subgraph";
+  DBG(TRACE) << "== Constructing temporary subgraph";
 
   for (unsigned j = 0u; j < scc.size(); ++j) {
     if (scc[j] == scc[i]) {
@@ -209,7 +209,7 @@ SchreierTree scc_spanning_tree(
       unsigned v = boost::add_vertex({j}, g);
       vertex_map[j] = v + 1u;
 
-      Dbg(Dbg::TRACE) << "Added vertex " << v << " (" << j + 1u << ')';
+      DBG(TRACE) << "Added vertex " << v << " (" << j + 1u << ')';
     }
   }
 
@@ -225,10 +225,10 @@ SchreierTree scc_spanning_tree(
       if (dest_vertex > 0u && dest_vertex != source_vertex) {
         boost::add_edge(dest_vertex - 1u, source_vertex - 1u, {row}, g);
 
-        Dbg(Dbg::TRACE) << "Added edge "
-                        << source_vertex - 1u << " => " << dest_vertex - 1u
-                        << " (" << source + 1u << " => " << dest + 1u
-                        << " (" << row + 1u << "))";
+        DBG(TRACE) << "Added edge "
+                   << source_vertex - 1u << " => " << dest_vertex - 1u
+                   << " (" << source + 1u << " => " << dest + 1u
+                   << " (" << row + 1u << "))";
       }
     }
   }
@@ -238,13 +238,13 @@ SchreierTree scc_spanning_tree(
 
   std::vector<unsigned> pred(boost::num_vertices(g));
 
-  Dbg(Dbg::TRACE) << "Finding random spanning tree...";
+  DBG(TRACE) << "Finding random spanning tree...";
 
   boost::random_spanning_tree(
     g, re, boost::root_vertex(vertex_map[i] - 1u).predecessor_map(&pred[0]));
 
-  Dbg(Dbg::TRACE) << "Found spanning tree with predecessor relationships: "
-                  << std::vector<unsigned>(pred.begin() + 1, pred.end());
+  DBG(TRACE) << "Found spanning tree with predecessor relationships: "
+             << std::vector<unsigned>(pred.begin() + 1, pred.end());
 
   // convert into Schreier tree format
   spanning_tree.data =
@@ -261,7 +261,7 @@ SchreierTree scc_spanning_tree(
       std::make_pair(g[parent].i, g[edge.first].gen);
   }
 
-  Dbg(Dbg::TRACE) << "Resulting spanning Schreier tree is:\n" << spanning_tree;
+  DBG(TRACE) << "Resulting spanning Schreier tree is:\n" << spanning_tree;
 
   return spanning_tree;
 }
@@ -291,10 +291,10 @@ PermGroup schreier_generators(unsigned i,
 {
   auto im(action_component[i]);
 
-  Dbg(Dbg::TRACE) << "Finding schreier generators for Sx for: " << im;
+  DBG(TRACE) << "Finding schreier generators for Sx for: " << im;
 
   if (im.empty()) {
-    Dbg(Dbg::TRACE) << "==> Returning empty permutation group";
+    DBG(TRACE) << "==> Returning empty permutation group";
     return PermGroup();
   }
 
@@ -311,7 +311,7 @@ PermGroup schreier_generators(unsigned i,
   for (auto j = 0u; j < scc.size(); ++j)
     _scc[j] = action_component[scc[j]];
 
-  Dbg(Dbg::TRACE) << "Strongly connected component of x is: " << _scc;
+  DBG(TRACE) << "Strongly connected component of x is: " << _scc;
 #endif
 
   PermSet sg_gens;
@@ -323,26 +323,26 @@ PermGroup schreier_generators(unsigned i,
       if (sccs[l] != sccs[i])
         continue;
 
-      Dbg(Dbg::TRACE) << "Found generator for j/i(j)/k/l = "
-                      << j + 1u << '/'
-                      << scc[j] + 1u << '/'
-                      << k + 1u << '/'
-                      << l + 1u;
+      DBG(TRACE) << "Found generator for j/i(j)/k/l = "
+                 << j + 1u << '/'
+                 << scc[j] + 1u << '/'
+                 << k + 1u << '/'
+                 << l + 1u;
 
       PartialPerm ui(schreier_trace(
         scc[j], schreier_tree, generators, dom_max, i));
       PartialPerm ul(schreier_trace(
         l, schreier_tree, generators, dom_max, i));
 
-      Dbg(Dbg::TRACE) << "where:";
-      Dbg(Dbg::TRACE) << "u_i(j) = " << "u_" << scc[j] + 1u << " = " << ui;
-      Dbg(Dbg::TRACE) << "x_k = " << "x_" << k + 1u << " = " << generators[k];
-      Dbg(Dbg::TRACE) << "~u_l = " << "u_" << l + 1u << " = " << ~ul;
+      DBG(TRACE) << "where:";
+      DBG(TRACE) << "u_i(j) = " << "u_" << scc[j] + 1u << " = " << ui;
+      DBG(TRACE) << "x_k = " << "x_" << k + 1u << " = " << generators[k];
+      DBG(TRACE) << "~u_l = " << "u_" << l + 1u << " = " << ~ul;
 
       PartialPerm sg(ui * generators[k] * ~ul);
       sg = sg.restricted(im);
 
-      Dbg(Dbg::TRACE) << "=> Schreier generator is: " << sg;
+      DBG(TRACE) << "=> Schreier generator is: " << sg;
 
       if (!sg.id())
         sg_gens.emplace(sg.to_perm(im_max));
@@ -351,8 +351,8 @@ PermGroup schreier_generators(unsigned i,
 
   PermGroup res(im_max, sg_gens);
 
-  Dbg(Dbg::TRACE) << "==> Returning:";
-  Dbg(Dbg::TRACE) << res;
+  DBG(TRACE) << "==> Returning:";
+  DBG(TRACE) << res;
 
   return res;
 }
@@ -478,7 +478,7 @@ std::ostream &operator<<(std::ostream &os, eemp::OrbitGraph const &orbit_graph)
   auto scc(expand_partition(tmp.second));
 
   os << "s.c.c." << std::string(pad - 1u, ' ') << " | "
-     << dump::dump(scc, {"{}", "{}"});
+     << DUMP(scc, "{}", "{}");
 
   return os;
 }

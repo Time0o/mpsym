@@ -21,24 +21,24 @@ namespace cgtl
 
 void BSGS::solve(PermSet const &generators)
 {
-  Dbg(Dbg::DBG) << "Attempting to solve BSGS for generators: " << generators;
+  DBG(DEBUG) << "Attempting to solve BSGS for generators: " << generators;
 
   unsigned iterations =
     static_cast<unsigned>(5.0 / 2.0 * std::log(degree()) / std::log(3.0));
 
-  Dbg(Dbg::TRACE) << "Maximum number of iterations: " << iterations;
+  DBG(TRACE) << "Maximum number of iterations: " << iterations;
 
   for (auto const &gen : generators) {
-    Dbg(Dbg::TRACE) << "====== Considering generator: " << gen;
+    DBG(TRACE) << "====== Considering generator: " << gen;
 
     while (!strips_completely(gen)) {
-      Dbg(Dbg::TRACE) << "=> Not in current BSGS";
+      DBG(TRACE) << "=> Not in current BSGS";
 
       Perm w(gen);
 
       bool success = false;
       for (unsigned i = 0u; i < iterations; ++i) {
-        Dbg(Dbg::TRACE) << "===== Iteration " << i;
+        DBG(TRACE) << "===== Iteration " << i;
 
         std::pair<Perm, Perm> conjugates;
         success = solve_s_normal_closure(generators, w, &conjugates);
@@ -47,26 +47,26 @@ void BSGS::solve(PermSet const &generators)
 
         Perm const &u(conjugates.first);
         Perm const &v(conjugates.second);
-        Dbg(Dbg::TRACE) << "=> Conjugates are: " << u << " and " << v;
+        DBG(TRACE) << "=> Conjugates are: " << u << " and " << v;
 
         w = ~u * ~v * u * v;
       }
 
       if (!success) {
-        Dbg(Dbg::DBG) << "==> Failure";
+        DBG(DEBUG) << "==> Failure";
         throw SolveError();
       }
     }
   }
 
-  Dbg(Dbg::DBG) << "==> Success";
+  DBG(DEBUG) << "==> Success";
 }
 
 bool BSGS::solve_s_normal_closure(PermSet const &generators,
                                   Perm const &w,
                                   std::pair<Perm, Perm> *conjugates)
 {
-  Dbg(Dbg::TRACE) << "==== BEGIN Calculating S-Normal Closure";
+  DBG(TRACE) << "==== BEGIN Calculating S-Normal Closure";
 
   BSGS const original_bsgs(*this);
 
@@ -75,19 +75,19 @@ bool BSGS::solve_s_normal_closure(PermSet const &generators,
 
   for (auto i = 0u; i < queue1.size(); ++i) {
     Perm const g(queue1[i]);
-    Dbg(Dbg::TRACE) << "Considering queue element: " << g;
+    DBG(TRACE) << "Considering queue element: " << g;
 
     if (!strips_completely(g)) {
-      Dbg(Dbg::TRACE) << "=> Not in current BSGS";
+      DBG(TRACE) << "=> Not in current BSGS";
 
       for (auto const &h : queue2) {
         Perm tmp(~g * ~h * g * h);
         if (!original_bsgs.strips_completely(tmp)) {
-          Dbg(Dbg::TRACE) << ~g << " * " << ~h << " * " << g << " * " << h
-                          << " = " << tmp << " not in original BSGS";
+          DBG(TRACE) << ~g << " * " << ~h << " * " << g << " * " << h
+                     << " = " << tmp << " not in original BSGS";
 
-          Dbg(Dbg::TRACE) << "==> Failure";
-          Dbg(Dbg::TRACE) << "==== END Calculating S-Normal Closure";
+          DBG(TRACE) << "==> Failure";
+          DBG(TRACE) << "==== END Calculating S-Normal Closure";
 
           conjugates->first = g;
           conjugates->second = h;
@@ -96,7 +96,7 @@ bool BSGS::solve_s_normal_closure(PermSet const &generators,
         }
 #ifndef NDEBUG
         else {
-          Dbg(Dbg::TRACE) << ~g << " * " << ~h << " * " << g << " * " << h
+          DBG(TRACE) << ~g << " * " << ~h << " * " << g << " * " << h
                           << " = " << tmp << " in original BSGS";
         }
 #endif
@@ -106,9 +106,9 @@ bool BSGS::solve_s_normal_closure(PermSet const &generators,
 
       queue2.insert(g);
 
-      Dbg(Dbg::TRACE) << "=> Updating queue:";
+      DBG(TRACE) << "=> Updating queue:";
       for (auto const &gen : generators) {
-        Dbg(Dbg::TRACE)
+        DBG(TRACE)
           << "  Appending: " << ~gen << " * " << g << " * " << gen
           << " = " << ~gen * g * gen;
 
@@ -117,26 +117,26 @@ bool BSGS::solve_s_normal_closure(PermSet const &generators,
     }
 #ifndef NDEBUG
     else
-      Dbg(Dbg::TRACE) << "=> Already in current BSGS";
+      DBG(TRACE) << "=> Already in current BSGS";
 #endif
   }
 
-  Dbg(Dbg::TRACE) << "==> Success";
-  Dbg(Dbg::TRACE) << "==== END Calculating S-Normal Closure";
+  DBG(TRACE) << "==> Success";
+  DBG(TRACE) << "==== END Calculating S-Normal Closure";
   return true;
 }
 
 void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
 {
-  Dbg(Dbg::TRACE) << "=== BEGIN Adjoining normalizing generator";
-  Dbg(Dbg::TRACE) << "Generator is: " << gen;
+  DBG(TRACE) << "=== BEGIN Adjoining normalizing generator";
+  DBG(TRACE) << "Generator is: " << gen;
 
   unsigned i = 0u;
   Perm h(gen);
 
   while (!h.id()) {
     ++i;
-    Dbg(Dbg::TRACE) << "== Iteration " << i;
+    DBG(TRACE) << "== Iteration " << i;
 
     if (i > base_size()) {
       for (unsigned j = 1u; j <= degree(); ++j) {
@@ -146,7 +146,7 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
         }
       }
 
-      Dbg(Dbg::TRACE) << ">>> Updated base: " << _base << " <<<";
+      DBG(TRACE) << ">>> Updated base: " << _base << " <<<";
     }
 
     unsigned base_elem = base_point(i - 1u);
@@ -155,7 +155,7 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
 
     auto schreier_structure(_schreier_structures[i - 1u]);
 
-    Dbg(Dbg::TRACE)
+    DBG(TRACE)
       << "Considering h = " << h << " and b_" << i << " = " << base_elem
       << " (with orbit " << schreier_structure->nodes() << ")";
 
@@ -163,21 +163,21 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
     Perm h_m(h);
     unsigned tmp = h_m[base_elem];
 
-    Dbg(Dbg::TRACE) << "h^1 = " << h_m;
+    DBG(TRACE) << "h^1 = " << h_m;
 
     while (!schreier_structure->contains(tmp)) {
       ++m;
       h_m *= h;
       tmp = h_m[base_elem];
 
-      Dbg(Dbg::TRACE) << "h^" << m << " = " << h_m;
+      DBG(TRACE) << "h^" << m << " = " << h_m;
     }
 
     Perm u(schreier_structure->transversal(tmp));
-    Dbg(Dbg::TRACE) << "u = " << u;
+    DBG(TRACE) << "u = " << u;
 
     if (m > 1u) {
-      Dbg(Dbg::TRACE) << "Enlarging:";
+      DBG(TRACE) << "Enlarging:";
 
       for (unsigned j = 0u; j < i; ++j) { // TODO: avoid complete recomputation
         PermSet s_j(_schreier_structures[j]->labels());
@@ -185,19 +185,19 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
 
         update_schreier_structure(j, s_j);
 
-        Dbg(Dbg::TRACE) << "  S(" << j + 1u << ")" << " = " << s_j;
-        Dbg(Dbg::TRACE) << "  O(" << j + 1u << ")" << " = "
-                        << _schreier_structures[j]->nodes();
+        DBG(TRACE) << "  S(" << j + 1u << ")" << " = " << s_j;
+        DBG(TRACE) << "  O(" << j + 1u << ")" << " = "
+                   << _schreier_structures[j]->nodes();
       }
 
       _strong_generators.insert(h);
-      Dbg(Dbg::TRACE) << "  >>> Updated SGS: " << _strong_generators << " <<<";
+      DBG(TRACE) << "  >>> Updated SGS: " << _strong_generators << " <<<";
     }
 
     h = h_m * ~u;
   }
 
-  Dbg(Dbg::TRACE) << "=== END Adjoining normalizing generator";
+  DBG(TRACE) << "=== END Adjoining normalizing generator";
 }
 
 } // namespace cgtl

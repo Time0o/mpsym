@@ -55,17 +55,17 @@ ArchGraphCluster::mapping(TaskMappingRequest const &tmr_)
 {
   assert(_subsystems.size() > 0u);
 
-  Dbg(Dbg::DBG) << "Requested task mapping: " << tmr_;
+  DBG(DEBUG) << "Requested task mapping: " << tmr_;
 
   TaskMappingRequest tmr(tmr_);
   TaskMapping res(tmr.allocation, tmr.allocation);
 
   for (auto i = 0u; i < _subsystems.size(); ++i) {
-    Dbg(Dbg::DBG) << "Subsystem (no. " << i << ")";
+    DBG(DEBUG) << "Subsystem (no. " << i << ")";
 
     auto tm = _subsystems[i]->mapping(tmr);
 
-    Dbg(Dbg::DBG) << "Yields: " << tm.representative;
+    DBG(DEBUG) << "Yields: " << tm.representative;
 
     res.representative = tm.representative;
 
