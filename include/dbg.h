@@ -19,7 +19,7 @@ public:
   enum { TRACE = 1, DEBUG = 2, INFO = 3, WARN = 4};
 
   static int loglevel;
-  static std::ostream &out;
+  static std::ostream *out;
 
   Dbg(int level = WARN)
   : _level(level)
@@ -38,7 +38,7 @@ public:
     return *this;
   }
 
-  ~Dbg() { out << _buf.str() << std::endl; }
+  ~Dbg() { *out << _buf.str() << std::endl; }
 
 private:
   std::string header_indent() {
@@ -58,6 +58,9 @@ private:
 #define DBG(level) if (0) dbg::Dbg()
 
 #define DBG_SET_LOGLEVEL(loglevel)
+
+#define DBG_GET_OUT() dbg::Dbg::out
+#define DBG_SET_OUT(os) do { dbg::Dbg::out = os; } while (0)
 
 #else
 

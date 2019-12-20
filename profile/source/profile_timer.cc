@@ -1,5 +1,7 @@
 #include <chrono>
 #include <cstdlib>
+#include <ostream>
+#include <sstream>
 #include <stdexcept>
 
 #include <sys/times.h>
@@ -9,6 +11,7 @@
 
 #include "profile_timer.h"
 #include "profile_util.h"
+#include "timer.h"
 
 namespace
 {
@@ -75,14 +78,16 @@ void timer_realtime_enable()
 bool timer_realtime_enabled()
 { return realtime_timer.enabled(); }
 
-void timer_start() {
+void timer_start()
+{
   if (realtime_timer.enabled())
     realtime_timer.start();
   else
     child_timer.start();
 }
 
-double timer_stop(pid_t child) {
+double timer_stop(pid_t child)
+{
   double t;
   if (realtime_timer.enabled()) {
     realtime_timer.stop(&t);
@@ -97,4 +102,17 @@ double timer_stop(pid_t child) {
   }
 
   return t;
+}
+
+void debug_timer_dump(char const *timer)
+{
+  std::ostream *os = TIMER_GET_OUT();
+
+  std::stringstream ss;
+  TIMER_SET_OUT(&ss);
+
+  TIMER_DUMP(timer);
+  debug(ss.str());
+
+  TIMER_SET_OUT(os);
 }

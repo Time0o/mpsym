@@ -28,7 +28,7 @@ namespace
     }
   }
 
-  std::string read_output(int from, bool verbose)
+  std::string read_output(int from, bool echo)
   {
     static char buf[256];
 
@@ -48,7 +48,7 @@ namespace
       } else {
         std::string block(buf, buf + count);
 
-        if (verbose)
+        if (echo)
           std::cout << block << std::flush;
 
         res += block;
@@ -59,7 +59,7 @@ namespace
   }
 }
 
-std::string run_gap(std::string const &script, bool verbose, double *t)
+std::string run_gap(std::string const &script, bool hide_output, double *t)
 {
   // create temporary gap script
 
@@ -120,7 +120,7 @@ std::string run_gap(std::string const &script, bool verbose, double *t)
 
   close(fds[1]);
 
-  auto output(read_output(fds[0], verbose));
+  auto output(read_output(fds[0], !hide_output));
 
   close(fds[0]);
 

@@ -58,7 +58,7 @@ struct ProfileOptions
   unsigned num_tasks = 0u;
   unsigned num_task_allocations = 0u;
   bool check_accuracy = false;
-  bool verbose = false;
+  int verbosity = 0;
 };
 
 std::string map_tasks_gap(gap::PermSet const &generators,
@@ -85,8 +85,10 @@ std::string map_tasks_gap(gap::PermSet const &generators,
   ss << "n:=1;\n";
   ss << "for task_allocation in task_allocations do\n";
 
-  ss << "  Print(\"INFO: Mapping task \", n, \" of \", "
-        "        Length(task_allocations), \"\\r\\c\");\n";
+  if (options.verbosity > 0) {
+    ss << "  Print(\"DEBUG: Mapping task \", n, \" of \", "
+          "        Length(task_allocations), \"\\r\\c\");\n";
+  }
 
   ss << "  orbit:=Orb(automorphisms, task_allocation, OnTuples, orbit_options);\n";
 
@@ -101,11 +103,18 @@ std::string map_tasks_gap(gap::PermSet const &generators,
   ss << "  n:=n+1;\n";
   ss << "od;\n";
 
-  ss << "Print(\"\\nINFO: Found \", Length(orbit_representatives), "
-        "      \" equivalence classes:\\n\");\n";
-  ss << "for orbit_repr in orbit_representatives do\n";
-  ss << "  Print(\"INFO: \", orbit_repr, \"\\n\");\n";
-  ss << "od;\n";
+  if (options.check_accuracy || options.verbosity > 0) {
+    ss << "Print(\"\\nDEBUG: Found \", Length(orbit_representatives), "
+          "      \" equivalence classes:\\n\");\n";
+
+    if (options.check_accuracy || options.verbosity > 1) {
+      ss << "for orbit_repr in orbit_representatives do\n";
+      ss << "  Print(\"DEBUG: \", orbit_repr, \"\\n\");\n";
+      ss << "od;\n";
+    } else {
+      ss << "Print(\"DEBUG: ...\\n\");\n";
+    }
+  }
 
   return ss.str();
 }
@@ -124,7 +133,7 @@ cgtl::TaskOrbits map_tasks_mpsym(
 
   TaskOrbits task_orbits;
   for (auto i = 0u; i < task_allocations.size(); ++i) {
-    if (options.verbose)
+    if (options.verbosity > 0)
       debug_progress("Mapping task", i + 1u, "of", task_allocations.size());
 
     auto mapping(ag.mapping(
@@ -133,26 +142,31 @@ cgtl::TaskOrbits map_tasks_mpsym(
     task_orbits.insert(mapping);
   }
 
-  if (options.verbose) {
+  if (options.verbosity > 0) {
     debug_progress_done();
 
     debug("Found", task_orbits.num_orbits(), "equivalence classes:");
 
-    for (auto const &repr : task_orbits)
-      debug(DUMP(repr));
+    if (options.verbosity > 1) {
+      for (auto const &repr : task_orbits)
+        debug(DUMP(repr));
+    } else {
+      debug("...");
+    }
 
     debug("Timer dumps:");
-    TIMER_DUMP(options.library.is("mpsym_approx") ? "map approx"
-                                                  : "map bruteforce");
+    debug_timer_dump(options.library.is("mpsym_approx") ? "map approx"
+                                                        : "map bruteforce");
   }
 
   return task_orbits;
 }
 
-cgtl::TaskOrbits map_tasks_gap_wrapper(std::string const &generators,
-                                       std::string const &task_allocations,
-                                       ProfileOptions const &options,
-                                       double *t)
+void map_tasks_gap_wrapper(std::string const &generators,
+                           std::string const &task_allocations,
+                           ProfileOptions const &options,
+                           cgtl::TaskOrbits *task_orbits,
+                           double *t)
 {
   using cgtl::TaskOrbits;
 
@@ -170,23 +184,23 @@ cgtl::TaskOrbits map_tasks_gap_wrapper(std::string const &generators,
                                 task_allocations_gap,
                                 options));
 
-  auto gap_output(run_gap(gap_script, options.verbose, t));
+  auto gap_output(run_gap(gap_script, options.check_accuracy, t));
 
   // parse output
 
-  auto representatives_gap(parse_task_allocations_gap_to_mpsym(gap_output));
+  if (options.check_accuracy) {
+    auto representatives_gap(parse_task_allocations_gap_to_mpsym(gap_output));
 
-  TaskOrbits task_orbits;
-  task_orbits.insert_all(representatives_gap.task_allocations.begin(),
-                         representatives_gap.task_allocations.end());
-
-  return task_orbits;
+    task_orbits->insert_all(representatives_gap.task_allocations.begin(),
+                            representatives_gap.task_allocations.end());
+  }
 }
 
-cgtl::TaskOrbits map_tasks_mpsym_wrapper(std::string const &generators,
-                                         std::string const &task_allocations,
-                                         ProfileOptions const &options,
-                                         double *t)
+void map_tasks_mpsym_wrapper(std::string const &generators,
+                             std::string const &task_allocations,
+                             ProfileOptions const &options,
+                             cgtl::TaskOrbits *task_orbits,
+                             double *t)
 {
   using cgtl::TaskOrbits;
 
@@ -200,7 +214,7 @@ cgtl::TaskOrbits map_tasks_mpsym_wrapper(std::string const &generators,
 
   // run task mapping code
 
-  return run_cpp([&]{
+  *task_orbits = run_cpp([&]{
     return map_tasks_mpsym(generators_mpsym,
                            task_allocations_mpsym,
                            options);
@@ -230,16 +244,20 @@ void check_accuracy(cgtl::TaskOrbits const &task_orbits_mpsym,
       reprs_gap.insert(repr);
 
     // find missing/extra representatives
-    info("=> Missing representatives:");
-    for (auto const &repr : reprs_gap) {
-      if (reprs_mpsym.find(repr) == reprs_mpsym.end())
-        info(DUMP(repr));
+    if (!reprs_gap.empty()) {
+      info("=> Missing representatives:");
+      for (auto const &repr : reprs_gap) {
+        if (reprs_mpsym.find(repr) == reprs_mpsym.end())
+          info(DUMP(repr));
+      }
     }
 
-    info("=> Extra representatives:");
-    for (auto const &repr : reprs_mpsym) {
-      if (reprs_gap.find(repr) == reprs_gap.end())
-        info(DUMP(repr));
+    if (!reprs_mpsym.empty()) {
+      info("=> Extra representatives:");
+      for (auto const &repr : reprs_mpsym) {
+        if (reprs_gap.find(repr) == reprs_gap.end())
+          info(DUMP(repr));
+      }
     }
   }
 }
@@ -248,20 +266,30 @@ double run(std::string const &generators,
            std::string const &task_allocations,
            ProfileOptions const &options)
 {
+  using cgtl::TaskOrbits;
+
   double t;
 
   if (options.library.is("gap")) {
-    map_tasks_gap_wrapper(generators, task_allocations, options, &t);
+    map_tasks_gap_wrapper(generators, task_allocations, options, nullptr, &t);
 
   } else if (options.library.is("mpsym") || options.library.is("mpsym_approx")) {
-    auto task_allocations_mpsym(
-      map_tasks_mpsym_wrapper(generators, task_allocations, options, &t));
+    TaskOrbits task_orbits_mpsym, task_orbits_gap;
+
+    map_tasks_mpsym_wrapper(generators,
+                            task_allocations,
+                            options,
+                            &task_orbits_mpsym,
+                            &t);
 
     if (options.check_accuracy) {
-      auto task_allocations_gap(
-        map_tasks_gap_wrapper(generators, task_allocations, options, nullptr));
+      map_tasks_gap_wrapper(generators,
+                            task_allocations,
+                            options,
+                            &task_orbits_gap,
+                            nullptr);
 
-      check_accuracy(task_allocations_mpsym, task_allocations_gap);
+      check_accuracy(task_orbits_mpsym, task_orbits_gap);
     }
   }
 
@@ -272,7 +300,7 @@ void profile(Stream &groups_stream,
              Stream &task_allocations_stream,
              ProfileOptions const &options)
 {
-  if (options.verbose)
+  if (options.verbosity > 0)
     debug("Implementation:", options.library.get());
 
   std::string task_allocations;
@@ -287,7 +315,7 @@ void profile(Stream &groups_stream,
       task_allocations = generate_task_allocations(
         group.degree, options.num_tasks, options.num_task_allocations);
 
-    if (options.verbose) {
+    if (options.verbosity > 0) {
       info("Using automorphism group", lineno,
            "with degree", group.degree,
            "and generators", group.generators);
@@ -358,7 +386,7 @@ int main(int argc, char **argv)
         timer_realtime_enable();
         break;
       case 'v':
-        options.verbose = true;
+        ++options.verbosity;
         TIMER_ENABLE();
         break;
       default:
@@ -386,8 +414,8 @@ int main(int argc, char **argv)
   }
 
   if (options.check_accuracy)
-    CHECK_OPTION(options.library.is("mpsym_approx"),
-                 "--check-accuracy only available when using mpsym_approx")
+    CHECK_OPTION(!options.library.is("gap"),
+                 "--check-accuracy only available when using mpsym")
 
   try {
     profile(groups_stream, task_allocations_stream, options);

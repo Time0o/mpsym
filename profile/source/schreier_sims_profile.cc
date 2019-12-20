@@ -191,9 +191,9 @@ std::vector<double> run(std::string const &generators,
 
     if (options.library.is("mpsym")) {
       debug("Timer dumps:");
-      TIMER_DUMP("strip");
-      TIMER_DUMP("extend base");
-      TIMER_DUMP("update strong gens");
+      debug_timer_dump("strip");
+      debug_timer_dump("extend base");
+      debug_timer_dump("update strong gens");
     }
   }
 

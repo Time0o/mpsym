@@ -37,7 +37,7 @@ public:
   enum { DECIMALS = 3 };
 
   static bool enabled;
-  static std::ostream &out;
+  static std::ostream *out;
 
   Timer(char const *name, Precision precision)
   : _start(time()),
@@ -178,6 +178,9 @@ inline std::ostream &operator<<(std::ostream &s, Timer const &timer)
 
 #define TIMER_ENABLE() do { timer::Timer::enabled = true; } while (0)
 
+#define TIMER_GET_OUT() timer::Timer::out
+#define TIMER_SET_OUT(os) do { timer::Timer::out = os; } while (0)
+
 #define TIMER_OP(op) do { if (timer::Timer::enabled) { op; } } while (0)
 
 #define TIMER_CREATE(name) \
@@ -189,7 +192,7 @@ inline std::ostream &operator<<(std::ostream &s, Timer const &timer)
 #define TIMER_STOP(name) \
   TIMER_OP(timer::Timer::get(name).stop())
 #define TIMER_DUMP(name) \
-  TIMER_OP(timer::Timer::out << timer::Timer::get(name) << std::endl; \
+  TIMER_OP(*timer::Timer::out << timer::Timer::get(name); \
            timer::Timer::destroy(name))
 
 #define TIMER_SECONDS timer::Timer::SECONDS
