@@ -69,8 +69,11 @@ TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks,
   TaskAllocation representative(tasks);
 
   for (Perm const &element : automorphisms()) {
-    if (representative.minimizes(element, min_pe, max_pe))
-      representative.permute(element, min_pe, max_pe);
+    bool new_minimum = tasks.permutes_to_less_than(
+      representative, {element, min_pe, max_pe});
+
+    if (new_minimum)
+      representative = tasks.permuted({element, min_pe, max_pe});
   }
 
   TIMER_STOP("map bruteforce");
@@ -95,8 +98,11 @@ TaskAllocation ArchGraphSystem::min_elem_approx(TaskAllocation const &tasks,
     stationary = true;
 
     for (Perm const &generator : automorphisms_generators(true)) {
-      if (representative.minimizes(generator, min_pe, max_pe)) {
-        representative.permute(generator, min_pe, max_pe);
+      bool new_minimum = representative.permutes_to_less_than(
+        representative, {generator, min_pe, max_pe});
+
+      if (new_minimum) {
+        representative.permute({generator, min_pe, max_pe});
 
         stationary = false;
       }
