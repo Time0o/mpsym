@@ -44,8 +44,9 @@ TaskMapping ArchGraphSystem::mapping(TaskMappingRequest const &tmr)
   unsigned max_pe = min_pe + automorphisms().degree() - 1u;
 
 #ifndef NDEBUG
-  if (min_pe != 0u)
+  if (min_pe != 0u) {
     DBG(TRACE) << "Mapping shifted range [" << min_pe << ", " << max_pe << "]";
+  }
 #endif
 
   TIMER_CREATE("map approx");
