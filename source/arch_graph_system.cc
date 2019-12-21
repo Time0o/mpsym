@@ -16,27 +16,24 @@ namespace cgtl
 
 PermSet ArchGraphSystem::automorphisms_generators(bool augmented)
 {
-  static PermSet augmented_generators;
-  static bool augmented_generators_valid = false;
-
   if (!augmented)
     return automorphisms().bsgs().strong_generators();
 
-  if (!augmented_generators_valid) {
-    augmented_generators.clear();
+  if (!_augmented_generators_valid) {
+    _augmented_generators.clear();
 
     for (Perm const &generator : automorphisms_generators(false)) {
-      augmented_generators.insert(generator);
+      _augmented_generators.insert(generator);
 
       Perm generator_inverted(~generator);
       if (generator_inverted != generator)
-        augmented_generators.insert(generator_inverted);
+        _augmented_generators.insert(generator_inverted);
     }
 
-    augmented_generators_valid = true;
+    _augmented_generators_valid = true;
   }
 
-  return augmented_generators;
+  return _augmented_generators;
 }
 
 TaskMapping ArchGraphSystem::mapping(TaskMappingRequest const &tmr)

@@ -22,12 +22,14 @@ class ArchGraphSystem
 {
 public:
   ArchGraphSystem()
-  : _automorphisms_valid(false)
+  : _automorphisms_valid(false),
+    _augmented_generators_valid(false)
   {}
 
   ArchGraphSystem(PermGroup const &automorphisms)
   : _automorphisms(automorphisms),
-    _automorphisms_valid(true)
+    _automorphisms_valid(true),
+    _augmented_generators_valid(false)
   {}
 
   virtual unsigned num_processors() const
@@ -58,6 +60,9 @@ protected:
   bool _automorphisms_valid;
 
 private:
+  PermSet _augmented_generators;
+  bool _augmented_generators_valid;
+
   virtual void update_automorphisms()
   { throw std::logic_error("not implemented"); }
 
