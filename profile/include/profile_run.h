@@ -9,7 +9,10 @@
 #include "profile_timer.h"
 #include "profile_util.h"
 
-std::string run_gap(std::string const &script, bool hide_output, double *t);
+std::string run_gap(std::string const &script,
+                    bool hide_output,
+                    bool hide_errors,
+                    double *t);
 
 // TODO: use invoke_result instead
 template<typename FUNC>

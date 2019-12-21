@@ -44,6 +44,7 @@ void usage(std::ostream &s)
     "[-r|--num-runs]",
     "[--realtime-clock]",
     "[-v|--verbose]",
+    "[--show-gap-errors]",
     "GROUPS"
   };
 
@@ -60,6 +61,7 @@ struct ProfileOptions
   unsigned num_cycles = 1u;
   unsigned num_runs = 1u;
   bool verbose = false;
+  bool show_gap_errors = false;
 };
 
 std::string make_perm_group_gap(gap::PermSet const &generators,
@@ -170,6 +172,7 @@ std::vector<double> run(std::string const &generators,
     if (options.library.is("gap")) {
       run_gap(make_perm_group_gap(parse_generators_gap(generators), options),
               options.verbose,
+              !options.show_gap_errors,
               &t);
     } else {
       if (options.library.is("mpsym")) {
@@ -249,6 +252,7 @@ int main(int argc, char **argv)
     {"num-runs",            required_argument, 0,       'r'},
     {"realtime-clock",      no_argument,       0,        1 },
     {"verbose",             no_argument,       0,       'v'},
+    {"show-gap-errors",     no_argument,       0,        2 },
     {nullptr,               0,                 nullptr,  0 }
   };
 
@@ -287,6 +291,9 @@ int main(int argc, char **argv)
       case 'v':
         options.verbose = true;
         TIMER_ENABLE();
+        break;
+      case 2:
+        options.show_gap_errors = true;
         break;
       default:
         return EXIT_FAILURE;

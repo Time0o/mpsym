@@ -44,7 +44,8 @@ void usage(std::ostream &s)
     "[--num-task-allocations NUM_TASK_ALLOCATIONS]",
     "[--check-accuracy]",
     "[--realtime-clock]",
-    "[-v|--verbose]"
+    "[-v|--verbose]",
+    "[--show-gap-errors]"
   };
 
   s << "usage: " << progname << '\n';
@@ -59,6 +60,7 @@ struct ProfileOptions
   unsigned num_task_allocations = 0u;
   bool check_accuracy = false;
   int verbosity = 0;
+  bool show_gap_errors = false;
 };
 
 std::string map_tasks_gap(gap::PermSet const &generators,
@@ -184,7 +186,10 @@ void map_tasks_gap_wrapper(std::string const &generators,
                                 task_allocations_gap,
                                 options));
 
-  auto gap_output(run_gap(gap_script, options.check_accuracy, t));
+  auto gap_output(run_gap(gap_script,
+                          options.check_accuracy,
+                          !options.show_gap_errors,
+                          t));
 
   // parse output
 
@@ -346,6 +351,7 @@ int main(int argc, char **argv)
     {"check-accuracy",       no_argument,       0,        4 },
     {"realtime-clock",       no_argument,       0,        5 },
     {"verbose",              no_argument,       0,       'v'},
+    {"show-gap-errors",      no_argument,       0,        6 },
     {nullptr,                0,                 nullptr,  0 }
   };
 
@@ -388,6 +394,9 @@ int main(int argc, char **argv)
       case 'v':
         ++options.verbosity;
         TIMER_ENABLE();
+        break;
+      case 6:
+        options.show_gap_errors = true;
         break;
       default:
         return EXIT_FAILURE;

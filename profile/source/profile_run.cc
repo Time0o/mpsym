@@ -59,7 +59,10 @@ namespace
   }
 }
 
-std::string run_gap(std::string const &script, bool hide_output, double *t)
+std::string run_gap(std::string const &script,
+                    bool hide_output,
+                    bool hide_errors,
+                    double *t)
 {
   // create temporary gap script
 
@@ -107,9 +110,11 @@ std::string run_gap(std::string const &script, bool hide_output, double *t)
       close(fds[1]);
       close(fds[0]);
 
-      int dev_null = open("/dev/null", O_WRONLY);
-      if (dev_null != -1)
-        dup_fd(dev_null, STDERR_FILENO);
+      if (hide_errors) {
+        int dev_null = open("/dev/null", O_WRONLY);
+        if (dev_null != -1)
+          dup_fd(dev_null, STDERR_FILENO);
+      }
 
       if (execlp("gap", "gap", "--nointeract", "-q", ftmp, nullptr) == -1)
         _Exit(EXIT_FAILURE);
