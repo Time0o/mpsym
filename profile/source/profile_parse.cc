@@ -261,7 +261,8 @@ cgtl::TaskAllocationVector parse_task_allocations_mpsym(
 cgtl::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
   std::string const &gap_output_str)
 {
-  static std::regex re_task_allocations(R"(equivalence classes:\n((?:.|\n)*))");
+  static std::regex re_task_allocations(
+    R"(Found \d+ orbit representatives\n((?:.|\n)*))");
 
   std::smatch m;
   if (!std::regex_search(gap_output_str, m, re_task_allocations))

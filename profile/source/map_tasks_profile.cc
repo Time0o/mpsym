@@ -106,15 +106,13 @@ std::string map_tasks_gap(gap::PermSet const &generators,
   ss << "od;\n";
 
   if (options.check_accuracy || options.verbosity > 0) {
-    ss << "Print(\"\\nDEBUG: Found \", Length(orbit_representatives), "
-          "      \" equivalence classes:\\n\");\n";
+    ss << "Print(\"\\nDEBUG: => Found \", Length(orbit_representatives), "
+          "      \" orbit representatives\\n\");\n";
 
     if (options.check_accuracy || options.verbosity > 1) {
       ss << "for orbit_repr in orbit_representatives do\n";
       ss << "  Print(\"DEBUG: \", orbit_repr, \"\\n\");\n";
       ss << "od;\n";
-    } else {
-      ss << "Print(\"DEBUG: ...\\n\");\n";
     }
   }
 
@@ -147,13 +145,11 @@ cgtl::TaskOrbits map_tasks_mpsym(
   if (options.verbosity > 0) {
     debug_progress_done();
 
-    debug("Found", task_orbits.num_orbits(), "equivalence classes:");
+    debug("=> Found", task_orbits.num_orbits(), "orbit representatives");
 
     if (options.verbosity > 1) {
       for (auto const &repr : task_orbits)
         debug(DUMP(repr));
-    } else {
-      debug("...");
     }
 
     debug("Timer dumps:");
@@ -227,7 +223,8 @@ void map_tasks_mpsym_wrapper(std::string const &generators,
 }
 
 void check_accuracy(cgtl::TaskOrbits const &task_orbits_mpsym,
-                    cgtl::TaskOrbits const &task_orbits_gap)
+                    cgtl::TaskOrbits const &task_orbits_gap,
+                    ProfileOptions const &options)
 {
   using cgtl::TaskAllocation;
 
@@ -235,34 +232,44 @@ void check_accuracy(cgtl::TaskOrbits const &task_orbits_mpsym,
 
   if (task_orbits_mpsym == task_orbits_gap) {
     info("Orbit representatives match");
+    return;
+  }
 
-  } else {
-    info("Orbit representatives do not match:");
+  info("Orbit representatives do not match:");
 
-    // construct representative sets
-    std::set<TaskAllocation> reprs_mpsym, reprs_gap;
+  // construct representative sets
+  std::set<TaskAllocation> reprs_mpsym, reprs_gap, reprs_missing, reprs_extra;
 
-    for (auto const &repr : task_orbits_mpsym)
-      reprs_mpsym.insert(repr);
+  for (auto const &repr : task_orbits_mpsym)
+    reprs_mpsym.insert(repr);
 
-    for (auto const &repr : task_orbits_gap)
-      reprs_gap.insert(repr);
+  for (auto const &repr : task_orbits_gap)
+    reprs_gap.insert(repr);
 
-    // find missing/extra representatives
-    if (!reprs_gap.empty()) {
-      info("=> Missing representatives:");
-      for (auto const &repr : reprs_gap) {
-        if (reprs_mpsym.find(repr) == reprs_mpsym.end())
-          info(DUMP(repr));
-      }
+  // find missing/extra representatives
+  if (!reprs_gap.empty()) {
+    for (auto const &repr : reprs_gap) {
+      if (reprs_mpsym.find(repr) == reprs_mpsym.end())
+        reprs_missing.insert(repr);
     }
 
-    if (!reprs_mpsym.empty()) {
-      info("=> Extra representatives:");
-      for (auto const &repr : reprs_mpsym) {
-        if (reprs_gap.find(repr) == reprs_gap.end())
-          info(DUMP(repr));
-      }
+    info("=>", reprs_missing.size(), "Missing orbit representatives");
+    if (options.verbosity > 1) {
+      for (auto const &repr : reprs_missing)
+        info(DUMP(repr));
+    }
+  }
+
+  if (!reprs_mpsym.empty()) {
+    for (auto const &repr : reprs_mpsym) {
+      if (reprs_gap.find(repr) == reprs_gap.end())
+        reprs_extra.insert(repr);
+    }
+
+    info("=>", reprs_extra.size(), "Missing orbit representatives");
+    if (options.verbosity > 1) {
+      for (auto const &repr : reprs_extra)
+        info(DUMP(repr));
     }
   }
 }
@@ -294,7 +301,7 @@ double run(std::string const &generators,
                             &task_orbits_gap,
                             nullptr);
 
-      check_accuracy(task_orbits_mpsym, task_orbits_gap);
+      check_accuracy(task_orbits_mpsym, task_orbits_gap, options);
     }
   }
 
