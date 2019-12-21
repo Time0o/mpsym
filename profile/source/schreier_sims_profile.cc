@@ -203,7 +203,7 @@ std::vector<double> run(std::string const &generators,
   return ts;
 }
 
-void profile(std::ifstream &groups_stream,
+void profile(Stream &groups_stream,
              ProfileOptions const &options)
 {
   if (options.verbose) {
@@ -215,7 +215,7 @@ void profile(std::ifstream &groups_stream,
       debug("Constructions per run:", options.num_cycles);
   }
 
-  foreach_line(groups_stream, [&](std::string const &line, unsigned lineno){
+  foreach_line(groups_stream.stream, [&](std::string const &line, unsigned lineno){
     auto group(parse_group(line));
 
     if (options.verbose) {
@@ -258,7 +258,7 @@ int main(int argc, char **argv)
 
   ProfileOptions options;
 
-  std::ifstream groups_stream;
+  Stream groups_stream;
 
   for (;;) {
     int c = getopt_long(argc, argv, "hi:s:t:r:c:v", long_options, nullptr);

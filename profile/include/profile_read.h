@@ -14,7 +14,7 @@ struct Stream
   void open(char const *file)
   {
     stream = std::ifstream(file);
-    if (stream.bad())
+    if (!stream)
       throw std::runtime_error("failed to open file");
 
     valid = true;
