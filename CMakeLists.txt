@@ -1,3 +1,7 @@
+################################################################################
+# Project Settings
+################################################################################
+
 cmake_minimum_required(VERSION 3.6)
 
 project("MPSoC Symmetry Reduction Library"
@@ -65,7 +69,29 @@ set(DOC_SPHINX_OUT_DIR "${CMAKE_BINARY_DIR}/sphinx")
 
 
 ################################################################################
-# External Dependencies
+# Common Compilation Settings
+################################################################################
+
+set(MAIN_COMPILER_FLAGS "-Wall -Wextra -pedantic")
+set(MAIN_LINK_FLAGS "")
+
+function(set_default_target_properties)
+  set(options NONE)
+  set(args TARGET)
+  cmake_parse_arguments(Arg "${options}" "${args}" "" "${ARGN}")
+
+  set_target_properties("${Arg_TARGET}" PROPERTIES
+    LINKER_LANGUAGE CXX
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED ON
+    COMPILE_FLAGS "${MAIN_COMPILER_FLAGS}"
+    LINK_FLAGS "${MAIN_LINK_FLAGS}"
+  )
+endfunction()
+
+
+################################################################################
+# Convencience Function for Adding External Dependencies
 ################################################################################
 
 function(add_external_project)
@@ -92,10 +118,19 @@ function(add_external_project)
   endif()
 endfunction()
 
+
+################################################################################
+# Common Dependencies
+################################################################################
+
+# MpSym
+add_subdirectory("${SRC_DIR}")
+add_subdirectory("${EXAMPLE_SRC_DIR}")
+
 # Boost
 find_package(Boost 1.40 REQUIRED COMPONENTS graph)
 
-#Lua
+# Lua
 find_package(Lua 5.2 REQUIRED)
 
 # Nauty
@@ -103,41 +138,13 @@ add_external_project(NAME "nauty/traces"
                      CONFIGFILE "${NAUTY_CONFIG}"
                      WORKDIR "${NAUTY_DOWNLOAD_DIR}")
 
-# Google Test
-add_external_project(NAME "googletest"
-                     CONFIGFILE "${GTEST_CONFIG}"
-                     WORKDIR "${GTEST_DOWNLOAD_DIR}")
-
-add_subdirectory("${GTEST_SRC_DIR}" "${GTEST_BIN_DIR}" EXCLUDE_FROM_ALL)
-
 
 ################################################################################
-# Common Compilation Settings
-################################################################################
-
-set(MAIN_COMPILER_FLAGS "-Wall -Wextra -pedantic")
-set(MAIN_LINK_FLAGS "")
-
-function(set_default_target_properties)
-  set(options NONE)
-  set(args TARGET)
-  cmake_parse_arguments(Arg "${options}" "${args}" "" "${ARGN}")
-
-  set_target_properties("${Arg_TARGET}" PROPERTIES
-    LINKER_LANGUAGE CXX
-    CXX_STANDARD 11
-    CXX_STANDARD_REQUIRED ON
-    COMPILE_FLAGS "${MAIN_COMPILER_FLAGS}"
-    LINK_FLAGS "${MAIN_LINK_FLAGS}"
-  )
-endfunction()
-
-
-################################################################################
-# Documentation
+# Release Build
 ################################################################################
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  # Documentation
   message(STATUS "Configuring documentation build")
 
   set(BUILD_DOC TRUE)
@@ -221,10 +228,18 @@ endif()
 
 
 ################################################################################
-# Code Coverage
+# Debug Build
 ################################################################################
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  # Google Test
+  add_external_project(NAME "googletest"
+                       CONFIGFILE "${GTEST_CONFIG}"
+                       WORKDIR "${GTEST_DOWNLOAD_DIR}")
+
+  add_subdirectory("${GTEST_SRC_DIR}" "${GTEST_BIN_DIR}" EXCLUDE_FROM_ALL)
+
+  # Coverage
   find_program(GCOV_PATH gcov)
   find_program(LCOV_PATH  NAMES lcov lcov.bat lcov.exe lcov.perl)
   find_program(GENHTML_PATH NAMES genhtml genhtml.perl genhtml.bat)
@@ -274,14 +289,25 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
       COMMAND ${CMAKE_COMMAND} -E remove "lcov.base" "lcov.info" "lcov.total"
     )
   endif()
+
+  # Enable and build tests
+  enable_testing()
+
+  add_subdirectory("${TEST_TESTS_DIR}")
 endif()
 
 
 ################################################################################
-# Profiling
+# Profile Build
 ################################################################################
 
 if(CMAKE_BUILD_TYPE STREQUAL "Profile")
+  # Permlib
+  add_external_project(NAME "permlib"
+                       CONFIGFILE "${PERMLIB_CONFIG}"
+                       WORKDIR "${PERMLIB_DOWNLOAD_DIR}")
+
+  # Perf
   find_program(PERF_PATH perf)
 
   if(NOT PERF_PATH)
@@ -308,23 +334,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Profile")
       COMMAND ${CMAKE_COMMAND} -E remove "perf.data"
     )
   endforeach()
-endif()
 
-
-################################################################################
-# Add Subdirectories
-################################################################################
-
-add_subdirectory("${SRC_DIR}")
-add_subdirectory("${EXAMPLE_SRC_DIR}")
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  enable_testing()
-  add_subdirectory("${TEST_TESTS_DIR}")
-elseif(CMAKE_BUILD_TYPE STREQUAL "Profile")
-  add_external_project(NAME "permlib"
-                       CONFIGFILE "${PERMLIB_CONFIG}"
-                       WORKDIR "${PERMLIB_DOWNLOAD_DIR}")
-
+  # Build profiling programs
   add_subdirectory("${PROFILE_SRC_DIR}")
 endif()
