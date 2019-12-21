@@ -6,6 +6,7 @@
 #include "arch_graph_system.h"
 #include "dbg.h"
 #include "task_mapping.h"
+#include "task_orbits.h"
 
 namespace cgtl
 {
@@ -51,7 +52,8 @@ ArchGraphCluster::update_automorphisms()
 }
 
 TaskMapping
-ArchGraphCluster::mapping(TaskMappingRequest const &tmr_)
+ArchGraphCluster::mapping(TaskMappingRequest const &tmr_,
+                          TaskOrbits *orbits)
 {
   assert(_subsystems.size() > 0u);
 
@@ -72,6 +74,9 @@ ArchGraphCluster::mapping(TaskMappingRequest const &tmr_)
     tmr.allocation = res.representative;
     tmr.offset += _subsystems[i]->num_processors();
   }
+
+  if (orbits)
+    orbits->insert(res);
 
   return res;
 }

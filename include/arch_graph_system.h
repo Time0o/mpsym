@@ -6,6 +6,7 @@
 #include "partial_perm_inverse_semigroup.h"
 #include "perm_group.h"
 #include "task_mapping.h"
+#include "task_orbits.h"
 
 namespace cgtl
 {
@@ -53,7 +54,8 @@ public:
   virtual PartialPermInverseSemigroup partial_automorphisms()
   { throw std::logic_error("not implemented"); }
 
-  virtual TaskMapping mapping(TaskMappingRequest const &tmr);
+  virtual TaskMapping mapping(TaskMappingRequest const &tmr,
+                              TaskOrbits *orbits = nullptr);
 
 protected:
   PermGroup _automorphisms;

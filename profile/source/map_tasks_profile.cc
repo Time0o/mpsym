@@ -137,9 +137,8 @@ cgtl::TaskOrbits map_tasks_mpsym(
       debug_progress("Mapping task", i + 1u, "of", task_allocations.size());
 
     auto mapping(ag.mapping(
-      {task_allocations[i], 0u, options.library.is("mpsym_approx")}));
-
-    task_orbits.insert(mapping);
+      {task_allocations[i], 0u, options.library.is("mpsym_approx")},
+      &task_orbits));
   }
 
   if (options.verbosity > 0) {

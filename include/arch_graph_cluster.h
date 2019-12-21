@@ -10,6 +10,7 @@
 #include "partial_perm_inverse_semigroup.h"
 #include "perm_group.h"
 #include "task_mapping.h"
+#include "task_orbits.h"
 
 namespace cgtl
 {
@@ -25,7 +26,8 @@ public:
   unsigned num_processors() const override;
   unsigned num_channels() const override;
 
-  TaskMapping mapping(TaskMappingRequest const &tmr) override;
+  TaskMapping mapping(TaskMappingRequest const &tmr,
+                      TaskOrbits *orbits = nullptr) override;
 
 private:
   void add_subsystem(ArchGraphSubsystem &&subsystem);

@@ -9,6 +9,7 @@
 #include "perm.h"
 #include "perm_set.h"
 #include "task_mapping.h"
+#include "task_orbits.h"
 #include "timer.h"
 
 namespace cgtl
@@ -36,7 +37,8 @@ PermSet ArchGraphSystem::automorphisms_generators(bool augmented)
   return _augmented_generators;
 }
 
-TaskMapping ArchGraphSystem::mapping(TaskMappingRequest const &tmr)
+TaskMapping ArchGraphSystem::mapping(TaskMappingRequest const &tmr,
+                                     TaskOrbits *orbits)
 {
   DBG(DEBUG) << "Requested task mapping: " << tmr;
 
@@ -55,6 +57,9 @@ TaskMapping ArchGraphSystem::mapping(TaskMappingRequest const &tmr)
   TaskAllocation representative =
     tmr.approximate ? min_elem_approx(tmr.allocation, min_pe, max_pe)
                     : min_elem_bruteforce(tmr.allocation, min_pe, max_pe);
+
+  if (orbits)
+    orbits->insert(representative);
 
   return TaskMapping(tmr.allocation, representative);
 }
