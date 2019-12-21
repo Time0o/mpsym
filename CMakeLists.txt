@@ -27,9 +27,11 @@ set(SRC_DIR "${PROJECT_SOURCE_DIR}/source")
 set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
 
 set(TEST_SRC_DIR "${PROJECT_SOURCE_DIR}/test/source")
+set(TEST_TESTS_DIR "${PROJECT_SOURCE_DIR}/test/tests")
 set(TEST_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/test/include")
 
 set(PROFILE_SRC_DIR "${PROJECT_SOURCE_DIR}/profile/source")
+set(PROFILE_COMMON_DIR "${PROJECT_SOURCE_DIR}/profile/common")
 set(PROFILE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/profile/include")
 
 set(EXAMPLE_SRC_DIR "${PROJECT_SOURCE_DIR}/examples/source")
@@ -318,7 +320,7 @@ add_subdirectory("${EXAMPLE_SRC_DIR}")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   enable_testing()
-  add_subdirectory("${TEST_SRC_DIR}")
+  add_subdirectory("${TEST_TESTS_DIR}")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Profile")
   add_external_project(NAME "permlib"
                        CONFIGFILE "${PERMLIB_CONFIG}"

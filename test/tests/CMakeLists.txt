@@ -2,10 +2,12 @@ cmake_minimum_required(VERSION 3.6)
 
 include_directories("${INCLUDE_DIR}"
                     "${TEST_INCLUDE_DIR}"
+                    "${TEST_SRC_DIR}"
                     "${RESOURCE_INCLUDE_DIR}")
 
 file(GLOB TEST_SOURCES "*_test.cc")
-set(TEST_UTILITY "test_utility.cc")
+
+set(TEST_UTILITY "../source/test_utility.cc")
 
 foreach(TEST_SOURCE ${TEST_SOURCES})
   get_filename_component(TEST_PROG "${TEST_SOURCE}" NAME)

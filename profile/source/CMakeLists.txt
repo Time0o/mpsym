@@ -4,7 +4,8 @@ include_directories("${INCLUDE_DIR}" "${PROFILE_INCLUDE_DIR}")
 include_directories(SYSTEM "${PERMLIB_INCLUDE_DIR}") # to ignore all warnings
 
 file(GLOB PROFILE_SOURCES "*_profile.cc")
-file(GLOB PROFILE_UTIL "profile_*.cc")
+
+file(GLOB PROFILE_UTIL "../common/profile_*.cc")
 
 foreach(PROFILE_SOURCE ${PROFILE_SOURCES})
   get_filename_component(PROFILE_PROG "${PROFILE_SOURCE}" NAME)
