@@ -27,7 +27,10 @@ PermSet ArchGraphSystem::automorphisms_generators(bool augmented)
 
     for (Perm const &generator : automorphisms_generators(false)) {
       augmented_generators.insert(generator);
-      augmented_generators.insert(~generator);
+
+      Perm generator_inverted(~generator);
+      if (generator_inverted != generator)
+        augmented_generators.insert(generator_inverted);
     }
 
     augmented_generators_valid = true;
