@@ -1,3 +1,4 @@
+#include <cctype>
 #include <cerrno>
 #include <cstdlib>
 #include <fstream>
@@ -56,6 +57,19 @@ namespace
     }
 
     return res;
+  }
+
+  std::string clean_output(std::string const &output)
+  {
+    std::size_t i = 0u, j = output.size() - 1u;
+
+    while (std::isspace(output[i]))
+      ++i;
+
+    while (std::isspace(output[j]))
+      --j;
+
+    return output.substr(i, j - i + 1u);
   }
 }
 
@@ -125,7 +139,7 @@ std::string run_gap(std::string const &script,
 
   close(fds[1]);
 
-  auto output(read_output(fds[0], !hide_output));
+  auto output(clean_output(read_output(fds[0], !hide_output)));
 
   close(fds[0]);
 
