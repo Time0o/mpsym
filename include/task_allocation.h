@@ -1,9 +1,11 @@
 #ifndef _GUARD_TASK_ALLOCATION_H
 #define _GUARD_TASK_ALLOCATION_H
 
+#include <cassert>
 #include <initializer_list>
 #include <ostream>
 #include <utility>
+#include <vector>
 
 #include "dump.h"
 #include "perm.h"
@@ -12,32 +14,44 @@
 namespace cgtl
 {
 
-// TODO: pass min_pe/max_pe during construction
 class TaskAllocation : public std::vector<unsigned>
 {
 public:
-  struct SubgraphPerm
+  TaskAllocation(std::initializer_list<unsigned> tasks, unsigned offset = 0u)
+  : std::vector<unsigned>(tasks),
+    offset(offset)
+  {}
+
+  TaskAllocation(std::vector<unsigned> const &tasks, unsigned offset = 0u)
+  : std::vector<unsigned>(tasks),
+    offset(offset)
+  {}
+
+  unsigned offset; // TODO: remove
+
+  bool less_than(TaskAllocation const other) const
   {
-    Perm perm;
-    unsigned min_pe;
-    unsigned max_pe;
-  };
+    assert(size() == other.size());
 
-  TaskAllocation(std::initializer_list<unsigned> tasks)
-  : std::vector<unsigned>(tasks)
-  {}
+    for (auto i = 0u; i < size(); ++i) {
+      unsigned task_this = (*this)[i];
+      unsigned task_other = other[i];
 
-  TaskAllocation(std::vector<unsigned> const &tasks)
-  : std::vector<unsigned>(tasks)
-  {}
+      if (task_this < task_other)
+        return true;
+      else if (task_this > task_other)
+        return false;
+    }
 
-  bool permutes_to_less_than(TaskAllocation const minimum,
-                             SubgraphPerm const &perm) const
+    return false;
+  }
+
+  bool less_than(TaskAllocation const other, Perm const &perm) const
   {
     return foreach_permuted_task(
       perm,
       [&](unsigned i, unsigned task_permuted, bool &flag){
-        unsigned task_min = minimum[i];
+        unsigned task_min = other[i];
 
         if (task_permuted > task_min) {
           flag = false;
@@ -52,7 +66,7 @@ public:
     );
   }
 
-  void permute(SubgraphPerm const &perm)
+  void permute(Perm const &perm)
   {
     foreach_permuted_task(
       perm,
@@ -63,9 +77,9 @@ public:
     );
   }
 
-  TaskAllocation permuted(SubgraphPerm const &perm) const
+  TaskAllocation permuted(Perm const &perm) const
   {
-    TaskAllocation res(*this);
+    TaskAllocation res(*this, offset);
 
     foreach_permuted_task(
       perm,
@@ -80,16 +94,14 @@ public:
 
 private:
   template<typename FUNC>
-  bool foreach_permuted_task(SubgraphPerm const &perm, FUNC &&f) const
+  bool foreach_permuted_task(Perm const &perm, FUNC &&f) const
   {
     for (auto i = 0u; i < size(); ++i) {
       unsigned task = (*this)[i];
-      if (task < perm.min_pe || task > perm.max_pe)
+      if (task <= offset || task > offset + perm.degree())
         continue;
 
-      unsigned offs = perm.min_pe - 1u;
-
-      unsigned task_permuted = perm.perm[task - offs] + offs;
+      unsigned task_permuted = perm[task - offset] + offset;
 
       bool flag;
       if (f(i, task_permuted, flag))

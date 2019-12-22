@@ -5,7 +5,7 @@
 
 #include "partial_perm_inverse_semigroup.h"
 #include "perm_group.h"
-#include "task_mapping.h"
+#include "task_allocation.h"
 #include "task_orbits.h"
 
 namespace cgtl
@@ -59,9 +59,9 @@ public:
   virtual PartialPermInverseSemigroup partial_automorphisms()
   { throw std::logic_error("not implemented"); }
 
-  virtual TaskMapping mapping(TaskMappingRequest const &tmr,
-                              MappingMethod method,
-                              TaskOrbits *orbits = nullptr);
+  virtual TaskAllocation mapping(TaskAllocation const &allocation,
+                                 MappingMethod method,
+                                 TaskOrbits *orbits = nullptr);
 
 protected:
   PermGroup _automorphisms;
@@ -74,13 +74,8 @@ private:
   virtual void update_automorphisms()
   { throw std::logic_error("not implemented"); }
 
-  TaskAllocation min_elem_bruteforce(TaskAllocation const &tasks,
-                                     unsigned min_pe,
-                                     unsigned max_pe);
-
-  TaskAllocation min_elem_approx(TaskAllocation const &tasks,
-                                 unsigned min_pe,
-                                 unsigned max_pe);
+  TaskAllocation min_elem_bruteforce(TaskAllocation const &tasks);
+  TaskAllocation min_elem_approx(TaskAllocation const &tasks);
 };
 
 class ArchGraphSubsystem

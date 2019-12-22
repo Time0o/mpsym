@@ -12,7 +12,7 @@
 #include "permlib.h"
 #include "profile_parse.h"
 #include "profile_util.h"
-#include "task_mapping.h"
+#include "task_allocation.h"
 
 namespace
 {

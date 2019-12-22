@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-#include "task_mapping.h"
+#include "task_allocation.h"
 
 namespace cgtl
 {
@@ -87,9 +87,6 @@ public:
 
     return {new_orbit, equivalence_class};
   }
-
-  std::pair<bool, unsigned> insert(TaskMapping const &tm)
-  { return insert(tm.representative); }
 
   template<typename IT>
   void insert_all(IT first, IT last)

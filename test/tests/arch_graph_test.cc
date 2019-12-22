@@ -2,6 +2,7 @@
 #include <fstream>
 #include <memory>
 #include <sstream>
+#include <unordered_map>
 #include <vector>
 
 #include "gmock/gmock.h"
@@ -13,6 +14,7 @@
 #include "partial_perm.h"
 #include "perm.h"
 #include "perm_group.h"
+#include "task_allocation.h"
 #include "test_utility.h"
 
 #include "test_main.cc"
@@ -25,7 +27,7 @@ using cgtl::ArchUniformSuperGraph;
 using cgtl::PartialPerm;
 using cgtl::Perm;
 using cgtl::PermGroup;
-using cgtl::TaskMapping;
+using cgtl::TaskAllocation;
 
 using testing::UnorderedElementsAreArray;
 
@@ -36,38 +38,48 @@ static void expect_mapping_generates_orbits(
   std::vector<orbit> expected_orbits,
   ArchGraphSystem::MappingMethod method)
 {
-  std::vector<TaskMapping> task_mappings;
-  for (auto j = 1u; j <= ag->num_processors(); ++j) {
-    for (auto k = 1u; k <= ag->num_processors(); ++k)
-      task_mappings.push_back(ag->mapping({{j, k}, 0u}, method));
+  std::unordered_map<TaskAllocation, std::vector<TaskAllocation>> orbits;
+
+  for (auto i = 1u; i <= ag->num_processors(); ++i) {
+    for (auto j = 1u; j <= ag->num_processors(); ++j) {
+      TaskAllocation allocation({i, j});
+      TaskAllocation representative(ag->mapping(allocation, method));
+
+      auto it = orbits.find(representative);
+      if (it == orbits.end())
+        orbits[representative] = {representative};
+
+      if (allocation != representative)
+        orbits[representative].push_back(allocation);
+    }
   }
 
-  for (auto const &tm1 : task_mappings) {
-    std::vector<unsigned> mapping1(tm1.allocation);
+  for (auto const &orbit : orbits) {
+    TaskAllocation representative(orbit.first);
+    std::vector<TaskAllocation> actual_orbit(orbit.second);
 
-    std::stringstream ss; ss << "{ ";
-    for (auto j = 0u; j < mapping1.size(); ++j)
-      ss << mapping1[j] << (j == mapping1.size() - 1u ? " }" : ", ");
-
-    std::vector<std::vector<unsigned>> equivalent_assignments;
-    for (auto const &tm2 : task_mappings) {
-      if (tm1.representative == tm2.representative)
-        equivalent_assignments.push_back(tm2.allocation);
-    }
+    std::stringstream ss;
+    ss << "{ " << representative[0];
+    for (auto i = 0u; i < representative.size(); ++i)
+      ss << representative[i] << ", " << representative[i];
 
     bool found_orbit = false;
-    for (auto const &orbit : expected_orbits) {
-      auto it = std::find(orbit.begin(), orbit.end(), tm1.allocation);
-      if (it != orbit.end()) {
-        EXPECT_THAT(equivalent_assignments, UnorderedElementsAreArray(orbit))
-          << "Equivalent task mappings for " << ss.str() << " correct.";
+
+    for (auto const &expected_orbit : expected_orbits) {
+      auto it = std::find(expected_orbit.begin(),
+                          expected_orbit.end(),
+                          representative);
+
+      if (it != expected_orbit.end()) {
+        EXPECT_THAT(actual_orbit, UnorderedElementsAreArray(expected_orbit))
+          << "Orbit with representative " << ss.str() << " correct.";
 
         found_orbit = true;
         break;
       }
     }
 
-    EXPECT_TRUE(found_orbit) << "Task mapping " << ss.str()
+    EXPECT_TRUE(found_orbit) << "Orbit representative " << ss.str()
                              << " present in some orbit.";
   }
 }

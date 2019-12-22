@@ -23,7 +23,6 @@
 #include "perm.h"
 #include "perm_group.h"
 #include "perm_set.h"
-#include "task_mapping.h"
 
 namespace cgtl
 {

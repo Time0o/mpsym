@@ -7,7 +7,7 @@
 #include "perm.h"
 #include "perm_set.h"
 #include "permlib.h"
-#include "task_mapping.h"
+#include "task_allocation.h"
 
 struct GenericGroup
 {

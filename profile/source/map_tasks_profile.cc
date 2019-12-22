@@ -16,7 +16,7 @@
 #include "arch_graph_system.h"
 #include "dump.h"
 #include "perm_set.h"
-#include "task_mapping.h"
+#include "task_allocation.h"
 #include "task_orbits.h"
 #include "timer.h"
 
@@ -144,7 +144,7 @@ cgtl::TaskOrbits map_tasks_mpsym(
     else
       throw std::logic_error("unreachable");
 
-    auto mapping(ag.mapping({task_allocations[i], 0u}, method, &task_orbits));
+    auto mapping(ag.mapping(task_allocations[i], method, &task_orbits));
   }
 
   if (options.verbosity > 0) {

@@ -11,7 +11,6 @@
 #include "arch_graph_system.h"
 #include "partial_perm_inverse_semigroup.h"
 #include "perm_group.h"
-#include "task_mapping.h"
 
 namespace cgtl
 {

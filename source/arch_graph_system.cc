@@ -9,7 +9,7 @@
 #include "dbg.h"
 #include "perm.h"
 #include "perm_set.h"
-#include "task_mapping.h"
+#include "task_allocation.h"
 #include "task_orbits.h"
 #include "timer.h"
 
@@ -38,37 +38,24 @@ PermSet ArchGraphSystem::automorphisms_generators(bool augmented)
   return _augmented_generators;
 }
 
-TaskMapping ArchGraphSystem::mapping(TaskMappingRequest const &tmr,
-                                     MappingMethod method,
-                                     TaskOrbits *orbits)
+TaskAllocation ArchGraphSystem::mapping(TaskAllocation const &allocation,
+                                        MappingMethod method,
+                                        TaskOrbits *orbits)
 {
-  DBG(DEBUG) << "Requested task mapping: " << tmr;
-
-  unsigned min_pe = tmr.offset + 1u;
-  unsigned max_pe = min_pe + automorphisms().degree() - 1u;
-
-#ifndef NDEBUG
-  if (min_pe != 0u) {
-    DBG(TRACE) << "Mapping shifted range [" << min_pe << ", " << max_pe << "]";
-  }
-#endif
+  DBG(DEBUG) << "Requested task mapping for: " << allocation;
 
   TaskAllocation representative =
-    method == MappingMethod::BRUTEFORCE ?
-      min_elem_bruteforce(tmr.allocation, min_pe, max_pe) :
-    method == MappingMethod::APPROXIMATE ?
-      min_elem_approx(tmr.allocation, min_pe, max_pe) :
+    method == MappingMethod::BRUTEFORCE ? min_elem_bruteforce(allocation) :
+    method == MappingMethod::APPROXIMATE ? min_elem_approx(allocation) :
     throw std::logic_error("unreachable");
 
   if (orbits)
     orbits->insert(representative);
 
-  return TaskMapping(tmr.allocation, representative);
+  return representative;
 }
 
-TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks,
-                                                    unsigned min_pe,
-                                                    unsigned max_pe)
+TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks)
 {
   DBG(DEBUG) << "Performing brute force mapping";
 
@@ -77,11 +64,8 @@ TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks,
   TaskAllocation representative(tasks);
 
   for (Perm const &element : automorphisms()) {
-    bool new_minimum = tasks.permutes_to_less_than(
-      representative, {element, min_pe, max_pe});
-
-    if (new_minimum)
-      representative = tasks.permuted({element, min_pe, max_pe});
+    if (tasks.less_than(representative, element))
+      representative = tasks.permuted(element);
   }
 
   TIMER_STOP("map bruteforce");
@@ -91,26 +75,21 @@ TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks,
   return representative;
 }
 
-TaskAllocation ArchGraphSystem::min_elem_approx(TaskAllocation const &tasks,
-                                                unsigned min_pe,
-                                                unsigned max_pe)
+TaskAllocation ArchGraphSystem::min_elem_approx(TaskAllocation const &tasks)
 {
   DBG(TRACE) << "Performing approximate mapping";
 
-  TaskAllocation representative(tasks);
-
   TIMER_START("map approx");
+
+  TaskAllocation representative(tasks);
 
   bool stationary = false;
   while (!stationary) {
     stationary = true;
 
     for (Perm const &generator : automorphisms_generators(true)) {
-      bool new_minimum = representative.permutes_to_less_than(
-        representative, {generator, min_pe, max_pe});
-
-      if (new_minimum) {
-        representative.permute({generator, min_pe, max_pe});
+      if (representative.less_than(representative, generator)) {
+        representative.permute(generator);
 
         stationary = false;
       }
