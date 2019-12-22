@@ -2,6 +2,7 @@
 #define _GUARD_TASK_ORBITS_H
 
 #include <cassert>
+#include <iterator>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -18,6 +19,7 @@ class TaskOrbits
 
 public:
   class const_iterator
+  : public std::iterator<std::forward_iterator_tag, TaskAllocation>
   {
   public:
     const_iterator(orbit_representatives_map::const_iterator current_it,

@@ -2,6 +2,7 @@
 #define _GUARD_SCHREIER_GENERATOR_QUEUE_H
 
 #include <cassert>
+#include <iterator>
 #include <memory>
 #include <vector>
 
@@ -21,7 +22,7 @@ class SchreierGeneratorQueue
   using fo_it_type = fo_type::const_iterator;
 
 public:
-  class iterator
+  class iterator : std::iterator<std::forward_iterator_tag, Perm>
   {
   public:
     iterator()

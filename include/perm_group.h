@@ -1,6 +1,7 @@
 #ifndef _GUARD_PERM_GROUP_H
 #define _GUARD_PERM_GROUP_H
 
+#include <iterator>
 #include <map>
 #include <vector>
 
@@ -28,7 +29,7 @@ namespace cgtl
 class PermGroup
 {
 public:
-  class const_iterator
+  class const_iterator : std::iterator<std::forward_iterator_tag, Perm>
   {
   public:
     const_iterator() : _end(true) {};
