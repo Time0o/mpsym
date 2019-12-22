@@ -35,11 +35,6 @@ void BSGS::schreier_sims(PermSet const &generators)
                      &fundamental_orbits,
                      &schreier_generator_queues);
 
-  // performance timers
-  TIMER_CREATE("strip");
-  TIMER_CREATE("extend base");
-  TIMER_CREATE("update strong gens");
-
   // main loop
   unsigned i = base_size();
   while (i >= 1u) {

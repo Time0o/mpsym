@@ -183,12 +183,10 @@ inline std::ostream &operator<<(std::ostream &s, Timer const &timer)
 
 #define TIMER_OP(op) do { if (timer::Timer::enabled) { op; } } while (0)
 
-#define TIMER_CREATE(name) \
-  TIMER_OP(timer::Timer::create(name))
 #define TIMER_CREATE_WITH_PRECISION(name, precision) \
   TIMER_OP(timer::Timer::create(name, precision))
 #define TIMER_START(name) \
-  TIMER_OP(timer::Timer::get(name).start())
+  TIMER_OP(timer::Timer::create(name); timer::Timer::get(name).start())
 #define TIMER_STOP(name) \
   TIMER_OP(timer::Timer::get(name).stop())
 #define TIMER_DUMP(name) \

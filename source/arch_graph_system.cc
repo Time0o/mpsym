@@ -51,9 +51,6 @@ TaskMapping ArchGraphSystem::mapping(TaskMappingRequest const &tmr,
   }
 #endif
 
-  TIMER_CREATE("map approx");
-  TIMER_CREATE("map bruteforce");
-
   TaskAllocation representative =
     tmr.approximate ? min_elem_approx(tmr.allocation, min_pe, max_pe)
                     : min_elem_bruteforce(tmr.allocation, min_pe, max_pe);
