@@ -61,6 +61,7 @@ public:
 
   virtual TaskAllocation mapping(TaskAllocation const &allocation,
                                  MappingMethod method,
+                                 unsigned offset = 0u,
                                  TaskOrbits *orbits = nullptr);
 
 protected:
@@ -74,8 +75,8 @@ private:
   virtual void update_automorphisms()
   { throw std::logic_error("not implemented"); }
 
-  TaskAllocation min_elem_bruteforce(TaskAllocation const &tasks);
-  TaskAllocation min_elem_approx(TaskAllocation const &tasks);
+  TaskAllocation min_elem_bruteforce(TaskAllocation const &tasks, unsigned offset);
+  TaskAllocation min_elem_approx(TaskAllocation const &tasks, unsigned offset);
 };
 
 class ArchGraphSubsystem

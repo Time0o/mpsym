@@ -28,6 +28,7 @@ public:
 
   TaskAllocation mapping(TaskAllocation const &allocation,
                          MappingMethod method,
+                         unsigned offset = 0u,
                          TaskOrbits *orbits = nullptr) override;
 
 private:

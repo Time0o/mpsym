@@ -144,7 +144,7 @@ cgtl::TaskOrbits map_tasks_mpsym(
     else
       throw std::logic_error("unreachable");
 
-    auto mapping(ag.mapping(task_allocations[i], method, &task_orbits));
+    auto mapping(ag.mapping(task_allocations[i], method, 0u, &task_orbits));
   }
 
   if (options.verbosity > 0) {

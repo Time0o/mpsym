@@ -17,17 +17,13 @@ namespace cgtl
 class TaskAllocation : public std::vector<unsigned>
 {
 public:
-  TaskAllocation(std::initializer_list<unsigned> tasks, unsigned offset = 0u)
-  : std::vector<unsigned>(tasks),
-    offset(offset)
+  TaskAllocation(std::initializer_list<unsigned> tasks)
+  : std::vector<unsigned>(tasks)
   {}
 
-  TaskAllocation(std::vector<unsigned> const &tasks, unsigned offset = 0u)
-  : std::vector<unsigned>(tasks),
-    offset(offset)
+  TaskAllocation(std::vector<unsigned> const &tasks)
+  : std::vector<unsigned>(tasks)
   {}
-
-  unsigned offset; // TODO: remove
 
   bool less_than(TaskAllocation const other) const
   {
@@ -46,10 +42,13 @@ public:
     return false;
   }
 
-  bool less_than(TaskAllocation const other, Perm const &perm) const
+  bool less_than(TaskAllocation const other,
+                 Perm const &perm,
+                 unsigned offset = 0u) const
   {
     return foreach_permuted_task(
       perm,
+      offset,
       [&](unsigned i, unsigned task_permuted, bool &flag){
         unsigned task_min = other[i];
 
@@ -66,10 +65,11 @@ public:
     );
   }
 
-  void permute(Perm const &perm)
+  void permute(Perm const &perm, unsigned offset = 0u)
   {
     foreach_permuted_task(
       perm,
+      offset,
       [&](unsigned i, unsigned task_permuted, bool &){
         (*this)[i] = task_permuted;
         return false;
@@ -77,12 +77,13 @@ public:
     );
   }
 
-  TaskAllocation permuted(Perm const &perm) const
+  TaskAllocation permuted(Perm const &perm, unsigned offset = 0u) const
   {
-    TaskAllocation res(*this, offset);
+    TaskAllocation res(*this);
 
     foreach_permuted_task(
       perm,
+      offset,
       [&](unsigned i, unsigned task_permuted, bool &){
         res[i] = task_permuted;
         return false;
@@ -94,7 +95,7 @@ public:
 
 private:
   template<typename FUNC>
-  bool foreach_permuted_task(Perm const &perm, FUNC &&f) const
+  bool foreach_permuted_task(Perm const &perm, unsigned offset, FUNC &&f) const
   {
     for (auto i = 0u; i < size(); ++i) {
       unsigned task = (*this)[i];

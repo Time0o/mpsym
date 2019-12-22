@@ -40,13 +40,14 @@ PermSet ArchGraphSystem::automorphisms_generators(bool augmented)
 
 TaskAllocation ArchGraphSystem::mapping(TaskAllocation const &allocation,
                                         MappingMethod method,
+                                        unsigned offset,
                                         TaskOrbits *orbits)
 {
   DBG(DEBUG) << "Requested task mapping for: " << allocation;
 
   TaskAllocation representative =
-    method == MappingMethod::BRUTEFORCE ? min_elem_bruteforce(allocation) :
-    method == MappingMethod::APPROXIMATE ? min_elem_approx(allocation) :
+    method == MappingMethod::BRUTEFORCE ? min_elem_bruteforce(allocation, offset) :
+    method == MappingMethod::APPROXIMATE ? min_elem_approx(allocation, offset) :
     throw std::logic_error("unreachable");
 
   if (orbits)
@@ -55,7 +56,8 @@ TaskAllocation ArchGraphSystem::mapping(TaskAllocation const &allocation,
   return representative;
 }
 
-TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks)
+TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks,
+                                                    unsigned offset)
 {
   DBG(DEBUG) << "Performing brute force mapping";
 
@@ -64,8 +66,8 @@ TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks)
   TaskAllocation representative(tasks);
 
   for (Perm const &element : automorphisms()) {
-    if (tasks.less_than(representative, element))
-      representative = tasks.permuted(element);
+    if (tasks.less_than(representative, element, offset))
+      representative = tasks.permuted(element, offset);
   }
 
   TIMER_STOP("map bruteforce");
@@ -75,7 +77,8 @@ TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks)
   return representative;
 }
 
-TaskAllocation ArchGraphSystem::min_elem_approx(TaskAllocation const &tasks)
+TaskAllocation ArchGraphSystem::min_elem_approx(TaskAllocation const &tasks,
+                                                unsigned offset)
 {
   DBG(TRACE) << "Performing approximate mapping";
 
@@ -88,8 +91,8 @@ TaskAllocation ArchGraphSystem::min_elem_approx(TaskAllocation const &tasks)
     stationary = true;
 
     for (Perm const &generator : automorphisms_generators(true)) {
-      if (representative.less_than(representative, generator)) {
-        representative.permute(generator);
+      if (representative.less_than(representative, generator, offset)) {
+        representative.permute(generator, offset);
 
         stationary = false;
       }
