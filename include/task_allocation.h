@@ -1,3 +1,6 @@
+#ifndef _GUARD_TASK_ALLOCATION_H
+#define _GUARD_TASK_ALLOCATION_H
+
 #include <initializer_list>
 #include <ostream>
 #include <utility>
@@ -116,3 +119,5 @@ struct hash<cgtl::TaskAllocation>
 };
 
 } // namespace std
+
+#endif // _GUARD_TASK_ALLOCATION_H
