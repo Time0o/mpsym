@@ -1,5 +1,8 @@
+#include <algorithm>
+#include <queue>
 #include <stdexcept>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -46,9 +49,13 @@ TaskAllocation ArchGraphSystem::mapping(TaskAllocation const &allocation,
   DBG(DEBUG) << "Requested task mapping for: " << allocation;
 
   TaskAllocation representative =
-    method == MappingMethod::BRUTEFORCE ? min_elem_bruteforce(allocation, offset) :
-    method == MappingMethod::APPROXIMATE ? min_elem_approx(allocation, offset) :
-    throw std::logic_error("unreachable");
+    method == MappingMethod::ITERATE ?
+      min_elem_iterate(allocation, offset) :
+    method == MappingMethod::LOCAL_SEARCH ?
+      min_elem_local_search(allocation, offset) :
+    method == MappingMethod::ORBITS ?
+      min_elem_orbits(allocation, offset, orbits) :
+    throw std::logic_error("TODO");
 
   if (orbits)
     orbits->insert(representative);
@@ -56,12 +63,12 @@ TaskAllocation ArchGraphSystem::mapping(TaskAllocation const &allocation,
   return representative;
 }
 
-TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks,
-                                                    unsigned offset)
+TaskAllocation ArchGraphSystem::min_elem_iterate(TaskAllocation const &tasks,
+                                                 unsigned offset)
 {
-  DBG(DEBUG) << "Performing brute force mapping";
+  DBG(DEBUG) << "Performing mapping by iteration";
 
-  TIMER_START("map bruteforce");
+  TIMER_START("map bruteforce iterate");
 
   TaskAllocation representative(tasks);
 
@@ -70,19 +77,19 @@ TaskAllocation ArchGraphSystem::min_elem_bruteforce(TaskAllocation const &tasks,
       representative = tasks.permuted(element, offset);
   }
 
-  TIMER_STOP("map bruteforce");
+  TIMER_STOP("map bruteforce iterate");
 
   DBG(DEBUG) << "Found minimal orbit element: " << representative;
 
   return representative;
 }
 
-TaskAllocation ArchGraphSystem::min_elem_approx(TaskAllocation const &tasks,
-                                                unsigned offset)
+TaskAllocation ArchGraphSystem::min_elem_local_search(TaskAllocation const &tasks,
+                                                      unsigned offset)
 {
-  DBG(TRACE) << "Performing approximate mapping";
+  DBG(TRACE) << "Performing approximate mapping by local search";
 
-  TIMER_START("map approx");
+  TIMER_START("map approx local search");
 
   TaskAllocation representative(tasks);
 
@@ -99,12 +106,53 @@ TaskAllocation ArchGraphSystem::min_elem_approx(TaskAllocation const &tasks,
     }
   }
 
-  TIMER_STOP("map approx");
+  TIMER_STOP("map approx local search");
 
   DBG(DEBUG) << "Found approximate minimal orbit element: " << representative;
 
   return representative;
 }
 
+TaskAllocation ArchGraphSystem::min_elem_orbits(TaskAllocation const &tasks,
+                                                unsigned offset,
+                                                TaskOrbits *orbits)
+{
+  DBG(TRACE) << "Performing mapping by orbit construction";
+
+  TIMER_START("map bruteforce orbits");
+
+  TaskAllocation representative(tasks);
+
+  std::unordered_set<TaskAllocation> processed;
+  std::queue<TaskAllocation> unprocessed;
+
+  unprocessed.push(tasks);
+
+  while (!unprocessed.empty()) {
+    TaskAllocation current(unprocessed.front());
+    unprocessed.pop();
+
+    processed.insert(current);
+
+    if (current.less_than(representative))
+      representative = current;
+
+    for (Perm const &generator : automorphisms_generators(false)) {
+      TaskAllocation next(current.permuted(generator, offset));
+
+      // TODO
+      /*if (std::find(orbits->begin(), orbits->end(), next) != orbits->end()) {
+        TIMER_STOP("map bruteforce orbits");
+        return next;
+      } else*/ if (processed.find(next) == processed.end()) {
+        unprocessed.push(next);
+      }
+    }
+  }
+
+  TIMER_STOP("map bruteforce orbits");
+
+  return representative;;
+}
 
 } // namespace cgtl

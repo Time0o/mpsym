@@ -404,8 +404,9 @@ TEST_P(ArchGraphMappingVariantTest, CanTestMappingEquivalence)
 INSTANTIATE_TEST_CASE_P(
   ArchGraphMappingVariants,
   ArchGraphMappingVariantTest,
-  testing::Values(ArchGraphSystem::MappingMethod::BRUTEFORCE,
-                  ArchGraphSystem::MappingMethod::APPROXIMATE));
+  testing::Values(ArchGraphSystem::MappingMethod::ITERATE,
+                  ArchGraphSystem::MappingMethod::LOCAL_SEARCH,
+                  ArchGraphSystem::MappingMethod::ORBITS));
 
 template<typename T>
 class ArchGraphClusterTestBase : public T
@@ -501,8 +502,9 @@ TEST_P(ArchGraphClusterMappingVariantTest, CanTestMappingEquivalence)
 INSTANTIATE_TEST_CASE_P(
   ArchGraphClusterMappingVariants,
   ArchGraphClusterMappingVariantTest,
-  testing::Values(ArchGraphSystem::MappingMethod::BRUTEFORCE,
-                  ArchGraphSystem::MappingMethod::APPROXIMATE));
+  testing::Values(ArchGraphSystem::MappingMethod::ITERATE,
+                  ArchGraphSystem::MappingMethod::LOCAL_SEARCH,
+                  ArchGraphSystem::MappingMethod::ORBITS));
 
 template<typename T>
 class ArchUniformSuperGraphTestBase : public T

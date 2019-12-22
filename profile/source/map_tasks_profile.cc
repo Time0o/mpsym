@@ -37,7 +37,8 @@ void usage(std::ostream &s)
 {
   char const *opts[] = {
     "[-h|--help]",
-    "-i|--implementation {gap|mpsym|mpsym_approx}",
+    "-i|--implementation {gap|mpsym}",
+    "[-m|--mapping-method {iterate|local_search|orbits|orbits_stop_early}]",
     "-g|--groups GROUPS",
     "[-t|--task-allocations TASK_ALLOCATIONS]",
     "[--num-tasks NUM_TASKS]",
@@ -55,7 +56,8 @@ void usage(std::ostream &s)
 
 struct ProfileOptions
 {
-  VariantOption library{"gap", "mpsym", "mpsym_approx"};
+  VariantOption library{"gap", "mpsym"};
+  VariantOption mapping_method{"iterate", "local_search", "orbits", "orbits_stop_early"};
   unsigned num_tasks = 0u;
   unsigned num_task_allocations = 0u;
   bool check_accuracy = false;
@@ -137,10 +139,14 @@ cgtl::TaskOrbits map_tasks_mpsym(
       debug_progress("Mapping task", i + 1u, "of", task_allocations.size());
 
     ArchGraphSystem::MappingMethod method;
-    if (options.library.is("mpsym"))
-      method = ArchGraphSystem::MappingMethod::BRUTEFORCE;
-    else if (options.library.is("mpsym_approx"))
-      method = ArchGraphSystem::MappingMethod::APPROXIMATE;
+    if (options.mapping_method.is("iterate"))
+      method = ArchGraphSystem::MappingMethod::ITERATE;
+    else if (options.mapping_method.is("local_search"))
+      method = ArchGraphSystem::MappingMethod::LOCAL_SEARCH;
+    else if (options.mapping_method.is("orbits"))
+      method = ArchGraphSystem::MappingMethod::ORBITS;
+    else if (options.mapping_method.is("orbits_stop_early"))
+      method = ArchGraphSystem::MappingMethod::ORBITS_STOP_EARLY;
     else
       throw std::logic_error("unreachable");
 
@@ -158,8 +164,14 @@ cgtl::TaskOrbits map_tasks_mpsym(
     }
 
     debug("Timer dumps:");
-    debug_timer_dump(options.library.is("mpsym_approx") ? "map approx"
-                                                        : "map bruteforce");
+    if (options.mapping_method.is("iterate"))
+      debug_timer_dump("map bruteforce iterate");
+    else if (options.mapping_method.is("local_search"))
+      debug_timer_dump("map approx local search");
+    else if (options.mapping_method.is("orbits"))
+      debug_timer_dump("map bruteforce orbits");
+    else if (options.mapping_method.is("orbits_stop_early"))
+      debug_timer_dump("map approximate orbits stop early");
   }
 
   return task_orbits;
@@ -290,7 +302,7 @@ double run(std::string const &generators,
   if (options.library.is("gap")) {
     map_tasks_gap_wrapper(generators, task_allocations, options, nullptr, &t);
 
-  } else if (options.library.is("mpsym") || options.library.is("mpsym_approx")) {
+  } else if (options.library.is("mpsym")) {
     TaskOrbits task_orbits_mpsym, task_orbits_gap;
 
     map_tasks_mpsym_wrapper(generators,
@@ -356,6 +368,7 @@ int main(int argc, char **argv)
   struct option long_options[] = {
     {"help",                 no_argument,       0,       'h'},
     {"implementation",       required_argument, 0,       'i'},
+    {"mapping-method",       required_argument, 0,       'm'},
     {"groups",               required_argument, 0,       'g'},
     {"task-allocations",     required_argument, 0,       't'},
     {"num-tasks",            required_argument, 0,        2 },
@@ -373,7 +386,7 @@ int main(int argc, char **argv)
   Stream task_allocations_stream;
 
   for (;;) {
-    int c = getopt_long(argc, argv, "hi:g:t:v", long_options, nullptr);
+    int c = getopt_long(argc, argv, "hi:m:g:t:v", long_options, nullptr);
     if (c == -1)
       break;
 
@@ -384,6 +397,9 @@ int main(int argc, char **argv)
         return EXIT_SUCCESS;
       case 'i':
         options.library.set(optarg);
+        break;
+      case 'm':
+        options.mapping_method.set(optarg);
         break;
       case 'g':
         OPEN_STREAM(groups_stream, optarg);
@@ -420,6 +436,13 @@ int main(int argc, char **argv)
   }
 
   CHECK_OPTION(options.library.is_set(), "--implementation option is mandatory");
+
+  if (options.library.is("mpsym")) {
+    CHECK_OPTION(options.mapping_method.is_set(),
+                 "--mapping-method is required when using mpsym");
+  } else if (options.mapping_method.is_set()) {
+    warning("--mapping-method option ignored");
+  }
 
   CHECK_OPTION(groups_stream.valid, "--groups option is mandatory");
 

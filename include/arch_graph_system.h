@@ -23,8 +23,10 @@ class ArchGraphSystem
 {
 public:
   enum class MappingMethod {
-    BRUTEFORCE,
-    APPROXIMATE
+    ITERATE,
+    LOCAL_SEARCH,
+    ORBITS,
+    ORBITS_STOP_EARLY
   };
 
   ArchGraphSystem()
@@ -75,8 +77,15 @@ private:
   virtual void update_automorphisms()
   { throw std::logic_error("not implemented"); }
 
-  TaskAllocation min_elem_bruteforce(TaskAllocation const &tasks, unsigned offset);
-  TaskAllocation min_elem_approx(TaskAllocation const &tasks, unsigned offset);
+  TaskAllocation min_elem_iterate(TaskAllocation const &tasks,
+                                  unsigned offset);
+
+  TaskAllocation min_elem_local_search(TaskAllocation const &tasks,
+                                       unsigned offset);
+
+  TaskAllocation min_elem_orbits(TaskAllocation const &tasks,
+                                 unsigned offset,
+                                 TaskOrbits *orbits);
 };
 
 class ArchGraphSubsystem
