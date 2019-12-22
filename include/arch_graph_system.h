@@ -32,6 +32,7 @@ public:
 
   struct MappingOptions {
     MappingMethod method = MappingMethod::AUTO;
+    bool match_representatives = true;
   };
 
   ArchGraphSystem()
@@ -89,14 +90,29 @@ private:
   { throw std::logic_error("not implemented"); }
 
   TaskAllocation min_elem_iterate(TaskAllocation const &tasks,
-                                  unsigned offset);
+                                  unsigned offset,
+                                  MappingOptions *options,
+                                  TaskOrbits *orbits);
 
   TaskAllocation min_elem_local_search(TaskAllocation const &tasks,
-                                       unsigned offset);
+                                       unsigned offset,
+                                       MappingOptions *options,
+                                       TaskOrbits *orbits);
 
   TaskAllocation min_elem_orbits(TaskAllocation const &tasks,
                                  unsigned offset,
+                                 MappingOptions *options,
                                  TaskOrbits *orbits);
+
+  static bool is_representative(TaskAllocation const &tasks,
+                                MappingOptions *options,
+                                TaskOrbits *orbits)
+  {
+    if (!options->match_representatives || !orbits)
+      return false;
+
+    return orbits->is_representative(tasks);
+  }
 
   static MappingOptions _default_mapping_options;
 

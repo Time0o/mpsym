@@ -1,6 +1,7 @@
 #ifndef _GUARD_TASK_ORBITS_H
 #define _GUARD_TASK_ORBITS_H
 
+#include <algorithm>
 #include <cassert>
 #include <iterator>
 #include <unordered_map>
@@ -70,17 +71,17 @@ public:
   bool operator!=(TaskOrbits const &rhs) const
   { return !(*this == rhs); }
 
-  std::pair<bool, unsigned> insert(TaskAllocation const &tr)
+  std::pair<bool, unsigned> insert(TaskAllocation const &allocation)
   {
     bool new_orbit;
     unsigned equivalence_class;
 
-    auto it = _orbit_representatives.find(tr);
+    auto it = _orbit_representatives.find(allocation);
     if (it == _orbit_representatives.end()) {
       new_orbit = true;
       equivalence_class = num_orbits();
 
-      _orbit_representatives[tr] = equivalence_class;
+      _orbit_representatives[allocation] = equivalence_class;
 
     } else {
       new_orbit = false;
@@ -96,6 +97,9 @@ public:
     for (auto it = first; it != last; ++it)
       insert(*it);
   }
+
+  bool is_representative(TaskAllocation const &allocation) const
+  { return std::find(begin(), end(), allocation) != end(); }
 
   unsigned num_orbits() const
   { return static_cast<unsigned>(_orbit_representatives.size()); }
