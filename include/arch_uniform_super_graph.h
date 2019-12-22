@@ -36,9 +36,9 @@ public:
   unsigned num_channels() const override;
 
 private:
-  ArchUniformSuperGraph(ArchGraphSubsystem &&subsystem);
+  PermGroup update_automorphisms() override;
 
-  void update_automorphisms() override;
+  ArchUniformSuperGraph(ArchGraphSubsystem &&subsystem);
 
   ArchGraph _subsystem_supergraph;
   ArchGraphSubsystem _subsystem_proto;

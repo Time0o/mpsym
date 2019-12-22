@@ -68,12 +68,12 @@ public:
   PartialPermInverseSemigroup partial_automorphisms() override;
 
 private:
+  PermGroup update_automorphisms() override;
+
   void create_mesh(unsigned width,
                    unsigned height,
                    ProcessorType pe,
                    ChannelType ch);
-
-  void update_automorphisms() override;
 
   void dump_processors(std::ostream& os) const;
   void dump_channels(std::ostream& os) const;

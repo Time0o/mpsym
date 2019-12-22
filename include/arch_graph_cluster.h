@@ -32,9 +32,9 @@ public:
                          TaskOrbits *orbits = nullptr) override;
 
 private:
-  void add_subsystem(ArchGraphSubsystem &&subsystem);
+  PermGroup update_automorphisms() override;
 
-  void update_automorphisms() override;
+  void add_subsystem(ArchGraphSubsystem &&subsystem);
 
   std::vector<ArchGraphSubsystem> _subsystems;
 };

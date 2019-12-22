@@ -49,7 +49,7 @@ public:
   virtual PermGroup automorphisms()
   {
     if (!_automorphisms_valid) {
-      update_automorphisms();
+      _automorphisms = update_automorphisms();
       _automorphisms_valid = true;
     }
 
@@ -67,14 +67,17 @@ public:
                                  TaskOrbits *orbits = nullptr);
 
 protected:
-  PermGroup _automorphisms;
-  bool _automorphisms_valid;
+  void set_automorphisms(PermGroup const &automorphisms)
+  {
+    _automorphisms = automorphisms;
+    _automorphisms_valid = true;
+  }
+
+  void invalidate_automorphisms()
+  { _automorphisms_valid = false; }
 
 private:
-  PermSet _augmented_generators;
-  bool _augmented_generators_valid;
-
-  virtual void update_automorphisms()
+  virtual PermGroup update_automorphisms()
   { throw std::logic_error("not implemented"); }
 
   TaskAllocation min_elem_iterate(TaskAllocation const &tasks,
@@ -86,6 +89,12 @@ private:
   TaskAllocation min_elem_orbits(TaskAllocation const &tasks,
                                  unsigned offset,
                                  TaskOrbits *orbits);
+
+  PermGroup _automorphisms;
+  bool _automorphisms_valid;
+
+  PermSet _augmented_generators;
+  bool _augmented_generators_valid;
 };
 
 class ArchGraphSubsystem

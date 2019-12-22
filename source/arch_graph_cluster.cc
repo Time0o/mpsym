@@ -13,7 +13,7 @@ namespace cgtl
 void
 ArchGraphCluster::add_subsystem(ArchGraphSubsystem &&subsystem)
 {
-  _automorphisms_valid = false;
+  invalidate_automorphisms();
 
   _subsystems.emplace_back(subsystem);
 }
@@ -38,16 +38,18 @@ ArchGraphCluster::num_channels() const
   return res;
 }
 
-void
+PermGroup
 ArchGraphCluster::update_automorphisms()
 {
   assert(!_subsystems.empty());
 
-  _automorphisms = _subsystems[0]->automorphisms();
-  for (auto i = 1u; i < _subsystems.size(); ++i) {
-    _automorphisms = PermGroup::direct_product(
-      _automorphisms, _subsystems[i]->automorphisms());
-  }
+  // TODO: optimize
+  PermGroup automorphisms(_subsystems[0]->automorphisms());
+  for (auto i = 1u; i < _subsystems.size(); ++i)
+    automorphisms = PermGroup::direct_product(automorphisms,
+                                              _subsystems[i]->automorphisms());
+
+  return automorphisms;
 }
 
 TaskAllocation

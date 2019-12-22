@@ -21,7 +21,7 @@ ArchUniformSuperGraph::new_subsystem_channel_type(ChannelLabel cl)
 ArchUniformSuperGraph::SubsystemType
 ArchUniformSuperGraph::add_subsystem()
 {
-  _automorphisms_valid = false;
+  invalidate_automorphisms();
 
   return _subsystem_supergraph.add_processor(_subsystem_processor_type);
 }
@@ -31,7 +31,7 @@ ArchUniformSuperGraph::add_subsystem_channel(SubsystemType from,
                                              SubsystemType to,
                                              SubsystemChannelType ch)
 {
-  assert(!_automorphisms_valid);
+  invalidate_automorphisms();
 
   _subsystem_supergraph.add_channel(from, to, ch);
 }
@@ -54,10 +54,10 @@ ArchUniformSuperGraph::num_channels() const
   return res;
 }
 
-void
+PermGroup
 ArchUniformSuperGraph::update_automorphisms()
 {
-  _automorphisms = PermGroup::wreath_product(
+  return PermGroup::wreath_product(
     _subsystem_proto->automorphisms(), _subsystem_supergraph.automorphisms());
 }
 

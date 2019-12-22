@@ -72,7 +72,7 @@ ArchGraph::ChannelType ArchGraph::new_channel_type(ChannelLabel cl)
 
 unsigned ArchGraph::add_processor(ProcessorType pt)
 {
-  _automorphisms_valid = false;
+  invalidate_automorphisms();
 
   _processor_type_instances[pt]++;
 
@@ -82,7 +82,7 @@ unsigned ArchGraph::add_processor(ProcessorType pt)
 
 void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType cht)
 {
-  _automorphisms_valid = false;
+  invalidate_automorphisms();
 
   _channel_type_instances[cht]++;
 
@@ -100,7 +100,7 @@ unsigned ArchGraph::num_channels() const
   return static_cast<unsigned>(boost::num_edges(_adj));
 }
 
-void ArchGraph::update_automorphisms()
+PermGroup ArchGraph::update_automorphisms()
 {
   DBG(DEBUG) << "=== Determining architecture graph automorphisms";
 
@@ -215,7 +215,7 @@ void ArchGraph::update_automorphisms()
   DYNFREE(orbits, orbits_sz);
   nauty_free();
 
-  _automorphisms = nauty_generators.empty()
+  return nauty_generators.empty()
     ? PermGroup(nauty_generator_degree, {})
     : PermGroup(nauty_generator_degree, nauty_generators);
 }
@@ -307,9 +307,7 @@ PartialPermInverseSemigroup ArchGraph::partial_automorphisms()
     }
   };
 
-  DBG(DEBUG)
-    << "Finding partial automorphisms for arch graph with automorphism group:";
-  DBG(DEBUG) << _automorphisms;
+  DBG(DEBUG) << "Finding partial automorphisms for arch graph";
 
   backtrack(Domain(std::vector<bool>(num_processors(), false), 0u), {});
 
@@ -340,8 +338,7 @@ ArchGraph ArchGraph::fully_connected(unsigned n,
     }
   }
 
-  ag._automorphisms = PermGroup::symmetric(n);
-  ag._automorphisms_valid = true;
+  ag.set_automorphisms(PermGroup::symmetric(n));
 
   return ag;
 }
@@ -360,10 +357,8 @@ ArchGraph ArchGraph::regular_mesh(unsigned width,
 
   ag.create_mesh(width, height, pe, ch);
 
-  if (height == width) {
-    ag._automorphisms = PermGroup::dihedral(8);
-    ag._automorphisms_valid = true;
-  }
+  if (height == width)
+    ag.set_automorphisms(PermGroup::dihedral(8));
 
   return ag;
 }
@@ -504,17 +499,13 @@ void ArchGraph::dump_automorphisms(std::ostream& os)
 {
   os << "automorphism group: [";
 
-  if (_automorphisms_valid) {
-    auto gens(automorphisms_generators());
+  auto gens(automorphisms_generators());
 
-    for (auto i = 0u; i < gens.size(); ++i) {
-      os << "\n  " << gens[i];
+  for (auto i = 0u; i < gens.size(); ++i) {
+    os << "\n  " << gens[i];
 
-      if (i < gens.size() - 1u)
-        os << ",";
-    }
-  } else {
-    os << "\n  ...";
+    if (i < gens.size() - 1u)
+      os << ",";
   }
 
   os << "\n]";
