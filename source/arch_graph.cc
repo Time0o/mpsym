@@ -351,6 +351,8 @@ ArchGraph ArchGraph::regular_mesh(unsigned width,
                                   ProcessorLabel pl,
                                   ChannelLabel cl)
 {
+  assert(width > 0u && height > 0u);
+
   ArchGraph ag;
 
   auto pe(ag.new_processor_type(pl));
@@ -371,6 +373,8 @@ ArchGraph ArchGraph::hyper_mesh(unsigned width,
                                 ProcessorLabel pl,
                                 ChannelLabel cl)
 {
+  assert(width > 0u && height > 0u);
+
   ArchGraph ag;
 
   auto pe(ag.new_processor_type(pl));
