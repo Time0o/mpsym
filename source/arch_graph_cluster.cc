@@ -54,10 +54,12 @@ ArchGraphCluster::update_automorphisms()
 
 TaskAllocation
 ArchGraphCluster::mapping(TaskAllocation const &allocation_,
-                          MappingMethod method,
                           unsigned offset,
+                          MappingOptions *options,
                           TaskOrbits *orbits)
 {
+  options = get_options(options);
+
   assert(_subsystems.size() > 0u);
 
   DBG(DEBUG) << "Requested task mapping for: " << allocation_;
@@ -67,7 +69,7 @@ ArchGraphCluster::mapping(TaskAllocation const &allocation_,
   for (auto i = 0u; i < _subsystems.size(); ++i) {
     DBG(DEBUG) << "Subsystem (no. " << i << ")";
 
-    allocation = _subsystems[i]->mapping(allocation, method, offset);
+    allocation = _subsystems[i]->mapping(allocation, offset, options);
 
     DBG(DEBUG) << "Yields: " << allocation;
 

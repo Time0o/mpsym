@@ -42,18 +42,20 @@ PermSet ArchGraphSystem::automorphisms_generators(bool augmented)
 }
 
 TaskAllocation ArchGraphSystem::mapping(TaskAllocation const &allocation,
-                                        MappingMethod method,
                                         unsigned offset,
+                                        MappingOptions *options,
                                         TaskOrbits *orbits)
 {
+  options = get_options(options);
+
   DBG(DEBUG) << "Requested task mapping for: " << allocation;
 
   TaskAllocation representative =
-    method == MappingMethod::ITERATE ?
+    options->method == MappingMethod::ITERATE ?
       min_elem_iterate(allocation, offset) :
-    method == MappingMethod::LOCAL_SEARCH ?
+    options->method == MappingMethod::LOCAL_SEARCH ?
       min_elem_local_search(allocation, offset) :
-    method == MappingMethod::ORBITS ?
+    options->method == MappingMethod::ORBITS ?
       min_elem_orbits(allocation, offset, orbits) :
     throw std::logic_error("TODO");
 
@@ -154,5 +156,7 @@ TaskAllocation ArchGraphSystem::min_elem_orbits(TaskAllocation const &tasks,
 
   return representative;;
 }
+
+ArchGraphSystem::MappingOptions ArchGraphSystem::_default_mapping_options;
 
 } // namespace cgtl

@@ -150,7 +150,10 @@ cgtl::TaskOrbits map_tasks_mpsym(
     else
       throw std::logic_error("unreachable");
 
-    auto mapping(ag.mapping(task_allocations[i], method, 0u, &task_orbits));
+    ArchGraphSystem::MappingOptions options;
+    options.method = method;
+
+    auto mapping(ag.mapping(task_allocations[i], 0u, &options, &task_orbits));
   }
 
   if (options.verbosity > 0) {

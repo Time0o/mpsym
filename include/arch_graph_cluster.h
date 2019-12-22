@@ -27,8 +27,8 @@ public:
   unsigned num_channels() const override;
 
   TaskAllocation mapping(TaskAllocation const &allocation,
-                         MappingMethod method,
                          unsigned offset = 0u,
+                         MappingOptions *options = nullptr,
                          TaskOrbits *orbits = nullptr) override;
 
 private:

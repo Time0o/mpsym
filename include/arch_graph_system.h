@@ -26,7 +26,12 @@ public:
     ITERATE,
     LOCAL_SEARCH,
     ORBITS,
-    ORBITS_STOP_EARLY
+    ORBITS_STOP_EARLY,
+    AUTO = ITERATE
+  };
+
+  struct MappingOptions {
+    MappingMethod method = MappingMethod::AUTO;
   };
 
   ArchGraphSystem()
@@ -62,11 +67,14 @@ public:
   { throw std::logic_error("not implemented"); }
 
   virtual TaskAllocation mapping(TaskAllocation const &allocation,
-                                 MappingMethod method,
                                  unsigned offset = 0u,
+                                 MappingOptions *options = nullptr,
                                  TaskOrbits *orbits = nullptr);
 
 protected:
+  static MappingOptions *get_options(MappingOptions *options)
+  { return options ? options : &_default_mapping_options; }
+
   void set_automorphisms(PermGroup const &automorphisms)
   {
     _automorphisms = automorphisms;
@@ -89,6 +97,8 @@ private:
   TaskAllocation min_elem_orbits(TaskAllocation const &tasks,
                                  unsigned offset,
                                  TaskOrbits *orbits);
+
+  static MappingOptions _default_mapping_options;
 
   PermGroup _automorphisms;
   bool _automorphisms_valid;
