@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -38,6 +39,7 @@ PermSet ArchGraphSystem::automorphisms_generators(bool augmented)
 }
 
 TaskMapping ArchGraphSystem::mapping(TaskMappingRequest const &tmr,
+                                     MappingMethod method,
                                      TaskOrbits *orbits)
 {
   DBG(DEBUG) << "Requested task mapping: " << tmr;
@@ -52,8 +54,11 @@ TaskMapping ArchGraphSystem::mapping(TaskMappingRequest const &tmr,
 #endif
 
   TaskAllocation representative =
-    tmr.approximate ? min_elem_approx(tmr.allocation, min_pe, max_pe)
-                    : min_elem_bruteforce(tmr.allocation, min_pe, max_pe);
+    method == MappingMethod::BRUTEFORCE ?
+      min_elem_bruteforce(tmr.allocation, min_pe, max_pe) :
+    method == MappingMethod::APPROXIMATE ?
+      min_elem_approx(tmr.allocation, min_pe, max_pe) :
+    throw std::logic_error("unreachable");
 
   if (orbits)
     orbits->insert(representative);

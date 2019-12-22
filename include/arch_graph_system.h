@@ -22,6 +22,11 @@ using SubsystemLabel = char const *;
 class ArchGraphSystem
 {
 public:
+  enum class MappingMethod {
+    BRUTEFORCE,
+    APPROXIMATE
+  };
+
   ArchGraphSystem()
   : _automorphisms_valid(false),
     _augmented_generators_valid(false)
@@ -55,6 +60,7 @@ public:
   { throw std::logic_error("not implemented"); }
 
   virtual TaskMapping mapping(TaskMappingRequest const &tmr,
+                              MappingMethod method,
                               TaskOrbits *orbits = nullptr);
 
 protected:

@@ -136,9 +136,15 @@ cgtl::TaskOrbits map_tasks_mpsym(
     if (options.verbosity > 0)
       debug_progress("Mapping task", i + 1u, "of", task_allocations.size());
 
-    auto mapping(ag.mapping(
-      {task_allocations[i], 0u, options.library.is("mpsym_approx")},
-      &task_orbits));
+    ArchGraphSystem::MappingMethod method;
+    if (options.library.is("mpsym"))
+      method = ArchGraphSystem::MappingMethod::BRUTEFORCE;
+    else if (options.library.is("mpsym_approx"))
+      method = ArchGraphSystem::MappingMethod::APPROXIMATE;
+    else
+      throw std::logic_error("unreachable");
+
+    auto mapping(ag.mapping({task_allocations[i], 0u}, method, &task_orbits));
   }
 
   if (options.verbosity > 0) {

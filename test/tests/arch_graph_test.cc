@@ -34,12 +34,12 @@ typedef std::vector<std::vector<unsigned>> orbit;
 static void expect_mapping_generates_orbits(
   std::shared_ptr<ArchGraphSystem> const &ag,
   std::vector<orbit> expected_orbits,
-  bool approximate)
+  ArchGraphSystem::MappingMethod method)
 {
   std::vector<TaskMapping> task_mappings;
   for (auto j = 1u; j <= ag->num_processors(); ++j) {
     for (auto k = 1u; k <= ag->num_processors(); ++k)
-      task_mappings.push_back(ag->mapping({{j, k}, 0u, approximate}));
+      task_mappings.push_back(ag->mapping({{j, k}, 0u}, method));
   }
 
   for (auto const &tm1 : task_mappings) {
@@ -339,7 +339,8 @@ TEST(SpecialArchGraphTest, CanConstructRegularMesh)
 }
 
 class ArchGraphMappingVariantTest :
-  public ArchGraphTestBase<testing::TestWithParam<bool>> {};
+  public ArchGraphTestBase<testing::TestWithParam<ArchGraphSystem::MappingMethod>>
+{};
 
 TEST_P(ArchGraphMappingVariantTest, CanTestMappingEquivalence)
 {
@@ -388,9 +389,11 @@ TEST_P(ArchGraphMappingVariantTest, CanTestMappingEquivalence)
   }
 }
 
-INSTANTIATE_TEST_CASE_P(ArchGraphMappingVariants,
-                        ArchGraphMappingVariantTest,
-                        testing::Values(false, true));
+INSTANTIATE_TEST_CASE_P(
+  ArchGraphMappingVariants,
+  ArchGraphMappingVariantTest,
+  testing::Values(ArchGraphSystem::MappingMethod::BRUTEFORCE,
+                  ArchGraphSystem::MappingMethod::APPROXIMATE));
 
 template<typename T>
 class ArchGraphClusterTestBase : public T
@@ -459,7 +462,8 @@ TEST_F(ArchGraphClusterTest, CanObtainAutormorphisms)
 }
 
 class ArchGraphClusterMappingVariantTest :
-  public ArchGraphClusterTestBase<testing::TestWithParam<bool>> {};
+  public ArchGraphClusterTestBase<testing::TestWithParam<ArchGraphSystem::MappingMethod>>
+{};
 
 TEST_P(ArchGraphClusterMappingVariantTest, CanTestMappingEquivalence)
 {
@@ -482,9 +486,11 @@ TEST_P(ArchGraphClusterMappingVariantTest, CanTestMappingEquivalence)
   }
 }
 
-INSTANTIATE_TEST_CASE_P(ArchGraphClusterMappingVariants,
-                        ArchGraphClusterMappingVariantTest,
-                        testing::Values(false, true));
+INSTANTIATE_TEST_CASE_P(
+  ArchGraphClusterMappingVariants,
+  ArchGraphClusterMappingVariantTest,
+  testing::Values(ArchGraphSystem::MappingMethod::BRUTEFORCE,
+                  ArchGraphSystem::MappingMethod::APPROXIMATE));
 
 template<typename T>
 class ArchUniformSuperGraphTestBase : public T

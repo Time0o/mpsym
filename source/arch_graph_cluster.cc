@@ -53,6 +53,7 @@ ArchGraphCluster::update_automorphisms()
 
 TaskMapping
 ArchGraphCluster::mapping(TaskMappingRequest const &tmr_,
+                          MappingMethod method,
                           TaskOrbits *orbits)
 {
   assert(_subsystems.size() > 0u);
@@ -65,7 +66,7 @@ ArchGraphCluster::mapping(TaskMappingRequest const &tmr_,
   for (auto i = 0u; i < _subsystems.size(); ++i) {
     DBG(DEBUG) << "Subsystem (no. " << i << ")";
 
-    auto tm = _subsystems[i]->mapping(tmr);
+    auto tm = _subsystems[i]->mapping(tmr, method);
 
     DBG(DEBUG) << "Yields: " << tm.representative;
 

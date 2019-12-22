@@ -13,16 +13,13 @@ namespace cgtl
 struct TaskMappingRequest
 {
   TaskMappingRequest(TaskAllocation const &allocation,
-                     TaskAllocation::value_type offset = 0u,
-                     bool approximate = false)
+                     TaskAllocation::value_type offset = 0u)
   : allocation(allocation),
-    offset(offset),
-    approximate(approximate)
+    offset(offset)
   {}
 
   TaskAllocation allocation;
   TaskAllocation::value_type offset;
-  bool approximate;
 };
 
 std::ostream &operator<<(std::ostream &os, TaskMappingRequest const &tmr);
