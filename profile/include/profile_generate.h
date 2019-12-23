@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <sstream>
 #include <random>
+#include <stdexcept>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -12,6 +13,8 @@ inline std::string generate_task_allocations(unsigned num_pes,
                                              unsigned num_tasks,
                                              unsigned num_task_allocations)
 {
+  throw std::logic_error("TODO: incomplete");
+
   static std::random_device rd{};
   static std::mt19937 m{rd()};
 
