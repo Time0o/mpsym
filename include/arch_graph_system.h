@@ -31,7 +31,7 @@ public:
 
   struct MappingOptions {
     MappingMethod method = MappingMethod::AUTO;
-    bool match_representatives = true;
+    bool match_reprs = true;
   };
 
   ArchGraphSystem()
@@ -107,7 +107,7 @@ private:
                                 MappingOptions *options,
                                 TaskOrbits *orbits)
   {
-    if (!options->match_representatives || !orbits)
+    if (!options->match_reprs || !orbits)
       return false;
 
     return orbits->is_representative(tasks);

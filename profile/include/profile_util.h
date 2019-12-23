@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <sys/types.h>
 
@@ -76,5 +77,8 @@ T stox(std::string const &str)
 
   return static_cast<T>(i);
 }
+
+std::vector<std::string> split(std::string const &gen_str,
+                               char const *delim = " ");
 
 #endif // _GUARD_PROFILE_UTIL_H

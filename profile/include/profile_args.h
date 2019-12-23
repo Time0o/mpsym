@@ -5,12 +5,28 @@
 #include <cstring>
 #include <initializer_list>
 #include <stdexcept>
+#include <unordered_set>
 #include <vector>
 #include <iostream>
 
 #include "profile_util.h"
 
-class VariantOption
+struct VariantOptionBase
+{
+  std::vector<char const *>::size_type choice_index(char const *choice) const
+  {
+    for (auto i = 0u; i < _choices.size(); ++i) {
+      if (strcmp(_choices[i], choice) == 0)
+        return i;
+    }
+
+    throw std::invalid_argument("invalid parameter choice");
+  }
+
+  std::vector<char const *> _choices;
+};
+
+class VariantOption : private VariantOptionBase
 {
 public:
   VariantOption(std::initializer_list<char const *> choices)
@@ -34,18 +50,42 @@ public:
   { return _current_choice == choice_index(choice); }
 
 private:
-  std::vector<char const *>::size_type choice_index(char const *choice) const
-  {
-    for (auto i = 0u; i < _choices.size(); ++i) {
-      if (strcmp(_choices[i], choice) == 0)
-        return i;
-    }
+  std::vector<char const *>::size_type _current_choice;
+};
 
-    throw std::invalid_argument("invalid parameter choice");
+class VariantOptionSet : private VariantOptionBase
+{
+public:
+  VariantOptionSet(std::initializer_list<char const *> choices)
+  {
+    _choices.emplace_back("unset");
+    _choices.insert(_choices.end(), choices.begin(), choices.end());
   }
 
-  std::vector<char const *> _choices;
-  std::vector<char const *>::size_type _current_choice;
+  void set(char const *choice)
+  {
+    if (!is_set(choice))
+      _selected.insert(choice_index(choice));
+  }
+
+  void unset(char const *choice)
+  { _selected.erase(choice_index(choice)); }
+
+  std::vector<char const *> get() const
+  {
+    std::vector<char const *> res;
+
+    for (auto i : _selected)
+      res.push_back(_choices[i]);
+
+    return res;
+  }
+
+  bool is_set(char const *choice) const
+  { return _selected.find(choice_index(choice)) != _selected.end(); }
+
+private:
+  std::unordered_set<std::vector<char const *>::size_type> _selected;
 };
 
 #define CHECK_OPTION(cond, msg) \

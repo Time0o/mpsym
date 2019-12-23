@@ -17,28 +17,10 @@
 namespace
 {
 
-using gen_type = std::vector<std::vector<std::vector<unsigned>>>;
-
 std::vector<std::string> split_generators(std::string const &gen_str)
-{
-  std::vector<std::string> gen_strs;
+{ return split(gen_str.substr(1, gen_str.size() - 2), "),"); }
 
-  std::size_t pos = 1, nextpos;
-  for (;;) {
-    nextpos = gen_str.find("),", pos);
-
-    if (nextpos == std::string::npos) {
-      gen_strs.push_back(gen_str.substr(pos, gen_str.size() - pos - 1));
-      break;
-    } else {
-      gen_strs.push_back(gen_str.substr(pos, nextpos - pos + 1));
-    }
-
-    pos = nextpos + 2;
-  }
-
-  return gen_strs;
-}
+using gen_type = std::vector<std::vector<std::vector<unsigned>>>;
 
 std::pair<unsigned, gen_type> parse_generators(
   std::vector<std::string> const &gen_strs)

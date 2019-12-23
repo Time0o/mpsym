@@ -39,6 +39,7 @@ void usage(std::ostream &s)
     "[-h|--help]",
     "-i|--implementation {gap|mpsym}",
     "-m|--mapping-method {iterate|local_search|orbits}",
+    "[--mapping-options {dont_match_reprs}]",
     "-g|--groups GROUPS",
     "[-t|--task-allocations TASK_ALLOCATIONS]",
     "[--num-tasks NUM_TASKS]",
@@ -58,6 +59,7 @@ struct ProfileOptions
 {
   VariantOption library{"gap", "mpsym"};
   VariantOption mapping_method{"iterate", "local_search", "orbits"};
+  VariantOptionSet mapping_options{"dont_match_reprs"};
   unsigned num_tasks = 0u;
   unsigned num_task_allocations = 0u;
   bool check_accuracy = false;
@@ -69,8 +71,6 @@ std::string map_tasks_gap(gap::PermSet const &generators,
                           gap::TaskAllocationVector const &task_allocation_vector,
                           ProfileOptions const &options)
 {
-  (void)options;
-
   std::stringstream ss;
 
   ss << "LoadPackage(\"orb\");\n";
@@ -84,7 +84,10 @@ std::string map_tasks_gap(gap::PermSet const &generators,
   ss << "orbit_representatives:=[];\n";
   ss << "orbit_representatives_hash:=HTCreate([1,2,3]);\n";
 
-  ss << "orbit_options:=rec(lookingfor:=orbit_representatives_hash);\n";
+  if (options.mapping_options.is_set("dont_match_reprs"))
+    ss << "orbit_options:=rec();\n";
+  else
+    ss << "orbit_options:=rec(lookingfor:=orbit_representatives_hash);\n";
 
   ss << "n:=1;\n";
   ss << "for task_allocation in task_allocations do\n";
@@ -96,13 +99,17 @@ std::string map_tasks_gap(gap::PermSet const &generators,
 
   ss << "  orbit:=Orb(automorphisms, task_allocation, OnTuples, orbit_options);\n";
 
-  ss << "  if not PositionOfFound(orbit) then\n";
+  if (!options.mapping_options.is_set("dont_match_reprs"))
+    ss << "  if not PositionOfFound(orbit) then\n";
+
   ss << "    orbit_repr:=Elements(Enumerate(orbit))[1];\n";
 
   ss << "    if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then\n";
   ss << "      Append(orbit_representatives, [orbit_repr]);\n";
   ss << "    fi;\n";
-  ss << "  fi;\n";
+
+  if (!options.mapping_options.is_set("dont_match_reprs"))
+    ss << "  fi;\n";
 
   ss << "  n:=n+1;\n";
   ss << "od;\n";
@@ -138,27 +145,28 @@ cgtl::TaskOrbits map_tasks_mpsym(
     if (options.verbosity > 0)
       debug_progress("Mapping task", i + 1u, "of", task_allocations.size());
 
-    ArchGraphSystem::MappingMethod method;
+    ArchGraphSystem::MappingOptions mapping_options;
+
     if (options.mapping_method.is("iterate"))
-      method = ArchGraphSystem::MappingMethod::ITERATE;
+      mapping_options.method = ArchGraphSystem::MappingMethod::ITERATE;
     else if (options.mapping_method.is("local_search"))
-      method = ArchGraphSystem::MappingMethod::LOCAL_SEARCH;
+      mapping_options.method = ArchGraphSystem::MappingMethod::LOCAL_SEARCH;
     else if (options.mapping_method.is("orbits"))
-      method = ArchGraphSystem::MappingMethod::ORBITS;
+      mapping_options.method = ArchGraphSystem::MappingMethod::ORBITS;
     else
       throw std::logic_error("unreachable");
 
-    ArchGraphSystem::MappingOptions options;
-    options.method = method;
+    if (options.mapping_options.is_set("dont_match_reprs"))
+      mapping_options.match_reprs = false;
 
-    auto mapping(ag.mapping(task_allocations[i], 0u, &options, &task_orbits));
+    auto mapping(ag.mapping(
+      task_allocations[i], 0u, &mapping_options, &task_orbits));
   }
 
   if (options.verbosity > 0) {
     debug_progress_done();
 
     debug("=> Found", task_orbits.num_orbits(), "orbit representatives");
-
     if (options.verbosity > 1) {
       for (auto const &repr : task_orbits)
         debug(DUMP(repr));
@@ -368,14 +376,15 @@ int main(int argc, char **argv)
     {"help",                 no_argument,       0,       'h'},
     {"implementation",       required_argument, 0,       'i'},
     {"mapping-method",       required_argument, 0,       'm'},
+    {"mapping-options",      required_argument, 0,        2 },
     {"groups",               required_argument, 0,       'g'},
     {"task-allocations",     required_argument, 0,       't'},
-    {"num-tasks",            required_argument, 0,        2 },
-    {"num-task-allocations", required_argument, 0,        3 },
-    {"check-accuracy",       no_argument,       0,        4 },
-    {"realtime-clock",       no_argument,       0,        5 },
+    {"num-tasks",            required_argument, 0,        3 },
+    {"num-task-allocations", required_argument, 0,        4 },
+    {"check-accuracy",       no_argument,       0,        5 },
+    {"realtime-clock",       no_argument,       0,        6 },
     {"verbose",              no_argument,       0,       'v'},
-    {"show-gap-errors",      no_argument,       0,        6 },
+    {"show-gap-errors",      no_argument,       0,        7 },
     {nullptr,                0,                 nullptr,  0 }
   };
 
@@ -400,29 +409,33 @@ int main(int argc, char **argv)
       case 'm':
         options.mapping_method.set(optarg);
         break;
+      case 2:
+        for (auto const &option : split(optarg, " "))
+          options.mapping_options.set(option.c_str());
+        break;
       case 'g':
         OPEN_STREAM(groups_stream, optarg);
         break;
       case 't':
         OPEN_STREAM(task_allocations_stream, optarg);
         break;
-      case 2:
+      case 3:
         options.num_tasks = stox<unsigned>(optarg);
         break;
-      case 3:
+      case 4:
         options.num_task_allocations = stox<unsigned>(optarg);
         break;
-      case 4:
+      case 5:
         options.check_accuracy = true;
         break;
-      case 5:
+      case 6:
         timer_realtime_enable();
         break;
       case 'v':
         ++options.verbosity;
         TIMER_ENABLE();
         break;
-      case 6:
+      case 7:
         options.show_gap_errors = true;
         break;
       default:
