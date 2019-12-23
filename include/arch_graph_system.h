@@ -26,7 +26,6 @@ public:
     ITERATE,
     LOCAL_SEARCH,
     ORBITS,
-    ORBITS_STOP_EARLY,
     AUTO = ITERATE
   };
 

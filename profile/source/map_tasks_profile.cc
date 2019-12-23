@@ -38,7 +38,7 @@ void usage(std::ostream &s)
   char const *opts[] = {
     "[-h|--help]",
     "-i|--implementation {gap|mpsym}",
-    "[-m|--mapping-method {iterate|local_search|orbits|orbits_stop_early}]",
+    "-m|--mapping-method {iterate|local_search|orbits}",
     "-g|--groups GROUPS",
     "[-t|--task-allocations TASK_ALLOCATIONS]",
     "[--num-tasks NUM_TASKS]",
@@ -57,7 +57,7 @@ void usage(std::ostream &s)
 struct ProfileOptions
 {
   VariantOption library{"gap", "mpsym"};
-  VariantOption mapping_method{"iterate", "local_search", "orbits", "orbits_stop_early"};
+  VariantOption mapping_method{"iterate", "local_search", "orbits"};
   unsigned num_tasks = 0u;
   unsigned num_task_allocations = 0u;
   bool check_accuracy = false;
@@ -145,8 +145,6 @@ cgtl::TaskOrbits map_tasks_mpsym(
       method = ArchGraphSystem::MappingMethod::LOCAL_SEARCH;
     else if (options.mapping_method.is("orbits"))
       method = ArchGraphSystem::MappingMethod::ORBITS;
-    else if (options.mapping_method.is("orbits_stop_early"))
-      method = ArchGraphSystem::MappingMethod::ORBITS_STOP_EARLY;
     else
       throw std::logic_error("unreachable");
 
@@ -173,8 +171,6 @@ cgtl::TaskOrbits map_tasks_mpsym(
       debug_timer_dump("map approx local search");
     else if (options.mapping_method.is("orbits"))
       debug_timer_dump("map bruteforce orbits");
-    else if (options.mapping_method.is("orbits_stop_early"))
-      debug_timer_dump("map approximate orbits stop early");
   }
 
   return task_orbits;
@@ -440,11 +436,11 @@ int main(int argc, char **argv)
 
   CHECK_OPTION(options.library.is_set(), "--implementation option is mandatory");
 
-  if (options.library.is("mpsym")) {
-    CHECK_OPTION(options.mapping_method.is_set(),
-                 "--mapping-method is required when using mpsym");
-  } else if (options.mapping_method.is_set()) {
-    warning("--mapping-method option ignored");
+  CHECK_OPTION(options.mapping_method.is_set(), "--mapping-method is mandatory");
+
+  if (options.library.is("gap")) {
+    CHECK_OPTION(options.mapping_method.is("orbits"),
+                 "invalid --mapping-method");
   }
 
   CHECK_OPTION(groups_stream.valid, "--groups option is mandatory");

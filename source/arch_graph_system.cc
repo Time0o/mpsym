@@ -56,7 +56,7 @@ TaskAllocation ArchGraphSystem::mapping(TaskAllocation const &allocation,
       min_elem_local_search(allocation, offset, options, orbits) :
     options->method == MappingMethod::ORBITS ?
       min_elem_orbits(allocation, offset, options, orbits) :
-    throw std::logic_error("TODO");
+    throw std::logic_error("unreachable");
 
   if (orbits)
     orbits->insert(representative);
