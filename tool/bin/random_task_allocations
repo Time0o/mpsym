@@ -5,7 +5,7 @@ import os
 import sys
 
 from argparse import ArgumentParser, RawTextHelpFormatter
-from functools import reduce
+from functools import partial, reduce
 from itertools import combinations, combinations_with_replacement
 from random import choices, sample
 
@@ -137,18 +137,33 @@ if __name__ == '__main__':
             fmt = "NUM_ALLOCATIONS is too large (must be {} at most)"
             error(__file__, fmt.format(max_allocations))
 
+    generate_all = partial(
+        generate_all_unique_allocations,
+        min_task=ns.min_task,
+        max_task=ns.max_task,
+        num_tasks=ns.num_tasks,
+        processor_sharing=ns.processor_sharing)
+
+    generate_random = partial(
+        generate_random_allocations,
+        min_task=ns.min_task,
+        max_task=ns.max_task,
+        num_tasks=ns.num_tasks,
+        unique=(not ns.non_unique),
+        processor_sharing=ns.processor_sharing)
+
     if not ns.non_unique and ns.num_allocations == max_allocations:
-       task_allocations = generate_all_unique_allocations(ns.min_task,
-                                                          ns.max_task,
-                                                          ns.num_tasks,
-                                                          ns.processor_sharing)
+       task_allocations = generate_all()
+    elif not ns.non_unique and ns.num_allocations > max_allocations // 2:
+        task_allocations_all = generate_all()
+
+        task_allocations_delta = generate_random(
+            num_allocations=(max_allocations - ns.num_allocations))
+
+        task_allocations = list(
+            set(task_allocations_all) - set(task_allocations_delta))
     else:
-        task_allocations = generate_random_allocations(ns.min_task,
-                                                       ns.max_task,
-                                                       ns.num_tasks,
-                                                       ns.num_allocations,
-                                                       not ns.non_unique,
-                                                       ns.processor_sharing)
+        task_allocations = generate_random(num_allocations=ns.num_allocations)
 
     for task_allocation in task_allocations:
         print(' '.join([str(t) for t in task_allocation]))
