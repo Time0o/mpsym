@@ -29,12 +29,12 @@ def progress(msg, i, num):
 
 
 def progress_done():
-    print
+    print(file=sys.stderr, flush=True)
 
 
 def error(f, msg):
     p = _progname(f)
 
-    print("{}: error: {}".format(p), file=sys.stderr)
+    print("{}: error: {}".format(p, msg), file=sys.stderr)
 
     sys.exit(1)
