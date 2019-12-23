@@ -138,26 +138,29 @@ cgtl::TaskOrbits map_tasks_mpsym(
   using cgtl::TaskOrbits;
 
   ArchGraphSystem ag(PermGroup(generators.degree(), generators));
+
   auto task_allocations(task_allocation_vector.task_allocations);
 
+  // setup mapping options
+  ArchGraphSystem::MappingOptions mapping_options;
+
+  if (options.mapping_method.is("iterate"))
+    mapping_options.method = ArchGraphSystem::MappingMethod::ITERATE;
+  else if (options.mapping_method.is("local_search"))
+    mapping_options.method = ArchGraphSystem::MappingMethod::LOCAL_SEARCH;
+  else if (options.mapping_method.is("orbits"))
+    mapping_options.method = ArchGraphSystem::MappingMethod::ORBITS;
+  else
+    throw std::logic_error("unreachable");
+
+  if (options.mapping_options.is_set("dont_match_reprs"))
+      mapping_options.match_reprs = false;
+
+  // perform mappings
   TaskOrbits task_orbits;
   for (auto i = 0u; i < task_allocations.size(); ++i) {
     if (options.verbosity > 0)
       debug_progress("Mapping task", i + 1u, "of", task_allocations.size());
-
-    ArchGraphSystem::MappingOptions mapping_options;
-
-    if (options.mapping_method.is("iterate"))
-      mapping_options.method = ArchGraphSystem::MappingMethod::ITERATE;
-    else if (options.mapping_method.is("local_search"))
-      mapping_options.method = ArchGraphSystem::MappingMethod::LOCAL_SEARCH;
-    else if (options.mapping_method.is("orbits"))
-      mapping_options.method = ArchGraphSystem::MappingMethod::ORBITS;
-    else
-      throw std::logic_error("unreachable");
-
-    if (options.mapping_options.is_set("dont_match_reprs"))
-      mapping_options.match_reprs = false;
 
     auto mapping(ag.mapping(
       task_allocations[i], 0u, &mapping_options, &task_orbits));
