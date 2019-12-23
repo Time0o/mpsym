@@ -6,8 +6,8 @@ import sys
 
 from argparse import ArgumentParser, RawTextHelpFormatter
 from functools import reduce
-from itertools import combinations
-from random import sample
+from itertools import combinations, combinations_with_replacement
+from random import choices, sample
 
 from util import error, progress, progress_done, usage
 
@@ -15,39 +15,72 @@ from util import error, progress, progress_done, usage
 USAGE = usage(__file__, """[--min-task MIN_TASK]
                            --max-task MAX_TASK
                            --num-tasks NUM_TASKS
+                           [--non-unique]
+                           [--processor-sharing]
                            NUM_ALLOCATIONS""")
 
 DESC = "Generate random task allocations"
 
 
-def count_max_allocations(min_tasks, max_tasks, num_tasks):
-  unique_tasks = max_tasks - min_tasks + 1
+def count_max_unique_allocations(min_tasks,
+                                 max_tasks,
+                                 num_tasks,
+                                 processor_sharing):
 
-  return reduce(op.mul, range(unique_tasks, unique_tasks - num_tasks, -1), 1)
+    unique_tasks = max_tasks - min_tasks + 1
+
+    if processor_sharing:
+        return unique_tasks**num_tasks
+    else:
+        return reduce(op.mul, range(unique_tasks, unique_tasks - num_tasks, -1), 1)
 
 
-def generate_all_allocations(min_task, max_task, num_tasks):
-    return list(combinations(range(min_task, max_task + 1), num_tasks))
+def generate_all_unique_allocations(min_task,
+                                    max_task,
+                                    num_tasks,
+                                    processor_sharing):
+
+    c = combinations_with_replacement if processor_sharing else combinations
+
+    return list(c(range(min_task, max_task + 1), num_tasks))
 
 
-def generate_random_allocations(min_task, max_task, num_tasks, num_allocations):
+def generate_random_allocations(min_task,
+                                max_task,
+                                num_tasks,
+                                num_allocations,
+                                unique,
+                                processor_sharing):
+
     tasks = list(range(min_task, max_task + 1))
 
-    task_allocations = set()
+    task_allocations = []
+
+    if unique:
+      task_allocations_set = set()
+
+    def sample_task_allocation():
+        s = choices if processor_sharing else sample
+
+        return tuple(s(tasks, k=num_tasks))
 
     for i in range(num_allocations):
         progress("generating task allocation", i, num_allocations)
 
-        while True:
-            task_allocation = tuple(sample(tasks, num_tasks))
+        if unique:
+            while True:
+                task_allocation = sample_task_allocation()
 
-            if task_allocation not in task_allocations:
-                task_allocations.add(task_allocation)
-                break
+                if task_allocation not in task_allocations_set:
+                    task_allocations_set.add(task_allocation)
+                    task_allocations.append(task_allocation)
+                    break
+        else:
+            task_allocations.append(sample_task_allocation())
 
     progress_done()
 
-    return list(task_allocations)
+    return task_allocations
 
 
 if __name__ == '__main__':
@@ -67,6 +100,12 @@ if __name__ == '__main__':
 
     parser.add_argument('--num-tasks', required=True, type=int,
         help=str("tasks per allocation"))
+
+    parser.add_argument('--non-unique', action='store_true',
+        help=str("allow duplicate allocations"))
+
+    parser.add_argument('--processor-sharing', action='store_true',
+        help=str("allow multiple tasks to be allocated to the same processor"))
 
     parser.add_argument('num_allocations', metavar='NUM_ALLOCATIONS', type=int,
         help=str("number of allocations to generate"))
@@ -88,23 +127,28 @@ if __name__ == '__main__':
     if ns.num_allocations < 0:
         error(__file__, "NUM_ALLOCATIONS must be > 0")
 
-    max_allocations = count_max_allocations(ns.min_task,
-                                            ns.max_task,
-                                            ns.num_tasks)
+    if not ns.non_unique:
+        max_allocations = count_max_unique_allocations(ns.min_task,
+                                                       ns.max_task,
+                                                       ns.num_tasks,
+                                                       ns.processor_sharing)
 
-    if ns.num_allocations > max_allocations:
-        fmt = "NUM_ALLOCATIONS is too large (must be {} at most)"
-        error(__file__, fmt.format(max_allocations))
+        if ns.num_allocations > max_allocations:
+            fmt = "NUM_ALLOCATIONS is too large (must be {} at most)"
+            error(__file__, fmt.format(max_allocations))
 
-    if ns.num_allocations == max_allocations:
-        task_allocations = generate_all_allocations(ns.min_task,
-                                                    ns.max_task,
-                                                    ns.num_tasks)
+    if not ns.non_unique and ns.num_allocations == max_allocations:
+       task_allocations = generate_all_unique_allocations(ns.min_task,
+                                                          ns.max_task,
+                                                          ns.num_tasks,
+                                                          ns.processor_sharing)
     else:
         task_allocations = generate_random_allocations(ns.min_task,
                                                        ns.max_task,
                                                        ns.num_tasks,
-                                                       ns.num_allocations)
+                                                       ns.num_allocations,
+                                                       not ns.non_unique,
+                                                       ns.processor_sharing)
 
     for task_allocation in task_allocations:
         print(' '.join([str(t) for t in task_allocation]))
