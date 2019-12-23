@@ -39,6 +39,11 @@ private:
 class RealtimeTimer
 {
 public:
+  RealtimeTimer()
+  : _enabled(false),
+    _timer("profile")
+  {}
+
   void enable()
   { _enabled = true; }
 
@@ -46,19 +51,17 @@ public:
   { return _enabled; }
 
   void start()
-  { _begin = std::chrono::high_resolution_clock::now(); }
+  { _timer.start(); }
 
-  void stop(double *t) const
+  void stop(double *t)
   {
-    auto delta = std::chrono::high_resolution_clock::now() - _begin;
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(delta);
-
-    *t = static_cast<double>(ms.count()) / 10e3;
+    _timer.stop();
+    *t = _timer.total();
   }
 
 private:
-  bool _enabled = false;
-  std::chrono::high_resolution_clock::time_point _begin;
+  bool _enabled;
+  timer::Timer _timer;
 
 } realtime_timer;
 

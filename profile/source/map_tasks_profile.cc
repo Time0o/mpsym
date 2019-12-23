@@ -365,7 +365,7 @@ void profile(Stream &groups_stream,
 
     double t = run(group.generators, task_allocations, options);
 
-    result("Runtime:", t);
+    result("Runtime:", t, "s");
   });
 }
 

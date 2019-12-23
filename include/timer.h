@@ -22,15 +22,13 @@
 
 #else
 
-#ifdef TIMER_CPU
-#warning "Available CPU timer has low resolution"
-#endif
-
 namespace timer
 {
 
 class Timer
 {
+  using count_type = unsigned long long;
+
 public:
   enum Precision { SECONDS, MILLISECONDS, MICROSECONDS };
 
@@ -39,13 +37,13 @@ public:
   static bool enabled;
   static std::ostream *out;
 
-  Timer(char const *name, Precision precision)
-  : _start(time()),
-    _name(name),
-    _precision(precision)
+  Timer(char const *name, Precision precision = SECONDS)
+  : _name(name),
+    _precision(precision),
+    _start(time())
   {}
 
-  static void create(char const *name, Precision precision = MILLISECONDS)
+  static void create(char const *name, Precision precision = SECONDS)
   {
     if (!exists(name))
       _timers.insert({name, Timer(name, precision)});
@@ -62,18 +60,11 @@ public:
 
   void stop()
   {
-    double seconds;
-
     auto delta = time() - _start;
 
-#ifdef TIMER_CPU
-    seconds = static_cast<double>(delta) / static_cast<double>(CLOCKS_PER_SEC);
-#else
     auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(delta);
-    seconds = static_cast<double>(ns.count()) / 10e9;
-#endif
 
-    _meas.push_back(scale(seconds));
+    _meas.push_back(ns.count());
   }
 
   char const *name() const
@@ -93,14 +84,21 @@ public:
     throw std::logic_error("unreachable");
   }
 
-  unsigned count() const
-  { return static_cast<unsigned>(_meas.size()); }
+  std::vector<count_type>::size_type invoked() const
+  { return _meas.size(); }
 
   double total() const
-  { return std::accumulate(_meas.begin(), _meas.end(), 0.0); }
+  { return scale(std::accumulate(_meas.begin(), _meas.end(), 0ULL)); }
 
   void mean_stddev(double *mean, double *stddev) const
-  { util::mean_stddev(_meas, mean, stddev); }
+  {
+    count_type mean_, stddev_;
+
+    util::mean_stddev(_meas, &mean_, &stddev_);
+
+    *mean = scale(mean_);
+    *stddev = scale(stddev_);
+  }
 
 private:
   static bool exists(char const *name)
@@ -116,26 +114,20 @@ private:
     return it;
   }
 
-#ifdef TIMER_CPU
-  std::clock_t time()
-  { return std::clock(); }
-
-  std::clock_t _start;
-#else
-  std::chrono::high_resolution_clock::time_point time()
+  static std::chrono::high_resolution_clock::time_point time()
   { return std::chrono::high_resolution_clock::now(); }
 
-  std::chrono::high_resolution_clock::time_point _start;
-#endif
+  double scale(count_type ns) const
+  {
+    double nsd = static_cast<double>(ns);
 
-  double scale(double t) {
     switch (_precision) {
       case SECONDS:
-        return t;
+        return nsd / 1e9;
       case MILLISECONDS:
-        return t * 10e3;
+        return nsd / 1e6;
       case MICROSECONDS:
-        return t * 10e6;
+        return nsd / 1e3;
     }
 
     throw std::logic_error("unreachable");
@@ -144,7 +136,8 @@ private:
   char const *_name;
   Precision _precision;
 
-  std::vector<double> _meas;
+  std::chrono::high_resolution_clock::time_point _start;
+  std::vector<count_type> _meas;
 
   static std::map<std::string, Timer> _timers;
 };
@@ -153,19 +146,19 @@ inline std::ostream &operator<<(std::ostream &s, Timer const &timer)
 {
   s << "TIMER (" << timer.name() << "): ";
 
-  if (timer.count() == 0) {
+  if (timer.invoked() == 0) {
     s << " never invoked";
   } else {
     s << std::setprecision(Timer::DECIMALS);
 
-    if (timer.count() == 1) {
+    if (timer.invoked() == 1) {
       s << timer.total() << timer.unit();
     } else {
       double mean, stddev;
       timer.mean_stddev(&mean, &stddev);
 
       s << "total: " << timer.total() << timer.unit()
-          << " (" << timer.count() << " invokations)"
+          << " (" << timer.invoked() << " invokations)"
           << ", mean: " << mean << timer.unit()
           << ", stddev: " << stddev << timer.unit();
     }
