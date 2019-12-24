@@ -67,16 +67,86 @@ struct ProfileOptions
   bool show_gap_errors = false;
 };
 
-std::string map_tasks_gap(gap::PermSet const &generators,
-                          gap::TaskAllocationVector const &task_allocation_vector,
-                          ProfileOptions const &options)
+std::string map_tasks_gap_iterate(ProfileOptions const &options)
 {
   std::stringstream ss;
 
+  ss << "orbit_repr:=task_allocation;\n";
+  ss << "orbit_repr_new:=true;\n";
+
+  ss << "for element in automorphisms do\n";
+  ss << "  permuted:=OnTuples(task_allocation, element);\n";
+
+  if (options.mapping_options.is_set("dont_match_reprs")) {
+    ss << "  if permuted < orbit_repr then\n";
+    ss << "    orbit_repr:=permuted;\n";
+    ss << "  fi;\n";
+    ss << "od;\n";
+
+    ss << "if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then\n";
+    ss << "  Append(orbit_representatives, [orbit_repr]);\n";
+    ss << "fi;\n";
+
+  } else {
+    ss << "  if HTValue(orbit_representatives_hash, permuted) <> fail then\n";
+    ss << "    orbit_repr_new:=false;\n";
+    ss << "    break;\n";
+    ss << "  elif permuted < orbit_repr then\n";
+    ss << "    orbit_repr:=permuted;\n";
+    ss << "  fi;\n";
+    ss << "od;\n";
+
+    ss << "if orbit_repr_new then\n";
+    ss << "  HTAdd(orbit_representatives_hash, orbit_repr, true);\n";
+    ss << "  Append(orbit_representatives, [orbit_repr]);\n";
+    ss << "fi;\n";
+
+  }
+
+  return ss.str();
+}
+
+std::string map_tasks_gap_orbits(ProfileOptions const &options)
+{
+  std::stringstream ss;
+
+  if (options.mapping_options.is_set("dont_match_reprs")) {
+    ss << "orbit:=Orb(automorphisms, task_allocation, OnTuples);\n";
+    ss << "orbit_repr:=Elements(Enumerate(orbit))[1];\n";
+
+    ss << "if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then\n";
+    ss << "  Append(orbit_representatives, [orbit_repr]);\n";
+    ss << "fi;\n";
+
+  } else {
+    ss << "orbit_options:=rec(lookingfor:=orbit_representatives_hash);\n";
+    ss << "orbit:=Orb(automorphisms, task_allocation, OnTuples, orbit_options);\n";
+
+    ss << "if not PositionOfFound(orbit) then\n";
+    ss << "  orbit_repr:=Elements(Enumerate(orbit))[1];\n";
+
+    ss << "  HTAdd(orbit_representatives_hash, orbit_repr, true);\n";
+    ss << "  Append(orbit_representatives, [orbit_repr]);\n";
+    ss << "fi;\n";
+  }
+
+  return ss.str();
+}
+
+std::string map_tasks_gap(
+  gap::PermSet const &generators,
+  gap::TaskAllocationVector const &task_allocation_vector,
+  ProfileOptions const &options)
+{
+  std::stringstream ss;
+
+  // load the "orb" package containing orbit enumeration and hashing functions
   ss << "LoadPackage(\"orb\");\n";
 
+  // construct the automorphism group
   ss << "automorphisms:=Group(" << generators.permutations << ");\n";
 
+  // construct the vector of task allocations to be mapped
   ss << "task_allocations:=[\n";
   ss << task_allocation_vector.task_allocations;
   ss << "];\n";
@@ -84,36 +154,28 @@ std::string map_tasks_gap(gap::PermSet const &generators,
   ss << "orbit_representatives:=[];\n";
   ss << "orbit_representatives_hash:=HTCreate([1,2,3]);\n";
 
-  if (options.mapping_options.is_set("dont_match_reprs"))
-    ss << "orbit_options:=rec();\n";
-  else
-    ss << "orbit_options:=rec(lookingfor:=orbit_representatives_hash);\n";
-
+  // map tasks allocations one by one
   ss << "n:=1;\n";
   ss << "for task_allocation in task_allocations do\n";
 
+  // display progress
   if (options.verbosity > 0) {
     ss << "  Print(\"DEBUG: Mapping task \", n, \" of \", "
           "        Length(task_allocations), \"\\r\\c\");\n";
   }
 
-  ss << "  orbit:=Orb(automorphisms, task_allocation, OnTuples, orbit_options);\n";
-
-  if (!options.mapping_options.is_set("dont_match_reprs"))
-    ss << "  if not PositionOfFound(orbit) then\n";
-
-  ss << "    orbit_repr:=Elements(Enumerate(orbit))[1];\n";
-
-  ss << "    if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then\n";
-  ss << "      Append(orbit_representatives, [orbit_repr]);\n";
-  ss << "    fi;\n";
-
-  if (!options.mapping_options.is_set("dont_match_reprs"))
-    ss << "  fi;\n";
+  // concrete mapping code depending on chosen implementation
+  if (options.mapping_method.is("iterate"))
+    ss << map_tasks_gap_iterate(options);
+  else if (options.mapping_method.is("orbits"))
+    ss << map_tasks_gap_orbits(options);
+  else
+    throw std::logic_error("unreachable");
 
   ss << "  n:=n+1;\n";
   ss << "od;\n";
 
+  // display orbit representatives found
   if (options.check_accuracy || options.verbosity > 0) {
     ss << "Print(\"\\nDEBUG: => Found \", Length(orbit_representatives), "
           "      \" orbit representatives\\n\");\n";
@@ -455,8 +517,8 @@ int main(int argc, char **argv)
   CHECK_OPTION(options.mapping_method.is_set(), "--mapping-method is mandatory");
 
   if (options.library.is("gap")) {
-    CHECK_OPTION(options.mapping_method.is("orbits"),
-                 "invalid --mapping-method");
+    CHECK_OPTION(!options.mapping_method.is("local_search"),
+                 "local_search only supported when using mpsym");
   }
 
   CHECK_OPTION(groups_stream.valid, "--groups option is mandatory");
