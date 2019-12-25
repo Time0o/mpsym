@@ -123,10 +123,6 @@ endfunction()
 # Common Dependencies
 ################################################################################
 
-# MpSym
-add_subdirectory("${SRC_DIR}")
-add_subdirectory("${EXAMPLE_SRC_DIR}")
-
 # Boost
 find_package(Boost 1.40 REQUIRED COMPONENTS graph)
 
@@ -338,3 +334,11 @@ if(CMAKE_BUILD_TYPE STREQUAL "Profile")
   # Build profiling programs
   add_subdirectory("${PROFILE_SRC_DIR}")
 endif()
+
+################################################################################
+# Common Sources
+################################################################################
+
+# MpSym
+add_subdirectory("${SRC_DIR}")
+add_subdirectory("${EXAMPLE_SRC_DIR}")
