@@ -52,8 +52,18 @@ public:
   static void destroy(char const *name)
   { _timers.erase(find(name)); }
 
-  static Timer &get(char const *name)
-  { return find(name)->second; }
+  static Timer *get(char const *name)
+  { return &find(name)->second; }
+
+  static std::vector<Timer *> get_all()
+  {
+    std::vector<Timer *> res;
+
+    for (auto &it : _timers)
+      res.push_back(&it.second);
+
+    return res;
+  }
 
   void start()
   { _start = time(); }
@@ -179,12 +189,17 @@ inline std::ostream &operator<<(std::ostream &s, Timer const &timer)
 #define TIMER_CREATE_WITH_PRECISION(name, precision) \
   TIMER_OP(timer::Timer::create(name, precision))
 #define TIMER_START(name) \
-  TIMER_OP(timer::Timer::create(name); timer::Timer::get(name).start())
+  TIMER_OP(timer::Timer::create(name); timer::Timer::get(name)->start())
 #define TIMER_STOP(name) \
-  TIMER_OP(timer::Timer::get(name).stop())
+  TIMER_OP(timer::Timer::get(name)->stop())
 #define TIMER_DUMP(name) \
-  TIMER_OP(*timer::Timer::out << timer::Timer::get(name); \
+  TIMER_OP(*timer::Timer::out << *timer::Timer::get(name); \
            timer::Timer::destroy(name))
+#define TIMER_DUMP_ALL() \
+  TIMER_OP(for (auto *t : timer::Timer::get_all()) { \
+             *timer::Timer::out << *t << "\n"; \
+             timer::Timer::destroy(t->name()); \
+           })
 
 #define TIMER_SECONDS timer::Timer::SECONDS
 #define TIMER_MILLISECONDS timer::Timer::MILLISECONDS
