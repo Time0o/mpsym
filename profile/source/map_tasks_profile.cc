@@ -506,8 +506,8 @@ int main(int argc, char **argv)
       default:
         return EXIT_FAILURE;
       }
-    } catch (std::invalid_argument const &) {
-      error("invalid option argument");
+    } catch (std::invalid_argument const &e) {
+      error("invalid option argument:", e.what());
       return EXIT_FAILURE;
     }
   }
