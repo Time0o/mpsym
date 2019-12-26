@@ -218,12 +218,12 @@ void profile(Stream &groups_stream,
     auto group(parse_group(line));
 
     if (options.verbose) {
-      info("Constructing group", lineno,
-           "with degree", group.degree,
-           "and generators", group.generators);
+      info("Constructing group", lineno);
+      info("=> degree", group.degree);
+      info("=> orders", group.order);
+      info("=> generators", group.generators);
     } else {
-      info("Constructing group", lineno,
-           "with degree", group.degree);
+      info("Constructing group", lineno);
     }
 
     auto ts = run(group.generators, options);

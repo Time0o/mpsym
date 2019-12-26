@@ -12,6 +12,7 @@
 struct GenericGroup
 {
   unsigned degree;
+  unsigned long long order;
   std::string generators;
 };
 

@@ -181,12 +181,20 @@ GenericGroup parse_group(std::string const &group_str)
     throw std::invalid_argument("malformed group expression");
 
   unsigned degree = stox<unsigned>(m[1]);
+
+  unsigned long long order;
+  try {
+    order = stox<unsigned long long>(m[2]);
+  } catch (std::invalid_argument const &) {
+    throw std::invalid_argument("group order too large");
+  }
+
   std::string gen_str = m[3];
 
   if (!std::regex_match(gen_str, re_generators))
     throw std::invalid_argument("malformed generator expression");
 
-  return {degree, gen_str};
+  return {degree, order, gen_str};
 }
 
 gap::PermSet parse_generators_gap(std::string const &gen_str)

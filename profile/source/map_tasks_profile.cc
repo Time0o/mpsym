@@ -410,12 +410,12 @@ void profile(Stream &groups_stream,
         group.degree, options.num_tasks, options.num_task_allocations);
 
     if (options.verbosity > 0) {
-      info("Using automorphism group", lineno,
-           "with degree", group.degree,
-           "and generators", group.generators);
+      info("Using automorphism group", lineno);
+      info("=> degree", group.degree);
+      info("=> orders", group.order);
+      info("=> generators", group.generators);
     } else {
-      info("Using automorphism group", lineno,
-           "with degree", group.degree);
+      info("Using automorphism group", lineno);
     }
 
     double t = run(group.generators, task_allocations, options);

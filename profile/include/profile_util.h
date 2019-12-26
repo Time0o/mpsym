@@ -5,6 +5,7 @@
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -58,18 +59,18 @@ void error(ARGS &&...args)
 template<typename T>
 T stox(std::string const &str)
 {
-  long long i;
-
-  bool success = true;
+  T i;
+  bool success;
 
   try {
     std::size_t idx;
-    i = std::stoll(str, &idx);
 
-    success = idx == str.size() &&
-              i >= static_cast<long long>(std::numeric_limits<T>::min()) &&
-              i <= static_cast<long long>(std::numeric_limits<T>::max());
+    if (std::is_signed<T>::value)
+      i = std::stoll(str, &idx);
+    else
+      i = std::stoull(str, &idx);
 
+    success = idx == str.size();
   } catch (...) {
     success = false;
   }
@@ -77,7 +78,7 @@ T stox(std::string const &str)
   if (!success)
     throw std::invalid_argument("stox failed");
 
-  return static_cast<T>(i);
+  return i;
 }
 
 std::vector<std::string> split(std::string const &gen_str,
