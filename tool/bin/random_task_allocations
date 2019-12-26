@@ -7,7 +7,7 @@ import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
 from functools import partial, reduce
 from itertools import permutations, product
-from random import choices, sample
+from random import choices, sample, shuffle
 
 from util import error, progress, progress_done, usage
 
@@ -43,10 +43,13 @@ def generate_all_unique_allocations(min_task,
     domain = range(min_task, max_task + 1)
 
     if processor_sharing:
-        return list(product(domain, repeat=num_tasks))
+        task_allocations = list(product(domain, repeat=num_tasks))
     else:
-        return list(permutations(domain, r=num_tasks))
+        task_allocations = list(permutations(domain, r=num_tasks))
 
+    shuffle(task_allocations)
+
+    return task_allocations
 
 def generate_random_allocations(min_task,
                                 max_task,
