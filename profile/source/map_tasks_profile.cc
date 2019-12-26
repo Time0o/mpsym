@@ -317,8 +317,6 @@ void check_accuracy(cgtl::TaskOrbits const &task_orbits_mpsym,
 {
   using cgtl::TaskAllocation;
 
-  info("Checking accuracy...");
-
   if (task_orbits_mpsym == task_orbits_gap) {
     info("Orbit representatives match");
     return;
@@ -384,6 +382,8 @@ double run(std::string const &generators,
                             &t);
 
     if (options.check_accuracy) {
+      info("Checking accuracy...");
+
       map_tasks_gap_wrapper(generators,
                             task_allocations,
                             options,

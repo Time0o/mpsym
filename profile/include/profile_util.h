@@ -18,7 +18,7 @@ void print(std::ostream &os, char const *prefix, char const *endl, ARGS &&...arg
   using expander = int[];
   (void)expander{0, (void(os << " " << std::forward<ARGS>(args)), 0)...};
 
-  os << endl;
+  os << endl << std::flush;
 }
 
 template<typename... ARGS>
