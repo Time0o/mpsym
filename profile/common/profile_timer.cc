@@ -1,7 +1,5 @@
 #include <chrono>
 #include <cstdlib>
-#include <ostream>
-#include <sstream>
 #include <stdexcept>
 
 #include <sys/times.h>
@@ -40,15 +38,8 @@ class RealtimeTimer
 {
 public:
   RealtimeTimer()
-  : _enabled(false),
-    _timer("profile")
+  : _timer("profile")
   {}
-
-  void enable()
-  { _enabled = true; }
-
-  bool enabled()
-  { return _enabled; }
 
   void start()
   { _timer.start(); }
@@ -60,62 +51,43 @@ public:
   }
 
 private:
-  bool _enabled;
   timer::Timer _timer;
 
 } realtime_timer;
 
-bool stop_child(pid_t child)
-{
-  int status;
-  waitpid(child, &status, 0);
-
-  return  WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS;
-}
-
 } // namespace
-
-void timer_realtime_enable()
-{ realtime_timer.enable(); }
-
-bool timer_realtime_enabled()
-{ return realtime_timer.enabled(); }
 
 void timer_start()
 {
-  if (realtime_timer.enabled())
-    realtime_timer.start();
-  else
-    child_timer.start();
+#ifdef PROFILE_CPU_TIMER
+  child_timer.start();
+#else
+  realtime_timer.start();
+#endif // PROFILE_CPU_TIMER
 }
 
 double timer_stop(pid_t child)
 {
   double t;
-  if (realtime_timer.enabled()) {
-    realtime_timer.stop(&t);
-  } else {
-    if (child == 0)
-      throw std::logic_error("no child pid given");
 
-    if (!stop_child(child))
-      throw std::runtime_error("the forked child process terminated prematurely");
+#ifdef PROFILE_CPU_TIMER
+  if (child == 0)
+    throw std::logic_error("no child pid given");
 
-    child_timer.stop(&t);
-  }
+  int status;
+  waitpid(child, &status, 0);
+
+  bool child_stopped =  IFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS;
+
+  if (!child_stopped)
+    throw std::runtime_error("the forked child process terminated prematurely");
+
+  child_timer.stop(&t);
+#else
+  (void)child;
+
+  realtime_timer.stop(&t);
+#endif // PROFILE_CPU_TIMER
 
   return t;
-}
-
-void debug_timer_dump(char const *timer)
-{
-  std::ostream *os = TIMER_GET_OUT();
-
-  std::stringstream ss;
-  TIMER_SET_OUT(&ss);
-
-  TIMER_DUMP(timer);
-  debug(ss.str());
-
-  TIMER_SET_OUT(os);
 }

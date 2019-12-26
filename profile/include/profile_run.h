@@ -24,42 +24,42 @@ typename std::result_of<FUNC()>::type run_cpp(FUNC &&f, double *t)
 
   timer_start();
 
-  if (timer_realtime_enabled()) {
-    // run group creation in this process
-    if constexpr (returns_void) {
+#ifdef PROFILE_CPU_TIMER
+  // run group creation in child process
+  if constexpr (!returns_void)
+    throw std::logic_error("non void functions require realtime timer");
+
+  pid_t child;
+  switch ((child = fork())) {
+  case -1:
+    throw std::runtime_error("failed to fork child process");
+  case 0:
+    {
       f();
 
-      if (t)
-        *t = timer_stop();
-    } else {
-      auto ret = f();
-
-      if (t)
-        *t = timer_stop();
-
-      return ret;
+      _Exit(EXIT_SUCCESS);
     }
-  } else {
-    // run group creation in child process
-    if constexpr (!returns_void)
-      throw std::logic_error("non void functions require realtime timer");
+    break;
+  }
 
-    pid_t child;
-    switch ((child = fork())) {
-    case -1:
-      throw std::runtime_error("failed to fork child process");
-    case 0:
-      {
-        f();
-
-        _Exit(EXIT_SUCCESS);
-      }
-      break;
-    }
+  if (t)
+    *t = timer_stop(child);
+#else
+  // run group creation in this process
+  if constexpr (returns_void) {
+    f();
 
     if (t)
-      *t = timer_stop(child);
+      *t = timer_stop();
+  } else {
+    auto ret = f();
+
+    if (t)
+      *t = timer_stop();
+
+    return ret;
   }
+#endif
 }
 
 #endif // _GUARD_PROFILE_RUN_H

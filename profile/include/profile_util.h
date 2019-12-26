@@ -45,6 +45,8 @@ void debug_progress(ARGS &&...args)
 inline void debug_progress_done()
 { std::cout << "\n"; }
 
+void debug_timer_dump(char const *timer);
+
 template<typename... ARGS>
 void warning(ARGS &&...args)
 { print(std::cerr, "WARNING:", "\n", std::forward<ARGS>(args)...); }

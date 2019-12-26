@@ -45,7 +45,6 @@ void usage(std::ostream &s)
     "[--num-tasks NUM_TASKS]",
     "[--num-task-allocations NUM_TASK_ALLOCATIONS]",
     "[--check-accuracy]",
-    "[--realtime-clock]",
     "[-v|--verbose]",
     "[--show-gap-errors]"
   };
@@ -447,9 +446,8 @@ int main(int argc, char **argv)
     {"num-tasks",            required_argument, 0,        3 },
     {"num-task-allocations", required_argument, 0,        4 },
     {"check-accuracy",       no_argument,       0,        5 },
-    {"realtime-clock",       no_argument,       0,        6 },
     {"verbose",              no_argument,       0,       'v'},
-    {"show-gap-errors",      no_argument,       0,        7 },
+    {"show-gap-errors",      no_argument,       0,        6 },
     {nullptr,                0,                 nullptr,  0 }
   };
 
@@ -493,14 +491,11 @@ int main(int argc, char **argv)
       case 5:
         options.check_accuracy = true;
         break;
-      case 6:
-        timer_realtime_enable();
-        break;
       case 'v':
         ++options.verbosity;
         TIMER_ENABLE();
         break;
-      case 7:
+      case 6:
         options.show_gap_errors = true;
         break;
       default:

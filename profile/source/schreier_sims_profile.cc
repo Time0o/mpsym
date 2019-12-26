@@ -42,7 +42,6 @@ void usage(std::ostream &s)
     "[-t|--transversal-storage] {explicit|schreier-trees|shallow-schreier-trees}",
     "[-c|--num-cycles]",
     "[-r|--num-runs]",
-    "[--realtime-clock]",
     "[-v|--verbose]",
     "[--show-gap-errors]",
     "GROUPS"
@@ -250,9 +249,8 @@ int main(int argc, char **argv)
     {"transversal-storage", required_argument, 0,       't'},
     {"num-cyles",           required_argument, 0,       'c'},
     {"num-runs",            required_argument, 0,       'r'},
-    {"realtime-clock",      no_argument,       0,        1 },
     {"verbose",             no_argument,       0,       'v'},
-    {"show-gap-errors",     no_argument,       0,        2 },
+    {"show-gap-errors",     no_argument,       0,        1 },
     {nullptr,               0,                 nullptr,  0 }
   };
 
@@ -285,14 +283,11 @@ int main(int argc, char **argv)
       case 'r':
         options.num_runs = stox<unsigned>(optarg);
         break;
-      case 1:
-        timer_realtime_enable();
-        break;
       case 'v':
         options.verbose = true;
         TIMER_ENABLE();
         break;
-      case 2:
+      case 1:
         options.show_gap_errors = true;
         break;
       default:
