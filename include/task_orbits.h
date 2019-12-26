@@ -99,7 +99,11 @@ public:
   }
 
   bool is_representative(TaskAllocation const &allocation) const
-  { return std::find(begin(), end(), allocation) != end(); }
+  {
+    auto it(_orbit_representatives.find(allocation));
+
+    return it != _orbit_representatives.end();
+  }
 
   unsigned num_orbits() const
   { return static_cast<unsigned>(_orbit_representatives.size()); }
