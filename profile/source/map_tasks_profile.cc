@@ -113,21 +113,15 @@ std::string map_tasks_gap_orbits(ProfileOptions const &options)
     ss << "orbit:=Orb(automorphisms, task_allocation, OnTuples);\n";
     ss << "orbit_repr:=Elements(Enumerate(orbit))[1];\n";
 
-    ss << "if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then\n";
-    ss << "  Append(orbit_representatives, [orbit_repr]);\n";
-    ss << "fi;\n";
-
   } else {
     ss << "orbit_options:=rec(lookingfor:=orbit_representatives_hash);\n";
     ss << "orbit:=Orb(automorphisms, task_allocation, OnTuples, orbit_options);\n";
-
-    ss << "if not PositionOfFound(orbit) then\n";
-    ss << "  orbit_repr:=Elements(Enumerate(orbit))[1];\n";
-
-    ss << "  HTAdd(orbit_representatives_hash, orbit_repr, true);\n";
-    ss << "  Append(orbit_representatives, [orbit_repr]);\n";
-    ss << "fi;\n";
+    ss << "orbit_repr:=Elements(Enumerate(orbit))[1];\n";
   }
+
+  ss << "if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then\n";
+  ss << "  Append(orbit_representatives, [orbit_repr]);\n";
+  ss << "fi;\n";
 
   return ss.str();
 }
