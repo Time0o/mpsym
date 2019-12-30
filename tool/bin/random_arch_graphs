@@ -1,0 +1,405 @@
+#!/usr/bin/env python3
+
+import json
+
+from itertools import combinations
+from functools import partial
+from random import randint, random
+from time import time
+
+import pynauty
+
+from modules.args import NiceArgumentParser
+from modules.run import run_gap
+from modules.util import error, usage
+
+
+USAGE = usage(__file__, """[--graph-min-depth GRAPH_MIN_DEPTH]
+                           --graph-max-depth GRAPH_MAX_DEGREE
+                           [--graph-min-cluster-size GRAPH_MIN_CLUSTER_SIZE]
+                           [--graph-max-cluster-size GRAPH_MAX_CLUSTER_SIZE]
+                           [--graph-supergraph-prob GRAPH_SUPERGRAPH_PROB]
+                           [--component-min-vertices COMPONENT_MIN_VERTICES]
+                           --component-max-vertices COMPONENT_MAX_VERTICES
+                           [--component-min-pe-types COMPONENT_MIN_PE_TYPES]
+                           [--component-max-pe-types COMPONENT_MAX_PE_TYPES]
+                           [--component-min-ch-types COMPONENT_MIN_CH_TYPES]
+                           [--component-max-ch-types COMPONENT_MAX_CH_TYPES]
+                           [--component-edge-prob COMPONENT_EDGE_PROB]
+                           [--component-use-primitive]
+                           [--component-best-of COMPONENT_BEST_OF]
+                           [--component-unique]
+                           [--component-allow-non-symmetric]
+                           NUM_ARCH_GRAPHS""")
+
+
+DESC = """Generate random simple architecture graphs"""
+
+
+class RandomLimit():
+    def __init__(self, a, b):
+        if a <= 0 or b <= 0 or a > b:
+            error(__file__, "invalid range")
+
+        self._a = a
+        self._b = b
+
+    @property
+    def value(self):
+        return randint(self._a, self._b)
+
+
+class RandomDecision:
+    def __init__(self, prob):
+        self._prob = prob
+
+    def __bool__(self):
+        return random() < self._prob
+
+
+class Component():
+    def __init__(self, degree, generators):
+        self.degree = degree
+        self.generators = generators
+
+    @staticmethod
+    def generators_from_gap(generators_gap):
+        generators = generators_gap[1:-1].replace(' ', '').split('),')
+
+        return [g + ')' for g in generators[:-1]] + [generators[-1]]
+
+    @staticmethod
+    def generators_to_gap(generators):
+        return ','.join([str(g).replace("'", "") for g in generators])
+
+
+def graph_component_print_generator(generator):
+    generator = [x + 1 for x in generator]
+
+    cycle = []
+    cycles = []
+
+    first = 1
+    current = 1
+    done = set()
+
+    while True:
+        done.add(current)
+        cycle.append(current)
+
+        current = generator[current - 1]
+
+        if current == first:
+            if len(cycle) > 1:
+                cycles.append(cycle[:])
+
+            if len(done) == len(generator):
+                break
+
+            cycle.clear()
+
+            for i in range(1, len(generator) + 1):
+                if i not in done:
+                    first = i
+                    current = i
+                    break
+
+    if not cycles:
+        return '()'
+
+    def print_cycle(cycle):
+        return '(' + ','.join([str(x) for x in cycle]) + ')'
+
+    return ''.join([print_cycle(cycle) for cycle in cycles])
+
+
+def graph_component_identity_generator(generator):
+    return generator == list(range(len(generator)))
+
+
+def graph_component_generate(vertices,
+                             pe_types,
+                             ch_types,
+                             create_edge):
+
+    # generate a random adjacency list
+    adj = {i: [] for i in range(vertices)}
+
+    for i, j in combinations(range(vertices), 2):
+      if create_edge:
+        adj[i].append(j)
+
+    # generate vertex coloring
+    vertex_coloring = [set() for _ in range(pe_types)]
+
+    for i in range(vertices):
+        vertex_coloring[randint(1, pe_types) - 1].add(i)
+
+    # reduce channel coloring problem to vertex coloring problem
+    if ch_types > 1:
+        edge_vertices = vertices
+        for i in adj:
+            neighbours = [j for j in adj[i] if j < vertices]
+            for j in neighbours:
+                adj[i].remove(j)
+                adj[i].append(edge_vertices)
+                adj[j].append(edge_vertices)
+                edge_vertices += 1
+
+        channel_coloring = [set() for _ in range(ch_types)]
+
+        for i in range(vertices, edge_vertices):
+            channel_coloring[randint(1, ch_types) - 1].add(i)
+
+        vertex_coloring += channel_coloring
+    else:
+        edge_vertices = 0
+
+    # construct graph
+    g = pynauty.Graph(vertices + edge_vertices,
+                      directed=False,
+                      adjacency_dict=adj,
+                      vertex_coloring=vertex_coloring)
+
+    # find its automorphism group
+    generators, _, _, _, _ = pynauty.autgrp(g)
+
+    if ch_types > 1:
+        generators = [g[:vertices] for g in generators]
+
+    generators = [
+        graph_component_print_generator(g)
+        for g in generators if not graph_component_identity_generator(g)
+    ]
+
+    return generators
+
+
+def primitive_component_generate(vertices):
+    seed = time()
+    seed = int((seed - int(seed)) * 1e4)
+
+    script = """\
+        degree:={};
+        nr:=NrPrimitiveGroups(degree);
+
+        if nr <> 0 then
+        rs:=RandomSource(IsMersenneTwister, {});
+            r:=Random(rs, [1, nr]);
+            g:=PrimitiveGroup(degree, r);
+            Print(GeneratorsOfGroup(g), "\\n");
+        fi;
+    """.format(vertices, seed)
+
+    generators = run_gap(script)
+
+    if not generators:
+        error(__file__, "no primitive component with degree {}".format(vertices))
+
+    return Component.generators_from_gap(generators)
+
+
+def find_best_component(components):
+    generators_gap = \
+        Component.generators_to_gap([c.generators for c in components])
+
+    script = """\
+        components:=[
+          {}
+        ];
+
+        max_order:=0;
+        argmax_order:=0;
+
+        for i in [1..Length(components)] do
+          order:=Size(components[i]);
+
+          if order > max_order then
+            max_order:=order;
+            argmax_order:=i;
+          fi;
+        od;
+
+        Print( argmax_order, "\\n");
+    """.format(generators_gap)
+
+    return components[int(run_gap(script)) - 1]
+
+
+def generate_component(vertices,
+                       pe_types,
+                       ch_types,
+                       create_edge,
+                       use_primitive,
+                       best_of,
+                       allow_non_unique,
+                       allow_non_symmetric,
+                       previous_components):
+
+    # when to give up
+    TRIES = 10000
+
+    potential_components = []
+
+    success = False
+
+    for _ in range(TRIES):
+        vs = vertices.value
+        pes = pe_types.value
+        chs = ch_types.value
+
+        if use_primitive:
+            generators = primitive_component_generate(vs)
+        else:
+            generators = graph_component_generate(vs, pes, chs, create_edge)
+
+        component = Component(vs, generators)
+
+        if not allow_non_unique:
+            # assure that component is unique
+            if tuple(component.generators) in previous_components:
+                continue
+
+        if not allow_non_symmetric:
+            # assure that component has at least some symmetries
+            if not component.generators:
+                continue
+
+        potential_components.append(component)
+
+        if len(potential_components) == best_of:
+            success = True
+            break
+
+    if not success:
+        error(__file__, "failed to generate component graph")
+
+    if len(potential_components) == 1:
+        component = potential_components[0]
+    else:
+        component = find_best_component(potential_components)
+
+    previous_components.add(tuple(component.generators))
+
+    return [component.degree, component.generators]
+
+
+def generate_random_arch_graph(graph_depth,
+                               graph_cluster_size,
+                               graph_supergraph_prob,
+                               component_vertices,
+                               component_pe_types,
+                               component_ch_types,
+                               component_create_edge,
+                               component_use_primitive,
+                               component_best_of,
+                               component_allow_non_unique,
+                               component_allow_non_symmetric):
+
+    arch_graph = {}
+
+    component_set = set()
+
+    make_component = partial(generate_component,
+                             component_vertices,
+                             component_pe_types,
+                             component_ch_types,
+                             component_create_edge,
+                             component_use_primitive,
+                             component_best_of,
+                             component_allow_non_unique,
+                             component_allow_non_symmetric,
+                             component_set)
+
+    arch_graph = make_component()
+
+    for _ in range(graph_depth.value - 1):
+        if graph_supergraph_prob:
+            arch_graph = {'supergraph': [make_component(), arch_graph]}
+        else:
+            cluster = [arch_graph]
+
+            for _ in range(graph_cluster_size.value - 1):
+                cluster.append(make_component())
+
+            arch_graph = {'cluster': cluster}
+
+    return arch_graph
+
+
+if __name__ == '__main__':
+    parser = NiceArgumentParser(max_help_position=10,
+                                usage=USAGE,
+                                description=DESC)
+
+    parser.add_argument('--graph-min-depth', type=int, default=1,
+        help="minimal graph 'depth'")
+
+    parser.add_argument('--graph-max-depth', required=True, type=int,
+        help="maximal graph 'depth'")
+
+    parser.add_argument('--graph-min-cluster-size', type=int, default=2,
+        help="minimal number of cluster elements at each level")
+
+    parser.add_argument('--graph-max-cluster-size', type=int, default=2,
+        help="maximum number of cluster elements at each level")
+
+    parser.add_argument('--graph-supergraph-prob', type=float, default=0.5,
+        help=str("probability of components being combined via a supergraph at "
+                 "each depth level"))
+
+    parser.add_argument('--component-min-vertices', type=int, default=1,
+        help="minimal number of vertices in component graphs")
+
+    parser.add_argument('--component-max-vertices', required=True, type=int,
+        help="maximal number of vertices in component graphs")
+
+    parser.add_argument('--component-min-pe-types', type=int, default=1,
+        help="minimal number of different processor types in component graphs")
+
+    parser.add_argument('--component-max-pe-types', type=int, default=1,
+        help="maximal number of different processor types in component graphs")
+
+    parser.add_argument('--component-min-ch-types', type=int, default=1,
+        help="maximal number of different channel types in component graphs")
+
+    parser.add_argument('--component-max-ch-types', type=int, default=1,
+        help="maximal number of different channel types in component graphs")
+
+    parser.add_argument('--component-edge-prob', type=float, default=0.5,
+        help=str("probability of existence of each possible edge in random "
+                 "component graphs"))
+
+    parser.add_argument('--component-use-primitive', action='store_true',
+        help="make components primitive groups")
+
+    parser.add_argument('--component-best-of', type=int, default=1,
+        help=str("produce COMPONENTS_BEST_OF component graphs and choose the "
+                 "'best one' every time"))
+
+    parser.add_argument('--component-disallow-non-unique', action='store_true',
+        help="disallow component graphs with identical automorphism groups")
+
+    parser.add_argument('--component-allow-non-symmetric', action='store_true',
+        help="allow component graphs whose automorphism groups are trivial")
+
+    parser.add_argument('num_arch_graphs', metavar='NUM_ARCH_GRAPHS', type=int,
+        help="number of arch graphs to generate")
+
+    ns = parser.parse_args()
+
+    for _ in range(ns.num_arch_graphs):
+        arch_graph = generate_random_arch_graph(
+            RandomLimit(ns.graph_min_depth, ns.graph_max_depth),
+            RandomLimit(ns.graph_min_cluster_size, ns.graph_max_cluster_size),
+            RandomDecision(ns.graph_supergraph_prob),
+            RandomLimit(ns.component_min_vertices, ns.component_max_vertices),
+            RandomLimit(ns.component_min_pe_types, ns.component_max_pe_types),
+            RandomLimit(ns.component_min_ch_types, ns.component_max_ch_types),
+            RandomDecision(ns.component_edge_prob),
+            ns.component_use_primitive,
+            ns.component_best_of,
+            not ns.component_disallow_non_unique,
+            ns.component_allow_non_symmetric)
+
+        print(json.dumps(arch_graph))

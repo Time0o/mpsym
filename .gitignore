@@ -1,3 +1,4 @@
+tool/bin/modules/__pycache__
 cmake/CodeCoverage.cmake
 sphinx/conf.py
 sphinx/api

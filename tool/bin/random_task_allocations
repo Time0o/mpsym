@@ -8,7 +8,8 @@ from functools import partial, reduce
 from itertools import permutations, product
 from random import choices, sample, shuffle
 
-from util import error, progress, progress_done, usage, NiceArgumentParser
+from modules.args import NiceArgumentParser
+from modules.util import error, progress, progress_done, usage
 
 
 USAGE = usage(__file__, """[--min-task MIN_TASK]

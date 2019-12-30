@@ -3,10 +3,9 @@
 import os
 import sys
 
-from subprocess import Popen, PIPE
-from tempfile import NamedTemporaryFile
-
-from util import error, usage, NiceArgumentParser
+from modules.args import NiceArgumentParser
+from modules.run import run_gap
+from modules.util import error, usage
 
 
 USAGE = usage(__file__, """[--min-degree MIN_DEGREE]
@@ -129,12 +128,7 @@ if __name__ == '__main__':
                         ns.max_num,
                         ns.order_limit)
 
-    with NamedTemporaryFile(mode='w+', delete=False) as f:
-        f.write(script)
-
-    p = Popen(['gap', '--nointeract', '-q', f.name], stdout=PIPE)
-    out, _ = p.communicate()
-    out = out.decode('ascii')[:-1]
+    out = run_gap(script)
 
     out = out.replace(' ', '')
 
@@ -147,5 +141,3 @@ if __name__ == '__main__':
         i += 1
 
     print(''.join(out_list))
-
-    os.remove(f.name)
