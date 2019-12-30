@@ -3,11 +3,10 @@
 import os
 import sys
 
-from argparse import ArgumentParser, RawTextHelpFormatter
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 
-from util import error, usage
+from util import error, usage, NiceArgumentParser
 
 
 USAGE = usage(__file__, """[--min-degree MIN_DEGREE]
@@ -87,13 +86,7 @@ def gap_script(group_class, min_degree, max_degree, degree_step, max_num, order_
 
 
 if __name__ == '__main__':
-    def formatter_class(prog):
-        return RawTextHelpFormatter(prog, max_help_position=80)
-
-    parser = ArgumentParser(
-        usage=USAGE,
-        description=DESC,
-        formatter_class=formatter_class)
+    parser = NiceArgumentParser(usage=USAGE, description=DESC)
 
     parser.add_argument('group_class', metavar='CLASS',
       choices=['symmetric', 'cyclic', 'alternating', 'dihedral', 'primitive'],

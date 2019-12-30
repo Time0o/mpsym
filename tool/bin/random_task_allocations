@@ -4,12 +4,11 @@ import operator as op
 import os
 import sys
 
-from argparse import ArgumentParser, RawTextHelpFormatter
 from functools import partial, reduce
 from itertools import permutations, product
 from random import choices, sample, shuffle
 
-from util import error, progress, progress_done, usage
+from util import error, progress, progress_done, usage, NiceArgumentParser
 
 
 USAGE = usage(__file__, """[--min-task MIN_TASK]
@@ -90,31 +89,25 @@ def generate_random_allocations(min_task,
 
 
 if __name__ == '__main__':
-    def formatter_class(prog):
-        return RawTextHelpFormatter(prog, max_help_position=80)
-
-    parser = ArgumentParser(
-        usage=USAGE,
-        description=DESC,
-        formatter_class=formatter_class)
+    parser = NiceArgumentParser(usage=USAGE, description=DESC)
 
     parser.add_argument('--min-task', type=int, default=1,
-        help=str("minimum task id"))
+        help="minimum task id")
 
     parser.add_argument('--max-task', required=True, type=int,
-        help=str("maximum task id"))
+        help="maximum task id")
 
     parser.add_argument('--num-tasks', required=True, type=int,
-        help=str("tasks per allocation"))
+        help="tasks per allocation")
 
     parser.add_argument('--non-unique', action='store_true',
-        help=str("allow duplicate allocations"))
+        help="allow duplicate allocations")
 
     parser.add_argument('--processor-sharing', action='store_true',
-        help=str("allow multiple tasks to be allocated to the same processor"))
+        help="allow multiple tasks to be allocated to the same processor")
 
     parser.add_argument('num_allocations', metavar='NUM_ALLOCATIONS',
-        help=str("number of allocations to generate"))
+        help="number of allocations to generate")
 
     ns = parser.parse_args()
 
