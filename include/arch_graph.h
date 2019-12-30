@@ -19,17 +19,11 @@ class ArchGraph : public ArchGraphSystem
 {
   friend std::ostream &operator<<(std::ostream &os, ArchGraph &ag);
 
-  typedef boost::vecS vertex_selector;
-  typedef boost::vecS edge_selector;
-
   typedef std::vector<std::string>::size_type processor_type_size_type;
   typedef std::vector<std::string>::size_type channel_type_size_type;
 
-  typedef boost::adjacency_list<
-    edge_selector, vertex_selector, boost::bidirectionalS> traits;
-
-  typedef traits::vertices_size_type vertices_size_type;
-  typedef traits::edges_size_type edges_size_type;
+  typedef boost::vecS vertex_selector;
+  typedef boost::vecS edge_selector;
 
   struct VertexProperty { processor_type_size_type type; };
   struct EdgeProperty { channel_type_size_type type; };
@@ -37,6 +31,9 @@ class ArchGraph : public ArchGraphSystem
   typedef boost::adjacency_list<
     edge_selector, vertex_selector, boost::undirectedS,
     VertexProperty, EdgeProperty> adjacency_type;
+
+  typedef adjacency_type::vertices_size_type vertices_size_type;
+  typedef adjacency_type::edges_size_type edges_size_type;
 
 public:
   typedef processor_type_size_type ProcessorType;
