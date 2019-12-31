@@ -21,7 +21,6 @@
 #include "timer.h"
 
 #include "profile_args.h"
-#include "profile_generate.h"
 #include "profile_parse.h"
 #include "profile_read.h"
 #include "profile_run.h"
@@ -41,9 +40,7 @@ void usage(std::ostream &s)
     "-m|--mapping-method {iterate|local_search|orbits}",
     "[--mapping-options {dont_match_reprs}]",
     "-g|--groups GROUPS",
-    "[-t|--task-allocations TASK_ALLOCATIONS]",
-    "[--num-tasks NUM_TASKS]",
-    "[--num-task-allocations NUM_TASK_ALLOCATIONS]",
+    "-t|--task-allocations TASK_ALLOCATIONS",
     "[--check-accuracy]",
     "[-v|--verbose]",
     "[--show-gap-errors]"
@@ -59,8 +56,6 @@ struct ProfileOptions
   VariantOption library{"gap", "mpsym"};
   VariantOption mapping_method{"iterate", "local_search", "orbits"};
   VariantOptionSet mapping_options{"dont_match_reprs"};
-  unsigned num_tasks = 0u;
-  unsigned num_task_allocations = 0u;
   bool check_accuracy = false;
   int verbosity = 0;
   bool show_gap_errors = false;
@@ -397,17 +392,10 @@ void profile(Stream &groups_stream,
   if (options.verbosity > 0)
     debug("Implementation:", options.library.get());
 
-  std::string task_allocations;
-
-  if (task_allocations_stream.valid)
-    task_allocations = read_file(task_allocations_stream.stream);
+  auto task_allocations(read_file(task_allocations_stream.stream));
 
   foreach_line(groups_stream.stream, [&](std::string const &line, unsigned lineno){
     auto group(parse_group(line));
-
-    if (!task_allocations_stream.valid)
-      task_allocations = generate_task_allocations(
-        group.degree, options.num_tasks, options.num_task_allocations);
 
     if (options.verbosity > 0) {
       info("Using automorphism group", lineno);
@@ -437,11 +425,9 @@ int main(int argc, char **argv)
     {"mapping-options",      required_argument, 0,        2 },
     {"groups",               required_argument, 0,       'g'},
     {"task-allocations",     required_argument, 0,       't'},
-    {"num-tasks",            required_argument, 0,        3 },
-    {"num-task-allocations", required_argument, 0,        4 },
-    {"check-accuracy",       no_argument,       0,        5 },
+    {"check-accuracy",       no_argument,       0,        3 },
     {"verbose",              no_argument,       0,       'v'},
-    {"show-gap-errors",      no_argument,       0,        6 },
+    {"show-gap-errors",      no_argument,       0,        4 },
     {nullptr,                0,                 nullptr,  0 }
   };
 
@@ -477,19 +463,13 @@ int main(int argc, char **argv)
         OPEN_STREAM(task_allocations_stream, optarg);
         break;
       case 3:
-        options.num_tasks = stox<unsigned>(optarg);
-        break;
-      case 4:
-        options.num_task_allocations = stox<unsigned>(optarg);
-        break;
-      case 5:
         options.check_accuracy = true;
         break;
       case 'v':
         ++options.verbosity;
         TIMER_ENABLE();
         break;
-      case 6:
+      case 4:
         options.show_gap_errors = true;
         break;
       default:
@@ -505,27 +485,15 @@ int main(int argc, char **argv)
 
   CHECK_OPTION(options.mapping_method.is_set(), "--mapping-method is mandatory");
 
-  if (options.library.is("gap")) {
-    CHECK_OPTION(!options.mapping_method.is("local_search"),
-                 "local_search only supported when using mpsym");
-  }
+  CHECK_OPTION(!options.library.is("gap") || !options.mapping_method.is("local_search"),
+               "local_search only supported when using mpsym");
 
   CHECK_OPTION(groups_stream.valid, "--groups option is mandatory");
 
-  if (task_allocations_stream.valid) {
-    if (options.num_tasks > 0 || options.num_task_allocations > 0)
-       warning("task allocations explicitly given,"
-               " --num-tasks, --num-task-allocations ignored");
+  CHECK_OPTION(task_allocations_stream.valid, "--task-allocations option is mandatory");
 
-  } else {
-    CHECK_OPTION(options.num_tasks > 0 || options.num_task_allocations > 0,
-                 "task allocations not explicitly given,"
-                 " --num-tasks, --num-task-allocations missing");
-  }
-
-  if (options.check_accuracy)
-    CHECK_OPTION(!options.library.is("gap"),
-                 "--check-accuracy only available when using mpsym")
+  CHECK_OPTION(!options.check_accuracy || !options.library.is("gap"),
+               "--check-accuracy only available when using mpsym")
 
   try {
     profile(groups_stream, task_allocations_stream, options);
