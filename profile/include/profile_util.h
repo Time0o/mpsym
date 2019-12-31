@@ -81,7 +81,6 @@ T stox(std::string const &str)
   return i;
 }
 
-std::vector<std::string> split(std::string const &gen_str,
-                               char const *delim = " ");
+std::vector<std::string> split(std::string const &str, char const *delim = " ");
 
 #endif // _GUARD_PROFILE_UTIL_H

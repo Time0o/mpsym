@@ -18,7 +18,14 @@ namespace
 {
 
 std::vector<std::string> split_generators(std::string const &gen_str)
-{ return split(gen_str.substr(1, gen_str.size() - 2), "),"); }
+{
+  auto res(split(gen_str.substr(1, gen_str.size() - 2), "),"));
+
+  for (auto i = 0u; i < res.size() - 1u; ++i)
+    res[i] += ")";
+
+  return res;
+}
 
 using gen_type = std::vector<std::vector<std::vector<unsigned>>>;
 
