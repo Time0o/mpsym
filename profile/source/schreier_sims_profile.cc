@@ -159,30 +159,33 @@ void make_perm_group_permlib(permlib::PermSet const &generators,
   }, permlib_transversal_type(options.transversals));
 }
 
-std::vector<double> run(std::string const &generators,
+std::vector<double> run(unsigned degree,
+                        std::string const &generators,
                         ProfileOptions const &options)
 {
   std::vector<double> ts;
+
   for (unsigned r = 0; r < options.num_runs; ++r) {
     if (options.verbose)
       debug_progress("Executing run", r + 1, "/", options.num_runs);
 
     double t;
     if (options.library.is("gap")) {
-      run_gap(make_perm_group_gap(parse_generators_gap(generators), options),
-              options.verbose,
-              !options.show_gap_errors,
-              &t);
-    } else {
-      if (options.library.is("mpsym")) {
-        run_cpp([&]{
-          make_perm_group_mpsym(parse_generators_mpsym(generators), options);
-        }, &t);
-      } else if (options.library.is("permlib")) {
-        run_cpp([&]{
-          make_perm_group_permlib(parse_generators_permlib(generators), options);
-        }, &t);
-      }
+      auto generators_gap(parse_generators_gap(degree, generators));
+
+      auto gap_script(make_perm_group_gap(generators_gap, options));
+
+      run_gap(gap_script, options.verbose, !options.show_gap_errors, &t);
+
+    } else if (options.library.is("mpsym")) {
+      auto generators_mpsym(parse_generators_mpsym(degree, generators));
+
+      run_cpp([&]{ make_perm_group_mpsym(generators_mpsym, options); }, &t);
+
+    } else if (options.library.is("permlib")) {
+      auto generators_permlib(parse_generators_permlib(degree, generators));
+
+      run_cpp([&]{ make_perm_group_permlib(generators_permlib, options); }, &t);
     }
 
     ts.push_back(t);
@@ -226,7 +229,7 @@ void profile(Stream &groups_stream,
       info("Constructing group", lineno);
     }
 
-    auto ts = run(group.generators, options);
+    auto ts = run(group.degree, group.generators, options);
 
     double t_mean, t_stddev;
     util::mean_stddev(ts, &t_mean, &t_stddev);

@@ -29,11 +29,8 @@ std::vector<std::string> split_generators(std::string const &gen_str)
 
 using gen_type = std::vector<std::vector<std::vector<unsigned>>>;
 
-std::pair<unsigned, gen_type> parse_generators(
-  std::vector<std::string> const &gen_strs)
+gen_type parse_generators(std::vector<std::string> const &gen_strs)
 {
-  unsigned degree = 0;
-
   gen_type gens;
 
   for (auto const &gen_str : gen_strs) {
@@ -53,8 +50,6 @@ std::pair<unsigned, gen_type> parse_generators(
         {
           int n = stox<int>(gen_str.substr(n_beg, i - n_beg));
 
-          degree = std::max(degree, static_cast<unsigned>(n));
-
           cycle.push_back(n);
           if (c == ')')
             perm.push_back(cycle);
@@ -71,7 +66,7 @@ std::pair<unsigned, gen_type> parse_generators(
     gens.push_back(perm);
   }
 
-  return {degree, gens};
+  return gens;
 }
 
 cgtl::PermSet convert_generators_mpsym(unsigned degree, gen_type const &gens)
@@ -204,28 +199,18 @@ GenericGroup parse_group(std::string const &group_str)
   return {degree, order, gen_str};
 }
 
-gap::PermSet parse_generators_gap(std::string const &gen_str)
+gap::PermSet parse_generators_gap(unsigned degree, std::string const &gen_str)
+{ return {degree, gen_str}; }
+
+cgtl::PermSet parse_generators_mpsym(unsigned degree, std::string const &gen_str)
 {
-  unsigned degree = parse_generators(split_generators(gen_str)).first;
-
-  return {degree, gen_str};
-}
-
-cgtl::PermSet parse_generators_mpsym(std::string const &gen_str)
-{
-   unsigned degree;
-   gen_type gen_vect;
-   std::tie(degree, gen_vect) = parse_generators(split_generators(gen_str));
-
+   gen_type gen_vect(parse_generators(split_generators(gen_str)));
    return convert_generators_mpsym(degree, gen_vect);
 }
 
-permlib::PermSet parse_generators_permlib(std::string const &gen_str)
+permlib::PermSet parse_generators_permlib(unsigned degree, std::string const &gen_str)
 {
-   unsigned degree;
-   gen_type gen_vect;
-   std::tie(degree, gen_vect) = parse_generators(split_generators(gen_str));
-
+   gen_type gen_vect(parse_generators(split_generators(gen_str)));
    return convert_generators_permlib(degree, gen_vect);
 }
 

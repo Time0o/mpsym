@@ -53,11 +53,11 @@ namespace permlib
 
 GenericGroup parse_group(std::string const &group_str);
 
-gap::PermSet parse_generators_gap(std::string const &gen_str);
+gap::PermSet parse_generators_gap(unsigned degree, std::string const &gen_str);
 
-cgtl::PermSet parse_generators_mpsym(std::string const &gen_str);
+cgtl::PermSet parse_generators_mpsym(unsigned degree, std::string const &gen_str);
 
-permlib::PermSet parse_generators_permlib(std::string const &gen_str);
+permlib::PermSet parse_generators_permlib(unsigned degree, std::string const &gen_str);
 
 gap::TaskAllocationVector parse_task_allocations_gap(
   std::string const &task_allocations_str);

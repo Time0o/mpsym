@@ -237,7 +237,8 @@ cgtl::TaskOrbits map_tasks_mpsym(
   return task_orbits;
 }
 
-void map_tasks_gap_wrapper(std::string const &generators,
+void map_tasks_gap_wrapper(unsigned degree,
+                           std::string const &generators,
                            std::string const &task_allocations,
                            ProfileOptions const &options,
                            cgtl::TaskOrbits *task_orbits,
@@ -247,7 +248,7 @@ void map_tasks_gap_wrapper(std::string const &generators,
 
   // parse input
 
-  auto generators_gap(parse_generators_gap(generators));
+  auto generators_gap(parse_generators_gap(degree, generators));
   auto task_allocations_gap(parse_task_allocations_gap(task_allocations));
 
   if (task_allocations_gap.max_pe > generators_gap.degree)
@@ -274,7 +275,8 @@ void map_tasks_gap_wrapper(std::string const &generators,
   }
 }
 
-void map_tasks_mpsym_wrapper(std::string const &generators,
+void map_tasks_mpsym_wrapper(unsigned degree,
+                             std::string const &generators,
                              std::string const &task_allocations,
                              ProfileOptions const &options,
                              cgtl::TaskOrbits *task_orbits,
@@ -284,7 +286,7 @@ void map_tasks_mpsym_wrapper(std::string const &generators,
 
   // parse input
 
-  auto generators_mpsym(parse_generators_mpsym(generators));
+  auto generators_mpsym(parse_generators_mpsym(degree, generators));
   auto task_allocations_mpsym(parse_task_allocations_mpsym(task_allocations));
 
   if (task_allocations_mpsym.max_pe > generators_mpsym.degree())
@@ -349,7 +351,8 @@ void check_accuracy(cgtl::TaskOrbits const &task_orbits_mpsym,
   }
 }
 
-double run(std::string const &generators,
+double run(unsigned degree,
+           std::string const &generators,
            std::string const &task_allocations,
            ProfileOptions const &options)
 {
@@ -358,12 +361,18 @@ double run(std::string const &generators,
   double t;
 
   if (options.library.is("gap")) {
-    map_tasks_gap_wrapper(generators, task_allocations, options, nullptr, &t);
+    map_tasks_gap_wrapper(degree,
+                          generators,
+                          task_allocations,
+                          options,
+                          nullptr,
+                          &t);
 
   } else if (options.library.is("mpsym")) {
     TaskOrbits task_orbits_mpsym, task_orbits_gap;
 
-    map_tasks_mpsym_wrapper(generators,
+    map_tasks_mpsym_wrapper(degree,
+                            generators,
                             task_allocations,
                             options,
                             &task_orbits_mpsym,
@@ -372,7 +381,8 @@ double run(std::string const &generators,
     if (options.check_accuracy) {
       info("Checking accuracy...");
 
-      map_tasks_gap_wrapper(generators,
+      map_tasks_gap_wrapper(degree,
+                            generators,
                             task_allocations,
                             options,
                             &task_orbits_gap,
@@ -406,7 +416,7 @@ void profile(Stream &groups_stream,
       info("Using automorphism group", lineno);
     }
 
-    double t = run(group.generators, task_allocations, options);
+    double t = run(group.degree, group.generators, task_allocations, options);
 
     result("Runtime:", t, "s");
   });
