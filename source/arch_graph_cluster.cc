@@ -38,6 +38,11 @@ ArchGraphCluster::num_channels() const
   return res;
 }
 
+unsigned
+ArchGraphCluster::num_subsystems() const
+{ return static_cast<unsigned>(_subsystems.size()); }
+
+
 PermGroup
 ArchGraphCluster::update_automorphisms()
 {

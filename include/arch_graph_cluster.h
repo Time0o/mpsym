@@ -25,6 +25,7 @@ public:
 
   unsigned num_processors() const override;
   unsigned num_channels() const override;
+  unsigned num_subsystems() const;
 
   TaskAllocation mapping(TaskAllocation const &allocation,
                          unsigned offset = 0u,

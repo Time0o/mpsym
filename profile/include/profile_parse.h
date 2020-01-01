@@ -1,9 +1,11 @@
 #ifndef _GUARD_PROFILE_PARSE_H
 #define _GUARD_PROFILE_PARSE_H
 
+#include <memory>
 #include <string>
 #include <vector>
 
+#include "arch_graph_system.h"
 #include "perm.h"
 #include "perm_set.h"
 #include "permlib.h"
@@ -67,5 +69,8 @@ cgtl::TaskAllocationVector parse_task_allocations_mpsym(
 
 cgtl::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
   std::string const &gap_output_str);
+
+std::shared_ptr<cgtl::ArchGraphSystem> parse_arch_graph_system(
+  std::string const &arch_graph_str);
 
 #endif // _GUARD_PROFILE_PARSE_H

@@ -46,7 +46,12 @@ public:
   {}
 
   virtual unsigned num_processors() const
-  { throw std::logic_error("not implemented"); }
+  {
+    if (_automorphisms_valid)
+      return _automorphisms.degree();
+    else
+      throw std::logic_error("not implemented");
+  }
 
   virtual unsigned num_channels() const
   { throw std::logic_error("not implemented"); }
