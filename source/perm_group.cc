@@ -192,45 +192,15 @@ PermGroup PermGroup::dihedral(std::vector<unsigned> const &support)
   return PermGroup(degree, {Perm(rotation), Perm(reflection)});
 }
 
-PermGroup PermGroup::direct_product(PermGroup const &lhs, PermGroup const &rhs)
+PermGroup PermGroup::wreath_product(PermGroup const &lhs_, PermGroup const &rhs_)
 {
-  return direct_product(lhs.bsgs().strong_generators(),
-                        rhs.bsgs().strong_generators());
-}
+  auto lhs(lhs_.bsgs().strong_generators());
+  auto rhs(rhs_.bsgs().strong_generators());
 
-PermGroup PermGroup::direct_product(PermSet const &lhs, PermSet const &rhs)
-{
   lhs.assert_not_empty();
   rhs.assert_not_empty();
 
-  unsigned degree = lhs.degree() + rhs.degree();
-
-  PermSet generators;
-
-  for (auto const &perm : lhs)
-    generators.insert(perm.extended(degree));
-
-  for (auto const &perm : rhs)
-    generators.insert(perm.shifted(lhs.degree()));
-
-  return PermGroup(degree, generators);
-}
-
-PermGroup PermGroup::wreath_product(PermGroup const &lhs, PermGroup const &rhs)
-{
-  return wreath_product(lhs.bsgs().strong_generators(),
-                        rhs.bsgs().strong_generators());
-}
-
-PermGroup PermGroup::wreath_product(PermSet const &lhs_, PermSet const &rhs_)
-{
-  lhs_.assert_not_empty();
-  rhs_.assert_not_empty();
-
-  auto lhs(lhs_);
   lhs.minimize_degree();
-
-  auto rhs(rhs_);
   rhs.minimize_degree();
 
   unsigned degree = lhs.degree() * rhs.degree();

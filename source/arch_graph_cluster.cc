@@ -43,13 +43,11 @@ ArchGraphCluster::update_automorphisms()
 {
   assert(!_subsystems.empty());
 
-  // TODO: optimize
-  PermGroup automorphisms(_subsystems[0]->automorphisms());
-  for (auto i = 1u; i < _subsystems.size(); ++i)
-    automorphisms = PermGroup::direct_product(automorphisms,
-                                              _subsystems[i]->automorphisms());
+  std::vector<PermGroup> automorphisms(_subsystems.size());
+  for (auto i = 0u; i < _subsystems.size(); ++i)
+    automorphisms[i] = _subsystems[i]->automorphisms();
 
-  return automorphisms;
+  return PermGroup::direct_product(automorphisms.begin(), automorphisms.end());
 }
 
 TaskAllocation
