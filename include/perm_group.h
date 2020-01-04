@@ -431,12 +431,10 @@ public:
 
 private:
   bool disjoint_decomp_complete_orbits_dependent(
-    std::vector<unsigned> orbit1,
-    std::vector<unsigned> orbit2) const;
+    std::vector<unsigned> orbit1, std::vector<unsigned> orbit2) const;
 
   unsigned disjoint_decomp_complete_generate_dependency_classes(
-    std::vector<unsigned> &orbit_ids,
-    unsigned n_orbits) const;
+    std::vector<unsigned> &orbit_ids, unsigned n_orbits) const;
 
   std::vector<PermGroup> disjoint_decomp_complete_recursive(
     std::vector<unsigned> const &orbit_ids,
@@ -445,6 +443,32 @@ private:
 
   std::vector<PermGroup> disjoint_decomp_complete(
     bool disjoint_orbit_optimization = true) const;
+
+  struct MovedSet : public std::vector<unsigned>
+  {
+    void init(Perm const &perm);
+    bool equivalent(MovedSet const &other) const;
+    void extend(MovedSet const &other);
+  };
+
+  struct EquivalenceClass
+  {
+    EquivalenceClass(Perm const &init, MovedSet const &moved)
+    : generators({init}),
+      moved(moved),
+      merged(false)
+    {}
+
+    PermSet generators;
+    MovedSet moved;
+    bool merged;
+  };
+
+  std::vector<EquivalenceClass>
+  disjoint_decomp_incomplete_find_equivalence_classes() const;
+
+  void disjoint_decomp_incomplete_merge_equivalence_classes(
+    std::vector<EquivalenceClass> &equivalence_classes) const;
 
   std::vector<PermGroup> disjoint_decomp_incomplete() const;
 

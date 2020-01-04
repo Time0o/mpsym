@@ -6,6 +6,7 @@
 #include "perm.h"
 #include "perm_group.h"
 #include "perm_set.h"
+#include "timer.h"
 
 /**
  * @file perm_group_disjoint_decomp.cc
@@ -365,106 +366,117 @@ std::vector<PermGroup> PermGroup::disjoint_decomp_complete(
   return decomp;
 }
 
-std::vector<PermGroup> PermGroup::disjoint_decomp_incomplete() const
+void
+PermGroup::MovedSet::init(Perm const &perm)
 {
-  DBG(DEBUG) << "Finding (incomplete) disjoint subgroup decomposition for:";
-  DBG(DEBUG) << *this;
+  clear();
+  for (unsigned i = 1u; i <= perm.degree(); ++i) {
+    if (perm[i] != i)
+      push_back(i);
+  }
+}
 
-  struct EquivalenceClass {
-    PermSet generators;
-    std::vector<unsigned> moved;
-  };
+bool PermGroup::MovedSet::equivalent(MovedSet const &other) const
+{
+  MovedSet::size_type i1 = 0u, i2 = 0u;
+
+  while ((*this)[i1] != other[i2]) {
+    if ((*this)[i1] < other[i2]) {
+      if (++i1 == this->size())
+        return false;
+    } else {
+      if (++i2 == other.size())
+        return false;
+    }
+  }
+
+  return true;
+}
+
+void PermGroup::MovedSet::extend(MovedSet const &other)
+{
+  MovedSet tmp;
+
+  std::set_union(
+    begin(), end(), other.begin(), other.end(), std::back_inserter(tmp));
+
+  *this = tmp;
+}
+
+std::vector<PermGroup::EquivalenceClass>
+PermGroup::disjoint_decomp_incomplete_find_equivalence_classes() const
+{
+  TIMER_START("disjoint decomp find equiv classes");
 
   std::vector<EquivalenceClass> equivalence_classes;
 
-  auto equivalent = [](std::vector<unsigned> const &m1,
-                       std::vector<unsigned> const &m2) {
+  MovedSet moved;
 
-    std::vector<unsigned>::size_type i1 = 0u, i2 = 0u;
-
-    while (m1[i1] != m2[i2]) {
-      if (m1[i1] < m2[i2]) {
-        if (++i1 == m1.size())
-          return false;
-      } else {
-        if (++i2 == m2.size())
-          return false;
-      }
-    }
-
-    return true;
-  };
-
-  auto moved_union = [](std::vector<unsigned> const &m1,
-                        std::vector<unsigned> const &m2) {
-
-    std::vector<unsigned> new_moved;
-
-    std::set_union(m1.begin(), m1.end(), m2.begin(), m2.end(),
-                   std::back_inserter(new_moved));
-
-    return new_moved;
-  };
-
-  std::vector<unsigned> moved;
   for (Perm const &perm : generators()) {
-    moved.clear();
-    for (unsigned i = 1u; i <= perm.degree(); ++i) {
-      if (perm[i] != i)
-        moved.push_back(i);
-    }
+    moved.init(perm);
 
     if (equivalence_classes.empty()) {
-      equivalence_classes.push_back({{perm}, moved});
-      DBG(TRACE) << "Initial equivalence class: " << std::vector<Perm>({perm});
+      equivalence_classes.emplace_back(perm, moved);
+      DBG(TRACE) << "Initial equivalence class: {" << perm << "}";
       DBG(TRACE) << "'moved' set is: " << moved;
+
       continue;
     }
 
     bool new_class = true;
+
     for (auto &ec : equivalence_classes) {
-      if (!equivalent(moved, ec.moved))
+      if (!moved.equivalent(ec.moved))
         continue;
 
       ec.generators.insert(perm);
       DBG(TRACE) << "Updated Equivalence class to " << ec.generators;
 
-      ec.moved = moved_union(ec.moved, moved);
+      ec.moved.extend(moved);
       DBG(TRACE) << "Updated 'moved' set to " << ec.moved;
 
       new_class = false;
+
       break;
     }
 
     if (new_class) {
-      DBG(TRACE) << "New equivalence class containing element: " << perm;
+      equivalence_classes.emplace_back(perm, moved);
+      DBG(TRACE) << "New equivalence class: {" << perm << "}";
       DBG(TRACE) << "'moved' set is: " << moved;
-      equivalence_classes.push_back({{perm}, moved});
     }
   }
 
-  std::vector<bool> merged(equivalence_classes.size(), false);
+  TIMER_STOP("disjoint decomp find equiv classes");
+
+  return equivalence_classes;
+}
+
+void PermGroup::disjoint_decomp_incomplete_merge_equivalence_classes(
+  std::vector<EquivalenceClass> &equivalence_classes) const
+{
+  TIMER_START("disjoint decomp merge equiv classes");
+
   unsigned moved_total = 0u;
 
-  std::vector<EquivalenceClass>::size_type i;
-  for (i = 0u; i < equivalence_classes.size(); ++i) {
-    if (merged[i])
-      continue;
-
+  for (auto i = 0u; i < equivalence_classes.size(); ++i) {
     EquivalenceClass &ec1 = equivalence_classes[i];
+
+    if (ec1.merged)
+      continue;
 
     for (auto j = i + 1u; j < equivalence_classes.size(); ++j) {
       EquivalenceClass &ec2 = equivalence_classes[j];
 
-      if (equivalent(ec1.moved, ec2.moved)) {
+      if (ec1.moved.equivalent(ec2.moved)) {
         DBG(TRACE) << "Merging equivalence class " << ec2.generators
                    << " into " << ec1.generators;
 
         ec1.generators.insert(ec2.generators.begin(), ec2.generators.end());
 
-        ec1.moved = moved_union(ec1.moved, ec2.moved);
+        ec1.moved.extend(ec2.moved);
 
-        merged[j] = true;
+        ec2.merged = true;
       }
     }
 
@@ -472,15 +484,32 @@ std::vector<PermGroup> PermGroup::disjoint_decomp_incomplete() const
       break;
   }
 
+  TIMER_STOP("disjoint decomp merge equiv classes");
+}
+
+std::vector<PermGroup> PermGroup::disjoint_decomp_incomplete() const
+{
+  DBG(DEBUG) << "Finding (incomplete) disjoint subgroup decomposition for:";
+  DBG(DEBUG) << *this;
+
+  auto equivalence_classes(
+    disjoint_decomp_incomplete_find_equivalence_classes());
+
+  disjoint_decomp_incomplete_merge_equivalence_classes(equivalence_classes);
+
+  TIMER_START("disjoint decomp construct groups");
+
   std::vector<PermGroup> decomp;
   for (auto j = 0u; j < equivalence_classes.size(); ++j) {
-    if (merged[j])
+    if (equivalence_classes[j].merged)
       continue;
 
     decomp.emplace_back(degree(), equivalence_classes[j].generators);
   }
 
-  DBG(DEBUG) << "Disjunct subgroup generators are:";
+  TIMER_STOP("disjoint decomp construct groups");
+
+  DBG(DEBUG) << "Disjoint subgroup generators are:";
 #ifndef NDEBUG
   for (PermGroup const &pg : decomp)
     DBG(DEBUG) << pg.generators();
