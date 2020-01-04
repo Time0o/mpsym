@@ -4,13 +4,15 @@ import json
 
 from itertools import combinations
 from functools import partial
-from random import randint, random
+from random import choice, randint, random
 from time import time
 
 import pynauty
 
 from modules.args import NiceArgumentParser
+from modules.primitive_groups import lookup_primitive_groups
 from modules.run import run_gap
+from modules.util import error, usage
 from modules.util import error, usage
 
 
@@ -62,9 +64,15 @@ class Component():
         self.degree = degree
         self.generators = generators
 
+    def hashable(self):
+        return tuple(self.generators)
+
+    def to_json(self):
+        return {'component': [self.degree] + self.generators}
+
     @staticmethod
     def generators_from_gap(generators_gap):
-        generators = generators_gap[1:-1].replace(' ', '').split('),')
+        generators = generators_gap.replace(' ', '').split('),')
 
         return [g + ')' for g in generators[:-1]] + [generators[-1]]
 
@@ -176,6 +184,11 @@ def graph_component_generate(vertices,
 
 
 def primitive_component_generate(vertices):
+    lookup = lookup_primitive_groups(vertices)
+
+    if lookup is not None:
+        return choice(lookup)
+
     seed = time()
     seed = int((seed - int(seed)) * 1e4)
 
@@ -196,7 +209,7 @@ def primitive_component_generate(vertices):
     if not generators:
         error(__file__, "no primitive component with degree {}".format(vertices))
 
-    return Component.generators_from_gap(generators)
+    return Component.generators_from_gap(generators[1:-1])
 
 
 def find_best_component(components):
@@ -257,7 +270,7 @@ def generate_component(vertices,
 
         if not allow_non_unique:
             # assure that component is unique
-            if tuple(component.generators) in previous_components:
+            if component.hashable() in previous_components:
                 continue
 
         if not allow_non_symmetric:
@@ -279,9 +292,9 @@ def generate_component(vertices,
     else:
         component = find_best_component(potential_components)
 
-    previous_components.add(tuple(component.generators))
+    previous_components.add(component.hashable())
 
-    return [component.degree, component.generators]
+    return component.to_json()
 
 
 def generate_random_arch_graph(graph_depth,
