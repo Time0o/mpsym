@@ -372,8 +372,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
     if (repr == first_base_elem)
       continue;
 
-    auto bs = BlockSystem::minimal(pg.bsgs().strong_generators(),
-                                   {first_base_elem, repr});
+    auto bs = BlockSystem::minimal(pg.generators(), {first_base_elem, repr});
 
     if (!bs.trivial()) {
       DBG(TRACE) << "Found blocksystem: " << bs;
@@ -390,8 +389,8 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
 std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
   PermGroup const &pg)
 {
-  auto orbits(orbit_partition_expanded(pg.bsgs().strong_generators()));
-  auto gens(pg.bsgs().strong_generators());
+  auto gens(pg.generators());
+  auto orbits(orbit_partition_expanded(gens));
 
   DBG(TRACE) << "Group has " << orbits.size() << " distinct orbits:";
 #ifndef NDEBUG

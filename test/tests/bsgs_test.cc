@@ -33,8 +33,7 @@ TEST(DISABLED_BSGSTest, CanSolveBSGS)
     Perm(4, {{2, 4}})
   };
 
-  PermSet generators_non_solvable(
-    PermGroup::symmetric(5).bsgs().strong_generators());
+  PermSet generators_non_solvable(PermGroup::symmetric(5).generators());
 
   BSGS bsgs(4, generators_solvable, BSGS::Construction::SOLVE);
 

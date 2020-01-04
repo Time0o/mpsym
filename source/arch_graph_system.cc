@@ -21,7 +21,7 @@ namespace cgtl
 PermSet ArchGraphSystem::automorphisms_generators(bool augmented)
 {
   if (!augmented)
-    return automorphisms().bsgs().strong_generators();
+    return automorphisms().generators();
 
   if (!_augmented_generators_valid) {
     _augmented_generators.clear();

@@ -53,7 +53,7 @@ bool PermGroup::operator==(PermGroup const &rhs) const
   if (_order != rhs.order())
     return false;
 
-  for (Perm const &gen : rhs.bsgs().strong_generators()) {
+  for (Perm const &gen : rhs.generators()) {
     if (!contains_element(gen))
       return false;
   }
@@ -194,8 +194,8 @@ PermGroup PermGroup::dihedral(std::vector<unsigned> const &support)
 
 PermGroup PermGroup::wreath_product(PermGroup const &lhs_, PermGroup const &rhs_)
 {
-  auto lhs(lhs_.bsgs().strong_generators());
-  auto rhs(rhs_.bsgs().strong_generators());
+  auto lhs(lhs_.generators());
+  auto rhs(rhs_.generators());
 
   lhs.assert_not_empty();
   rhs.assert_not_empty();
@@ -272,7 +272,7 @@ bool PermGroup::is_alternating() const
 
 bool PermGroup::is_transitive() const
 {
-  return orbit_of(1u, _bsgs.strong_generators()).size() == degree();
+  return orbit_of(1u, generators()).size() == degree();
 }
 
 bool PermGroup::contains_element(Perm const &perm) const

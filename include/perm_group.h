@@ -203,7 +203,7 @@ public:
 
     PermSet generator_union;
     for (auto it = first; it != last; ++it) {
-      PermSet generators(it->bsgs().strong_generators());
+      PermSet generators(it->generators());
 
       generator_union.insert(generators.begin(), generators.end());
     }
@@ -225,7 +225,7 @@ public:
 
     PermSet generators;
     for (auto it = first; it != last; ++it) {
-      for (Perm const &perm : it->bsgs().strong_generators())
+      for (Perm const &perm : it->generators())
         generators.insert(perm.shifted(current_degree).extended(total_degree));
 
       current_degree += it->degree();
@@ -298,6 +298,12 @@ public:
    * \return this permutation group's order
    */
   unsigned long long order() const { return _order; }
+
+  /** Obtain permutation group generators.
+   *
+   * \return a generating set for this group.
+   */
+  PermSet generators() const { return _bsgs.strong_generators(); }
 
   /** Check whether a permutation group is *trivial*.
    *

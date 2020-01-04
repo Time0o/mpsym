@@ -188,7 +188,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomp_complete_recursive(
     std::vector<Perm> restricted_gens2;
 
     bool recurse = true;
-    for (Perm const &gen : pg->bsgs().strong_generators()) {
+    for (Perm const &gen : pg->generators()) {
       DBG(TRACE) << "Generator: " << gen;
 
       // decompose generator into disjoint cycles
@@ -335,7 +335,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomp_complete(
   DBG(DEBUG) << "Finding (complete) disjoint subgroup decomposition for:";
   DBG(DEBUG) << *this;
 
-  auto tmp(orbit_partition(_bsgs.strong_generators()));
+  auto tmp(orbit_partition(generators()));
   auto orbit_ids(tmp.first);
   auto n_orbits = tmp.second;
 
@@ -360,7 +360,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomp_complete(
 
   DBG(DEBUG) << "=== Disjoint subgroup generators";
   for (PermGroup const &pg : decomp)
-    DBG(DEBUG) << pg.bsgs().strong_generators();
+    DBG(DEBUG) << pg.generators();
 
   return decomp;
 }
@@ -407,7 +407,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomp_incomplete() const
   };
 
   std::vector<unsigned> moved;
-  for (Perm const &perm : _bsgs.strong_generators()) {
+  for (Perm const &perm : generators()) {
     moved.clear();
     for (unsigned i = 1u; i <= perm.degree(); ++i) {
       if (perm[i] != i)
@@ -483,7 +483,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomp_incomplete() const
   DBG(DEBUG) << "Disjunct subgroup generators are:";
 #ifndef NDEBUG
   for (PermGroup const &pg : decomp)
-    DBG(DEBUG) << pg.bsgs().strong_generators();
+    DBG(DEBUG) << pg.generators();
 #endif
 
   return decomp;

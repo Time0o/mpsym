@@ -23,7 +23,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
   DBG(DEBUG) << *this;
 
   auto blocksystems(BlockSystem::non_trivial(*this));
-  auto gens(_bsgs.strong_generators());
+  auto gens(generators());
 
   for (BlockSystem const &bs : blocksystems) {
     DBG(TRACE) << "Considering block system: " << bs;
@@ -55,7 +55,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
     PermSet block_permuter_generator_image;
 
     std::vector<unsigned> tmp_perm(degree());
-    for (Perm const &gen : block_permuter.bsgs().strong_generators()) {
+    for (Perm const &gen : block_permuter.generators()) {
       for (unsigned i = 0u; i < d; ++i) {
         auto block(bs[i]);
 
@@ -122,7 +122,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
       << "==> Found wreath product decomposition, listing generators:";
 #ifndef NDEBUG
     for (PermGroup const &pg : res)
-      DBG(TRACE) << pg.bsgs().strong_generators();
+      DBG(TRACE) << pg.generators();
 #endif
 
     return res;
