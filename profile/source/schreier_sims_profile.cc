@@ -191,17 +191,6 @@ std::vector<double> run(unsigned degree,
     ts.push_back(t);
   }
 
-  if (options.verbose) {
-    debug_progress_done();
-
-    if (options.library.is("mpsym")) {
-      debug("Timer dumps:");
-      debug_timer_dump("strip");
-      debug_timer_dump("extend base");
-      debug_timer_dump("update strong gens");
-    }
-  }
-
   return ts;
 }
 
@@ -236,6 +225,17 @@ void profile(Stream &groups_stream,
 
     result("Mean:", t_mean, "s");
     result("Stddev:", t_stddev, "s");
+
+    if (options.verbose) {
+      debug_progress_done();
+
+      if (options.library.is("mpsym")) {
+        debug("Timer dumps:");
+        debug_timer_dump("strip");
+        debug_timer_dump("extend base");
+        debug_timer_dump("update strong gens");
+      }
+    }
   });
 }
 

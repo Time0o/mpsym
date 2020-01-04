@@ -216,24 +216,6 @@ cgtl::TaskOrbits map_tasks_mpsym(
       task_allocations[i], 0u, &mapping_options, &task_orbits));
   }
 
-  if (options.verbosity > 0) {
-    debug_progress_done();
-
-    debug("=> Found", task_orbits.num_orbits(), "orbit representatives");
-    if (options.verbosity > 1) {
-      for (auto const &repr : task_orbits)
-        debug(DUMP(repr));
-    }
-
-    debug("Timer dumps:");
-    if (options.mapping_method.is("iterate"))
-      debug_timer_dump("map bruteforce iterate");
-    else if (options.mapping_method.is("local_search"))
-      debug_timer_dump("map approx local search");
-    else if (options.mapping_method.is("orbits"))
-      debug_timer_dump("map bruteforce orbits");
-  }
-
   return task_orbits;
 }
 
@@ -299,6 +281,16 @@ void map_tasks_mpsym_wrapper(unsigned degree,
                            task_allocations_mpsym,
                            options);
   }, t);
+
+  if (options.verbosity > 0) {
+    debug_progress_done();
+
+    debug("=> Found", task_orbits->num_orbits(), "orbit representatives");
+    if (options.verbosity > 1) {
+      for (auto const &repr : *task_orbits)
+        debug(DUMP(repr));
+    }
+  }
 }
 
 void check_accuracy(cgtl::TaskOrbits const &task_orbits_mpsym,
@@ -419,6 +411,16 @@ void profile(Stream &groups_stream,
     double t = run(group.degree, group.generators, task_allocations, options);
 
     result("Runtime:", t, "s");
+
+    if (options.verbosity > 0) {
+      debug("Timer dumps:");
+      if (options.mapping_method.is("iterate"))
+        debug_timer_dump("map bruteforce iterate");
+      else if (options.mapping_method.is("local_search"))
+        debug_timer_dump("map approx local search");
+      else if (options.mapping_method.is("orbits"))
+        debug_timer_dump("map bruteforce orbits");
+    }
   });
 }
 
