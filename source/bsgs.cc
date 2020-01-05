@@ -49,15 +49,22 @@ BSGS::BSGS(unsigned degree,
   reduce_gens();
 }
 
-std::vector<unsigned> BSGS::orbit(unsigned i) const
+PermSet BSGS::strong_generators(unsigned i) const
 {
-  return _schreier_structures[i]->nodes();
+  PermSet ret;
+  for (Perm const &sg : strong_generators()) {
+    if (sg.stabilizes(_base.begin(), _base.begin() + i))
+      ret.insert(sg);
+  }
+
+  return ret;
 }
 
+std::vector<unsigned> BSGS::orbit(unsigned i) const
+{ return _schreier_structures[i]->nodes(); }
+
 Perm BSGS::transversal(unsigned i, unsigned o) const
-{
-  return _schreier_structures[i]->transversal(o);
-}
+{ return _schreier_structures[i]->transversal(o); }
 
 PermSet BSGS::transversals(unsigned i) const
 {
@@ -69,9 +76,7 @@ PermSet BSGS::transversals(unsigned i) const
 }
 
 PermSet BSGS::stabilizers(unsigned i) const
-{
-  return _schreier_structures[i]->labels();
-}
+{ return _schreier_structures[i]->labels(); }
 
 std::pair<Perm, unsigned> BSGS::strip(Perm const &perm, unsigned offs) const
 {
@@ -96,9 +101,10 @@ bool BSGS::strips_completely(Perm const &perm) const
 }
 
 void BSGS::extend_base(unsigned bp)
-{
-  _base.push_back(bp);
-}
+{ _base.push_back(bp); }
+
+void BSGS::extend_base(unsigned bp, unsigned i)
+{ _base.insert(_base.begin() + i, bp); }
 
 void BSGS::update_schreier_structure(unsigned i, PermSet const &generators)
 {
@@ -128,6 +134,13 @@ void BSGS::update_schreier_structure(unsigned i, PermSet const &generators)
   } else {
     _schreier_structures[i].swap(ss);
   }
+}
+
+void BSGS::insert_schreier_structure(unsigned i, PermSet const &generators)
+{
+  _schreier_structures.insert(_schreier_structures.begin() + i, nullptr);
+
+  update_schreier_structure(i, generators);
 }
 
 std::ostream &operator<<(std::ostream &os, BSGS const &bsgs)

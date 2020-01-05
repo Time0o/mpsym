@@ -16,7 +16,7 @@ using cgtl::Perm;
 using cgtl::PermGroup;
 using cgtl::PermSet;
 
-TEST(DISABLED_BSGSTest, CanSolveBSGS)
+TEST(DISABLED_BSGSSolveTest, CanSolveBSGS)
 {
   PermSet generators_solvable {
     Perm(4, {{2, 4}}),
@@ -46,3 +46,16 @@ TEST(DISABLED_BSGSTest, CanSolveBSGS)
                BSGS::SolveError)
       << "Solving BSGS fails for non-solvable group generating set.";
 }
+
+//TEST(BSGSBaseSwapTest, CanConjugateBSGS)
+//{
+//  PermGroup pg(5, {Perm(5, {{1, 2}, {3, 4}}), Perm(5, {{1, 4, 2}})});
+//
+//  for (Perm const &perm : pg) {
+//    PermGroup pg_conjugated_bsgs(pg);
+//    pg_conjugated_bsgs.bsgs().conjugate(perm)
+//
+//    EXPECT_TRUE(perm_group_equal(pg, pg_conjugated_bsgs))
+//      << "Permutation group remains the same after conjugating BSGS."
+//  }
+//}

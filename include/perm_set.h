@@ -55,6 +55,12 @@ public:
     return _perms[i];
   }
 
+  iterator begin()
+  { return _perms.begin(); }
+
+  iterator end()
+  { return _perms.end(); }
+
   const_iterator begin() const
   { return _perms.begin(); }
 

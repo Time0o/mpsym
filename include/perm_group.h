@@ -305,6 +305,19 @@ public:
    */
   PermSet generators() const { return _bsgs.strong_generators(); }
 
+  /** Obtain a permutation group's base and strong generating set.
+   *
+   * This function is only meaningful is the permutation group's elements are
+   * not stored explicitely, which can be determined via TODO.
+   *
+   * \return a BSGS object representing this permutation group's base and strong
+   *         generating set
+   */
+  BSGS &bsgs() { return _bsgs; }
+
+  /// TODO
+  BSGS const &bsgs() const { return _bsgs; }
+
   /** Check whether a permutation group is *trivial*.
    *
    * A permutation group is trivial by definition if it only contains an
@@ -340,16 +353,6 @@ public:
    * \return `true` if this permutation group is transitive, else `false`.
    */
   bool is_transitive() const;
-
-  /** Obtain a permutation group's base and strong generating set.
-   *
-   * This function is only meaningful is the permutation group's elements are
-   * not stored explicitely, which can be determined via TODO.
-   *
-   * \return a BSGS object representing this permutation group's base and strong
-   *         generating set
-   */
-  BSGS bsgs() const { return _bsgs; }
 
   /** Check whether a permutation group contains a given permutation.
    *

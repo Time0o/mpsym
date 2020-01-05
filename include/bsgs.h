@@ -52,13 +52,11 @@ public:
 
   bool base_empty() const { return _base.empty(); }
   unsigned base_size() const { return _base.size(); }
-  unsigned base_point(unsigned i) const {
-    assert(i < _base.size());
-    return _base[i];
-  }
+  unsigned base_point(unsigned i) const { return _base[i]; }
+  void base_change(std::vector<unsigned> prefix);
 
-  // TODO: remove?
   PermSet strong_generators() const { return _strong_generators; }
+  PermSet strong_generators(unsigned i) const;
 
   std::vector<unsigned> orbit(unsigned i) const;
   Perm transversal(unsigned i, unsigned o) const;
@@ -97,9 +95,18 @@ private:
     std::unordered_set<Perm> const &rhs,
     std::unordered_set<Perm> const &base) const;
 
+  // base change
+  void swap_base_points(unsigned i);
+  void transpose_base_point(unsigned i, unsigned j);
+  unsigned insert_redundant_base_point(unsigned bp, unsigned i_min);
+  void conjugate(Perm const &conj);
+
   // convenience methods
   void extend_base(unsigned bp);
+  void extend_base(unsigned bp, unsigned i);
+
   void update_schreier_structure(unsigned i, PermSet const &strong_generators);
+  void insert_schreier_structure(unsigned i, PermSet const &strong_generators);
 
   unsigned _degree;
   Transversals _transversals;
