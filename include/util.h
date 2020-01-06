@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <limits>
 #include <numeric>
+#include <random>
 #include <vector>
 
 /**
@@ -115,6 +116,9 @@ struct ContainerHash
   std::size_t operator()(T const &c) const
   { return util::container_hash(c.begin(), c.end()); }
 };
+
+inline std::mt19937 random_engine()
+{ return std::mt19937{std::random_device{}()}; }
 
 } // namespace cgtl
 

@@ -10,6 +10,7 @@
 #include "orbits.h"
 #include "perm.h"
 #include "pr_randomizer.h"
+#include "util.h"
 
 /**
  * @file pr_randomizer.cc
@@ -51,9 +52,9 @@ PrRandomizer::PrRandomizer(PermSet const &generators,
 
 Perm PrRandomizer::next()
 {
-  static std::default_random_engine re(time(nullptr));
-  static std::uniform_int_distribution<> randbool(0, 1);
+  static auto re(util::random_engine());
 
+  std::uniform_int_distribution<> randbool(0, 1);
   std::uniform_int_distribution<> rands(1, _gens.size() - 1);
   std::uniform_int_distribution<> randt(1, _gens.size() - 1);
 

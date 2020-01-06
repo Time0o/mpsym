@@ -185,7 +185,7 @@ std::pair<unsigned, std::vector<unsigned>> strongly_connected_components(
 SchreierTree scc_spanning_tree(
   unsigned i, OrbitGraph const &orbit_graph, std::vector<unsigned> const &scc)
 {
-  static std::default_random_engine re;
+  static auto re(util::random_engine());
 
   DBG(TRACE) << "Finding spanning tree for s.c.c rooted at node " << i + 1u
              << " in orbit graph:\n" << orbit_graph;

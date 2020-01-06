@@ -284,13 +284,13 @@ bool PermGroup::contains_element(Perm const &perm) const
 
 Perm PermGroup::random_element() const
 {
-  static std::default_random_engine gen(time(0));
+  static auto re(util::random_engine());
 
   Perm result(degree());
   for (unsigned i = 0u; i < _bsgs.base_size(); ++i) {
     std::vector<unsigned> orbit = _bsgs.orbit(i);
     std::uniform_int_distribution<> d(0u, orbit.size() - 1u);
-    result *= _bsgs.transversal(i, orbit[d(gen)]);
+    result *= _bsgs.transversal(i, orbit[d(re)]);
   }
 
   return result;
