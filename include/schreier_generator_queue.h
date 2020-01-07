@@ -81,7 +81,7 @@ public:
 
     _valid = true;
     _used = false;
-    _exhausted = false;
+    _exhausted = _sg_it == _sg_end;
   }
 
   void invalidate() { _valid = false; }
