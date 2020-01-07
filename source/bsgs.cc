@@ -124,7 +124,7 @@ void BSGS::update_schreier_structure(unsigned i, PermSet const &generators)
 
   if (_schreier_structures.size() < base_size()) {
     assert(i == _schreier_structures.size());
-    _schreier_structures.emplace_back(std::move(ss));
+    _schreier_structures.push_back(ss);
   } else {
     _schreier_structures[i].swap(ss);
   }

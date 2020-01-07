@@ -307,7 +307,7 @@ PermGroup::const_iterator::const_iterator(PermGroup const &pg)
 
       auto transv = pg.bsgs().transversals(i);
 
-      _transversals.emplace_back(transv);
+      _transversals.push_back(transv);
       _current_factors.insert(transv[0]);
     }
 

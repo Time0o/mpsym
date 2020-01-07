@@ -117,7 +117,7 @@ orbit_partition_expanded(PermSet const &generators)
   for (;;) {
     auto orbit(orbit_of(x, generators));
 
-    res.emplace_back(orbit);
+    res.push_back(orbit);
 
     if ((num_processed += orbit.size()) == generators.degree())
       break;
