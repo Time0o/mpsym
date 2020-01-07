@@ -215,15 +215,7 @@ void BSGS::schreier_sims_init(
     } else {
       ++it;
 
-      bool stabilizes = true;
-      for (unsigned b : _base) {
-        if (gen[b] != b) {
-          stabilizes = false;
-          break;
-        }
-      }
-
-      if (stabilizes) {
+      if (gen.stabilizes(_base.begin(), _base.end())) {
 #ifndef NDEBUG
         bool extended_base = false;
 #endif
@@ -251,16 +243,7 @@ void BSGS::schreier_sims_init(
   // calculate initial strong generator sets
   for (unsigned i = 0u; i < base_size(); ++i) {
     for (Perm const &gen : _strong_generators) {
-      bool stabilizes = true;
-
-      for (unsigned k = 0u; k < i; ++k) {
-        if (gen[base_point(k)] != base_point(k)) {
-          stabilizes = false;
-          break;
-        }
-      }
-
-      if (stabilizes)
+      if (gen.stabilizes(_base.begin(), _base.begin() + i))
         (*strong_generators)[i].insert(gen);
     }
 

@@ -253,6 +253,20 @@ public:
    */
   Perm restricted(std::vector<unsigned> const &domain) const;
 
+  /// TODO
+  template<typename IT>
+  bool stabilizes(IT first, IT last) const
+  {
+    for (IT it = first; it != last; ++it) {
+       unsigned x = *it;
+
+       if ((*this)[x] != x)
+         return false;
+    }
+
+    return true;
+  }
+
 private:
   unsigned _degree;
   std::vector<unsigned> _perm;

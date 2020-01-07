@@ -70,15 +70,7 @@ bool PermGroup::disjoint_decomp_complete_orbits_dependent(
   for (Perm const &perm : *this) {
     DBG(TRACE) << "Looking at generators " << perm;
 
-    bool stabilizes = true;
-    for (unsigned o : orbit2) {
-      if (perm[o] != o) {
-        stabilizes = false;
-        break;
-      }
-    }
-
-    if (stabilizes) {
+    if (perm.stabilizes(orbit2.begin(), orbit2.end())) {
       DBG(TRACE) << perm << " stabilizes " << orbit2;
 
       Perm restricted_stabilizer(perm.restricted(orbit1));
