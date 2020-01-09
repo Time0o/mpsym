@@ -90,8 +90,8 @@ TEST(BlockSystemTest, CanFindMinimalBlockSystem)
   };
 
   std::vector<std::vector<unsigned>> initial_classes {
-    {1, 3},
-    {1, 8}
+    {0, 2},
+    {0, 7}
   };
 
   std::vector<std::vector<BlockSystem::Block>> expected_block_systems {

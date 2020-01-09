@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <cassert>
 #include <functional>
+#include <numeric>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -15,51 +17,10 @@
 namespace cgtl
 {
 
-BlockSystem::BlockSystem(unsigned degree, std::vector<Block> const &blocks)
-: _degree(degree),
-  _classes(degree),
-  _blocks(blocks)
-{
-#ifndef NDEBUG
-  for (auto const &block : _blocks)
-    assert(is_sorted(block.begin(), block.end()));
-#endif
-
-  for (auto i = 0u; i < blocks.size(); ++i) {
-    for (unsigned x : blocks[i])
-      _classes[x - 1u] = i + 1u;
-  }
-}
-
-BlockSystem::BlockSystem(std::vector<unsigned> const &classes)
-: _degree(classes.size()),
-  _classes(classes)
-{
-  std::vector<int> block_indices(degree(), -1);
-
-  for (auto i = 0u; i < degree(); ++i) {
-    unsigned c = _classes[i];
-
-    if (block_indices[c - 1u] == -1) {
-      _blocks.push_back({i + 1u});
-      block_indices[c - 1u] = static_cast<int>(_blocks.size()) - 1;
-    } else {
-      _blocks[block_indices[c - 1u]].push_back(i + 1u);
-    }
-  }
-
-#ifndef NDEBUG
-  for (auto const &block : _blocks) {
-    assert(block.size() == _blocks[0].size() &&
-      "blocks in block system have same size");
-  }
-#endif
-}
-
 bool BlockSystem::trivial() const
-{ return _blocks.size() == 1u || _blocks[0].size() == 1u; }
+{ return size() == 1u || (*this)[0].size() == 1u; }
 
-BlockSystem::Block const& BlockSystem::operator[](unsigned const i) const
+BlockSystem::Block const& BlockSystem::operator[](unsigned i) const
 { return _blocks[i]; }
 
 BlockSystem::const_iterator BlockSystem::begin() const
@@ -68,57 +29,24 @@ BlockSystem::const_iterator BlockSystem::begin() const
 BlockSystem::const_iterator BlockSystem::end() const
 { return _blocks.end(); }
 
-PermGroup BlockSystem::block_permuter(PermSet const &generators) const
+unsigned BlockSystem::block_index(unsigned x) const
+{ return _block_indices[x - 1u]; }
+
+PermGroup BlockSystem::block_permuter(PermSet const &generators_) const
 {
-  unsigned d = static_cast<unsigned>(_blocks.size());
+  PermSet generators(generators_);
 
-  std::vector<unsigned> block_pointers(generators.degree() + 1u);
-
-  for (unsigned i = 0u; i < d; ++i) {
-    for (unsigned x : _blocks[i])
-      block_pointers[x] = i + 1u;
-  }
-
-  std::vector<unsigned> tmp_perm(d);
-  std::vector<Perm> permuter_generators(generators.size());
-
+  std::vector<unsigned> perm(size());
   for (auto i = 0u; i < generators.size(); ++i) {
-    auto gen = generators[i];
+    auto gen(generators[i]);
 
-    for (unsigned j = 0u; j < d; ++j) {
-      unsigned x = _blocks[j][0];
-      unsigned y = gen[x];
+    for (unsigned j = 0u; j < size(); ++j)
+      perm[j] = block_index(gen[(*this)[j][0]]) + 1u;
 
-      tmp_perm[j] = block_pointers[y];
-    }
-
-    permuter_generators[i] = Perm(tmp_perm);
+    generators[i] = Perm(perm);
   }
 
-  return PermGroup(
-    d, PermSet(permuter_generators.begin(), permuter_generators.end()));
-}
-
-bool BlockSystem::is_block(PermSet const &generators, Block const &block)
-{
-  for (Perm const &gen : generators) {
-    bool maps_to_other_block =
-      std::find(block.begin(), block.end(), gen[block[0]]) == block.end();
-
-    for (auto i = 0u; i < block.size(); ++i) {
-      unsigned x = block[i];
-
-      if (std::find(block.begin(), block.end(), gen[x]) == block.end()) {
-        if (!maps_to_other_block)
-          return false;
-      } else {
-        if (maps_to_other_block)
-          return false;
-      }
-    }
-  }
-
-  return true;
+  return PermGroup(size(), generators);
 }
 
 PermSet BlockSystem::block_stabilizers(PermSet const &generators,
@@ -152,53 +80,10 @@ PermSet BlockSystem::block_stabilizers(PermSet const &generators,
   return res;
 }
 
-BlockSystem BlockSystem::from_block(PermSet const &generators,
-                                    Block const &block)
-{
-  assert(is_block(generators, block));
-
-  std::vector<unsigned> classes(generators.degree() + 1u, 0u);
-
-  for (unsigned x : block)
-    classes[x] = 1u;
-
-  std::vector<Block> blocks {block};
-
-  unsigned block_idx = 0u;
-  unsigned n_processed = block.size();
-
-  while (block_idx < blocks.size()) {
-    auto current_block(blocks[block_idx]);
-
-    for (Perm const &gen : generators) {
-      unsigned x = blocks[block_idx][0];
-      unsigned y = gen[x];
-
-      if (classes[y] != 0u)
-        continue;
-
-      Block next_block(block.size());
-      for (auto i = 0u; i < current_block.size(); ++i) {
-        unsigned tmp = gen[current_block[i]];
-        next_block[i] = tmp;
-        classes[tmp] = blocks.size() + 1u;
-      }
-      blocks.push_back(next_block);
-
-      if ((n_processed += block.size()) == generators.degree())
-        return BlockSystem(generators.degree(), blocks);
-    }
-
-    ++block_idx;
-  }
-
-  throw std::logic_error("unreachable");
-}
-
 BlockSystem BlockSystem::minimal(PermSet const &generators,
-                                 std::vector<unsigned> const &initial_class)
+                                 std::vector<unsigned> const &initial_block)
 {
-  assert(initial_class.size() >= 2u);
+  assert(initial_block.size() >= 2u);
 
   std::vector<unsigned> classpath(generators.degree());
   std::vector<unsigned> cardinalities(generators.degree());
@@ -207,49 +92,50 @@ BlockSystem BlockSystem::minimal(PermSet const &generators,
   DBG(DEBUG) << "Finding minimal block system for:";
   DBG(DEBUG) << generators;
 
-  DBG(DEBUG) << "Initial class is: " << initial_class;
+  DBG(DEBUG) << "Initial block: " << initial_block;
 
-  for (auto i = 1u; i <= generators.degree(); ++i) {
-    classpath[i - 1u] = i;
-    cardinalities[i - 1u] = 1u;
+  for (auto i = 0u; i < generators.degree(); ++i) {
+    classpath[i] = i;
+    cardinalities[i] = 1u;
   }
 
-  for (auto i = 0u; i < initial_class.size() - 1u; ++i) {
-    unsigned tmp = initial_class[i + 1u];
+  for (auto i = 0u; i < initial_block.size() - 1u; ++i) {
+    unsigned tmp = initial_block[i + 1u];
 
-    classpath[tmp - 1u] = initial_class[0];
+    classpath[tmp] = initial_block[0];
 	queue.push_back(tmp);
   }
 
-  cardinalities[initial_class[0] - 1u] =
-    static_cast<unsigned>(initial_class.size());
+  cardinalities[initial_block[0]] = static_cast<unsigned>(initial_block.size());
 
   DBG(TRACE) << "Initial classpath: " << classpath;
   DBG(TRACE) << "Initial cardinalities: " << cardinalities;
   DBG(TRACE) << "Initial queue: " << queue;
 
   unsigned i = 0u;
-  unsigned l = initial_class.size() - 2u;
+  unsigned l = initial_block.size() - 2u;
 
   while (i <= l) {
     unsigned gamma = queue[i++];
     DBG(TRACE) << "== Gamma: " << gamma;
 
     for (Perm const &gen : generators) {
-      DBG(TRACE) << "= gen: " << gen;
+      DBG(TRACE) << "= Gen: " << gen;
 
-      unsigned c1 = gen[gamma];
-      unsigned c2 = gen[minimal_find_rep(gamma, &classpath)];
+      unsigned c1 = gen[gamma + 1u] - 1u;
+      unsigned c2 = gen[minimal_find_rep(gamma, classpath) + 1u] - 1u;
 
       DBG(TRACE) << "Considering classes " << c1 << " and " << c2;
 
-      if (minimal_merge_classes(c1, c2, &classpath, &cardinalities, &queue))
+      if (minimal_merge_classes(c1, c2, classpath, cardinalities, queue))
         ++l;
     }
   }
 
-  for (auto i = 1u; i <= generators.degree(); ++i)
-    minimal_find_rep(i, &classpath);
+  for (auto i = 0u; i < generators.degree(); ++i)
+    minimal_find_rep(i, classpath);
+
+  minimal_compress_classpath(classpath);
 
   DBG(TRACE) << "Final classpath is: " << classpath;
 
@@ -279,34 +165,141 @@ std::vector<BlockSystem> BlockSystem::non_trivial(PermGroup const &pg,
     DBG(DEBUG) << "Group " << (transitive ? "is" : "is not") << " transitive";
   }
 
-  if (transitive) {
-    return non_trivial_transitive(pg);
-  } else {
-    return non_trivial_non_transitive(pg);
+  return transitive ? non_trivial_transitive(pg)
+                    : non_trivial_non_transitive(pg);
+}
+
+BlockSystem::BlockSystem(BlockIndices const &block_indices)
+: _degree(block_indices.size()),
+  _block_indices(block_indices)
+{
+  for (auto i = 1u; i <= degree(); ++i) {
+    unsigned j = block_index(i);
+
+    if (j + 1u > size()) {
+      for (auto k = j + 1u - size(); k > 0u; --k)
+        _blocks.emplace_back();
+    }
+
+    _blocks[j].push_back(i);
+  }
+
+  assert_blocks();
+  assert_block_indices();
+}
+
+void BlockSystem::assert_blocks() const
+{
+#ifndef NDEBUG
+  assert(size() > 0u && "number of blocks is positive");
+
+  for (auto const &block : *this) {
+    for (unsigned x : block)
+      assert(x > 0u && "blocks have valid elements");
+  }
+
+  for (auto const &block : *this)
+    assert(std::is_sorted(block.begin(), block.end()) && "blocks are sorted");
+
+  for (auto i = 1u; i < size(); ++i)
+    assert((*this)[i].size() == (*this)[0].size() && "blocks have same size");
+
+  std::unordered_set<unsigned> block_union;
+  for (auto const &block : *this)
+    block_union.insert(block.begin(), block.end());
+
+  assert(block_union.size() == degree() && "blocks partition domain");
+#endif
+}
+
+void BlockSystem::assert_block_indices() const
+{
+  assert(_block_indices.size() == degree());
+
+  for (unsigned x = 1u; x < degree(); ++x) {
+    unsigned i = block_index(x);
+    assert(i < size());
+
+    auto block((*this)[i]);
+    assert(std::find(block.begin(), block.end(), x) != block.end());
   }
 }
 
+bool BlockSystem::is_block(PermSet const &generators, Block const &block)
+{
+  auto maps_to_other_block = [&](Perm const &perm, unsigned x) {
+    return std::find(block.begin(), block.end(), perm[x]) == block.end();
+  };
+
+  for (Perm const &gen : generators) {
+    bool should_map_to_other_block = maps_to_other_block(gen, block[0]);
+
+    for (auto i = 1u; i < block.size(); ++i) {
+      if (maps_to_other_block(gen, block[i]) != should_map_to_other_block)
+        return false;
+    }
+  }
+
+  return true;
+}
+
+BlockSystem BlockSystem::from_block(PermSet const &generators,
+                                    Block const &block)
+{
+  assert(is_block(generators, block));
+
+  std::vector<Block> blocks{block};
+
+  std::vector<int> block_indices(generators.degree(), -1);
+  for (unsigned x : block)
+    block_indices[x - 1u] = 0;
+
+  unsigned current_block_idx = 0u;
+  unsigned processed = block.size();
+
+  while (current_block_idx < blocks.size()) {
+    auto current_block(blocks[current_block_idx]);
+
+    for (Perm const &gen : generators) {
+      if (block_indices[gen[current_block[0]] - 1u] != -1)
+        continue;
+
+      blocks.push_back(current_block.permuted(gen));
+
+      for (unsigned x : current_block)
+        block_indices[gen[x] - 1u] = blocks.size();
+
+      if ((processed += block.size()) == generators.degree())
+        return BlockSystem(blocks.begin(), blocks.end());
+    }
+
+    ++current_block_idx;
+  }
+
+  throw std::logic_error("unreachable");
+}
+
 unsigned BlockSystem::minimal_find_rep(unsigned k,
-                                       std::vector<unsigned> *classpath)
+                                       std::vector<unsigned> &classpath)
 {
   // find class
   unsigned res = k;
-  unsigned next = (*classpath)[res - 1u];
+  unsigned next = classpath[res];
 
   while (next != res) {
     res = next;
-    next = (*classpath)[res - 1u];
+    next = classpath[res];
   }
 
   // compress path
   unsigned current = k;
-  next = (*classpath)[k - 1u];
+  next = classpath[k];
 
   while (next != current) {
-    (*classpath)[current - 1u] = res;
+    classpath[current] = res;
 
     current = next;
-    next = (*classpath)[current - 1u];
+    next = classpath[current];
   }
 
   return res;
@@ -314,9 +307,9 @@ unsigned BlockSystem::minimal_find_rep(unsigned k,
 
 bool BlockSystem::minimal_merge_classes(unsigned k1,
                                         unsigned k2,
-                                        std::vector<unsigned> *classpath,
-                                        std::vector<unsigned> *cardinalities,
-                                        std::vector<unsigned> *queue)
+                                        std::vector<unsigned> &classpath,
+                                        std::vector<unsigned> &cardinalities,
+                                        std::vector<unsigned> &queue)
 {
   unsigned r1 = minimal_find_rep(k1, classpath);
   unsigned r2 = minimal_find_rep(k2, classpath);
@@ -327,52 +320,65 @@ bool BlockSystem::minimal_merge_classes(unsigned k1,
   if (r1 == r2)
     return false;
 
-  if ((*cardinalities)[r1 - 1u] < (*cardinalities)[r2 - 1u])
+  if (cardinalities[r1] < cardinalities[r2])
     std::swap(r1, r2);
 
   DBG(TRACE) << "=> Merging classes:";
 
-  (*classpath)[r2 - 1u] = r1;
-  DBG(TRACE) << "Updated classpath: " << *classpath;
+  classpath[r2] = r1;
+  DBG(TRACE) << "Updated classpath: " << classpath;
 
-  (*cardinalities)[r1 - 1u] += (*cardinalities)[r2 - 1u];
-  DBG(TRACE) << "Updated cardinalities: " << *cardinalities;
+  cardinalities[r1] += cardinalities[r2];
+  DBG(TRACE) << "Updated cardinalities: " << cardinalities;
 
-  queue->push_back(r2);
-  DBG(TRACE) << "Updated queue: " << *queue;
+  queue.push_back(r2);
+  DBG(TRACE) << "Updated queue: " << queue;
 
   return true;
+}
+
+void BlockSystem::minimal_compress_classpath(std::vector<unsigned> &classpath)
+{
+  std::unordered_map<unsigned, unsigned> compression;
+
+  unsigned i = 0u;
+  for (unsigned j : classpath) {
+    if (compression.find(j) == compression.end())
+      compression[j] = i++;
+  }
+
+  for (unsigned &j : classpath)
+    j = compression[j];
 }
 
 std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
   PermGroup const &pg)
 {
-  // TODO: does the first base element HAVE to be one?
+  // first base element
   unsigned first_base_elem = pg.bsgs().base_point(0);
   DBG(TRACE) << "First base element is: " << first_base_elem;
 
+  // generators of stabilizer subgroup for first base element
   PermSet stab = pg.bsgs().stabilizers(1);
 
   if (stab.empty()) {
-    DBG(TRACE)
-      << "No generators stabilizing first base element, no block systems possible";
-
-    return std::vector<BlockSystem>();
+    DBG(TRACE) << "No generators stabilizing first base element";
+    return {};
   }
 
-  DBG(TRACE) << "Generators stabilizing first base element: " << stab;
+  DBG(TRACE) << "Generators stabilizing first base element:";
+  DBG(TRACE) << stab;
 
-  std::vector<std::vector<unsigned>> stab_orbits = orbit_partition_expanded(stab);
-  DBG(TRACE) << "Orbit decomposition of associated group is: " << stab_orbits;
-
+  // resulting vector of blocksystems
   std::vector<BlockSystem> res;
 
-  for (auto const &orbit : stab_orbits) {
-    unsigned repr = orbit[0];
-    if (repr == first_base_elem)
+  // iterate over orbit partition of stabilizer subgroup
+  for (auto const &orbit : orbit_partition_expanded(stab)) {
+    if (orbit[0] == first_base_elem)
       continue;
 
-    auto bs = BlockSystem::minimal(pg.generators(), {first_base_elem, repr});
+    // find minimal blocksystem corresponding to orbit
+    auto bs(BlockSystem::minimal(pg.generators(), {first_base_elem, orbit[0]}));
 
     if (!bs.trivial()) {
       DBG(TRACE) << "Found blocksystem: " << bs;
@@ -389,8 +395,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
 std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
   PermGroup const &pg)
 {
-  auto gens(pg.generators());
-  auto orbits(orbit_partition_expanded(gens));
+  auto orbits(orbit_partition_expanded(pg.generators()));
 
   DBG(TRACE) << "Group has " << orbits.size() << " distinct orbits:";
 #ifndef NDEBUG
@@ -403,7 +408,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
 
   for (auto i = 0u; i < orbits.size(); ++i) {
     // calculate all non trivial block systems for orbit restricted group
-    std::vector<Perm> restricted_gens;
+    PermSet restricted_gens;
 
     auto orbit_extremes =
       std::minmax_element(orbits[i].begin(), orbits[i].end());
@@ -413,40 +418,26 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
 
     domain_offsets[i] = orbit_low - 1u;
 
-    for (auto j = 0u; j < gens.size(); ++j) {
-      Perm tmp(gens[j].restricted(orbits[i]));
+    for (Perm const &gen : pg.generators()) {
+      Perm perm(gen.restricted(orbits[i]));
 
-      if (!tmp.id())
-        restricted_gens.push_back(tmp.normalized(orbit_low, orbit_high));
+      if (!perm.id())
+        restricted_gens.insert(perm.normalized(orbit_low, orbit_high));
     }
 
     DBG(TRACE) << "Group generators restricted to " << orbits[i] << ":";
     DBG(TRACE) << restricted_gens;
 
-    PermGroup pg_restricted(
-      orbit_high - orbit_low + 1u,
-      PermSet(restricted_gens.begin(), restricted_gens.end()));
+    PermGroup pg_restricted(orbit_high - orbit_low + 1u, restricted_gens);
 
-    auto block_systems(non_trivial(pg_restricted, true));
-
-    partial_blocksystems[i] = block_systems;
-
-    DBG(TRACE) << "=> Resulting non-trivial block systems:";
-#ifndef NDEBUG
-    if (partial_blocksystems[i].size() == 0u) {
-      DBG(TRACE) << "None";
-    } else {
-      for (auto const &bs : partial_blocksystems[i])
-        DBG(TRACE) << bs;
-   }
-#endif
+    partial_blocksystems[i] = non_trivial(pg_restricted, true);
 
     // append trivial blocksystem {{x} | x in orbit}
     std::vector<unsigned> trivial_classes(orbits[i].size());
-    for (auto j = 1u; j <= orbits[i].size(); ++j)
-      trivial_classes[j - 1u] = j;
+    std::iota(trivial_classes.begin(), trivial_classes.end(), 0u);
 
-    partial_blocksystems[i].push_back(BlockSystem(trivial_classes));
+    BlockSystem bs(trivial_classes);
+    partial_blocksystems[i].push_back(bs);
   }
 
   DBG(TRACE) << "=> Relevant block systems for all group restrictions:";
@@ -455,21 +446,22 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
     DBG(TRACE) << bs;
 #endif
 
-  auto representatives(
-    non_trivial_find_representatives(gens, partial_blocksystems, domain_offsets));
+  auto blocksystem_representatives(
+    non_trivial_find_representatives(pg.generators(),
+                                     partial_blocksystems,
+                                     domain_offsets));
 
-  return non_trivial_from_representatives(gens, representatives);
-}
+  auto blocksystems(
+    non_trivial_from_representatives(pg.generators(),
+                                     blocksystem_representatives));
 
-BlockSystem::Block BlockSystem::non_trivial_shift_block(Block const &block,
-                                                        unsigned shift)
-{
-  Block res(block.size());
+  DBG(TRACE) << "==> Resulting block systems:";
+#ifndef NDEBUG
+  for (BlockSystem const &bs : blocksystems)
+    DBG(TRACE) << bs;
+#endif
 
-  for (auto i = 0u; i < block.size(); ++i)
-    res[i] = block[i] + shift;
-
-  return res;
+  return blocksystems;
 }
 
 std::vector<BlockSystem::Block> BlockSystem::non_trivial_find_representatives(
@@ -495,33 +487,21 @@ std::vector<BlockSystem::Block> BlockSystem::non_trivial_find_representatives(
       }
 #endif
 
-      Block current_block(non_trivial_shift_block((*current_blocksystems[0])[0],
-                          domain_offsets[0]));
+      Block current_block_unshifted((*current_blocksystems[0])[0]);
+      Block current_block(current_block_unshifted.shifted(domain_offsets[0]));
 
       for (auto j = 1u; j < current_blocksystems.size(); ++j) {
         bool next_block = false;
 
-        BlockSystem const *bs = current_blocksystems[j];
-        for (auto const &block : *bs) {
-          Block shifted_block(non_trivial_shift_block(block, domain_offsets[j]));
-
-          std::vector<unsigned> extended_block(
-            current_block.size() + shifted_block.size());
-
-          auto it = std::set_union(current_block.begin(), current_block.end(),
-                                   shifted_block.begin(), shifted_block.end(),
-                                   extended_block.begin());
-
-          extended_block.resize(it - extended_block.begin());
+        for (auto const &block : *current_blocksystems[j]) {
+          Block shifted_block(block.shifted(domain_offsets[j]));
+          Block extended_block(current_block.unified(shifted_block));
 
           if (is_block(generators, extended_block)) {
-            DBG(TRACE) << extended_block << " is a block";
             current_block = extended_block;
             next_block = true;
             break;
           }
-
-          DBG(TRACE) << extended_block << " is not a block";
         }
 
         if (!next_block)
@@ -551,12 +531,6 @@ std::vector<BlockSystem::Block> BlockSystem::non_trivial_find_representatives(
 
   recurse({}, 0u, false);
 
-  DBG(TRACE) << "=> Representative blocks found:";
-#ifndef NDEBUG
-  for (auto const &block : res)
-    DBG(TRACE) << block;
-#endif
-
   return res;
 }
 
@@ -566,15 +540,9 @@ std::vector<BlockSystem> BlockSystem::non_trivial_from_representatives(
 {
   DBG(TRACE) << "== Finding block systems from representatives";
 
-  std::vector<BlockSystem> res(representatives.size());
-  for (auto i = 0u; i < representatives.size(); ++i)
-    res[i] = from_block(generators, representatives[i]);
-
-  DBG(TRACE) << "==> Resulting block systems:";
-#ifndef NDEBUG
-  for (BlockSystem const &bs : res)
-    DBG(TRACE) << bs;
-#endif
+  std::vector<BlockSystem> res;
+  for (auto const &repr : representatives)
+    res.push_back(from_block(generators, repr));
 
   return res;
 }
