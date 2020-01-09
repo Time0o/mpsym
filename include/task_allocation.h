@@ -17,11 +17,11 @@ namespace cgtl
 class TaskAllocation : public std::vector<unsigned>
 {
 public:
-  TaskAllocation(std::initializer_list<unsigned> tasks)
-  : std::vector<unsigned>(tasks)
+  TaskAllocation()
+  : std::vector<unsigned>()
   {}
 
-  TaskAllocation(std::vector<unsigned> const &tasks)
+  TaskAllocation(std::initializer_list<unsigned> tasks)
   : std::vector<unsigned>(tasks)
   {}
 

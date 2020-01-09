@@ -136,7 +136,7 @@ split_task_allocations(std::string const &task_allocations_str,
     if (!std::regex_match(line, m, re_task_allocation))
       throw std::invalid_argument("malformed task allocation expression");
 
-    std::vector<unsigned> task_allocation;
+    cgtl::TaskAllocation task_allocation;
 
     std::string task_allocation_str(m[1]);
     std::size_t pos_begin = 0u;
