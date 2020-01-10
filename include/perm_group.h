@@ -21,6 +21,8 @@
 namespace cgtl
 {
 
+class BlockSystem;
+
 /** A permutation group representation.
  *
  * This class provides a useful abstraction encapsulating several complex
@@ -433,6 +435,7 @@ public:
   std::vector<PermGroup> wreath_decomposition() const;
 
 private:
+  // complete disjoint decomposition
   bool disjoint_decomp_complete_orbits_dependent(
     std::vector<unsigned> orbit1, std::vector<unsigned> orbit2) const;
 
@@ -447,6 +450,7 @@ private:
   std::vector<PermGroup> disjoint_decomp_complete(
     bool disjoint_orbit_optimization = true) const;
 
+  // incomplete disjoint decomposition
   struct MovedSet : public std::vector<unsigned>
   {
     void init(Perm const &perm);
@@ -474,6 +478,20 @@ private:
     std::vector<EquivalenceClass> &equivalence_classes) const;
 
   std::vector<PermGroup> disjoint_decomp_incomplete() const;
+
+  // wreath decomposition
+  std::vector<PermGroup> wreath_decomp_find_stabilizers(
+    BlockSystem const &block_system,
+    PermGroup const &block_permuter) const;
+
+  PermSet wreath_decomp_construct_block_permuter_image(
+    BlockSystem const &block_system,
+    PermGroup const &block_permuter) const;
+
+  bool wreath_decomp_reconstruct_block_permuter(
+    BlockSystem const &block_system,
+    PermGroup const &block_permuter,
+    PermSet const &block_permuter_image) const;
 
   unsigned long long _order;
   BSGS _bsgs;

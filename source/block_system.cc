@@ -32,7 +32,7 @@ BlockSystem::const_iterator BlockSystem::end() const
 unsigned BlockSystem::block_index(unsigned x) const
 { return _block_indices[x - 1u]; }
 
-PermGroup BlockSystem::block_permuter(PermSet const &generators_) const
+PermSet BlockSystem::block_permuter(PermSet const &generators_) const
 {
   PermSet generators(generators_);
 
@@ -46,11 +46,11 @@ PermGroup BlockSystem::block_permuter(PermSet const &generators_) const
     generators[i] = Perm(perm);
   }
 
-  return PermGroup(size(), generators);
+  return generators;
 }
 
-PermGroup BlockSystem::block_stabilizers(PermSet const &generators,
-                                         Block const &block)
+PermSet BlockSystem::block_stabilizers(PermSet const &generators,
+                                       Block const &block)
 {
   // initialize block stabilizer generating set as generators of subgroup
   // stabilizing a block element (we arbitrarily choose the first one)
@@ -77,7 +77,7 @@ PermGroup BlockSystem::block_stabilizers(PermSet const &generators,
     stabilizer_orbit.update(stabilizer_generators, transv);
   }
 
-  return PermGroup(generators.degree(), stabilizer_generators);
+  return stabilizer_generators;
 }
 
 BlockSystem BlockSystem::minimal(PermSet const &generators,

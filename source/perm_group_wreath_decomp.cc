@@ -19,117 +19,171 @@ namespace cgtl
 
 std::vector<PermGroup> PermGroup::wreath_decomposition() const
 {
-//  DBG(DEBUG) << "Finding wreath product decomposition for:";
-//  DBG(DEBUG) << *this;
-//
-//  auto blocksystems(BlockSystem::non_trivial(*this));
-//  auto gens(generators());
-//
-//  for (BlockSystem const &bs : blocksystems) {
-//    DBG(TRACE) << "Considering block system: " << bs;
-//    unsigned d = bs.size();
-//
-//    PermGroup block_permuter = bs.block_permuter(gens);
-//    DBG(TRACE) << "Block permuter is:";
-//    DBG(TRACE) << block_permuter;
-//
-//    std::vector<PermSet> sigma(d);
-//
-//    sigma[0] = BlockSystem::block_stabilizers(gens, bs[0]);
-//    DBG(TRACE) << "Block stabilizer of " << bs[0] << " is: " << sigma[0];
-//
-//    unsigned tmp = PermGroup(degree(), sigma[0]).order();
-//    if (_order != util::pow(tmp, d) * block_permuter.order()) {
-//      DBG(TRACE)
-//        << "Group order equality not satisfied, skipping block system";
-//      continue;
-//    }
-//
-//    DBG(TRACE) << "Stabilizers of remaining blocks are:";
-//    for (unsigned i = 1u; i < d; ++i) {
-//      sigma[i] = BlockSystem::block_stabilizers(gens, bs[i]);
-//      DBG(TRACE) << bs[i] << " => " << sigma[i];
-//    }
-//
-//    // try to find monomorphism from block permuter to group using heuristic
-//    PermSet block_permuter_generator_image;
-//
-//    std::vector<unsigned> tmp_perm(degree());
-//    for (Perm const &gen : block_permuter.generators()) {
-//      for (unsigned i = 0u; i < d; ++i) {
-//        auto block(bs[i]);
-//
-//        for (auto j = 0u; j < block.size(); ++j)
-//          tmp_perm[block[j] - 1u] = bs[gen[i + 1u] - 1u][j];
-//      }
-//
-//      block_permuter_generator_image.emplace(tmp_perm);
-//    }
-//
-//    DBG(TRACE) << "Heuristic monomorphism image is:";
-//    DBG(TRACE) << block_permuter_generator_image;
-//
-//    bool found_monomorphism = true;
-//
-//    auto classes(bs.classes());
-//
-//    PermSet block_permuter_generator_reconstruction;
-//
-//    tmp_perm.resize(d);
-//    for (Perm const &gen : block_permuter_generator_image) {
-//      for (unsigned i = 0u; i < d; ++i) {
-//        unsigned x = bs[i][0];
-//        unsigned y = gen[x];
-//
-//        tmp_perm[i] = classes[y - 1u];
-//      }
-//
-//      Perm reconstructed_gen(tmp_perm);
-//
-//      if (!block_permuter.contains_element(reconstructed_gen)) {
-//        found_monomorphism = false;
-//        break;
-//      }
-//
-//      block_permuter_generator_reconstruction.insert(reconstructed_gen);
-//    }
-//
-//    DBG(TRACE) << "Block permuter reconstruction yields generators:";
-//    DBG(TRACE) << block_permuter_generator_reconstruction;
-//
-//    if (found_monomorphism) {
-//      PermGroup block_permuter_reconstructed(
-//        d, block_permuter_generator_reconstruction);
-//
-//      if (block_permuter_reconstructed.order() != block_permuter.order())
-//        found_monomorphism = false;
-//    }
-//
-//    if (!found_monomorphism) {
-//      DBG(WARN)
-//        << "Wreath decomposition exists but was not found by heuristic";
-//
-//      break;
-//    }
-//
-//    std::vector<PermGroup> res(d + 1u);
-//
-//    res[0] = PermGroup(degree(), block_permuter_generator_image);
-//    for (unsigned i = 0u; i < d; ++i)
-//      res[i + 1u] = PermGroup(degree(), sigma[i]);
-//
-//    DBG(TRACE)
-//      << "==> Found wreath product decomposition, listing generators:";
-//#ifndef NDEBUG
-//    for (PermGroup const &pg : res)
-//      DBG(TRACE) << pg.generators();
-//#endif
-//
-//    return res;
-//  }
+  DBG(DEBUG) << "Finding wreath product decomposition for:";
+  DBG(DEBUG) << *this;
+
+  for (BlockSystem const &block_system : BlockSystem::non_trivial(*this)) {
+    DBG(TRACE) << "Considering block system:";
+    DBG(TRACE) << block_system;
+
+    // determine block permuter subgroup
+    PermGroup block_permuter(block_system.size(),
+                             block_system.block_permuter(generators()));
+
+    DBG(TRACE) << "Block permuter is:";
+    DBG(TRACE) << block_permuter;
+
+    // determine block stabilizer subgroups
+    auto stabilizers(wreath_decomp_find_stabilizers(
+      block_system, block_permuter));
+
+    if (stabilizers.empty())
+      continue;
+
+    // check if a monomorphism can be found heuristically
+    auto block_permuter_image(wreath_decomp_construct_block_permuter_image(
+      block_system, block_permuter));
+
+    bool found_monomorphism(wreath_decomp_reconstruct_block_permuter(
+      block_system, block_permuter, block_permuter_image));
+
+    if (!found_monomorphism)
+      break;
+
+    // construct the wreath decomposition
+    std::vector<PermGroup> decomposition(block_system.size() + 1u);
+
+    decomposition[0] = PermGroup(degree(), block_permuter_image);
+    for (unsigned i = 0u; i < block_system.size(); ++i)
+      decomposition[i + 1u] = stabilizers[i];
+
+    DBG(TRACE) << "==> Found wreath product decomposition:";
+#ifndef NDEBUG
+    for (PermGroup const &pg : decomposition)
+      DBG(TRACE) << pg;
+#endif
+
+    return decomposition;
+  }
 
   DBG(TRACE) << "==> No wreath product decomposition found";
-  return std::vector<PermGroup>();
+  return {};
+}
+
+std::vector<PermGroup> PermGroup::wreath_decomp_find_stabilizers(
+  BlockSystem const &block_system,
+  PermGroup const &block_permuter) const
+{
+  std::vector<PermGroup> stabilizers(block_system.size());
+
+  auto create_stabilizer = [&](unsigned i) {
+    auto block(block_system[i]);
+
+    // find stabilizer subgroup generators
+    auto stabilizer_generators(
+      BlockSystem::block_stabilizers(generators(), block));
+
+    // restrict stabilizer subgroup generators to block
+    PermSet stabilizer_generators_restricted;
+    for (Perm const &gen : stabilizer_generators) {
+      stabilizer_generators_restricted.insert(
+        gen.restricted(block.begin(), block.end()));
+    }
+
+    // construct stabilizer subgroup
+    stabilizers[i] = PermGroup(degree(), stabilizer_generators_restricted);
+
+    DBG(TRACE) << "Block stabilizer of " << block_system[i] << ":";
+    DBG(TRACE) << stabilizers[i];
+  };
+
+  // determine stabilizer subgroup of first block
+  create_stabilizer(0);
+
+  // skip blocksystem if order equality not fullfilled
+  unsigned long long stabilizer_order = stabilizers[0].order();
+  unsigned long long block_system_size = block_system.size();
+  unsigned long long block_permuter_order = block_permuter.order();
+
+  unsigned long long expected_order =
+    util::pow(stabilizer_order, block_system_size) * block_permuter_order;
+
+  if (_order != expected_order) {
+    DBG(TRACE) << "Group order equality not satisfied";
+    return {};
+  }
+
+  // determine stabilizers subgroups of remaining blocks
+  for (unsigned i = 1u; i < block_system.size(); ++i)
+    create_stabilizer(i);
+
+  return stabilizers;
+}
+
+PermSet PermGroup::wreath_decomp_construct_block_permuter_image(
+  BlockSystem const &block_system,
+  PermGroup const &block_permuter) const
+{
+  PermSet block_permuter_image;
+
+  for (Perm const &gen : block_permuter.generators()) {
+    std::vector<unsigned> perm(degree());
+
+    for (unsigned i = 0u; i < block_system.size(); ++i) {
+      auto block(block_system[i]);
+
+      for (auto j = 0u; j < block.size(); ++j)
+        perm[block[j] - 1u] = block_system[gen[i + 1u] - 1u][j];
+    }
+
+    block_permuter_image.insert(perm);
+  }
+
+  DBG(TRACE) << "Heuristic monomorphism image generators:";
+  DBG(TRACE) << block_permuter_image;
+
+  return block_permuter_image;
+}
+
+bool PermGroup::wreath_decomp_reconstruct_block_permuter(
+  BlockSystem const &block_system,
+  PermGroup const &block_permuter,
+  PermSet const &block_permuter_image) const
+{
+  bool found_monomorphism = true;
+
+  PermSet block_permuter_reconstruction;
+
+  for (Perm const &gen : block_permuter_image) {
+    std::vector<unsigned> perm(block_system.size());
+
+    for (unsigned i = 0u; i < block_system.size(); ++i)
+      perm[i] = block_system.block_index(gen[block_system[i][0]]) + 1u;
+
+    Perm reconstructed_gen(perm);
+
+    if (!block_permuter.contains_element(reconstructed_gen)) {
+      found_monomorphism = false;
+      break;
+    }
+
+    block_permuter_reconstruction.insert(reconstructed_gen);
+  }
+
+  DBG(TRACE) << "Block permuter reconstruction yields generators:";
+  DBG(TRACE) << block_permuter_reconstruction;
+
+  if (found_monomorphism) {
+    if (PermGroup(block_system.size(), block_permuter_reconstruction).order()
+        != block_permuter.order())
+      found_monomorphism = false;
+  }
+
+  if (!found_monomorphism) {
+    DBG(WARN) << "Wreath decomposition exists but was not found by heuristic";
+  }
+
+  return found_monomorphism;
 }
 
 } // namespace cgtl

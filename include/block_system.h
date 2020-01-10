@@ -74,9 +74,9 @@ public:
 
   unsigned block_index(unsigned x) const;
 
-  PermGroup block_permuter(PermSet const &generators) const;
+  PermSet block_permuter(PermSet const &generators) const;
 
-  static PermGroup block_stabilizers(PermSet const &generators,
+  static PermSet block_stabilizers(PermSet const &generators,
                                      Block const &block);
 
   static BlockSystem minimal(PermSet const &generators,
