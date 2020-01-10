@@ -60,8 +60,12 @@ PermSet BSGS::strong_generators(unsigned i) const
   return ret;
 }
 
-std::vector<unsigned> BSGS::orbit(unsigned i) const
-{ return _schreier_structures[i]->nodes(); }
+Orbit BSGS::orbit(unsigned i) const
+{
+  auto nodes(_schreier_structures[i]->nodes());
+
+  return Orbit(nodes.begin(), nodes.end());
+}
 
 Perm BSGS::transversal(unsigned i, unsigned o) const
 { return _schreier_structures[i]->transversal(o); }
@@ -126,7 +130,7 @@ void BSGS::update_schreier_structure(unsigned i, PermSet const &generators)
       throw std::logic_error("TODO");
   }
 
-  orbit_of(r, gens, ss.get());
+  Orbit::generate(r, gens, ss);
 
   if (_schreier_structures.size() < base_size()) {
     assert(i == _schreier_structures.size());

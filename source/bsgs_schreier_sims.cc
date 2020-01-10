@@ -28,7 +28,7 @@ void BSGS::schreier_sims(PermSet const &generators)
 
   // intialize
   std::vector<PermSet> strong_generators;
-  std::vector<std::vector<unsigned>> fundamental_orbits;
+  std::vector<Orbit> fundamental_orbits;
   std::vector<SchreierGeneratorQueue> schreier_generator_queues;
 
   schreier_sims_init(&strong_generators,
@@ -131,7 +131,7 @@ void BSGS::schreier_sims_random(PermSet const &generators, unsigned w)
 
   // intialize
   std::vector<PermSet> strong_generators;
-  std::vector<std::vector<unsigned>> fundamental_orbits;
+  std::vector<Orbit> fundamental_orbits;
 
   schreier_sims_init(&strong_generators, &fundamental_orbits);
 
@@ -196,7 +196,7 @@ void BSGS::schreier_sims_random(PermSet const &generators, unsigned w)
 
 void BSGS::schreier_sims_init(
   std::vector<PermSet> *strong_generators,
-  std::vector<std::vector<unsigned>> *fundamental_orbits,
+  std::vector<Orbit> *fundamental_orbits,
   std::vector<SchreierGeneratorQueue> *schreier_generator_queues)
 {
   DBG(DEBUG) << "=== Input";

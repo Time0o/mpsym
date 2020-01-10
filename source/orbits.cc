@@ -1,4 +1,6 @@
-#include <set>
+#include <algorithm>
+#include <memory>
+#include <unordered_set>
 #include <vector>
 
 #include "orbits.h"
@@ -9,71 +11,52 @@
 namespace cgtl
 {
 
-std::vector<unsigned>
-orbit_of(unsigned x, PermSet const &generators, SchreierStructure *ss)
+Orbit Orbit::generate(unsigned x,
+                      PermSet const &generators,
+                      std::shared_ptr<SchreierStructure> ss)
 {
-  // TODO: empty generator set
+  Orbit orbit{x};
 
-  std::vector<unsigned> res {x};
+  if (!generators.empty())
+    orbit.extend(generators, {x}, {x}, ss);
 
-  std::vector<unsigned> stack {x};
-  std::set<unsigned> done {x};
-
-  while (!stack.empty()) {
-    unsigned beta = stack.back();
-    stack.pop_back();
-
-    for (auto i = 0u; i < generators.size(); ++i) {
-      Perm gen = generators[i];
-      unsigned beta_prime = gen[beta];
-
-      if (done.find(beta_prime) == done.end()) {
-        done.insert(beta_prime);
-        stack.push_back(beta_prime);
-        res.push_back(beta_prime);
-
-        if (ss)
-          ss->create_edge(beta_prime, beta, i);
-      }
-    }
-  }
-
-  return res;
+  return orbit;
 }
 
-bool orbit_check(unsigned x,
-                 PermSet const &generators,
-                 std::vector<unsigned> const &orbit)
+bool Orbit::generated_by(unsigned x, PermSet const &generators) const
 {
   if (generators.empty())
-    return orbit.size() == 1u && orbit[0] == x;
+    return size() == 1u && (*this)[0] == x;
 
   std::vector<int> in_orbit_ref(generators.degree() + 1u, 0);
   std::vector<int> in_orbit(generators.degree() + 1u, 0);
 
-  for (unsigned x : orbit)
-    in_orbit_ref[x] = 1;
+  for (unsigned y : *this)
+    in_orbit_ref[y] = 1;
 
   if (!in_orbit_ref[x])
     return false;
 
   in_orbit[x] = 1;
 
-  std::vector<unsigned> queue {x};
-  auto target = orbit.size() - 1u;
+  std::vector<unsigned> stack{x};
 
-  while (!queue.empty()) {
-    unsigned x = queue.back();
-    queue.pop_back();
+  auto target = size() - 1u;
+
+  while (!stack.empty()) {
+    unsigned x = stack.back();
+    stack.pop_back();
 
     for (auto const &gen : generators) {
       unsigned y = gen[x];
+
       if (!in_orbit_ref[y])
         return false;
 
       if (in_orbit[y] == 0) {
         in_orbit[y] = 1;
-        queue.push_back(y);
+
+        stack.push_back(y);
 
         if (--target == 0u) {
           return true;
@@ -85,39 +68,68 @@ bool orbit_check(unsigned x,
   return false;
 }
 
-std::pair<std::vector<unsigned>, unsigned>
-orbit_partition(PermSet const &generators)
+void Orbit::update(PermSet const &generators_old,
+                   Perm const &generator_new,
+                   std::shared_ptr<SchreierStructure> ss)
 {
-  // TODO: empty generator set
+  auto generators(generators_old);
+  generators.insert(generator_new);
 
-  std::vector<unsigned> res(generators.degree());
+  if (ss)
+    ss->add_label(generator_new);
 
-  auto partition(orbit_partition_expanded(generators));
+  std::vector<unsigned> stack;
+  std::unordered_set<unsigned> done(begin(), end());
 
-  for (auto i = 0u; i < partition.size(); ++i) {
-    for (unsigned x : partition[i])
-      res[x - 1u] = i + 1u;
+  for (unsigned x : *this) {
+    unsigned x_prime = generator_new[x];
+    if (done.find(x_prime) != done.end())
+      stack.push_back(x_prime);
   }
 
-  return {res, static_cast<unsigned>(partition.size())};
+  extend(generators, stack, done, ss);
 }
 
-std::vector<std::vector<unsigned>>
-orbit_partition_expanded(PermSet const &generators)
+void Orbit::extend(PermSet const &generators,
+                   std::vector<unsigned> stack,
+                   std::unordered_set<unsigned> done,
+                   std::shared_ptr<SchreierStructure> ss)
 {
-  // TODO: empty generator set
+  while (!stack.empty()) {
+    unsigned x = stack.back();
+    stack.pop_back();
 
-  std::vector<std::vector<unsigned>> res;
+    for (auto i = 0u; i < generators.size(); ++i) {
+      unsigned x_prime = generators[i][x];
 
+      if (done.find(x_prime) == done.end()) {
+        done.insert(x_prime);
+        stack.push_back(x_prime);
+
+        push_back(x_prime);
+
+        if (ss)
+          ss->create_edge(x_prime, x, i);
+      }
+    }
+  }
+}
+
+OrbitPartition::OrbitPartition(PermSet const &generators)
+: _partition_indices(generators.degree())
+{
+  generators.assert_not_empty();
+
+  // determine partitions
   std::vector<int> processed(generators.degree() + 1u, 0);
   unsigned num_processed = 0u;
 
   unsigned x = 1u;
 
   for (;;) {
-    auto orbit(orbit_of(x, generators));
+    auto orbit(Orbit::generate(x, generators));
 
-    res.push_back(orbit);
+    _partitions.push_back(orbit);
 
     if ((num_processed += orbit.size()) == generators.degree())
       break;
@@ -129,7 +141,11 @@ orbit_partition_expanded(PermSet const &generators)
       ++x;
   }
 
-  return res;
+  // determine partition indices
+  for (auto i = 0u; i < _partitions.size(); ++i) {
+    for (unsigned x : _partitions[i])
+      _partition_indices[x - 1u] = i;
+  }
 }
 
 } // namespace cgtl

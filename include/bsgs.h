@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "orbits.h"
 #include "perm.h"
 #include "perm_set.h"
 #include "schreier_generator_queue.h"
@@ -58,7 +59,7 @@ public:
   PermSet strong_generators() const { return _strong_generators; }
   PermSet strong_generators(unsigned i) const;
 
-  std::vector<unsigned> orbit(unsigned i) const;
+  Orbit orbit(unsigned i) const;
   Perm transversal(unsigned i, unsigned o) const;
   PermSet transversals(unsigned i) const;
   PermSet stabilizers(unsigned i) const;
@@ -73,7 +74,7 @@ private:
 
   void schreier_sims_init(
     std::vector<PermSet> *strong_generators,
-    std::vector<std::vector<unsigned>> *fundamental_orbits,
+    std::vector<Orbit> *fundamental_orbits,
     std::vector<SchreierGeneratorQueue> *schreier_generator_queues = nullptr);
 
   void schreier_sims_finish();

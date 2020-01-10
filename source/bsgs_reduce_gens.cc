@@ -68,7 +68,7 @@ void BSGS::reduce_gens()
       orbit_gens.erase(*it);
 
       bool remove_stab = false;
-      if (orbit_check(base_point(i), orbit_gens, orbit(i))) {
+      if (orbit(i).generated_by(base_point(i), orbit_gens)) {
 #ifndef NDEBUG
         DBG(TRACE) << base_point(i) << "^" << reduced_stabilizers
                    << " = " << orbit(i);

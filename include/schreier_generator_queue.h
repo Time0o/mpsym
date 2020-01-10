@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+#include "orbits.h"
 #include "perm.h"
 #include "perm_set.h"
 #include "schreier_structure.h"
@@ -18,7 +19,7 @@ class SchreierGeneratorQueue
   using sg_type = PermSet;
   using sg_it_type = sg_type::const_iterator;
 
-  using fo_type = std::vector<unsigned>;
+  using fo_type = Orbit;
   using fo_it_type = fo_type::const_iterator;
 
 public:

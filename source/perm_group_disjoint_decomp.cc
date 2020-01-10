@@ -328,9 +328,14 @@ std::vector<PermGroup> PermGroup::disjoint_decomp_complete(
   DBG(DEBUG) << "Finding (complete) disjoint subgroup decomposition for:";
   DBG(DEBUG) << *this;
 
-  auto tmp(orbit_partition(generators()));
-  auto orbit_ids(tmp.first);
-  auto n_orbits = tmp.second;
+  // TODO
+  OrbitPartition orbits(generators());
+
+  std::vector<unsigned> orbit_ids(degree());
+  for (unsigned x = 1u; x <= degree(); ++x)
+    orbit_ids[x - 1u] = orbits.partition_index(x) + 1u;
+
+  unsigned n_orbits = orbits.num_partitions();
 
   DBG(TRACE) << "=== Orbit decomposition:";
 #ifndef NDEBUG

@@ -18,9 +18,10 @@ struct ExplicitTransversals : public SchreierStructure
   : _degree(degree),
     _root(root),
     _labels(labels)
-  {
-    _orbit[root] = Perm(_degree);
-  }
+  { _orbit[root] = Perm(_degree); }
+
+  void add_label(Perm const &label)
+  { _labels.insert(label); }
 
   void create_edge(unsigned origin,
                    unsigned destination,

@@ -20,6 +20,9 @@ struct SchreierTree : public SchreierStructure
     _labels(labels)
   {}
 
+  void add_label(Perm const &label)
+  { _labels.insert(label); }
+
   void create_edge(unsigned origin,
                    unsigned destination,
                    unsigned label) override;

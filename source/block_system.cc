@@ -373,7 +373,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
   std::vector<BlockSystem> res;
 
   // iterate over orbit partition of stabilizer subgroup
-  for (auto const &orbit : orbit_partition_expanded(stab)) {
+  for (auto const &orbit : OrbitPartition(stab)) {
     if (orbit[0] == first_base_elem)
       continue;
 
@@ -395,18 +395,18 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
 std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
   PermGroup const &pg)
 {
-  auto orbits(orbit_partition_expanded(pg.generators()));
+  OrbitPartition orbits(pg.generators());
 
-  DBG(TRACE) << "Group has " << orbits.size() << " distinct orbits:";
+  DBG(TRACE) << "Group has " << orbits.num_partitions() << " distinct orbits:";
 #ifndef NDEBUG
   for (auto const &orbit : orbits)
     DBG(TRACE) << orbit;
 #endif
 
-  std::vector<std::vector<BlockSystem>> partial_blocksystems(orbits.size());
-  std::vector<unsigned> domain_offsets(orbits.size());
+  std::vector<std::vector<BlockSystem>> partial_blocksystems(orbits.num_partitions());
+  std::vector<unsigned> domain_offsets(orbits.num_partitions());
 
-  for (auto i = 0u; i < orbits.size(); ++i) {
+  for (auto i = 0u; i < orbits.num_partitions(); ++i) {
     // calculate all non trivial block systems for orbit restricted group
     PermSet restricted_gens;
 
@@ -429,7 +429,6 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
     DBG(TRACE) << restricted_gens;
 
     PermGroup pg_restricted(orbit_high - orbit_low + 1u, restricted_gens);
-
     partial_blocksystems[i] = non_trivial(pg_restricted, true);
 
     // append trivial blocksystem {{x} | x in orbit}

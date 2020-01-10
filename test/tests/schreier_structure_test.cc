@@ -12,6 +12,7 @@
 #include "test_main.cc"
 
 using cgtl::ExplicitTransversals;
+using cgtl::Orbit;
 using cgtl::Perm;
 using cgtl::PermSet;
 using cgtl::SchreierTree;
@@ -90,31 +91,29 @@ TYPED_TEST(SchreierStructureTest, CanConstructSchreierStructures)
   };
 
   for (unsigned i = 0u; i < n; ++i) {
-    TypeParam schreier_structure(n, i + 1u, generators);
+    auto schreier_structure(std::make_shared<TypeParam>(n, i + 1u, generators));
 
-    orbit_of(i + 1u, generators, &schreier_structure);
+    Orbit::generate(i + 1u, generators, schreier_structure);
 
-    EXPECT_EQ(i + 1u, schreier_structure.root())
+    EXPECT_EQ(i + 1u, schreier_structure->root())
       << "Root correct";
 
     EXPECT_THAT(expected_orbits[i],
-                UnorderedElementsAreArray(schreier_structure.nodes()))
+                UnorderedElementsAreArray(schreier_structure->nodes()))
       << "Node (orbit) correct "
       << "(root is " << i + 1u << ").";
 
     for (unsigned x = 1u; x < n; ++x) {
-      auto it(std::find(expected_orbits[i].begin(),
-                        expected_orbits[i].end(), x));
-
+      auto it(std::find(expected_orbits[i].begin(), expected_orbits[i].end(), x));
       bool contained = it != expected_orbits[i].end();
 
-      EXPECT_EQ(contained, schreier_structure.contains(x))
+      EXPECT_EQ(contained, schreier_structure->contains(x))
         << "Can identify contained elements "
         << "(root is " << i + 1u
         << ", element is " << x << ").";
     }
 
-    auto labels(schreier_structure.labels());
+    auto labels(schreier_structure->labels());
 
     std::vector<Perm> labels_vect(labels.begin(), labels.end());
     std::vector<Perm> gen_vect(generators.begin(), generators.end());
@@ -127,7 +126,7 @@ TYPED_TEST(SchreierStructureTest, CanConstructSchreierStructures)
       unsigned origin = expected_orbits[i][j];
 
       EXPECT_EQ(expected_transversals[i][j],
-                schreier_structure.transversal(origin))
+                schreier_structure->transversal(origin))
         << "Transversal correct "
         << "(root is " << i + 1u
         << ", origin is " << origin << ").";

@@ -99,7 +99,7 @@ bool PrRandomizer::test_altsym(double epsilon)
   assert(n >= 8u && n - 2 <= boost::math::max_prime);
 
   // check whether group is even transitive
-  auto orbit(orbit_of(1, _gens_orig));
+  auto orbit(Orbit::generate(1, _gens_orig));
 
   if (orbit.size() != n)
     return false;
