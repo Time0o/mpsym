@@ -76,8 +76,8 @@ public:
 
   PermGroup block_permuter(PermSet const &generators) const;
 
-  static PermSet block_stabilizers(PermSet const &generators,
-                                   Block const &block);
+  static PermGroup block_stabilizers(PermSet const &generators,
+                                     Block const &block);
 
   static BlockSystem minimal(PermSet const &generators,
                              std::vector<unsigned> const &initial_block);

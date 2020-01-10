@@ -49,35 +49,35 @@ PermGroup BlockSystem::block_permuter(PermSet const &generators_) const
   return PermGroup(size(), generators);
 }
 
-PermSet BlockSystem::block_stabilizers(PermSet const &generators,
-                                       Block const &block)
+PermGroup BlockSystem::block_stabilizers(PermSet const &generators,
+                                         Block const &block)
 {
-  throw std::logic_error(
-    "TODO: block stabilizer group need to be found via backtracking");
+  // initialize block stabilizer generating set as generators of subgroup
+  // stabilizing a block element (we arbitrarily choose the first one)
+  PermGroup pg(generators.degree(), generators);
 
-  PermSet res;
+  pg.bsgs().base_change({block[0]});
 
-  for (Perm const &gen : generators) {
-    bool id = true;
-    bool stabilizes = true;
+  auto stabilizer_generators(pg.bsgs().stabilizers(0));
+  auto stabilizer_orbit(Orbit::generate(block[0], stabilizer_generators));
 
-    for (unsigned x : block) {
-      unsigned y = gen[x];
+  // extend block stabilizer generating set
+  std::unordered_set<unsigned> block_elements(block.begin(), block.end());
 
-      if (id && y != x)
-        id = false;
+  for (unsigned beta : pg.bsgs().orbit(0)) {
+    if (block_elements.find(beta) == block_elements.end())
+      continue;
 
-      if (std::find(block.begin(), block.end(), y) == block.end()) {
-        stabilizes = false;
-        break;
-      }
-    }
+    if (stabilizer_orbit.contains(beta))
+      continue;
 
-    if (!id && stabilizes)
-      res.insert(gen.restricted(block));
+    Perm transv(pg.bsgs().transversal(0, beta));
+
+    stabilizer_generators.insert(transv);
+    stabilizer_orbit.update(stabilizer_generators, transv);
   }
 
-  return res;
+  return PermGroup(generators.degree(), stabilizer_generators);
 }
 
 BlockSystem BlockSystem::minimal(PermSet const &generators,
