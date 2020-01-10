@@ -41,7 +41,7 @@ void BSGS::solve(PermSet const &generators)
         DBG(TRACE) << "===== Iteration " << i;
 
         std::pair<Perm, Perm> conjugates;
-        success = solve_s_normal_closure(generators, w, &conjugates);
+        success = solve_s_normal_closure(generators, w, conjugates);
         if (success)
           break;
 
@@ -64,7 +64,7 @@ void BSGS::solve(PermSet const &generators)
 
 bool BSGS::solve_s_normal_closure(PermSet const &generators,
                                   Perm const &w,
-                                  std::pair<Perm, Perm> *conjugates)
+                                  std::pair<Perm, Perm> &conjugates)
 {
   DBG(TRACE) << "==== BEGIN Calculating S-Normal Closure";
 
@@ -89,8 +89,8 @@ bool BSGS::solve_s_normal_closure(PermSet const &generators,
           DBG(TRACE) << "==> Failure";
           DBG(TRACE) << "==== END Calculating S-Normal Closure";
 
-          conjugates->first = g;
-          conjugates->second = h;
+          conjugates.first = g;
+          conjugates.second = h;
 
           return false;
         }

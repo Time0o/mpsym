@@ -72,10 +72,8 @@ private:
   void schreier_sims(PermSet const &generators);
   void schreier_sims_random(PermSet const &generators, unsigned w = 10);
 
-  void schreier_sims_init(
-    std::vector<PermSet> *strong_generators,
-    std::vector<Orbit> *fundamental_orbits,
-    std::vector<SchreierGeneratorQueue> *schreier_generator_queues = nullptr);
+  void schreier_sims_init(std::vector<PermSet> &strong_generators,
+                          std::vector<Orbit> &fundamental_orbits);
 
   void schreier_sims_finish();
 
@@ -84,7 +82,7 @@ private:
 
   bool solve_s_normal_closure(PermSet const &generators,
                               Perm const &w,
-                              std::pair<Perm, Perm> *conjugates);
+                              std::pair<Perm, Perm> &conjugates);
 
   void solve_adjoin_normalizing_generator(Perm const &gen);
 
