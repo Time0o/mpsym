@@ -15,6 +15,8 @@ namespace cgtl
 
 class PermSet
 {
+  friend std::ostream &operator<<(std::ostream &os, PermSet const &ps);
+
 public:
   typedef std::vector<Perm>::iterator iterator;
   typedef std::vector<Perm>::const_iterator const_iterator;
@@ -138,6 +140,12 @@ public:
 private:
   std::vector<Perm> _perms;
 };
+
+inline std::ostream &operator<<(std::ostream &os, PermSet const &ps)
+{
+  os << DUMP(ps._perms, "{}");
+  return os;
+}
 
 }
 
