@@ -7,7 +7,7 @@ from textwrap import dedent, indent
 
 
 def _progname(f):
-    return os.path.basename(__file__)
+    return os.path.basename(f)
 
 
 def _dedent(msg):
