@@ -153,11 +153,9 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
 
     throw std::logic_error("TODO: schreier structure initialization");
 
-    auto schreier_structure(_schreier_structures[i - 1u]);
-
     DBG(TRACE)
       << "Considering h = " << h << " and b_" << i << " = " << base_elem
-      << " (with orbit " << schreier_structure->nodes() << ")";
+      << " (with orbit " << schreier_structure(i - 1u)->nodes() << ")";
 
     unsigned m = 1u;
     Perm h_m(h);
@@ -165,7 +163,7 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
 
     DBG(TRACE) << "h^1 = " << h_m;
 
-    while (!schreier_structure->contains(tmp)) {
+    while (!schreier_structure(i - 1u)->contains(tmp)) {
       ++m;
       h_m *= h;
       tmp = h_m[base_elem];
@@ -173,21 +171,20 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
       DBG(TRACE) << "h^" << m << " = " << h_m;
     }
 
-    Perm u(schreier_structure->transversal(tmp));
+    Perm u(schreier_structure(i - 1u)->transversal(tmp));
     DBG(TRACE) << "u = " << u;
 
     if (m > 1u) {
       DBG(TRACE) << "Enlarging:";
 
       for (unsigned j = 0u; j < i; ++j) { // TODO: avoid complete recomputation
-        PermSet s_j(_schreier_structures[j]->labels());
+        PermSet s_j(schreier_structure(j)->labels());
         s_j.insert(h);
 
         update_schreier_structure(j, s_j);
 
         DBG(TRACE) << "  S(" << j + 1u << ")" << " = " << s_j;
-        DBG(TRACE) << "  O(" << j + 1u << ")" << " = "
-                   << _schreier_structures[j]->nodes();
+        DBG(TRACE) << "  O(" << j + 1u << ")" << " = " << schreier_structure(j)->nodes();
       }
 
       _strong_generators.insert(h);

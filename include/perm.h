@@ -61,7 +61,7 @@ public:
    *	 case and multiplication with any other permutation will yield another
    *	 permutation over the empty set)
    */
-  Perm(unsigned degree = 1);
+  explicit Perm(unsigned degree = 1);
 
   /** Construct a permutation from an explicit mapping description.
    *

@@ -40,7 +40,7 @@ void BSGS::schreier_sims(PermSet const &generators)
 top:
     schreier_generator_queues[i - 1].update(strong_generators[i - 1],
                                             fundamental_orbits[i - 1],
-                                            _schreier_structures[i - 1]);
+                                            schreier_structure(i - 1));
 
     for (Perm const &schreier_generator : schreier_generator_queues[i - 1]) {
       DBG(TRACE) << "Schreier Generator: " << schreier_generator;
@@ -257,8 +257,8 @@ void BSGS::schreier_sims_finish()
 {
   _strong_generators.clear();
 
-  for (auto const &st : _schreier_structures) {
-    auto stabilizers(st->labels());
+  for (unsigned i = 0u; i < base_size(); ++i) {
+    auto stabilizers(schreier_structure(i)->labels());
     _strong_generators.insert(stabilizers.begin(), stabilizers.end());
   }
 

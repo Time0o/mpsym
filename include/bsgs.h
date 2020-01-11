@@ -18,6 +18,33 @@
 namespace cgtl
 {
 
+class BSGSTransversalsBase
+{
+public:
+  std::shared_ptr<SchreierStructure> schreier_structure(unsigned i) const
+  { return _schreier_structures[i]; }
+
+  void update_schreier_structure(
+    unsigned i, unsigned root, PermSet const &generators);
+
+  void insert_schreier_structure(
+    unsigned i, unsigned root, PermSet const &generators);
+
+  virtual std::shared_ptr<SchreierStructure> make_schreier_structure(
+    unsigned root, PermSet const &generators) = 0;
+
+private:
+  std::vector<std::shared_ptr<SchreierStructure>> _schreier_structures;
+};
+
+template<typename T>
+class BSGSTransversals : public BSGSTransversalsBase
+{
+  std::shared_ptr<SchreierStructure> make_schreier_structure(
+    unsigned root, PermSet const &generators) override
+  { return std::make_shared<T>(generators.degree(), root, generators); }
+};
+
 class BSGS
 {
   friend std::ostream &operator<<(std::ostream &os, BSGS const &bsgs);
@@ -43,6 +70,8 @@ public:
     SHALLOW_SCHREIER_TREES,
     AUTO
   };
+
+  explicit BSGS(unsigned degree = 1);
 
   BSGS(unsigned degree,
        PermSet const &generators,
@@ -104,13 +133,18 @@ private:
   void extend_base(unsigned bp);
   void extend_base(unsigned bp, unsigned i);
 
-  void update_schreier_structure(unsigned i, PermSet const &strong_generators);
-  void insert_schreier_structure(unsigned i, PermSet const &strong_generators);
+  std::shared_ptr<SchreierStructure> schreier_structure(unsigned i) const
+  { return _transversals->schreier_structure(i); }
+
+  void update_schreier_structure(unsigned i, PermSet const &generators)
+  { _transversals->update_schreier_structure(i, base_point(i), generators); }
+
+  void insert_schreier_structure(unsigned i, PermSet const &generators)
+  { _transversals->insert_schreier_structure(i, base_point(i), generators); }
 
   unsigned _degree;
-  Transversals _transversals;
   std::vector<unsigned> _base;
-  std::vector<std::shared_ptr<SchreierStructure>> _schreier_structures;
+  std::shared_ptr<BSGSTransversalsBase> _transversals;
   PermSet _strong_generators;
 };
 

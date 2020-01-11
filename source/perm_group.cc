@@ -31,17 +31,25 @@ PermGroup::PermGroup(unsigned degree,
                      PermSet const &generators,
                      BSGS::Construction construction,
                      BSGS::Transversals transversals)
-: _bsgs(degree, generators, construction, transversals)
 {
-  _order = 1ULL;
-  for (unsigned i = 0u; i < _bsgs.base_size(); ++i) {
-    unsigned long long orbit_size = _bsgs.orbit(i).size();
+  if (generators.empty() || (generators.size() == 1u && generators[0].id())) {
+    _bsgs = BSGS(degree);
 
-    // TODO: this restriction might need to be lifted
-    assert(_order <= ULLONG_MAX / orbit_size &&
-           "group order representable by unsigned long long");
+    _order = 1ULL;
 
-    _order *= orbit_size;
+  } else {
+    _bsgs = BSGS(degree, generators, construction, transversals);
+
+    _order = 1ULL;
+    for (unsigned i = 0u; i < _bsgs.base_size(); ++i) {
+      unsigned long long orbit_size = _bsgs.orbit(i).size();
+
+      // TODO: this restriction might need to be lifted
+      assert(_order <= ULLONG_MAX / orbit_size &&
+             "group order representable by unsigned long long");
+
+      _order *= orbit_size;
+    }
   }
 }
 

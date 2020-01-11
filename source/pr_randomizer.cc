@@ -29,7 +29,7 @@ PrRandomizer::PrRandomizer(PermSet const &generators,
 {
   generators.assert_not_empty();
 
-  _gens.insert(generators.degree());
+  _gens.insert(Perm(generators.degree()));
 
   if (generators.size() >= n_generators) {
     _gens.insert(generators.begin(), generators.end());

@@ -59,9 +59,11 @@ public:
     Perm _current_result;
   };
 
-  /** Construct the permutation group \f$\{(1)\}\f$.
-   */
-  PermGroup() : PermGroup(1, {}) {}
+  /// TODO
+  explicit PermGroup(unsigned degree = 1)
+  : _bsgs(degree),
+    _order(1ULL)
+  {}
 
   /** Construct a permutation group.
    *
@@ -493,8 +495,8 @@ private:
     PermGroup const &block_permuter,
     PermSet const &block_permuter_image) const;
 
-  unsigned long long _order;
   BSGS _bsgs;
+  unsigned long long _order;
 };
 
 std::ostream &operator<<(std::ostream &os, PermGroup const &pg);

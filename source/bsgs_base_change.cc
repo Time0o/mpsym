@@ -34,10 +34,10 @@ void BSGS::base_change(std::vector<unsigned> prefix)
     if (base_point(i) == target)
       continue;
 
-    if (_schreier_structures[i]->contains(target)) {
+    if (schreier_structure(i)->contains(target)) {
       // update the conjugation permutation so that it will correctly conjugate
       // all base points until position i to the corresponsing prefix base points
-      Perm transv(_schreier_structures[i]->transversal(target));
+      Perm transv(schreier_structure(i)->transversal(target));
 
       DBG(TRACE) << target << " in O(" << i + 1u << ") = " << orbit(i)
                  << " (transversal is " << transv << ")";
@@ -100,12 +100,12 @@ void BSGS::swap_base_points(unsigned i)
   sgi = stabilizers(i);
   oi = orbit(i);
 
-  schreier_generator_queue.update(sgi, oi, _schreier_structures[i]);
+  schreier_generator_queue.update(sgi, oi, schreier_structure(i));
 
   for (Perm const &perm : schreier_generator_queue) {
     DBG(TRACE) << "Schreier Generator: " << perm;
 
-    if (!_schreier_structures[i + 1]->contains(perm[base_point(i + 1u)])) {
+    if (!schreier_structure(i + 1)->contains(perm[base_point(i + 1u)])) {
       DBG(TRACE) << "Updating strong generators:";
 
       // extend strong generators
