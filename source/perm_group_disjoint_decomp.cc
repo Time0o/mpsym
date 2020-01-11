@@ -73,14 +73,14 @@ bool PermGroup::disjoint_decomp_complete_orbits_dependent(
     if (perm.stabilizes(orbit2.begin(), orbit2.end())) {
       DBG(TRACE) << perm << " stabilizes " << orbit2;
 
-      Perm restricted_stabilizer(perm.restricted(orbit1));
+      Perm restricted_stabilizer(perm.restricted(orbit1.begin(), orbit1.end()));
       DBG(TRACE) << "Restricted stabilizer is: " << restricted_stabilizer;
 
       if (!restricted_stabilizer.id())
         restricted_stabilizers.insert(restricted_stabilizer);
     }
 
-    Perm restricted_element(perm.restricted(orbit1));
+    Perm restricted_element(perm.restricted(orbit1.begin(), orbit1.end()));
     DBG(TRACE) << "Restricted group element is: " << restricted_element;
 
     if (!restricted_element.id())

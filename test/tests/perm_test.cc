@@ -190,7 +190,7 @@ TEST(PermTest, CanRestrictPerm)
   };
 
   for (auto const &pr : perm_restrictions) {
-    EXPECT_EQ(pr.expected, pr.perm.restricted(pr.domain))
+    EXPECT_EQ(pr.expected, pr.perm.restricted(pr.domain.begin(), pr.domain.end()))
       << "Restricting permutation yields correct result.";
   }
 }

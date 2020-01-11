@@ -274,22 +274,6 @@ Perm Perm::shifted(unsigned shift) const
   return Perm(perm_shifted);
 }
 
-Perm Perm::restricted(std::vector<unsigned> const &domain) const
-{
-  // domain must be union of domains of disjoint cycles or behaviour is undefined
-
-  std::vector<unsigned> restricted_perm(degree());
-  for (auto i = 1u; i <= degree(); ++i)
-    restricted_perm[i - 1u] = i;
-
-  for (unsigned x : domain) {
-    if ((*this)[x] != x)
-      restricted_perm[x - 1u] = (*this)[x];
-  }
-
-  return Perm(restricted_perm);
-}
-
 } // namespace cgtl
 
 namespace std

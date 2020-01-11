@@ -1,6 +1,7 @@
 #ifndef _GUARD_PERM_H
 #define _GUARD_PERM_H
 
+#include <algorithm>
 #include <cstddef>
 #include <ostream>
 #include <vector>
@@ -236,22 +237,26 @@ public:
    */
   Perm shifted(unsigned shift) const;
 
-  /** Construct a *restricted* version of a permutation.
-   *
-   * "Restricting" a permutation to a new domain \f$d_{new}\f$ conceptually has
-   * the same effect as removing all cycles from the permutation's disjoint
-   * cycle representation which contain at least one element \f$x \notin
-   * d_{new}\f$.
-   *
-   * \param domain
-   *     the domain to which to restrict the resulting permutation, must not
-   *     contain any element outside this permutation's degree or this
-   *     function's behaviour is undefined
-   *
-   * \return a restricted version of this permutation according to the
-   *         definition above
-   */
-  Perm restricted(std::vector<unsigned> const &domain) const;
+  /// TODO
+  template<typename IT>
+  Perm restricted(IT first, IT last) const
+  {
+    std::vector<std::vector<unsigned>> restricted_cycles;
+
+    for (auto const &cycle : cycles()) {
+      bool restrict = false;
+
+      for (unsigned x : cycle) {
+        if (std::find(first, last, x) == last)
+          restrict = true;
+      }
+
+      if (!restrict)
+        restricted_cycles.push_back(cycle);
+    }
+
+    return Perm(degree(), restricted_cycles);
+  }
 
   /// TODO
   template<typename IT>

@@ -419,7 +419,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
     domain_offsets[i] = orbit_low - 1u;
 
     for (Perm const &gen : pg.generators()) {
-      Perm perm(gen.restricted(orbits[i]));
+      Perm perm(gen.restricted(orbits[i].begin(), orbits[i].end()));
 
       if (!perm.id())
         restricted_gens.insert(perm.normalized(orbit_low, orbit_high));
