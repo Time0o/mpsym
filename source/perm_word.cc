@@ -86,7 +86,7 @@ Perm PermWord::perm() const
   for (auto i = 0u; i < degree(); ++i)
     perm[i] = (*this)[i + 1u];
 
-  return perm;
+  return Perm(perm);
 }
 
 } // namespace cgtl

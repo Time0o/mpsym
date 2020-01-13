@@ -136,7 +136,7 @@ PermSet PermGroup::wreath_decomp_construct_block_permuter_image(
         perm[block[j] - 1u] = block_system[gen[i + 1u] - 1u][j];
     }
 
-    block_permuter_image.insert(perm);
+    block_permuter_image.insert(Perm(perm));
   }
 
   DBG(TRACE) << "Heuristic monomorphism image generators:";

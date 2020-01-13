@@ -72,7 +72,7 @@ public:
    *     different from each other in order to describe a valid permutation,
    *     otherwise this constructor's behaviour is undefined
    */
-  Perm(std::vector<unsigned> const &perm);
+  explicit Perm(std::vector<unsigned> const &perm);
 
   /** Construct a permutation from a permutation description given as product of
    *  cycles.
