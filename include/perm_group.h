@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iterator>
 #include <map>
+#include <tuple>
 #include <type_traits>
 #include <vector>
 
@@ -438,16 +439,25 @@ public:
 
 private:
   // complete disjoint decomposition
-  bool disjoint_decomp_complete_orbits_dependent(
-    std::vector<unsigned> orbit1, std::vector<unsigned> orbit2) const;
+  bool disjoint_decomp_orbits_dependent(
+    Orbit const &orbit1,
+    Orbit const &orbit2) const;
 
-  unsigned disjoint_decomp_complete_generate_dependency_classes(
-    std::vector<unsigned> &orbit_ids, unsigned n_orbits) const;
+  void disjoint_decomp_generate_dependency_classes(
+    OrbitPartition &orbits) const;
 
-  std::vector<PermGroup> disjoint_decomp_complete_recursive(
-    std::vector<unsigned> const &orbit_ids,
-    unsigned n_orbits,
-    PermGroup const *pg = nullptr) const;
+  static bool disjoint_decomp_restricted_subgroups(
+    OrbitPartition const &orbit_split,
+    PermGroup const &perm_group,
+    std::pair<PermGroup, PermGroup> &restricted_subgroups);
+
+  static std::vector<PermGroup> disjoint_decomp_join_results(
+    std::vector<PermGroup> const &res1,
+    std::vector<PermGroup> const &res2);
+
+  static std::vector<PermGroup> disjoint_decomp_complete_recursive(
+    OrbitPartition const &orbits,
+    PermGroup const &perm_group);
 
   std::vector<PermGroup> disjoint_decomp_complete(
     bool disjoint_orbit_optimization = true) const;
@@ -473,10 +483,9 @@ private:
     bool merged;
   };
 
-  std::vector<EquivalenceClass>
-  disjoint_decomp_incomplete_find_equivalence_classes() const;
+  std::vector<EquivalenceClass> disjoint_decomp_find_equivalence_classes() const;
 
-  void disjoint_decomp_incomplete_merge_equivalence_classes(
+  void disjoint_decomp_merge_equivalence_classes(
     std::vector<EquivalenceClass> &equivalence_classes) const;
 
   std::vector<PermGroup> disjoint_decomp_incomplete() const;
