@@ -83,4 +83,6 @@ T stox(std::string const &str)
 
 std::vector<std::string> split(std::string const &str, char const *delim = " ");
 
+std::string join(std::vector<std::string> const &strs, char const *delim = ",");
+
 #endif // _GUARD_PROFILE_UTIL_H

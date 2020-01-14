@@ -40,3 +40,15 @@ std::vector<std::string> split(std::string const &str, char const *delim)
 
   return res;
 }
+
+std::string join(std::vector<std::string> const &strs, char const *delim)
+{
+  if (strs.empty())
+    return "";
+
+  std::string res(strs[0]);
+  for (auto i = 1u; i < strs.size(); ++i)
+    res += delim + strs[i];
+
+  return res;
+}

@@ -185,28 +185,19 @@ std::shared_ptr<cgtl::ArchGraphSystem> build_arch_graph_system(
   // determine type of arch graph system to construct by first (and only) key in tree
 
   if (pt.get_child_optional("component")) {
+    auto child(pt.get_child("component"));
+
     // parse component automorphism group generators
-    std::string gen_str;
+    unsigned degree = stox<unsigned>(child.begin()->second.data());
 
-    unsigned degree = 0u;
+    std::vector<std::string> gen_str;
+    for (auto it = child.begin(); it != child.end(); ++it)
+      gen_str.push_back(it->second.data());
 
-    for (auto const &component : pt.get_child("component")) {
-      auto data(component.second.data());
-
-      if (degree == 0u) {
-        degree = stox<unsigned>(data);
-      } else {
-        if (gen_str.empty())
-          gen_str += data;
-        else
-          gen_str += "," + data;
-      }
-    }
-
-    auto generators(parse_generators_mpsym(degree, "[" + gen_str + "]"));
+    auto generators(parse_generators_mpsym(degree, "[" + join(gen_str) + "]"));
 
     // explicitly construct arch graph system from automorphism group
-    PermGroup automorphisms(generators.degree(), generators);
+    PermGroup automorphisms(degree, generators);
 
     return std::make_shared<ArchGraphSystem>(automorphisms);
 
