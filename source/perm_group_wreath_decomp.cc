@@ -57,16 +57,16 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
     for (unsigned i = 0u; i < block_system.size(); ++i)
       decomposition[i + 1u] = stabilizers[i];
 
-    DBG(TRACE) << "==> Found wreath product decomposition:";
+    DBG(DEBUG) << "==> Found wreath product decomposition:";
 #ifndef NDEBUG
     for (PermGroup const &pg : decomposition)
-      DBG(TRACE) << pg;
+      DBG(DEBUG) << pg;
 #endif
 
     return decomposition;
   }
 
-  DBG(TRACE) << "==> No wreath product decomposition found";
+  DBG(DEBUG) << "==> No wreath product decomposition found";
   return {};
 }
 
