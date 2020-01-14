@@ -373,7 +373,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
   std::vector<BlockSystem> res;
 
   // iterate over orbit partition of stabilizer subgroup
-  for (auto const &orbit : OrbitPartition(stab)) {
+  for (auto const &orbit : OrbitPartition(stab.degree(), stab)) {
     if (orbit[0] == first_base_elem)
       continue;
 
@@ -395,7 +395,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
 std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
   PermGroup const &pg)
 {
-  OrbitPartition orbits(pg.generators());
+  OrbitPartition orbits(pg.degree(), pg.generators());
 
   DBG(TRACE) << "Group has " << orbits.num_partitions() << " distinct orbits:";
 #ifndef NDEBUG

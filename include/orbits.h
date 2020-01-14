@@ -78,13 +78,25 @@ class OrbitPartition
 public:
   using const_iterator = std::vector<Orbit>::const_iterator;
 
-  OrbitPartition(PermSet const &generators);
+  explicit OrbitPartition(unsigned degree);
+
+  OrbitPartition(unsigned degree, std::vector<Orbit> const &partitions);
+
+  OrbitPartition(unsigned degree, std::vector<int> const &partition_indices);
+
+  OrbitPartition(unsigned degree, PermSet const &generators);
+
+  std::vector<OrbitPartition> split(OrbitPartition const &split) const;
 
   unsigned num_partitions() const
   { return static_cast<unsigned>(_partitions.size()); }
 
-  unsigned partition_index(unsigned x) const
+  int partition_index(unsigned x) const
   { return _partition_indices[x - 1u]; }
+
+  void remove_from_partition(unsigned x);
+
+  void change_partition(unsigned x, int i);
 
   Orbit const& operator[](unsigned i) const
   { return _partitions[i]; }
@@ -96,8 +108,12 @@ public:
   { return _partitions.end(); }
 
 private:
+  void add_to_partition(unsigned x, int i);
+  void update_partitions();
+  void update_partition_indices();
+
   std::vector<Orbit> _partitions;
-  std::vector<unsigned> _partition_indices;
+  std::vector<int> _partition_indices;
 };
 
 inline std::ostream &operator<<(std::ostream &os, OrbitPartition const &op)
