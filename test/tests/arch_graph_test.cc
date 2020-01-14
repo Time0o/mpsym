@@ -21,7 +21,6 @@
 
 using cgtl::ArchGraph;
 using cgtl::ArchGraphCluster;
-using cgtl::ArchGraphSubsystem;
 using cgtl::ArchGraphSystem;
 using cgtl::ArchUniformSuperGraph;
 using cgtl::PartialPerm;
@@ -429,15 +428,15 @@ private:
      *
      * P -- C -- P
      */
-    ArchGraph ag;
+    auto ag(std::make_shared<ArchGraph>());
 
-    auto p = ag.new_processor_type("P");
-    auto c = ag.new_channel_type("C");
+    auto p = ag->new_processor_type("P");
+    auto c = ag->new_channel_type("C");
 
-    auto pe1 = ag.add_processor(p);
-    auto pe2 = ag.add_processor(p);
+    auto pe1 = ag->add_processor(p);
+    auto pe2 = ag->add_processor(p);
 
-    ag.add_channel(pe1, pe2, c);
+    ag->add_channel(pe1, pe2, c);
 
     /*
      * 1 -- 1 -- 2     3 -- 2 -- 4
@@ -522,34 +521,39 @@ protected:
 
 private:
   void construct_minimal() {
-    // construct subsystem prototype
-    ArchGraph ag;
-
-    auto p = ag.new_processor_type();
-    auto c = ag.new_channel_type();
-
-    auto pe1 = ag.add_processor(p);
-    auto pe2 = ag.add_processor(p);
-    auto pe3 = ag.add_processor(p);
-
-    ag.add_channel(pe1, pe2, c);
-    ag.add_channel(pe2, pe3, c);
-    ag.add_channel(pe3, pe1, c);
-
     // construct uniform supergraph
-    supergraph_minimal = std::make_shared<ArchUniformSuperGraph>(ag);
+    auto super(std::make_shared<ArchGraph>());
 
-    auto ssc = supergraph_minimal->new_subsystem_channel_type();
+    auto sp = super->new_processor_type();
+    auto sc = super->new_channel_type();
 
-    auto ss1 = supergraph_minimal->add_subsystem();
-    auto ss2 = supergraph_minimal->add_subsystem();
-    auto ss3 = supergraph_minimal->add_subsystem();
-    auto ss4 = supergraph_minimal->add_subsystem();
+    auto spe1 = super->add_processor(sp);
+    auto spe2 = super->add_processor(sp);
+    auto spe3 = super->add_processor(sp);
+    auto spe4 = super->add_processor(sp);
 
-    supergraph_minimal->add_subsystem_channel(ss1, ss2, ssc);
-    supergraph_minimal->add_subsystem_channel(ss2, ss3, ssc);
-    supergraph_minimal->add_subsystem_channel(ss3, ss4, ssc);
-    supergraph_minimal->add_subsystem_channel(ss4, ss1, ssc);
+    super->add_channel(spe1, spe2, sc);
+    super->add_channel(spe2, spe3, sc);
+    super->add_channel(spe3, spe4, sc);
+    super->add_channel(spe4, spe1, sc);
+
+    // construct subsystem prototype
+    auto proto(std::make_shared<ArchGraph>());
+
+    auto p = proto->new_processor_type();
+    auto c = proto->new_channel_type();
+
+    auto pe1 = proto->add_processor(p);
+    auto pe2 = proto->add_processor(p);
+    auto pe3 = proto->add_processor(p);
+
+    proto->add_channel(pe1, pe2, c);
+    proto->add_channel(pe2, pe3, c);
+    proto->add_channel(pe3, pe1, c);
+
+    supergraph_minimal = std::make_shared<ArchUniformSuperGraph>();
+    supergraph_minimal->set_subsystem_supergraph(super);
+    supergraph_minimal->set_subsystem_proto(proto);
   }
 };
 

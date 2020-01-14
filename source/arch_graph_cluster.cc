@@ -10,14 +10,6 @@
 namespace cgtl
 {
 
-void
-ArchGraphCluster::add_subsystem(ArchGraphSubsystem &&subsystem)
-{
-  invalidate_automorphisms();
-
-  _subsystems.emplace_back(subsystem);
-}
-
 unsigned
 ArchGraphCluster::num_processors() const
 {

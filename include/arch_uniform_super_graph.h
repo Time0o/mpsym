@@ -16,21 +16,11 @@ namespace cgtl
 class ArchUniformSuperGraph : public ArchGraphSystem
 {
 public:
-  typedef ArchGraph::ProcessorType SubsystemType;
-  typedef ArchGraph::ChannelType SubsystemChannelType;
+  void set_subsystem_supergraph(std::shared_ptr<ArchGraphSystem> supergraph)
+  { _subsystem_supergraph = supergraph; }
 
-  template<typename ...ARGS>
-  ArchUniformSuperGraph(ARGS &&...args)
-  : ArchUniformSuperGraph(ArchGraphSubsystem(std::forward<ARGS>(args)...))
-  {}
-
-  SubsystemChannelType new_subsystem_channel_type(
-    ChannelLabel cl = DEFAULT_CHANNEL_LABEL);
-
-  SubsystemType add_subsystem();
-  void add_subsystem_channel(SubsystemType ss1,
-                             SubsystemType ss2,
-                             SubsystemChannelType ch);
+  void set_subsystem_proto(std::shared_ptr<ArchGraphSystem> proto)
+  { _subsystem_proto = proto; }
 
   unsigned num_processors() const override;
   unsigned num_channels() const override;
@@ -38,11 +28,8 @@ public:
 private:
   PermGroup update_automorphisms() override;
 
-  ArchUniformSuperGraph(ArchGraphSubsystem &&subsystem);
-
-  ArchGraph _subsystem_supergraph;
-  ArchGraphSubsystem _subsystem_proto;
-  ArchGraph::ProcessorType _subsystem_processor_type;
+  std::shared_ptr<ArchGraphSystem> _subsystem_supergraph;
+  std::shared_ptr<ArchGraphSystem> _subsystem_proto;
 };
 
 } // namespace cgtl

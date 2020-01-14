@@ -19,9 +19,8 @@ class ArchGraphCluster : public ArchGraphSystem
 {
 public:
   // TODO: detect equivalent subsystems?
-  template<typename ...ARGS>
-  void add_subsystem(ARGS &&...args)
-  { add_subsystem(ArchGraphSubsystem(std::forward<ARGS>(args)...)); }
+  void add_subsystem(std::shared_ptr<ArchGraphSystem> subsystem)
+  { _subsystems.push_back(subsystem); }
 
   unsigned num_processors() const override;
   unsigned num_channels() const override;
@@ -35,9 +34,7 @@ public:
 private:
   PermGroup update_automorphisms() override;
 
-  void add_subsystem(ArchGraphSubsystem &&subsystem);
-
-  std::vector<ArchGraphSubsystem> _subsystems;
+  std::vector<std::shared_ptr<ArchGraphSystem>> _subsystems;
 };
 
 } // namespace cgtl

@@ -11,14 +11,6 @@
 namespace cgtl
 {
 
-using ProcessorLabel = char const *;
-using ChannelLabel = char const *;
-using SubsystemLabel = char const *;
-
-#define DEFAULT_PROCESSOR_LABEL ""
-#define DEFAULT_CHANNEL_LABEL ""
-#define DEFAULT_SUBSYSTEM_LABEL ""
-
 class ArchGraphSystem
 {
 public:
@@ -127,34 +119,7 @@ private:
   bool _augmented_generators_valid;
 };
 
-class ArchGraphSubsystem
-{
-public:
-  ArchGraphSubsystem(std::shared_ptr<ArchGraphSystem> const &ag,
-                     SubsystemLabel label = DEFAULT_SUBSYSTEM_LABEL)
-  : _arch_graph_system(ag),
-    _label(label)
-  {}
-
-  template<typename AG>
-  ArchGraphSubsystem(AG const &arch_graph_system,
-                     SubsystemLabel label = DEFAULT_SUBSYSTEM_LABEL)
-  : _arch_graph_system(std::make_shared<AG>(arch_graph_system)),
-    _label(label)
-  {}
-
-  ArchGraphSystem *operator->() const
-  { return _arch_graph_system.get(); }
-
-  SubsystemLabel label() const
-  { return _label; }
-
-private:
-  std::shared_ptr<ArchGraphSystem> _arch_graph_system;
-  SubsystemLabel _label;
-};
-
-// TODO: outstream operators for both of these...
+// TODO: outstream operator
 
 } // namespace cgtl
 
