@@ -2,12 +2,15 @@
 #include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <unordered_set>
 
 #include <getopt.h>
 #include <libgen.h>
 
 #include "arch_graph_system.h"
 #include "arch_graph_cluster.h"
+#include "arch_uniform_super_graph.h"
+#include "cartesian_product.h"
 
 #include "profile_args.h"
 #include "profile_parse.h"
@@ -53,6 +56,14 @@ std::shared_ptr<cgtl::ArchGraphCluster>
 as_cluster(std::shared_ptr<cgtl::ArchGraphSystem> ag)
 { return std::dynamic_pointer_cast<cgtl::ArchGraphCluster>(ag); }
 
+bool
+is_supergraph(std::shared_ptr<cgtl::ArchGraphSystem> ag)
+{ return dynamic_cast<cgtl::ArchUniformSuperGraph *>(ag.get()); }
+
+std::shared_ptr<cgtl::ArchUniformSuperGraph>
+as_supergraph(std::shared_ptr<cgtl::ArchGraphSystem> ag)
+{ return std::dynamic_pointer_cast<cgtl::ArchUniformSuperGraph>(ag); }
+
 std::vector<cgtl::PermGroup>
 decompose_cluster(std::shared_ptr<cgtl::ArchGraphCluster> ag,
                   ProfileOptions const &options)
@@ -61,12 +72,20 @@ decompose_cluster(std::shared_ptr<cgtl::ArchGraphCluster> ag,
     options.disjoint_complete, options.disjoint_orbit_optimization);
 }
 
+std::vector<cgtl::PermGroup>
+decompose_supergraph(std::shared_ptr<cgtl::ArchUniformSuperGraph> ag,
+                     ProfileOptions const &)
+{ return ag->automorphisms().wreath_decomposition(); }
+
 void
 decompose_cluster_wrapper(std::shared_ptr<cgtl::ArchGraphCluster> ag,
                           ProfileOptions const &options,
                           double *t)
 {
   using cgtl::PermGroup;
+
+  if (options.verbose)
+    info("Trying to decompose cluster...");
 
   auto decomposition(
     run_cpp([&]{ return decompose_cluster(ag, options); }, t));
@@ -91,14 +110,86 @@ decompose_cluster_wrapper(std::shared_ptr<cgtl::ArchGraphCluster> ag,
   }
 }
 
+void
+decompose_supergraph_wrapper(std::shared_ptr<cgtl::ArchUniformSuperGraph> ag,
+                             ProfileOptions const &options,
+                             double *t)
+{
+  using cgtl::Perm;
+  using cgtl::PermGroup;
+
+  if (options.verbose)
+    info("Trying to decompose supergraph...");
+
+  auto decomposition(
+    run_cpp([&]{ return decompose_supergraph(ag, options); }, t));
+
+  if (decomposition.empty())
+    warning("Failed to find supergraph decomposition");
+
+  if (options.check_accuracy) {
+    info("Checking accuracy...");
+
+    // determine all elements in group reconstructed from wreath decomposition
+    std::unordered_set<Perm> decomposition_elements;
+
+    std::vector<std::vector<Perm>> sigmas;
+
+    for (PermGroup const &pg : decomposition) {
+      std::vector<Perm> sigma;
+
+      // TODO
+      for (Perm const &perm : pg)
+        sigma.push_back(perm);
+
+      sigmas.push_back(sigma);
+    }
+
+    std::vector<Perm> chain;
+    while (next_in_cartesian_product(sigmas.begin(), sigmas.end(), chain.begin())) {
+      Perm perm(chain[0]);
+      for (auto i = 1u; i < chain.size(); ++i)
+        perm *= chain[1];
+
+      decomposition_elements.insert(perm);
+    }
+
+    // order sanity check
+    if (decomposition_elements.size() != ag->automorphisms().order()) {
+      // determine all elements in automorphism group
+      std::unordered_set<Perm> automorphisms_elements;
+
+      for (Perm const &perm : ag->automorphisms())
+        automorphisms_elements.insert(perm);
+
+      if (automorphisms_elements != decomposition_elements)
+        info("Decomposition is incorrect, elements do not match");
+
+    } else {
+      info("Decomposition is incorrect, expected", ag->automorphisms().order(),
+            "elements but got", decomposition_elements.size());
+    }
+  }
+}
+
 double
 run(std::shared_ptr<cgtl::ArchGraphSystem> ag,
     ProfileOptions const &options)
 {
   double t;
 
-  if (is_cluster(ag))
+  if (is_cluster(ag)) {
+    if (options.verbose)
+      info("Graph is cluster");
+
     decompose_cluster_wrapper(as_cluster(ag), options, &t);
+
+  } else if (is_supergraph(ag)) {
+    if (options.verbose)
+      info("Graph is supergraph");
+
+    decompose_supergraph_wrapper(as_supergraph(ag), options, &t);
+  }
 
   return t;
 }
@@ -113,13 +204,16 @@ profile(Stream &arch_graphs_stream,
     auto ag(parse_arch_graph_system(line));
 
     if (options.verbose) {
-      info("Decomposing arch graph", lineno);
-      info("==>", ag->num_processors(), "processors");
-      if (is_cluster(ag))
-        info("==>", as_cluster(ag)->num_subsystems(), "subsystems");
+      info("Decomposing graph", lineno);
+      info("=>", ag->num_processors(), "processors");
     } else {
-      info("Decomposing arch graph", lineno);
+      info("Decomposing graph", lineno);
     }
+
+    if (options.verbose)
+      info("Constructing automorphism group");
+
+    (void)ag->automorphisms();
 
     double t = run(ag, options);
 
@@ -128,7 +222,6 @@ profile(Stream &arch_graphs_stream,
 }
 
 } // namespace
-
 
 int
 main(int argc, char **argv)
@@ -182,6 +275,8 @@ main(int argc, char **argv)
       return EXIT_FAILURE;
     }
   }
+
+  CHECK_OPTION(arch_graphs_stream.valid, "--arch-graphs option is mandatory");
 
   profile(arch_graphs_stream, options);
 

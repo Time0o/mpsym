@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iterator>
 #include <memory>
 #include <regex>
 #include <sstream>
@@ -12,6 +13,7 @@
 
 #include "arch_graph_cluster.h"
 #include "arch_graph_system.h"
+#include "arch_uniform_super_graph.h"
 #include "dump.h"
 #include "perm.h"
 #include "perm_set.h"
@@ -180,6 +182,7 @@ std::shared_ptr<cgtl::ArchGraphSystem> build_arch_graph_system(
 {
   using cgtl::ArchGraphCluster;
   using cgtl::ArchGraphSystem;
+  using cgtl::ArchUniformSuperGraph;
   using cgtl::PermGroup;
 
   // determine type of arch graph system to construct by first (and only) key in tree
@@ -208,6 +211,25 @@ std::shared_ptr<cgtl::ArchGraphSystem> build_arch_graph_system(
        cluster->add_subsystem(build_arch_graph_system(subsystem.second));
 
     return cluster;
+
+  } else if (pt.get_child_optional("supergraph")) {
+    auto child(pt.get_child("supergraph"));
+
+    auto supergraph_it(child.begin());
+    auto proto_it(child.begin()); ++proto_it;
+
+    if (std::distance(child.begin(), child.end()) != 2)
+      throw std::invalid_argument("supergraph must be composed of two components");
+
+    auto supergraph(std::make_shared<ArchUniformSuperGraph>());
+
+    supergraph->set_subsystem_supergraph(
+      build_arch_graph_system(supergraph_it->second));
+
+    supergraph->set_subsystem_proto(
+      build_arch_graph_system(proto_it->second));
+
+    return supergraph;
 
   } else {
     throw std::invalid_argument("malformed arch graph system description");
