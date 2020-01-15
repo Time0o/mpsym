@@ -76,6 +76,8 @@ bool PermGroup::operator!=(PermGroup const &rhs) const
 
 PermGroup PermGroup::symmetric(unsigned degree)
 {
+  // TODO: explicit BSGS
+
   assert(degree > 0u);
 
   if (degree == 1u)
@@ -90,6 +92,8 @@ PermGroup PermGroup::symmetric(unsigned degree)
 
 PermGroup PermGroup::symmetric(std::vector<unsigned> const &support)
 {
+  // TODO: explicit BSGS
+
   assert(support.size() > 1u);
 
   unsigned degree = *std::max_element(support.begin(), support.end());
@@ -103,6 +107,8 @@ PermGroup PermGroup::symmetric(std::vector<unsigned> const &support)
 
 PermGroup PermGroup::cyclic(unsigned degree)
 {
+  // TODO: explicit BSGS
+
   assert(degree > 0u);
 
   std::vector<unsigned> gen;
@@ -114,6 +120,8 @@ PermGroup PermGroup::cyclic(unsigned degree)
 
 PermGroup PermGroup::cyclic(std::vector<unsigned> const &support)
 {
+  // TODO: explicit BSGS
+
   assert(support.size() > 1u);
 
   unsigned degree = *std::max_element(support.begin(), support.end());
@@ -123,6 +131,8 @@ PermGroup PermGroup::cyclic(std::vector<unsigned> const &support)
 
 PermGroup PermGroup::alternating(unsigned degree)
 {
+  // TODO: explicit BSGS
+
   assert(degree > 0u);
 
   if (degree == 1u)
@@ -140,6 +150,8 @@ PermGroup PermGroup::alternating(unsigned degree)
 
 PermGroup PermGroup::alternating(std::vector<unsigned> const &support)
 {
+  // TODO: explicit BSGS
+
   unsigned degree = *std::max_element(support.begin(), support.end());
 
   PermSet gens;
@@ -151,6 +163,8 @@ PermGroup PermGroup::alternating(std::vector<unsigned> const &support)
 
 PermGroup PermGroup::dihedral(unsigned degree)
 {
+  // TODO: explicit BSGS
+
   assert(degree > 0u);
 
   if (degree == 1u)
@@ -178,6 +192,8 @@ PermGroup PermGroup::dihedral(unsigned degree)
 
 PermGroup PermGroup::dihedral(std::vector<unsigned> const &support)
 {
+  // TODO: explicit BSGS
+
   assert(support.size() > 2u);
 
   unsigned degree = *std::max_element(support.begin(), support.end());

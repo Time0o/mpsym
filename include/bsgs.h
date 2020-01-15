@@ -25,13 +25,13 @@ public:
   { return _schreier_structures[i]; }
 
   void update_schreier_structure(
-    unsigned i, unsigned root, PermSet const &generators);
+    unsigned i, unsigned root, unsigned degree, PermSet const &generators);
 
   void insert_schreier_structure(
-    unsigned i, unsigned root, PermSet const &generators);
+    unsigned i, unsigned root, unsigned degree, PermSet const &generators);
 
   virtual std::shared_ptr<SchreierStructure> make_schreier_structure(
-    unsigned root, PermSet const &generators) = 0;
+    unsigned root, unsigned degree, PermSet const &generators) = 0;
 
 private:
   std::vector<std::shared_ptr<SchreierStructure>> _schreier_structures;
@@ -41,8 +41,8 @@ template<typename T>
 class BSGSTransversals : public BSGSTransversalsBase
 {
   std::shared_ptr<SchreierStructure> make_schreier_structure(
-    unsigned root, PermSet const &generators) override
-  { return std::make_shared<T>(generators.degree(), root, generators); }
+    unsigned root, unsigned degree, PermSet const &generators) override
+  { return std::make_shared<T>(degree, root, generators); }
 };
 
 class BSGS
@@ -97,6 +97,10 @@ public:
   bool strips_completely(Perm const &perm) const;
 
 private:
+  void construct_symmetric();
+  void construct_alternating();
+  void construct_unknown(PermSet const &generators, Construction construction);
+
   // schreier sims initialization
   void schreier_sims(PermSet const &generators);
   void schreier_sims_random(PermSet const &generators, unsigned w = 10);
@@ -137,10 +141,16 @@ private:
   { return _transversals->schreier_structure(i); }
 
   void update_schreier_structure(unsigned i, PermSet const &generators)
-  { _transversals->update_schreier_structure(i, base_point(i), generators); }
+  {
+    _transversals->update_schreier_structure(
+      i, base_point(i), _degree, generators);
+  }
 
   void insert_schreier_structure(unsigned i, PermSet const &generators)
-  { _transversals->insert_schreier_structure(i, base_point(i), generators); }
+  {
+    _transversals->insert_schreier_structure(
+      i, base_point(i), _degree, generators);
+  }
 
   unsigned _degree;
   std::vector<unsigned> _base;

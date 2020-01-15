@@ -45,6 +45,13 @@ public:
   unsigned size() const
   { return _perms.size(); }
 
+  // TODO: prefer iterators
+  PermSet subset(unsigned offs, unsigned sz) const
+  {
+    assert(offs + sz <= size());
+    return PermSet(begin() + offs, begin() + offs + sz);
+  }
+
   Perm const& operator[](unsigned i) const
   {
     assert(i < size());

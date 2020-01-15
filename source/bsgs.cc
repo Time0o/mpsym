@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
+#include <numeric>
 #include <ostream>
 #include <utility>
 #include <vector>
@@ -11,6 +12,7 @@
 #include "orbits.h"
 #include "perm.h"
 #include "perm_set.h"
+#include "pr_randomizer.h"
 #include "explicit_transversals.h"
 #include "schreier_tree.h"
 
@@ -18,9 +20,9 @@ namespace cgtl
 {
 
 void BSGSTransversalsBase::update_schreier_structure(
-  unsigned i, unsigned root, PermSet const &generators)
+  unsigned i, unsigned root, unsigned degree, PermSet const &generators)
 {
-  auto ss(make_schreier_structure(root, generators));
+  auto ss(make_schreier_structure(root, degree, generators));
 
   Orbit::generate(root, generators, ss);
 
@@ -31,16 +33,16 @@ void BSGSTransversalsBase::update_schreier_structure(
 }
 
 void BSGSTransversalsBase::insert_schreier_structure(
-  unsigned i, unsigned root, PermSet const &generators)
+  unsigned i, unsigned root, unsigned degree, PermSet const &generators)
 {
   _schreier_structures.insert(_schreier_structures.begin() + i, nullptr);
 
-  update_schreier_structure(i, root, generators);
+  update_schreier_structure(i, root, degree, generators);
 }
 
 BSGS::BSGS(unsigned degree)
 : _degree(degree)
-{}
+{ assert(degree > 0); }
 
 BSGS::BSGS(unsigned degree,
            PermSet const &generators,
@@ -48,6 +50,8 @@ BSGS::BSGS(unsigned degree,
            Transversals transversals)
 : _degree(degree)
 {
+  assert(degree > 0);
+
   generators.assert_degree(degree);
 
   switch (transversals) {
@@ -62,22 +66,26 @@ BSGS::BSGS(unsigned degree,
       throw std::logic_error("TODO");
   }
 
-  switch (construction) {
-    case Construction::AUTO:
-    case Construction::SCHREIER_SIMS:
-      schreier_sims(generators);
-      break;
-    case Construction::SCHREIER_SIMS_RANDOM:
-      schreier_sims_random(generators);
-      break;
-    case Construction::SOLVE:
-      solve(generators);
-      break;
+  DBG(DEBUG) << "=== Constructing BSGS";
+  DBG(DEBUG) << "Generators: " << generators;
+
+  if (degree >= 8u) {
+    PrRandomizer pr(generators);
+
+    if (pr.test_symmetric()) {
+      construct_symmetric();
+    } else if (pr.test_alternating())
+      construct_alternating();
+    else
+      construct_unknown(generators, construction);
+  } else {
+    construct_unknown(generators, construction);
   }
 
-  assert(base_size() > 0u);
+  DBG(DEBUG) << "==> B = " << _base;
+  DBG(DEBUG) << "==> SGS = " << _strong_generators;
 
-  reduce_gens();
+  assert(base_size() > 0u);
 }
 
 PermSet BSGS::strong_generators(unsigned i) const
@@ -140,6 +148,59 @@ void BSGS::extend_base(unsigned bp)
 
 void BSGS::extend_base(unsigned bp, unsigned i)
 { _base.insert(_base.begin() + i, bp); }
+
+void BSGS::construct_symmetric()
+{
+  DBG(DEBUG) << "Group is symmetric";
+
+  if (_degree == 1u)
+    return;
+
+  _base.resize(_degree - 1u);
+  std::iota(_base.begin(), _base.end(), 1u);
+
+  for (unsigned i = _degree - 1u; i > 0u; --i)
+    _strong_generators.insert(Perm(_degree, {{i, _degree}}));
+
+  for (unsigned i = 0u; i < _base.size(); ++i)
+    update_schreier_structure(i, _strong_generators.subset(0, _degree - i - 1u));
+}
+
+void BSGS::construct_alternating()
+{
+  DBG(DEBUG) << "Group is alternating";
+
+  if (_degree < 2u)
+    return;
+
+  _base.resize(_degree - 2u);
+  std::iota(_base.begin(), _base.end(), 1u);
+
+  for (unsigned i = _degree - 2u; i > 0u; --i)
+    _strong_generators.insert(Perm(_degree, {{i, _degree - 1u, _degree}}));
+
+  for (unsigned i = 0u; i < _base.size(); ++i)
+    update_schreier_structure(i, _strong_generators.subset(0, _degree - i - 2u));
+}
+
+void BSGS::construct_unknown(PermSet const &generators,
+                             Construction construction)
+{
+  switch (construction) {
+    case Construction::AUTO:
+    case Construction::SCHREIER_SIMS:
+      schreier_sims(generators);
+      break;
+    case Construction::SCHREIER_SIMS_RANDOM:
+      schreier_sims_random(generators);
+      break;
+    case Construction::SOLVE:
+      solve(generators);
+      break;
+  }
+
+  reduce_gens();
+}
 
 std::ostream &operator<<(std::ostream &os, BSGS const &bsgs)
 {
