@@ -94,19 +94,18 @@ bool PrRandomizer::test_altsym(double epsilon)
 {
   assert(epsilon > 0.0);
 
-  unsigned n = _gens_orig[0].degree();
-
-  assert(n >= 8u && n - 2 <= boost::math::max_prime);
+  assert(_gens_orig.degree() >= 8u
+         && _gens_orig.degree() - 2u <= boost::math::max_prime);
 
   // check whether group is even transitive
   auto orbit(Orbit::generate(1, _gens_orig));
 
-  if (orbit.size() != n)
+  if (orbit.size() != _gens_orig.degree())
     return false;
 
   // determine number of random elements to be tested
-  double d = 1.0 / log(static_cast<double>(n));
-  if (n <= 16u)
+  double d = 1.0 / log(static_cast<double>(_gens_orig.degree()));
+  if (_gens_orig.degree() <= 16u)
     d *= 0.23;
   else
     d *= 0.39;
@@ -118,20 +117,20 @@ bool PrRandomizer::test_altsym(double epsilon)
     static_cast<unsigned>(std::ceil(iterations_lower_bound));
 
   // test whether random element contains p-cycle
-  unsigned p_lower_bound = n / 2u;
-  unsigned p_upper_bound = n - 2u;
+  unsigned p_lower_bound = _gens_orig.degree() / 2u;
+  unsigned p_upper_bound = _gens_orig.degree() - 2u;
 
   for (unsigned i = 0u; i < iterations; ++i) {
     Perm random_element(next());
 
-    std::vector<int> processed(n, 0);
-    unsigned remaining = n;
+    std::vector<int> processed(_gens_orig.degree(), 0);
+    unsigned remaining = _gens_orig.degree();
 
     unsigned current = 1u;
     unsigned first = current;
     unsigned cycle_len = 1u;
 
-    while (current < n) {
+    while (current < _gens_orig.degree()) {
       unsigned next = random_element[current];
       if (next == first) {
         if (cycle_len > p_lower_bound && cycle_len < p_upper_bound
@@ -142,7 +141,7 @@ bool PrRandomizer::test_altsym(double epsilon)
         if ((remaining -= cycle_len) <= p_lower_bound)
           break;
 
-        for (next = first + 1u; next < n; ++next) {
+        for (next = first + 1u; next < _gens_orig.degree(); ++next) {
           if (!processed[next]) {
             current = next;
             first = current;
@@ -165,24 +164,22 @@ bool PrRandomizer::test_altsym(double epsilon)
 
 bool PrRandomizer::generators_even()
 {
-  unsigned n = _gens_orig[0].degree();
-
   for (auto const &gen : _gens_orig) {
     unsigned parity = 0u;
 
-    std::vector<int> processed(n, 0);
+    std::vector<int> processed(_gens_orig.degree(), 0);
 
     unsigned current = 1u;
     unsigned first = current;
     unsigned cycle_len = 1u;
 
-    while (current < n) {
+    while (current < _gens_orig.degree()) {
       unsigned next = gen[current];
 
       if (next == first) {
         parity ^= (cycle_len - 1u) % 2u;
 
-        for (next = first + 1u; next < n; ++next) {
+        for (next = first + 1u; next < _gens_orig.degree(); ++next) {
           if (!processed[next]) {
             current = next;
             first = current;
