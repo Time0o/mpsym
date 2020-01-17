@@ -193,6 +193,18 @@ bool Perm::id() const
   return true;
 }
 
+bool Perm::even() const
+{
+  bool odd = false;
+
+  for (auto const &cycle : cycles()) {
+    if (cycle.size() % 2 == 0)
+      odd = !odd;
+  }
+
+  return !odd;
+}
+
 std::vector<std::vector<unsigned>> Perm::cycles() const
 {
   std::vector<std::vector<unsigned>> result;

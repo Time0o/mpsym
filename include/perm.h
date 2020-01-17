@@ -176,6 +176,9 @@ public:
    */
   bool id() const;
 
+  /// TODO
+  bool even() const;
+
   /** Obtain a permutation's vector representation.
    *
    * \return vector representation of this permutation.

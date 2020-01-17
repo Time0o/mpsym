@@ -100,7 +100,7 @@ TEST_F(PRRandomizerTest, CanTestForAltSym)
     return gens;
   };
 
-  for (unsigned i = 8u; i < 100u; ++i) {
+  for (unsigned i = 8u; i < 20u; ++i) {
     auto gens_symmetric(symmetric_generators(i));
     PrRandomizer pr_symmetric(gens_symmetric);
 

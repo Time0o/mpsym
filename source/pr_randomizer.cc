@@ -3,9 +3,11 @@
 #include <cmath>
 #include <ctime>
 #include <random>
+#include <unordered_set>
 #include <vector>
 
 #include <boost/math/special_functions/prime.hpp>
+#include <boost/multiprecision/miller_rabin.hpp>
 
 #include "orbits.h"
 #include "perm.h"
@@ -94,8 +96,16 @@ bool PrRandomizer::test_altsym(double epsilon)
 {
   assert(epsilon > 0.0);
 
-  assert(_gens_orig.degree() >= 8u
-         && _gens_orig.degree() - 2u <= boost::math::max_prime);
+  assert(_gens_orig.degree() >= 8u);
+
+  // build prime number lookup table
+  static std::unordered_set<unsigned> prime_lookup;
+
+  if (prime_lookup.empty()) {
+    //for (auto i = 0u; i <= boost::math::max_prime; ++i)
+    for (auto i = 0u; i <= 1000u; ++i)
+      prime_lookup.insert(boost::math::prime(i));
+  }
 
   // check whether group is even transitive
   auto orbit(Orbit::generate(1, _gens_orig));
@@ -104,13 +114,13 @@ bool PrRandomizer::test_altsym(double epsilon)
     return false;
 
   // determine number of random elements to be tested
-  double d = 1.0 / log(static_cast<double>(_gens_orig.degree()));
+  double d = std::log(2.0) / std::log(static_cast<double>(_gens_orig.degree()));
   if (_gens_orig.degree() <= 16u)
     d *= 0.23;
   else
     d *= 0.39;
 
-  double iterations_lower_bound = -log(epsilon) / d;
+  double iterations_lower_bound = -std::log(epsilon) / d;
   assert(iterations_lower_bound < static_cast<double>(UINT_MAX));
 
   unsigned iterations =
@@ -121,41 +131,18 @@ bool PrRandomizer::test_altsym(double epsilon)
   unsigned p_upper_bound = _gens_orig.degree() - 2u;
 
   for (unsigned i = 0u; i < iterations; ++i) {
-    Perm random_element(next());
+    for (auto const &cycle : next().cycles()) {
+      auto cycle_len = cycle.size();
 
-    std::vector<int> processed(_gens_orig.degree(), 0);
-    unsigned remaining = _gens_orig.degree();
+      bool is_prime = cycle_len <= boost::math::max_prime ?
+        prime_lookup.find(cycle_len) != prime_lookup.end() :
+        boost::multiprecision::miller_rabin_test(cycle_len, 25);
 
-    unsigned current = 1u;
-    unsigned first = current;
-    unsigned cycle_len = 1u;
+      if (!is_prime)
+        continue;
 
-    while (current < _gens_orig.degree()) {
-      unsigned next = random_element[current];
-      if (next == first) {
-        if (cycle_len > p_lower_bound && cycle_len < p_upper_bound
-            && -boost::math::prime(cycle_len)) {
-          return true;
-        }
-
-        if ((remaining -= cycle_len) <= p_lower_bound)
-          break;
-
-        for (next = first + 1u; next < _gens_orig.degree(); ++next) {
-          if (!processed[next]) {
-            current = next;
-            first = current;
-            cycle_len = 1u;
-          }
-        }
-
-        break;
-
-      } else {
-        processed[current] = true;
-        current = next;
-        ++cycle_len;
-      }
+      if (cycle_len > p_lower_bound && cycle_len < p_upper_bound)
+        return true;
     }
   }
 
@@ -165,40 +152,7 @@ bool PrRandomizer::test_altsym(double epsilon)
 bool PrRandomizer::generators_even()
 {
   for (auto const &gen : _gens_orig) {
-    unsigned parity = 0u;
-
-    std::vector<int> processed(_gens_orig.degree(), 0);
-
-    unsigned current = 1u;
-    unsigned first = current;
-    unsigned cycle_len = 1u;
-
-    while (current < _gens_orig.degree()) {
-      unsigned next = gen[current];
-
-      if (next == first) {
-        parity ^= (cycle_len - 1u) % 2u;
-
-        for (next = first + 1u; next < _gens_orig.degree(); ++next) {
-          if (!processed[next]) {
-            current = next;
-            first = current;
-            cycle_len = 1u;
-          }
-        }
-
-        break;
-
-      } else {
-        processed[current] = true;
-        current = next;
-        ++cycle_len;
-      }
-    }
-
-    assert(parity == 0u || parity == 1u);
-
-    if (parity == 1u) {
+    if (!gen.even()) {
       return false;
     }
   }
