@@ -69,6 +69,7 @@ BSGS::BSGS(unsigned degree,
   DBG(DEBUG) << "=== Constructing BSGS";
   DBG(DEBUG) << "Generators: " << generators;
 
+#ifndef BSGS_NO_CHECK_ALTSYM
   if (degree >= 8u) {
     PrRandomizer pr(generators);
 
@@ -81,6 +82,9 @@ BSGS::BSGS(unsigned degree,
   } else {
     construct_unknown(generators, construction);
   }
+#else
+  construct_unknown(generators, construction);
+#endif
 
   DBG(DEBUG) << "==> B = " << _base;
   DBG(DEBUG) << "==> SGS = " << _strong_generators;
@@ -199,7 +203,9 @@ void BSGS::construct_unknown(PermSet const &generators,
       break;
   }
 
+#ifndef BSGS_NO_REDUCE_GENS
   reduce_gens();
+#endif
 }
 
 std::ostream &operator<<(std::ostream &os, BSGS const &bsgs)
