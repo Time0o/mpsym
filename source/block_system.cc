@@ -89,7 +89,7 @@ BlockSystem BlockSystem::minimal(PermSet const &generators,
   std::vector<unsigned> cardinalities(generators.degree());
   std::vector<unsigned> queue;
 
-  DBG(DEBUG) << "Finding minimal block system for:";
+  DBG(DEBUG) << "=== Finding minimal block system for:";
   DBG(DEBUG) << generators;
 
   DBG(DEBUG) << "Initial block: " << initial_block;
@@ -152,7 +152,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial(PermGroup const &pg,
   assert((!assume_transitivity || pg.is_transitive()) &&
     "transitivity assumption correct");
 
-  DBG(DEBUG) << "Finding all non-trivial block systems for:";
+  DBG(DEBUG) << "=== Finding all non-trivial block systems for:";
   DBG(DEBUG) << pg;
 
   bool transitive;

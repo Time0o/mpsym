@@ -5,7 +5,6 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <unordered_set>
 #include <vector>
 
 #include "dump.h"
@@ -25,9 +24,12 @@ public:
   : _level(level)
   { _buf << _headers[_level]; }
 
-  Dbg &operator<<(char const *val)
+  ~Dbg()
+  { *out << prefix_linebreaks(_buf.str()) << std::endl; }
+
+  Dbg &operator<<(char const *str)
   {
-    _buf << val;
+    _buf << str;
     return *this;
   }
 
@@ -38,11 +40,25 @@ public:
     return *this;
   }
 
-  ~Dbg() { *out << _buf.str() << std::endl; }
-
 private:
-  std::string header_indent() {
-    return std::string(strlen(_headers[_level]), ' ');
+  std::string header_indent() const
+  { return std::string(strlen(_headers[_level]), ' '); }
+
+  std::string prefix_linebreaks(std::string str) const
+  {
+    std::size_t pos = 0u;
+
+    for (;;) {
+      pos = str.find('\n', pos);
+      if (pos == std::string::npos)
+        break;
+
+      str.replace(pos, 1, "\n" + header_indent());
+
+      ++pos;
+    }
+
+    return str;
   }
 
   int _level;

@@ -22,7 +22,7 @@ namespace cgtl
 
 void BSGS::schreier_sims(PermSet const &generators)
 {
-  DBG(DEBUG) << "Executing schreier sims algorithm";
+  DBG(TRACE) << "Executing schreier sims algorithm";
 
   _strong_generators = generators;
 
@@ -34,9 +34,12 @@ void BSGS::schreier_sims(PermSet const &generators)
 
   std::vector<SchreierGeneratorQueue> schreier_generator_queues(base_size());
 
+  DBG(TRACE) << "=== Iterating over Schreier Generators";
+
   // main loop
   unsigned i = base_size();
   while (i >= 1u) {
+    DBG(TRACE) << "== i = " << i;
 top:
     schreier_generator_queues[i - 1].update(strong_generators[i - 1],
                                             fundamental_orbits[i - 1],
@@ -122,7 +125,7 @@ top:
 
 void BSGS::schreier_sims_random(PermSet const &generators, unsigned w)
 {
-  DBG(DEBUG) << "Executing (random) schreier sims algorithm";
+  DBG(TRACE) << "Executing (random) schreier sims algorithm";
 
   generators.assert_not_empty();
 
@@ -196,10 +199,6 @@ void BSGS::schreier_sims_random(PermSet const &generators, unsigned w)
 void BSGS::schreier_sims_init(std::vector<PermSet> &strong_generators,
                               std::vector<Orbit> &fundamental_orbits)
 {
-  DBG(DEBUG) << "=== Input";
-  DBG(DEBUG) << "B = " << _base;
-  DBG(DEBUG) << "S = " << _strong_generators;
-
   // add initial base points
   auto it = _strong_generators.begin();
 
@@ -245,11 +244,11 @@ void BSGS::schreier_sims_init(std::vector<PermSet> &strong_generators,
     fundamental_orbits[i] = orbit(i);
   }
 
-  DBG(DEBUG) << "=== Initial values";
-  DBG(DEBUG) << "B = " << _base;
+  DBG(TRACE) << "=== Initial values";
+  DBG(TRACE) << "B = " << _base;
   for (unsigned i = 0u; i < base_size(); ++i) {
-    DBG(DEBUG) << "S(" << (i + 1u) << ") = " << strong_generators[i];
-    DBG(DEBUG) << "O(" << (i + 1u) << ") = " << fundamental_orbits[i];
+    DBG(TRACE) << "S(" << (i + 1u) << ") = " << strong_generators[i];
+    DBG(TRACE) << "O(" << (i + 1u) << ") = " << fundamental_orbits[i];
   }
 }
 
@@ -263,10 +262,6 @@ void BSGS::schreier_sims_finish()
   }
 
   _strong_generators.make_unique();
-
-  DBG(DEBUG) << "=== Result";
-  DBG(DEBUG) << "B = " << _base;
-  DBG(DEBUG) << "SGS = " << _strong_generators;
 }
 
 } // namespace cgtl

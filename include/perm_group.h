@@ -33,6 +33,8 @@ class BlockSystem;
  */
 class PermGroup
 {
+  friend std::ostream &operator<<(std::ostream &os, PermGroup const &pg);
+
 public:
   class const_iterator : std::iterator<std::forward_iterator_tag, Perm>
   {

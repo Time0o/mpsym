@@ -21,7 +21,7 @@ namespace cgtl
 
 void BSGS::solve(PermSet const &generators)
 {
-  DBG(DEBUG) << "Attempting to solve BSGS for generators: " << generators;
+  DBG(DEBUG) << "=== Attempting to solve BSGS";
 
   unsigned iterations =
     static_cast<unsigned>(5.0 / 2.0 * std::log(degree()) / std::log(3.0));

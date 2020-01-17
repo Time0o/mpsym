@@ -143,8 +143,8 @@ void BSGS::extend_base(unsigned bp, unsigned i)
 
 std::ostream &operator<<(std::ostream &os, BSGS const &bsgs)
 {
-  os << "BASE: " << DUMP(bsgs._base)
-     << "; SGS: " << DUMP(bsgs._strong_generators);
+  os << "BASE: " << DUMP(bsgs._base) << "\n"
+     << "SGS: " << DUMP(bsgs._strong_generators);
 
   return os;
 }

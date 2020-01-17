@@ -379,7 +379,9 @@ void PermGroup::const_iterator::update_result()
 
 std::ostream &operator<<(std::ostream &os, PermGroup const &pg)
 {
-  os << pg.bsgs();
+  os << pg.bsgs() << "\n"
+     << "ORDER: " << pg._order;
+
   return os;
 }
 
