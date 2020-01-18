@@ -131,7 +131,11 @@ OrbitPartition::OrbitPartition(unsigned degree,
                                std::vector<int> const &partition_indices)
 : _partition_indices(partition_indices)
 {
+#ifndef NDEBUG
   assert(partition_indices.size() == degree);
+#else
+  (void)degree;
+#endif
 
   update_partitions();
 }
