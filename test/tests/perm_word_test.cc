@@ -91,14 +91,14 @@ TEST(PermWordTest, PermWordStringRepresentation)
   std::stringstream ss1;
   ss1 << perm1;
 
-  EXPECT_EQ("(1 2 3)(4 5)", ss1.str())
+  EXPECT_EQ("(1, 2, 3)(4, 5)", ss1.str())
     << "Correct permutation word string representation.";
 
   PermWord perm2({1, 5, 3, 6, 2, 7, 4, 8});
   std::stringstream ss2;
   ss2 << perm2;
 
-  EXPECT_EQ("(2 5)(4 6 7)", ss2.str())
+  EXPECT_EQ("(2, 5)(4, 6, 7)", ss2.str())
     << "Permutation word string representation ignores single element cycles.";
 
   PermWord perm3({1, 2, 3});

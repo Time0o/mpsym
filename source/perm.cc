@@ -5,6 +5,7 @@
 #include <set>
 #include <vector>
 
+#include "dump.h"
 #include "perm.h"
 #include "util.h"
 
@@ -112,49 +113,14 @@ Perm operator*(Perm const &lhs, Perm const &rhs)
 
 std::ostream &operator<<(std::ostream &os, const Perm &perm)
 {
-  std::set<unsigned> done;
-
-  unsigned first, current;
-  first = current = 1u;
-
-  bool id = true;
-
-  std::vector<unsigned> cycle;
-
-  for (;;) {
-    done.insert(current);
-    cycle.push_back(current);
-
-    current = perm[current];
-
-    if (current == first) {
-      if (cycle.size() > 1u) {
-        id = false;
-
-        os << "(" << cycle[0];
-        for (auto i = 1u; i < cycle.size(); ++i)
-          os << " " << cycle[i];
-        os << ")";
-
-      }
-
-      cycle.clear();
-
-      if (done.size() == perm.degree()) {
-        if (id)
-          os << "()";
-        return os;
-      }
-
-      for (unsigned i = 1u; i <= perm.degree(); ++i) {
-        if (done.find(i) == done.end()) {
-          first = i;
-          current = i;
-          break;
-        }
-      }
-    }
+  if (perm.id()) {
+    os << "()";
+  } else {
+    for (auto const &cycle : perm.cycles())
+      os << DUMP(cycle, "()");
   }
+
+  return os;
 }
 
 bool Perm::operator==(Perm const &rhs) const
