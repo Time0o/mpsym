@@ -29,8 +29,7 @@ namespace cgtl
 
 PermGroup::PermGroup(unsigned degree,
                      PermSet const &generators,
-                     BSGS::Construction construction,
-                     BSGS::Transversals transversals)
+                     BSGS::Options const &bsgs_options)
 {
   if (generators.empty() || (generators.size() == 1u && generators[0].id())) {
     _bsgs = BSGS(degree);
@@ -38,7 +37,7 @@ PermGroup::PermGroup(unsigned degree,
     _order = 1ULL;
 
   } else {
-    _bsgs = BSGS(degree, generators, construction, transversals);
+    _bsgs = BSGS(degree, generators, bsgs_options);
 
     _order = 1ULL;
     for (unsigned i = 0u; i < _bsgs.base_size(); ++i) {

@@ -286,9 +286,12 @@ class PermGroupConstructionMethodTest : public testing::TestWithParam<
 
 TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
 {
-  BSGS::Construction construction;
-  BSGS::Transversals transversals;
-  std::tie(construction, transversals) = GetParam();
+  BSGS::Options bsgs_options;
+
+  std::tie(bsgs_options.construction, bsgs_options.transversals) = GetParam();
+
+  if (bsgs_options.construction == BSGS::Construction::SCHREIER_SIMS_RANDOM)
+    bsgs_options.schreier_sims_random_guarantee = true;
 
   PermGroup groups[] = {
     PermGroup(4,
@@ -296,31 +299,27 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
         Perm(4, {{2, 4}}),
         Perm(4, {{1, 2}, {3, 4}})
       },
-      construction,
-      transversals
+      bsgs_options
     ),
     PermGroup(5,
       {
         Perm(5, {{2, 4}, {3, 5}}),
         Perm(5, {{1, 2, 3, 5, 4}})
       },
-      construction,
-      transversals
+      bsgs_options
     ),
     PermGroup(6,
       {
         Perm(6, {{1, 2, 3, 4, 5, 6}})
       },
-      construction,
-      transversals
+      bsgs_options
     ),
     PermGroup(7,
       {
         Perm(7, {{2, 5}, {3, 6}, {4, 7}}),
         Perm(7, {{1, 2, 4, 3, 6, 7, 5}})
       },
-      construction,
-      transversals
+      bsgs_options
     )
   };
 

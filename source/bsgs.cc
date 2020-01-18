@@ -44,17 +44,14 @@ BSGS::BSGS(unsigned degree)
 : _degree(degree)
 { assert(degree > 0); }
 
-BSGS::BSGS(unsigned degree,
-           PermSet const &generators,
-           Construction construction,
-           Transversals transversals)
+BSGS::BSGS(unsigned degree, PermSet const &generators, Options const &options)
 : _degree(degree)
 {
   assert(degree > 0);
 
   generators.assert_degree(degree);
 
-  switch (transversals) {
+  switch (options.transversals) {
     case Transversals::AUTO:
     case Transversals::EXPLICIT:
       _transversals = std::make_shared<BSGSTransversals<ExplicitTransversals>>();
@@ -69,8 +66,7 @@ BSGS::BSGS(unsigned degree,
   DBG(DEBUG) << "=== Constructing BSGS";
   DBG(DEBUG) << "Generators: " << generators;
 
-#ifndef BSGS_NO_CHECK_ALTSYM
-  if (degree >= 8u) {
+  if (options.check_altsym && degree > 8u) {
     PrRandomizer pr(generators);
 
     if (pr.test_symmetric()) {
@@ -78,13 +74,10 @@ BSGS::BSGS(unsigned degree,
     } else if (pr.test_alternating())
       construct_alternating();
     else
-      construct_unknown(generators, construction);
+      construct_unknown(generators, options);
   } else {
-    construct_unknown(generators, construction);
+    construct_unknown(generators, options);
   }
-#else
-  construct_unknown(generators, construction);
-#endif
 
   DBG(DEBUG) << "==> B = " << _base;
   DBG(DEBUG) << "==> SGS = " << _strong_generators;
@@ -187,25 +180,27 @@ void BSGS::construct_alternating()
     update_schreier_structure(i, _strong_generators.subset(0, _degree - i - 2u));
 }
 
-void BSGS::construct_unknown(PermSet const &generators,
-                             Construction construction)
+void BSGS::construct_unknown(PermSet const &generators, Options const &options)
 {
-  switch (construction) {
-    case Construction::AUTO:
+  switch (options.construction) {
     case Construction::SCHREIER_SIMS:
       schreier_sims(generators);
       break;
     case Construction::SCHREIER_SIMS_RANDOM:
-      schreier_sims_random(generators);
+      schreier_sims_random(generators,
+                           options.schreier_sims_random_w,
+                           options.schreier_sims_random_guarantee);
       break;
     case Construction::SOLVE:
       solve(generators);
       break;
+    case Construction::AUTO:
+      schreier_sims_random(generators, 10, true);
+      break;
   }
 
-#ifndef BSGS_NO_REDUCE_GENS
-  reduce_gens();
-#endif
+  if (options.reduce_gens)
+    reduce_gens();
 }
 
 std::ostream &operator<<(std::ostream &os, BSGS const &bsgs)

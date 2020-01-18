@@ -81,26 +81,26 @@ void make_perm_group_mpsym(cgtl::PermSet const &generators,
   using cgtl::PermGroup;
   using cgtl::PermSet;
 
-  BSGS::Construction constr;
+  BSGS::Options bsgs_options;
+
   if (options.schreier_sims.is("deterministic"))
-    constr = BSGS::Construction::SCHREIER_SIMS;
+    bsgs_options.construction = BSGS::Construction::SCHREIER_SIMS;
   else if (options.schreier_sims.is("random"))
-    constr = BSGS::Construction::SCHREIER_SIMS_RANDOM;
+    bsgs_options.construction = BSGS::Construction::SCHREIER_SIMS_RANDOM;
   else
     throw std::logic_error("unreachable");
 
-  BSGS::Transversals transv;
   if (options.transversals.is("explicit"))
-    transv = BSGS::Transversals::EXPLICIT;
+    bsgs_options.transversals = BSGS::Transversals::EXPLICIT;
   else if (options.transversals.is("schreier-trees"))
-    transv = BSGS::Transversals::SCHREIER_TREES;
+    bsgs_options.transversals = BSGS::Transversals::SCHREIER_TREES;
   else if (options.transversals.is("shallow-schreier-trees"))
-    transv = BSGS::Transversals::SHALLOW_SCHREIER_TREES;
+    bsgs_options.transversals = BSGS::Transversals::SHALLOW_SCHREIER_TREES;
   else
     throw std::logic_error("unreachable");
 
   for (unsigned i = 0u; i < options.num_cycles; ++i)
-    PermGroup g(generators.degree(), generators, constr, transv);
+    PermGroup g(generators.degree(), generators, bsgs_options);
 }
 
 template <typename T>

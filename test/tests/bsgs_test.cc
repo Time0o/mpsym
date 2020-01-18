@@ -18,6 +18,9 @@ using cgtl::PermSet;
 
 TEST(DISABLED_BSGSSolveTest, CanSolveBSGS)
 {
+  BSGS::Options options;
+  options.construction = BSGS::Construction::SOLVE;
+
   PermSet generators_solvable {
     Perm(4, {{2, 4}}),
     Perm(4, {{1, 2}, {3, 4}})
@@ -35,14 +38,14 @@ TEST(DISABLED_BSGSSolveTest, CanSolveBSGS)
 
   PermSet generators_non_solvable(PermGroup::symmetric(5).generators());
 
-  BSGS bsgs(4, generators_solvable, BSGS::Construction::SOLVE);
+  BSGS bsgs(4, generators_solvable, options);
 
   for (Perm const &perm : generators_solvable_expected_elements) {
     EXPECT_TRUE(bsgs.strips_completely(perm))
       << "Solvable group BSGS correct.";
   }
 
-  EXPECT_THROW(BSGS dummy(5, generators_non_solvable, BSGS::Construction::SOLVE),
+  EXPECT_THROW(BSGS dummy(5, generators_non_solvable, options),
                BSGS::SolveError)
       << "Solving BSGS fails for non-solvable group generating set.";
 }

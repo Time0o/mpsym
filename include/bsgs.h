@@ -50,13 +50,6 @@ class BSGS
   friend std::ostream &operator<<(std::ostream &os, BSGS const &bsgs);
 
 public:
-  struct SolveError : public std::runtime_error
-  {
-    SolveError()
-    : std::runtime_error("failed to solve BSGS")
-    {}
-  };
-
   enum class Construction {
     SCHREIER_SIMS,
     SCHREIER_SIMS_RANDOM,
@@ -71,12 +64,31 @@ public:
     AUTO
   };
 
+  struct Options
+  {
+    Construction construction = Construction::AUTO;
+    Transversals transversals = Transversals::AUTO;
+    bool check_altsym = true;
+    bool reduce_gens = true;
+    unsigned schreier_sims_random_w = 10;
+    bool schreier_sims_random_guarantee = false;
+  };
+
+  static constexpr Options default_options()
+  { return Options(); }
+
+  struct SolveError : public std::runtime_error
+  {
+    SolveError()
+    : std::runtime_error("failed to solve BSGS")
+    {}
+  };
+
   explicit BSGS(unsigned degree = 1);
 
   BSGS(unsigned degree,
        PermSet const &generators,
-       Construction construction = Construction::AUTO,
-       Transversals transversals = Transversals::AUTO);
+       Options const &options = default_options());
 
   unsigned degree() const { return _degree; }
 
@@ -99,14 +111,26 @@ public:
 private:
   void construct_symmetric();
   void construct_alternating();
-  void construct_unknown(PermSet const &generators, Construction construction);
+  void construct_unknown(PermSet const &generators, Options const &options);
 
   // schreier sims initialization
   void schreier_sims(PermSet const &generators);
-  void schreier_sims_random(PermSet const &generators, unsigned w = 10);
+
+  void schreier_sims(std::vector<PermSet> strong_generators,
+                     std::vector<Orbit> fundamental_orbits);
+
+  void schreier_sims_random(PermSet const &generators,
+                            unsigned w,
+                            bool guarantee);
 
   void schreier_sims_init(std::vector<PermSet> &strong_generators,
                           std::vector<Orbit> &fundamental_orbits);
+
+  void schreier_sims_update_strong_gens(
+    unsigned i,
+    PermSet const &new_strong_generators,
+    std::vector<PermSet> &strong_generators,
+    std::vector<Orbit> &fundamental_orbits);
 
   void schreier_sims_finish();
 
