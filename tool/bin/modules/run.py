@@ -15,3 +15,17 @@ def run_gap(script):
     os.remove(f.name)
 
     return out
+
+
+def normalize_gap_output(out):
+    out = out.replace(' ', '')
+
+    out_list = [c for c in out]
+
+    i = 0
+    while i < len(out_list):
+        if out_list[i] == '\n' and out_list[i - 1] in ':),':
+            out_list[i] = ''
+        i += 1
+
+    return ''.join(out_list)

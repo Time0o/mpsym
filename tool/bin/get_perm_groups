@@ -4,7 +4,7 @@ import os
 import sys
 
 from modules.args import NiceArgumentParser
-from modules.run import run_gap
+from modules.run import normalize_gap_output, run_gap
 from modules.util import error, usage
 
 
@@ -128,16 +128,4 @@ if __name__ == '__main__':
                         ns.max_num,
                         ns.order_limit)
 
-    out = run_gap(script)
-
-    out = out.replace(' ', '')
-
-    out_list = [c for c in out]
-
-    i = 0
-    while i < len(out_list):
-        if out_list[i] == '\n' and out_list[i - 1] in ':),':
-            out_list[i] = ''
-        i += 1
-
-    print(''.join(out_list))
+    print(normalize_gap_output(run_gap(script))
