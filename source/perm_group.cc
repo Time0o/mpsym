@@ -4,6 +4,7 @@
 #include <ctime>
 #include <random>
 #include <set>
+#include <stdexcept>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -44,8 +45,8 @@ PermGroup::PermGroup(unsigned degree,
       unsigned long long orbit_size = _bsgs.orbit(i).size();
 
       // TODO: this restriction might need to be lifted
-      assert(_order <= ULLONG_MAX / orbit_size &&
-             "group order representable by unsigned long long");
+      if (_order > ULLONG_MAX / orbit_size)
+        throw std::runtime_error("group order not representable");
 
       _order *= orbit_size;
     }
