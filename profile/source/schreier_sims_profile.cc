@@ -100,7 +100,7 @@ void make_perm_group_mpsym(cgtl::PermSet const &generators,
     throw std::logic_error("unreachable");
 
   for (unsigned i = 0u; i < options.num_cycles; ++i)
-    PermGroup g(generators.degree(), generators, bsgs_options);
+    PermGroup g(BSGS(generators.degree(), generators, bsgs_options));
 }
 
 template <typename T>

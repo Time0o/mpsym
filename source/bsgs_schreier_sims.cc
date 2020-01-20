@@ -27,21 +27,18 @@ void BSGS::schreier_sims(PermSet const &generators)
   generators.assert_not_empty();
 
   // initialize
-  _strong_generators = generators;
-
   std::vector<PermSet> strong_generators;
   std::vector<Orbit> fundamental_orbits;
 
-  schreier_sims_init(strong_generators, fundamental_orbits);
+  schreier_sims_init(generators, strong_generators, fundamental_orbits);
 
   // run algorithm
   schreier_sims(strong_generators, fundamental_orbits);
 }
 
-void BSGS::schreier_sims(std::vector<PermSet> strong_generators,
-                         std::vector<Orbit> fundamental_orbits)
+void BSGS::schreier_sims(std::vector<PermSet> &strong_generators,
+                         std::vector<Orbit> &fundamental_orbits)
 {
-
   std::vector<SchreierGeneratorQueue> schreier_generator_queues(base_size());
 
   DBG(TRACE) << "=== Iterating over Schreier Generators";
@@ -133,26 +130,60 @@ top:
 }
 
 void BSGS::schreier_sims_random(PermSet const &generators,
-                                unsigned w,
-                                bool guarantee)
+                                Options const &options)
 {
   DBG(TRACE) << "Executing (random) schreier sims algorithm";
 
   generators.assert_not_empty();
 
-  // initialize
-  _strong_generators = generators;
-
   std::vector<PermSet> strong_generators;
   std::vector<Orbit> fundamental_orbits;
 
-  schreier_sims_init(strong_generators, fundamental_orbits);
+  if (!options.schreier_sims_random_guarantee) {
+    schreier_sims_init(generators, strong_generators, fundamental_orbits);
+    schreier_sims_random(strong_generators, fundamental_orbits, options);
 
+  } else {
+    // run algorithm (possible repeatedly) until correctness has been achieved
+    bool correct = false;
+
+    for (unsigned i = 0u; i <= options.schreier_sims_random_retries; ++i) {
+      schreier_sims_init(generators, strong_generators, fundamental_orbits);
+      schreier_sims_random(strong_generators, fundamental_orbits, options);
+
+      // we assume that if the BSGS is correct if it has the correct order
+      if (options.schreier_sims_random_known_order > 0ULL
+          && order() == options.schreier_sims_random_known_order) {
+        correct = true;
+        break;
+      }
+
+      // TODO: use TCSS/Verify to check BSGS for small base groups of large degree
+      // if (...) {
+      //  correct = true;
+      //  break;
+      //}
+    }
+
+    // force correctness by running the deterministic Schreier Sims algorithm
+    if (!correct) {
+      DBG(TRACE) << "Executing Schreier Sims algorithm to guarantee correctness";
+      schreier_sims(strong_generators, fundamental_orbits);
+    }
+  }
+
+  schreier_sims_finish();
+}
+
+void BSGS::schreier_sims_random(std::vector<PermSet> &strong_generators,
+                                std::vector<Orbit> &fundamental_orbits,
+                                Options const &options)
+{
   // random group element generator
   PrRandomizer pr(_strong_generators);
 
   unsigned c = 0u;
-  while (c < w) {
+  while (c < options.schreier_sims_random_w) {
     // generate random group element
     Perm rand_perm = pr.next();
     DBG(TRACE) << "Random group element: " << rand_perm;
@@ -208,20 +239,19 @@ void BSGS::schreier_sims_random(PermSet const &generators,
       ++c;
     }
   }
-
-  // TODO: use TCSS/Verify to check BSGS for small base groups of large degree
-
-  if (guarantee) {
-    DBG(TRACE) << "Executing Schreier Sims algorithm to guarantee correctness";
-    schreier_sims(strong_generators, fundamental_orbits);
-  }
-
-  schreier_sims_finish();
 }
 
-void BSGS::schreier_sims_init(std::vector<PermSet> &strong_generators,
+void BSGS::schreier_sims_init(PermSet const &generators,
+                              std::vector<PermSet> &strong_generators,
                               std::vector<Orbit> &fundamental_orbits)
 {
+  _base.clear();
+  _transversals->clear();
+  _strong_generators = generators;
+
+  strong_generators.clear();
+  fundamental_orbits.clear();
+
   // add initial base points
   auto it = _strong_generators.begin();
 

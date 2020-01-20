@@ -68,6 +68,12 @@ public:
     _order(1ULL)
   {}
 
+  /// TODO
+  explicit PermGroup(BSGS const &bsgs)
+  : _bsgs(bsgs),
+    _order(bsgs.order())
+  {}
+
   /** Construct a permutation group.
    *
    * Constructs a permutation group representation from a given set of
@@ -79,19 +85,13 @@ public:
    * element membership and iterate through all group elements efficiently.
    *
    * \param degree the permutation group's *degree*, must be the same as the
-                   degree of all given generators (which in turn implies that
-                   they map from the set \f$\{1, \dots, degree\}\f$ to itself)
-                   otherwise this constructor's behaviour is undefined
-   * \param generators a generating set for the permutation group
+   *               degree of all given generators (which in turn implies that
+   *               they map from the set \f$\{1, \dots, degree\}\f$ to itself)
+   *               otherwise this constructor's behaviour is undefined
    *
-   * \param schreier_sims_method
-   *     determines which variant of the Schreier-Sims algorithms is used to
-   *     construct the internal group representation, might influence this
-   *     constructor's runtime
+   * \param generators a generating set for the permutation group
    */
-  PermGroup(unsigned degree,
-            PermSet const &generators,
-            BSGS::Options const &bsgs_options = BSGS::default_options());
+  PermGroup(unsigned degree, PermSet const &generators);
 
   /** Check two permutation groups for equality.
    *
@@ -303,7 +303,7 @@ public:
    *
    * \return this permutation group's order
    */
-  unsigned long long order() const { return _order; }
+  BSGS::order_type order() const { return _order; }
 
   /** Obtain permutation group generators.
    *
@@ -506,7 +506,7 @@ private:
     PermSet const &block_permuter_image) const;
 
   BSGS _bsgs;
-  unsigned long long _order;
+  BSGS::order_type _order;
 };
 
 std::ostream &operator<<(std::ostream &os, PermGroup const &pg);

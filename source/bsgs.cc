@@ -1,8 +1,10 @@
 #include <algorithm>
 #include <cassert>
+#include <limits>
 #include <memory>
 #include <numeric>
 #include <ostream>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -52,7 +54,6 @@ BSGS::BSGS(unsigned degree, PermSet const &generators, Options const &options)
   generators.assert_degree(degree);
 
   switch (options.transversals) {
-    case Transversals::AUTO:
     case Transversals::EXPLICIT:
       _transversals = std::make_shared<BSGSTransversals<ExplicitTransversals>>();
       break;
@@ -83,6 +84,23 @@ BSGS::BSGS(unsigned degree, PermSet const &generators, Options const &options)
   DBG(DEBUG) << "==> SGS = " << _strong_generators;
 
   assert(base_size() > 0u);
+}
+
+BSGS::order_type BSGS::order() const
+{
+  order_type res = 1ULL;
+
+  for (unsigned i = 0u; i < base_size(); ++i) {
+    order_type orbit_size = orbit(i).size();
+
+    // TODO: this restriction might need to be lifted
+    if (res > std::numeric_limits<order_type>::max() / orbit_size)
+      throw std::runtime_error("group order not representable");
+
+    res *= orbit_size;
+  }
+
+  return res;
 }
 
 PermSet BSGS::strong_generators(unsigned i) const
@@ -187,15 +205,10 @@ void BSGS::construct_unknown(PermSet const &generators, Options const &options)
       schreier_sims(generators);
       break;
     case Construction::SCHREIER_SIMS_RANDOM:
-      schreier_sims_random(generators,
-                           options.schreier_sims_random_w,
-                           options.schreier_sims_random_guarantee);
+      schreier_sims_random(generators, options);
       break;
     case Construction::SOLVE:
       solve(generators);
-      break;
-    case Construction::AUTO:
-      schreier_sims_random(generators, 10, true);
       break;
   }
 

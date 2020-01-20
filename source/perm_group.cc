@@ -28,28 +28,14 @@
 namespace cgtl
 {
 
-PermGroup::PermGroup(unsigned degree,
-                     PermSet const &generators,
-                     BSGS::Options const &bsgs_options)
+PermGroup::PermGroup(unsigned degree, PermSet const &generators)
 {
   if (generators.empty() || (generators.size() == 1u && generators[0].id())) {
     _bsgs = BSGS(degree);
-
     _order = 1ULL;
-
   } else {
-    _bsgs = BSGS(degree, generators, bsgs_options);
-
-    _order = 1ULL;
-    for (unsigned i = 0u; i < _bsgs.base_size(); ++i) {
-      unsigned long long orbit_size = _bsgs.orbit(i).size();
-
-      // TODO: this restriction might need to be lifted
-      if (_order > ULLONG_MAX / orbit_size)
-        throw std::runtime_error("group order not representable");
-
-      _order *= orbit_size;
-    }
+    _bsgs = BSGS(degree, generators);
+    _order = _bsgs.order();
   }
 }
 
@@ -229,12 +215,11 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_, PermGroup const &rhs_
 
   unsigned degree = lhs.degree() * rhs.degree();
 
-  PermSet wreath_product_generators;
+  PermSet generators;
 
   for (unsigned i = 0u; i < rhs.degree(); ++i) {
     for (Perm const &perm : lhs)
-      wreath_product_generators.insert(
-        perm.shifted(lhs.degree() * i).extended(degree));
+      generators.insert(perm.shifted(lhs.degree() * i).extended(degree));
   }
 
   for (Perm const &gen_rhs : rhs) {
@@ -257,10 +242,35 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_, PermGroup const &rhs_
       }
     }
 
-    wreath_product_generators.emplace(degree, shifted_cycles);
+    generators.emplace(degree, shifted_cycles);
   }
 
-  return PermGroup(degree, wreath_product_generators);
+  // because of the potentially very large size of the generating set the
+  // classic Schreier Sims algorithm is way too slow to generate a BSGS for
+  // most wreath products so we need to make use of the Random Schreier Sims
+  // algorithm, guaranteeing correctness via our knowledge of the expected
+  // order of the resulting group.
+
+  auto wreath_product_order = [&]() {
+    auto lhs_order = lhs_.order();
+    auto rhs_order = rhs_.order();
+
+    auto log_order = rhs_order * std::log(lhs_order) + std::log(rhs_order);
+    auto log_order_max = std::log(std::numeric_limits<BSGS::order_type>::max());
+
+    if (log_order >= log_order_max)
+      throw std::runtime_error("wreath product order not representable");
+
+    return std::pow(lhs_order, rhs_order) * rhs_order;
+  };
+
+  BSGS::Options bsgs_options;
+  bsgs_options.construction = BSGS::Construction::SCHREIER_SIMS_RANDOM;
+  bsgs_options.schreier_sims_random_guarantee = true;
+  bsgs_options.schreier_sims_random_known_order = wreath_product_order();
+  bsgs_options.schreier_sims_random_retries = 99u;
+
+  return PermGroup(BSGS(degree, generators, bsgs_options));
 }
 
 bool PermGroup::is_symmetric() const

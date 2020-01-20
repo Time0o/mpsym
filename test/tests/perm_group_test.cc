@@ -294,32 +294,32 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
     bsgs_options.schreier_sims_random_guarantee = true;
 
   PermGroup groups[] = {
-    PermGroup(4,
+    PermGroup(BSGS(4,
       {
         Perm(4, {{2, 4}}),
         Perm(4, {{1, 2}, {3, 4}})
       },
-      bsgs_options
+      bsgs_options)
     ),
-    PermGroup(5,
+    PermGroup(BSGS(5,
       {
         Perm(5, {{2, 4}, {3, 5}}),
         Perm(5, {{1, 2, 3, 5, 4}})
       },
-      bsgs_options
+      bsgs_options)
     ),
-    PermGroup(6,
+    PermGroup(BSGS(6,
       {
         Perm(6, {{1, 2, 3, 4, 5, 6}})
       },
-      bsgs_options
+      bsgs_options)
     ),
-    PermGroup(7,
+    PermGroup(BSGS(7,
       {
         Perm(7, {{2, 5}, {3, 6}, {4, 7}}),
         Perm(7, {{1, 2, 4, 3, 6, 7, 5}})
       },
-      bsgs_options
+      bsgs_options)
     )
   };
 
@@ -378,11 +378,9 @@ INSTANTIATE_TEST_CASE_P(ConstructionMethods, PermGroupConstructionMethodTest,
   testing::Combine(
     testing::Values(BSGS::Construction::SCHREIER_SIMS,
                     BSGS::Construction::SCHREIER_SIMS_RANDOM),
-                    // TODO: AUTO
     testing::Values(BSGS::Transversals::EXPLICIT,
                     BSGS::Transversals::SCHREIER_TREES)));
                     // TODO: SHALLOW_SCHREIER_TREES
-                    // TODO: AUTO
 
 TEST(PermGroupCombinationTest, CanConstructDirectProduct)
 {

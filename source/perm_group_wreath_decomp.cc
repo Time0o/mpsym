@@ -101,11 +101,11 @@ std::vector<PermGroup> PermGroup::wreath_decomp_find_stabilizers(
   create_stabilizer(0);
 
   // skip blocksystem if order equality not fullfilled
-  unsigned long long stabilizer_order = stabilizers[0].order();
-  unsigned long long block_system_size = block_system.size();
-  unsigned long long block_permuter_order = block_permuter.order();
+  BSGS::order_type stabilizer_order = stabilizers[0].order();
+  BSGS::order_type block_system_size = block_system.size();
+  BSGS::order_type block_permuter_order = block_permuter.order();
 
-  unsigned long long expected_order =
+  BSGS::order_type expected_order =
     util::pow(stabilizer_order, block_system_size) * block_permuter_order;
 
   if (_order != expected_order) {

@@ -30,6 +30,9 @@ public:
   void insert_schreier_structure(
     unsigned i, unsigned root, unsigned degree, PermSet const &generators);
 
+  void clear()
+  { _schreier_structures.clear(); }
+
   virtual std::shared_ptr<SchreierStructure> make_schreier_structure(
     unsigned root, unsigned degree, PermSet const &generators) = 0;
 
@@ -50,28 +53,30 @@ class BSGS
   friend std::ostream &operator<<(std::ostream &os, BSGS const &bsgs);
 
 public:
+  using order_type = unsigned long long;
+
   enum class Construction {
     SCHREIER_SIMS,
     SCHREIER_SIMS_RANDOM,
-    SOLVE,
-    AUTO
+    SOLVE
   };
 
   enum class Transversals {
     EXPLICIT,
     SCHREIER_TREES,
-    SHALLOW_SCHREIER_TREES,
-    AUTO
+    SHALLOW_SCHREIER_TREES
   };
 
   struct Options
   {
-    Construction construction = Construction::AUTO;
-    Transversals transversals = Transversals::AUTO;
+    Construction construction = Construction::SCHREIER_SIMS_RANDOM;
+    Transversals transversals = Transversals::EXPLICIT;
     bool check_altsym = true;
     bool reduce_gens = true;
+    bool schreier_sims_random_guarantee = true;
+    order_type schreier_sims_random_known_order = 0u;
+    unsigned schreier_sims_random_retries = 0u;
     unsigned schreier_sims_random_w = 10;
-    bool schreier_sims_random_guarantee = false;
   };
 
   static constexpr Options default_options()
@@ -91,6 +96,7 @@ public:
        Options const &options = default_options());
 
   unsigned degree() const { return _degree; }
+  order_type order() const;
 
   bool base_empty() const { return _base.empty(); }
   unsigned base_size() const { return _base.size(); }
@@ -116,14 +122,18 @@ private:
   // schreier sims initialization
   void schreier_sims(PermSet const &generators);
 
-  void schreier_sims(std::vector<PermSet> strong_generators,
-                     std::vector<Orbit> fundamental_orbits);
+  void schreier_sims(std::vector<PermSet> &strong_generators,
+                     std::vector<Orbit> &fundamental_orbits);
 
   void schreier_sims_random(PermSet const &generators,
-                            unsigned w,
-                            bool guarantee);
+                            Options const &options);
 
-  void schreier_sims_init(std::vector<PermSet> &strong_generators,
+  void schreier_sims_random(std::vector<PermSet> &strong_generators,
+                            std::vector<Orbit> &fundamental_orbits,
+                            Options const &options);
+
+  void schreier_sims_init(PermSet const &generators,
+                          std::vector<PermSet> &strong_generators,
                           std::vector<Orbit> &fundamental_orbits);
 
   void schreier_sims_update_strong_gens(
