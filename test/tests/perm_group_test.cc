@@ -290,36 +290,33 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
 
   std::tie(bsgs_options.construction, bsgs_options.transversals) = GetParam();
 
-  if (bsgs_options.construction == BSGS::Construction::SCHREIER_SIMS_RANDOM)
-    bsgs_options.schreier_sims_random_guarantee = true;
-
   PermGroup groups[] = {
     PermGroup(BSGS(4,
       {
         Perm(4, {{2, 4}}),
         Perm(4, {{1, 2}, {3, 4}})
       },
-      bsgs_options)
+      &bsgs_options)
     ),
     PermGroup(BSGS(5,
       {
         Perm(5, {{2, 4}, {3, 5}}),
         Perm(5, {{1, 2, 3, 5, 4}})
       },
-      bsgs_options)
+      &bsgs_options)
     ),
     PermGroup(BSGS(6,
       {
         Perm(6, {{1, 2, 3, 4, 5, 6}})
       },
-      bsgs_options)
+      &bsgs_options)
     ),
     PermGroup(BSGS(7,
       {
         Perm(7, {{2, 5}, {3, 6}, {4, 7}}),
         Perm(7, {{1, 2, 4, 3, 6, 7, 5}})
       },
-      bsgs_options)
+      &bsgs_options)
     )
   };
 

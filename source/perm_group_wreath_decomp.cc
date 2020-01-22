@@ -1,5 +1,7 @@
 #include <vector>
 
+#include <boost/multiprecision/cpp_int.hpp>
+
 #include "block_system.h"
 #include "dbg.h"
 #include "perm.h"
@@ -74,6 +76,8 @@ std::vector<PermGroup> PermGroup::wreath_decomp_find_stabilizers(
   BlockSystem const &block_system,
   PermGroup const &block_permuter) const
 {
+  using boost::multiprecision::pow;
+
   std::vector<PermGroup> stabilizers(block_system.size());
 
   auto create_stabilizer = [&](unsigned i) {
@@ -101,12 +105,8 @@ std::vector<PermGroup> PermGroup::wreath_decomp_find_stabilizers(
   create_stabilizer(0);
 
   // skip blocksystem if order equality not fullfilled
-  BSGS::order_type stabilizer_order = stabilizers[0].order();
-  BSGS::order_type block_system_size = block_system.size();
-  BSGS::order_type block_permuter_order = block_permuter.order();
-
-  BSGS::order_type expected_order =
-    util::pow(stabilizer_order, block_system_size) * block_permuter_order;
+  BSGS::order_type expected_order = pow(
+    stabilizers[0].order(), block_system.size()) * block_permuter.order();
 
   if (_order != expected_order) {
     DBG(TRACE) << "Group order equality not satisfied";

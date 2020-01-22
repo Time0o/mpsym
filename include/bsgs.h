@@ -9,6 +9,8 @@
 #include <utility>
 #include <vector>
 
+#include <boost/multiprecision/cpp_int.hpp>
+
 #include "orbits.h"
 #include "perm.h"
 #include "perm_set.h"
@@ -53,7 +55,7 @@ class BSGS
   friend std::ostream &operator<<(std::ostream &os, BSGS const &bsgs);
 
 public:
-  using order_type = unsigned long long;
+  using order_type = boost::multiprecision::cpp_int;
 
   enum class Construction {
     SCHREIER_SIMS,
@@ -74,13 +76,10 @@ public:
     bool check_altsym = true;
     bool reduce_gens = true;
     bool schreier_sims_random_guarantee = true;
-    order_type schreier_sims_random_known_order = 0u;
+    order_type schreier_sims_random_known_order = 0;
     unsigned schreier_sims_random_retries = 0u;
-    unsigned schreier_sims_random_w = 10;
+    unsigned schreier_sims_random_w = 10u;
   };
-
-  static constexpr Options default_options()
-  { return Options(); }
 
   struct SolveError : public std::runtime_error
   {
@@ -93,7 +92,7 @@ public:
 
   BSGS(unsigned degree,
        PermSet const &generators,
-       Options const &options = default_options());
+       Options const *options = nullptr);
 
   unsigned degree() const { return _degree; }
   order_type order() const;

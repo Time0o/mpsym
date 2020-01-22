@@ -2,12 +2,15 @@
 #include <cassert>
 #include <climits>
 #include <ctime>
+#include <limits>
 #include <random>
 #include <set>
 #include <stdexcept>
 #include <unordered_set>
 #include <utility>
 #include <vector>
+
+#include <boost/multiprecision/cpp_int.hpp>
 
 #include "bsgs.h"
 #include "dbg.h"
@@ -32,7 +35,7 @@ PermGroup::PermGroup(unsigned degree, PermSet const &generators)
 {
   if (generators.empty() || (generators.size() == 1u && generators[0].id())) {
     _bsgs = BSGS(degree);
-    _order = 1ULL;
+    _order = 1;
   } else {
     _bsgs = BSGS(degree, generators);
     _order = _bsgs.order();
@@ -204,6 +207,9 @@ PermGroup PermGroup::dihedral(std::vector<unsigned> const &support)
 
 PermGroup PermGroup::wreath_product(PermGroup const &lhs_, PermGroup const &rhs_)
 {
+  using boost::multiprecision::cpp_int;
+  using boost::multiprecision::pow;
+
   auto lhs(lhs_.generators());
   auto rhs(rhs_.generators());
 
@@ -252,25 +258,23 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_, PermGroup const &rhs_
   // order of the resulting group.
 
   auto wreath_product_order = [&]() {
-    auto lhs_order = lhs_.order();
-    auto rhs_order = rhs_.order();
+    auto lhs_order(lhs_.order());
+    auto rhs_order(rhs_.order());
 
-    auto log_order = rhs_order * std::log(lhs_order) + std::log(rhs_order);
-    auto log_order_max = std::log(std::numeric_limits<BSGS::order_type>::max());
+    if (rhs_order > std::numeric_limits<unsigned>::max())
+      throw std::overflow_error("order of wreath product would overflow");
 
-    if (log_order >= log_order_max)
-      throw std::runtime_error("wreath product order not representable");
-
-    return std::pow(lhs_order, rhs_order) * rhs_order;
+    return pow(lhs_order, static_cast<unsigned>(rhs_order)) * rhs_order;
   };
 
   BSGS::Options bsgs_options;
   bsgs_options.construction = BSGS::Construction::SCHREIER_SIMS_RANDOM;
   bsgs_options.schreier_sims_random_guarantee = true;
-  bsgs_options.schreier_sims_random_known_order = wreath_product_order();
+  cpp_int known_order = wreath_product_order();
+  bsgs_options.schreier_sims_random_known_order = known_order;
   bsgs_options.schreier_sims_random_retries = 99u;
 
-  return PermGroup(BSGS(degree, generators, bsgs_options));
+  return PermGroup(BSGS(degree, generators, &bsgs_options));
 }
 
 bool PermGroup::is_symmetric() const

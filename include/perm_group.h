@@ -65,7 +65,7 @@ public:
   /// TODO
   explicit PermGroup(unsigned degree = 1)
   : _bsgs(degree),
-    _order(1ULL)
+    _order(1)
   {}
 
   /// TODO

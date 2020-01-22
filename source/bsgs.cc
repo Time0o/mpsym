@@ -46,12 +46,17 @@ BSGS::BSGS(unsigned degree)
 : _degree(degree)
 { assert(degree > 0); }
 
-BSGS::BSGS(unsigned degree, PermSet const &generators, Options const &options)
+BSGS::BSGS(unsigned degree, PermSet const &generators, Options const *options_)
 : _degree(degree)
 {
   assert(degree > 0);
 
   generators.assert_degree(degree);
+
+  Options options;
+
+  if (options_)
+    options = *options_;
 
   switch (options.transversals) {
     case Transversals::EXPLICIT:
@@ -88,17 +93,10 @@ BSGS::BSGS(unsigned degree, PermSet const &generators, Options const &options)
 
 BSGS::order_type BSGS::order() const
 {
-  order_type res = 1ULL;
+  order_type res = 1;
 
-  for (unsigned i = 0u; i < base_size(); ++i) {
-    order_type orbit_size = orbit(i).size();
-
-    // TODO: this restriction might need to be lifted
-    if (res > std::numeric_limits<order_type>::max() / orbit_size)
-      throw std::runtime_error("group order not representable");
-
-    res *= orbit_size;
-  }
+  for (unsigned i = 0u; i < base_size(); ++i)
+    res *= orbit(i).size();
 
   return res;
 }
