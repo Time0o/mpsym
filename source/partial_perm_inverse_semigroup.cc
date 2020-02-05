@@ -259,7 +259,9 @@ void PartialPermInverseSemigroup::update_action_component(
 
       DBG(TRACE) << "Applying generator: " << gen;
 
-      auto next_node(gen.image(_ac_im[node]));
+      auto next_node(gen.image<std::vector>(_ac_im[node].begin(),
+                                            _ac_im[node].end()));
+
       DBG(TRACE) << "=> Next node is: " << next_node;
 
       auto it(_ac_im_ht.find(next_node));

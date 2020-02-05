@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <ostream>
+#include <set>
 #include <vector>
 
 #include "perm.h"
@@ -43,13 +44,10 @@ friend std::size_t std::hash<PartialPerm>::operator()(
   PartialPerm const &perm) const;
 
 public:
-  PartialPerm(unsigned degree = 0);
+  PartialPerm(unsigned degree = 0u);
   PartialPerm(std::vector<unsigned> const &dom,
               std::vector<unsigned> const &im);
   PartialPerm(std::vector<unsigned> const &pperm);
-
-  static PartialPerm id(std::vector<unsigned> const &dom);
-  static PartialPerm from_perm(Perm const &perm);
 
   unsigned operator[](unsigned const i) const;
   PartialPerm operator~() const;
@@ -57,13 +55,31 @@ public:
   bool operator!=(PartialPerm const &rhs) const;
   PartialPerm& operator*=(PartialPerm const &rhs);
 
+  static PartialPerm from_perm(Perm const &perm);
+
+  /** Construct a permutation from a partial permutation.
+   *
+   * This operation is only meaningful if the partial permutation only contains
+   * cycles (i.e. does not contain chains). Otherwise, the result is undefined.
+   * The resulting permutation contains the same cycles as the partial
+   * permutation. (provided they contain only elements \f$x \leq degree\f$)
+   * and maps all elements \f$x\f$ with \f$1 < x < degree\f$ and \f$x \notin
+   * dom(*this)\f$ to themselves.
+   *
+   * \param degree degree of the resulting permutation
+   * \return permutation with degree `degree` corresponding to this partial
+   *         permutation
+   */
+  Perm to_perm(unsigned degree) const;
+
   /** Obtain a partial permutation's domain.
    *
    * \return an ordered vector containing all elements in this partial
    *         permutation's domain in ascending order
    * \sa dom_min, dom_max
    */
-  std::vector<unsigned> dom() const { return _dom; }
+  std::vector<unsigned> dom() const
+  { return _dom; }
 
   /** Obtain the smallest element in a partial permutation's domain.
    *
@@ -71,7 +87,8 @@ public:
              if this partial permutation is empty
    * \sa dom, dom_max
    */
-  unsigned dom_min() const { return _dom_min; }
+  unsigned dom_min() const
+  { return _dom.empty() ? 0u : _dom[0]; }
 
   /** Obtain the largest element in a partial permutation's domain.
    *
@@ -79,7 +96,8 @@ public:
              this partial permutation is empty
    * \sa dom, dom_min
    */
-  unsigned dom_max() const { return _dom_max; }
+  unsigned dom_max() const
+  { return _dom.empty() ? 0u : _dom.back(); }
 
   /** Obtain a partial permutation's image.
    *
@@ -87,7 +105,8 @@ public:
    *         permutation's image in ascending order
    * \sa im_min, im_max
    */
-  std::vector<unsigned> im() const { return _im; }
+  std::vector<unsigned> im() const
+  { return _im; }
 
   /** Obtain the smallest element in a partial permutation's image.
    *
@@ -95,7 +114,8 @@ public:
              this partial permutation is empty
    * \sa im, im_max
    */
-  unsigned im_min() const { return _im_min; }
+  unsigned im_min() const
+  { return _im.empty() ? 0u : _im[0]; }
 
   /** Obtain the largest element in a partial permutation's image.
    *
@@ -103,7 +123,8 @@ public:
              this partial permutation is empty
    * \sa im, im_min
    */
-  unsigned im_max() const { return _im_max; }
+  unsigned im_max() const
+  { return _im.empty() ? 0u : _im.back(); }
 
   /** Check whether a partial permutation is *empty*.
    *
@@ -125,7 +146,8 @@ public:
    *
    * \return `true` if this partial permutation is empty, else `false`
    */
-  bool empty() const { return _pperm.empty(); }
+  bool empty() const
+  { return _pperm.empty(); }
 
   /** Check whether a partial permutation is an identity.
    *
@@ -146,60 +168,65 @@ public:
    *
    * \return `true` if this partial permutation is an identity, else `false`
    */
-  bool id() const { return _id; }
+  bool id() const
+  { return _id; }
 
-  /** Contruct a *restricted* version of a partial permutation.
-   *
-   * *Restriction* in this context means that the resulting partial
-   * permutation's domain will be the intersection of this partial
-   * permutation's domain and the `domain` parameter (which need not be
-   * ordered). The mapping from domain to image elements within this
-   * intersection is preserved.
-   *
-   * Example:
-   *
-   * ~~~~~{.cpp}
-   * PartialPerm pp({1, 2, 3}, {4, 7, 6});
-   * PartialPerm pp_restricted(pp.restricted({1, 3})); // result is [1 4][3 6]
-   * ~~~~~
-   *
-   * \param domain vector of elements of domain to which the resulting partial
-   *               permutation is to be restricted
-   * \return a newly constructed partial permutation equal to this partial
-   *         permutation restricted to `domain`
-   */
-  PartialPerm restricted(std::vector<unsigned> const &domain) const;
+  // TODO
+  template<typename IT>
+  PartialPerm restricted(IT first, IT last) const
+  {
+    if (first == last)
+      return PartialPerm();
 
-  /** Construct a permutation from a partial permutation.
-   *
-   * This operation is only meaningful if the partial permutation only contains
-   * cycles (i.e. does not contain chains). Otherwise, the result is undefined.
-   * The resulting permutation contains the same cycles as the partial
-   * permutation. (provided they contain only elements \f$x \leq degree\f$)
-   * and maps all elements \f$x\f$ with \f$1 < x < degree\f$ and \f$x \notin
-   * dom(*this)\f$ to themselves.
-   *
-   * \param degree degree of the resulting permutation
-   * \return permutation with degree `degree` corresponding to this partial
-   *         permutation
-   */
-  Perm to_perm(unsigned degree) const;
+    std::vector<unsigned> pperm_restricted(dom_max(), 0u);
 
-  /** Compute the image of a vector under this partial permutation.
-   *
-   * The partial permutation is, if applicable, applied to every element in
-   * `alpha` (in order), i.e. for every element \f$x \in \alpha\f$, if \f$x \in
-   * dom(*this)\f$, \f$(*this)(x)\f$ is appended to the result.
-   */
-  std::vector<unsigned> image(std::vector<unsigned> const &alpha) const;
+    for (IT it = first; it != last; ++it) {
+      unsigned x = *it;
+
+      if (x < dom_min() || x > dom_max())
+        continue;
+
+      unsigned y = (*this)[x];
+
+      if (y != 0u)
+        pperm_restricted[x - 1u] = y;
+    }
+
+    if (!pperm_restricted.empty()) {
+      unsigned dom_max_restricted = dom_max();
+
+      while (pperm_restricted[dom_max_restricted - 1u] == 0u)
+        --dom_max_restricted;
+
+      pperm_restricted.resize(dom_max_restricted);
+    }
+
+    return PartialPerm(pperm_restricted);
+  }
+
+  // TODO
+  template<template<typename ...> class T, typename IT>
+  T<unsigned> image(IT first, IT last) const // TODO
+  {
+    std::set<unsigned> res;
+
+    for (IT it = first; it != last; ++it) {
+      unsigned x = *it;
+
+      if (x < dom_min() || x > dom_max())
+        continue;
+
+      unsigned y = _pperm[x - 1u];
+
+      if (y != 0u)
+        res.insert(y);
+    }
+
+    return T<unsigned>(res.begin(), res.end());
+  }
 
 private:
-  void update_limits();
-
-  std::vector<unsigned> _pperm;
-  std::vector<unsigned> _dom, _im;
-  unsigned _dom_min, _dom_max;
-  unsigned _im_min, _im_max;
+  std::vector<unsigned> _pperm, _dom, _im;
   bool _id;
 };
 

@@ -17,101 +17,103 @@ using cgtl::Perm;
 
 TEST(PartialPermTest, CanConstructPartialPerm)
 {
-  std::vector<PartialPerm> pperms {
-    PartialPerm(),
-    PartialPerm({}),
-    PartialPerm({}, {}),
-    PartialPerm::id({}),
-    PartialPerm(5),
-    PartialPerm::id({3, 5, 4}),
-    PartialPerm({0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11}),
-    PartialPerm({2, 4, 6, 7, 9, 11}, {4, 3, 9, 6, 7, 11}),
-    PartialPerm({5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3}),
-    PartialPerm({12, 11, 1, 2, 3, 4, 10}, {3, 4, 5, 9, 10, 11, 12})
+  struct ConstructionTest
+  {
+    ConstructionTest(PartialPerm pperm,
+                     std::vector<unsigned> const &expected_mapping = {},
+                     std::vector<unsigned> const &expected_dom = {},
+                     std::vector<unsigned> const &expected_im = {})
+    : pperm(pperm),
+      expected_mapping(expected_mapping),
+      expected_dom(expected_dom),
+      expected_im(expected_im)
+    {}
+
+    PartialPerm pperm;
+    std::vector<unsigned> expected_mapping, expected_dom, expected_im;
   };
 
-  std::vector<std::vector<unsigned>> expected_mappings {
-    {},
-    {},
-    {},
-    {},
-    {1, 2, 3, 4, 5},
-    {0, 0, 3, 4, 5},
-    {0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11},
-    {0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11},
-    {5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3},
-    {5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3}
+  std::vector<ConstructionTest> tests {
+    ConstructionTest(
+      PartialPerm()),
+    ConstructionTest(
+      PartialPerm({})),
+    ConstructionTest(
+      PartialPerm({}, {})),
+    ConstructionTest(
+      PartialPerm(5),
+      {1, 2, 3, 4, 5},
+      {1, 2, 3, 4, 5},
+      {1, 2, 3, 4, 5}),
+    ConstructionTest(
+      PartialPerm({0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11}),
+      {0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11},
+      {2, 4, 6, 7, 9, 11},
+      {3, 4, 6, 7, 9, 11}),
+    ConstructionTest(
+      PartialPerm({2, 4, 6, 7, 9, 11}, {4, 3, 9, 6, 7, 11}),
+      {0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11},
+      {2, 4, 6, 7, 9, 11},
+      {3, 4, 6, 7, 9, 11}),
+    ConstructionTest(
+      PartialPerm({5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3}),
+      {5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3},
+      {1, 2, 3, 4, 10, 11, 12},
+      {3, 4, 5, 9, 10, 11, 12}),
+    ConstructionTest(
+      PartialPerm({12, 11, 1, 2, 3, 4, 10}, {3, 4, 5, 9, 10, 11, 12}),
+      {5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3},
+      {1, 2, 3, 4, 10, 11, 12},
+      {3, 4, 5, 9, 10, 11, 12})
   };
 
-  std::vector<std::vector<unsigned>> expected_doms {
-    {},
-    {},
-    {},
-    {},
-    {1, 2, 3, 4, 5},
-    {3, 4, 5},
-    {2, 4, 6, 7, 9, 11},
-    {2, 4, 6, 7, 9, 11},
-    {1, 2, 3, 4, 10, 11, 12},
-    {1, 2, 3, 4, 10, 11, 12}
-  };
-
-  std::vector<std::vector<unsigned>> expected_ims {
-    {},
-    {},
-    {},
-    {},
-    {1, 2, 3, 4, 5},
-    {3, 4, 5},
-    {3, 4, 6, 7, 9, 11},
-    {3, 4, 6, 7, 9, 11},
-    {3, 4, 5, 9, 10, 11, 12},
-    {3, 4, 5, 9, 10, 11, 12}
-  };
-
-  for (auto i = 0u; i < pperms.size(); ++i) {
-    for (auto j = 0u; j < expected_mappings[i].size(); ++j) {
-      EXPECT_EQ(expected_mappings[i][j], pperms[i][j + 1u])
+  for (auto const &test : tests) {
+    for (auto i = 0u; i < test.expected_mapping.size(); ++i) {
+      EXPECT_EQ(test.expected_mapping[i], test.pperm[i + 1u])
         << "Can apply partial permutation.";
     }
 
-    EXPECT_EQ(expected_doms[i], pperms[i].dom())
+    EXPECT_EQ(test.expected_dom, test.pperm.dom())
       << "Partial permutation domain constructed correct.";
 
-    if (expected_doms[i].empty()) {
-      EXPECT_EQ(0u, pperms[i].dom_min())
+    if (test.expected_dom.empty()) {
+      EXPECT_EQ(0u, test.pperm.dom_min())
         << "Partial permutation domain lower limit correct.";
 
-      EXPECT_EQ(0u, pperms[i].dom_max())
+      EXPECT_EQ(0u, test.pperm.dom_max())
         << "Partial permutation domain uppter limit correct.";
 
     } else {
-      EXPECT_EQ(*std::min_element(expected_doms[i].begin(), expected_doms[i].end()),
-                pperms[i].dom_min())
+      EXPECT_EQ(*std::min_element(test.expected_dom.begin(),
+                                  test.expected_dom.end()),
+                test.pperm.dom_min())
         << "Partial permutation domain lower limit correct.";
 
-      EXPECT_EQ(*std::max_element(expected_doms[i].begin(), expected_doms[i].end()),
-                pperms[i].dom_max())
+      EXPECT_EQ(*std::max_element(test.expected_dom.begin(),
+                                  test.expected_dom.end()),
+                test.pperm.dom_max())
         << "Partial permutation domain upper limit correct.";
     }
 
-    EXPECT_EQ(expected_ims[i], pperms[i].im())
+    EXPECT_EQ(test.expected_im, test.pperm.im())
       << "Partial permutation image constructed correct.";
 
-    if (expected_ims[i].empty()) {
-      EXPECT_EQ(0u, pperms[i].im_min())
+    if (test.expected_im.empty()) {
+      EXPECT_EQ(0u, test.pperm.im_min())
         << "Partial permutation domain lower limit correct.";
 
-      EXPECT_EQ(0u, pperms[i].im_max())
+      EXPECT_EQ(0u, test.pperm.im_max())
         << "Partial permutation domain uppter limit correct.";
 
     } else {
-      EXPECT_EQ(*std::min_element(expected_ims[i].begin(), expected_ims[i].end()),
-                pperms[i].im_min())
+      EXPECT_EQ(*std::min_element(test.expected_im.begin(),
+                                  test.expected_im.end()),
+                test.pperm.im_min())
         << "Partial permutation image lower limit correct.";
 
-      EXPECT_EQ(*std::max_element(expected_ims[i].begin(), expected_ims[i].end()),
-                pperms[i].im_max())
+      EXPECT_EQ(*std::max_element(test.expected_im.begin(),
+                                  test.expected_im.end()),
+                test.pperm.im_max())
         << "Partial permutation image upper limit correct.";
     }
   }
@@ -195,7 +197,9 @@ TEST(PartialPermTest, PartialPermStringRepresentation)
 {
   struct PPermStrRepr {
     PPermStrRepr(PartialPerm const &pperm, std::string const &str)
-      : pperm(pperm), str(str) {}
+    : pperm(pperm),
+      str(str)
+    {}
 
     PartialPerm pperm;
     std::string str;
@@ -232,8 +236,7 @@ TEST(PartialPermTest, CanCheckIfPartialPermEmpty)
   std::vector<PartialPerm> empty_pperms {
     PartialPerm(),
     PartialPerm({}),
-    PartialPerm({}, {}),
-    PartialPerm::id({})
+    PartialPerm({}, {})
   };
 
   for (auto const &pperm : empty_pperms) {
@@ -244,8 +247,7 @@ TEST(PartialPermTest, CanCheckIfPartialPermEmpty)
   std::vector<PartialPerm> non_empty_pperms {
     PartialPerm(1),
     PartialPerm({1}),
-    PartialPerm({1}, {1}),
-    PartialPerm::id({1})
+    PartialPerm({1}, {1})
   };
 
   for (auto const &pperm : non_empty_pperms) {
@@ -260,15 +262,12 @@ TEST(PartialPermTest, CanCheckIfPartialPermIsId)
     PartialPerm(),
     PartialPerm({}),
     PartialPerm({}, {}),
-    PartialPerm::id({}),
     PartialPerm(1),
     PartialPerm({1}),
     PartialPerm({1}, {1}),
-    PartialPerm::id({1}),
     PartialPerm(7),
     PartialPerm({0, 2, 0, 4, 5, 0, 7}),
     PartialPerm({3, 8, 9}, {3, 8, 9}),
-    PartialPerm::id({5, 7, 8}),
     PartialPerm({1, 2, 3}, {3, 4, 1}) * PartialPerm({1, 4, 3}, {3, 2, 1})
   };
 
@@ -295,14 +294,16 @@ TEST(PartialPermTest, CanCheckIfPartialPermIsId)
 
 TEST(PartialPermTest, CanRestrictPartialPerm)
 {
-  struct RestrictionTest {
-    RestrictionTest(PartialPerm pperm, std::vector<unsigned> const &domain,
-                    PartialPerm expected)
-      : pperm(pperm), domain(domain), expected(expected) {}
+  struct RestrictionTest
+  {
+    RestrictionTest(PartialPerm pperm,
+                    std::vector<unsigned> const &domain,
+                    PartialPerm expected_pperm)
+    : expected_pperm(expected_pperm),
+      actual_pperm(pperm.restricted(domain.begin(), domain.end()))
+    {}
 
-    PartialPerm pperm;
-    std::vector<unsigned> domain;
-    PartialPerm expected;
+    PartialPerm expected_pperm, actual_pperm;
   };
 
   RestrictionTest tests[] = {
@@ -317,23 +318,21 @@ TEST(PartialPermTest, CanRestrictPartialPerm)
   };
 
   for (auto &test : tests) {
-    PartialPerm actual(test.pperm.restricted(test.domain));
-
-    EXPECT_EQ(test.expected, actual)
+    EXPECT_EQ(test.expected_pperm, test.actual_pperm)
       << "Multiplying partial permutations produces correct result.";
 
-    EXPECT_EQ(test.expected.dom(), actual.dom())
+    EXPECT_EQ(test.expected_pperm.dom(), test.actual_pperm.dom())
       << "Multiplying partial permutations produces correct domain.";
 
-    EXPECT_EQ(test.expected.im(), actual.im())
+    EXPECT_EQ(test.expected_pperm.im(), test.actual_pperm.im())
       << "Multiplying partial permutations produces correct image.";
 
-    EXPECT_TRUE(test.expected.dom_min() == actual.dom_min() &&
-                test.expected.dom_max() == actual.dom_max())
+    EXPECT_TRUE(test.expected_pperm.dom_min() == test.actual_pperm.dom_min() &&
+                test.expected_pperm.dom_max() == test.actual_pperm.dom_max())
       << "Multiplying partial permutations produces correct domain limits.";
 
-    EXPECT_TRUE(test.expected.im_min() == actual.im_min() &&
-                test.expected.im_max() == actual.im_max())
+    EXPECT_TRUE(test.expected_pperm.im_min() == test.actual_pperm.im_min() &&
+                test.expected_pperm.im_max() == test.actual_pperm.im_max())
       << "Multiplying partial permutations produces correct image limits.";
   }
 }

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <numeric>
 #include <ostream>
 #include <set>
 #include <vector>
@@ -19,40 +20,36 @@
 namespace cgtl
 {
 
-PartialPerm::PartialPerm(unsigned degree) : _pperm(degree), _id(true) {
-  for (unsigned i = 0u; i < degree; ++i)
-    _pperm[i] = i + 1u;
+PartialPerm::PartialPerm(unsigned degree)
+: _pperm(degree),
+  _id(true)
+{
+  std::iota(_pperm.begin(), _pperm.end(), 1u);
 
   _dom = _pperm;
   _im = _pperm;
-
-  update_limits();
 }
 
 PartialPerm::PartialPerm(std::vector<unsigned> const &dom,
-                         std::vector<unsigned> const &im) :  _im(im), _id(true)
+                         std::vector<unsigned> const &im)
+: _dom(dom),
+  _im(im),
+  _id(true)
 {
-  assert(dom.size() == _im.size() &&
+  assert(dom.size() == im.size() &&
          "partial permutation domain and image have same dimension");
 
-  if (dom.empty()) {
-    update_limits();
+  if (dom.empty())
     return;
-  }
 
-  auto dom_sorted(dom);
-  std::sort(dom_sorted.begin(), dom_sorted.end());
+  _pperm = std::vector<unsigned>(*std::max_element(_dom.begin(), _dom.end()), 0u);
 
-  assert(*std::lower_bound(dom_sorted.begin(), dom_sorted.end(), 0u) != 0u &&
-         "partial permutation domain does not contain 0 elements");
-
-  assert(std::unique(dom_sorted.begin(), dom_sorted.end()) == dom_sorted.end() &&
-         "partial permutation domain does not contain duplicate elements");
-
-  _pperm = std::vector<unsigned>(dom_sorted.back(), 0u);
-  for (auto i = 0u; i < dom.size(); ++i) {
-    unsigned x = dom[i];
+  for (auto i = 0u; i < _dom.size(); ++i) {
+    unsigned x = _dom[i];
     unsigned y = _im[i];
+
+    assert(x != 0u && y != 0u
+           && "partial permutation domain and image do not contain 0 elements");
 
     if (_id && y != x)
       _id = false;
@@ -60,27 +57,26 @@ PartialPerm::PartialPerm(std::vector<unsigned> const &dom,
     _pperm[x - 1u] = y;
   }
 
-  _dom = dom_sorted;
-
+  std::sort(_dom.begin(), _dom.end());
   std::sort(_im.begin(), _im.end());
 
-  assert(*std::lower_bound(_im.begin(), _im.end(), 0u) != 0u &&
-         "partial permutation image does not contain 0 elements");
+  assert(std::unique(_dom.begin(), _dom.end()) == _dom.end() &&
+         "partial permutation domain does not contain duplicate elements");
 
   assert(std::unique(_im.begin(), _im.end()) == _im.end() &&
          "partial permutation image does not contain duplicate elements");
-
-  update_limits();
 }
 
 PartialPerm::PartialPerm(std::vector<unsigned> const &pperm)
-  : _pperm(pperm), _id(true)
+: _pperm(pperm),
+  _id(true)
 {
   if (pperm.empty())
     return;
 
   for (auto i = 1u; i <= _pperm.size(); ++i) {
     unsigned im = _pperm[i - 1u];
+
     if (_id && im != 0u && im != i)
       _id = false;
 
@@ -94,30 +90,11 @@ PartialPerm::PartialPerm(std::vector<unsigned> const &pperm)
 
   assert(std::unique(_im.begin(), _im.end()) == _im.end() &&
     "partial permutation image does not contain duplicates");
-
-  update_limits();
-}
-
-PartialPerm PartialPerm::id(std::vector<unsigned> const &dom)
-{
-  return PartialPerm(dom, dom);
-}
-
-PartialPerm PartialPerm::from_perm(Perm const &perm)
-{
-  std::vector<unsigned> pperm(perm.degree());
-
-  for (unsigned i = 1u; i <= perm.degree(); ++i)
-    pperm[i - 1u] = perm[i];
-
-  return PartialPerm(pperm);
 }
 
 unsigned PartialPerm::operator[](unsigned const i) const
 {
-  if (i < _dom_min || i > _dom_max)
-    return 0u;
-
+  assert(i > 0u && i <= _pperm.size() && "partial permutation index valid");
   return _pperm[i - 1u];
 }
 
@@ -132,14 +109,8 @@ PartialPerm PartialPerm::operator~() const
   }
 
   res._pperm = inverse;
-
   res._dom = _im;
-  res._dom_min = _im_min;
-  res._dom_max = _im_max;
-
   res._im = _dom;
-  res._im_min = _dom_min;
-  res._im_max = _dom_max;
 
   return res;
 }
@@ -218,6 +189,7 @@ std::ostream &operator<<(std::ostream &os, PartialPerm const &pperm)
     for (auto const &other : unique_chains) {
       if (other.size() < chain.size())
         continue;
+
       auto it = std::search(other.begin(), other.end(),
                             chain.begin(), chain.end());
 
@@ -257,16 +229,14 @@ std::ostream &operator<<(std::ostream &os, PartialPerm const &pperm)
 
 bool PartialPerm::operator==(PartialPerm const &rhs) const
 {
-  if (rhs.dom_min() != _dom_min || rhs.dom_max() != _dom_max)
+  if (rhs.dom_min() != dom_min() || rhs.dom_max() != dom_max())
     return false;
 
   return _pperm == rhs._pperm;
 }
 
 bool PartialPerm::operator!=(PartialPerm const &rhs) const
-{
-  return !(*this == rhs);
-}
+{ return !(*this == rhs); }
 
 PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
 {
@@ -277,7 +247,6 @@ PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
     _pperm.clear();
     _dom.clear();
     _im.clear();
-    update_limits();
 
     _id = true;
 
@@ -314,8 +283,6 @@ PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
 
   std::sort(_im.begin(), _im.end());
 
-  update_limits();
-
   decltype(_pperm.size()) reduce = 0u;
   for (auto i = _pperm.size() - 1u; i > 0u; --i) {
     if (_pperm[i] != 0u)
@@ -329,26 +296,14 @@ PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
   return *this;
 }
 
-PartialPerm PartialPerm::restricted(std::vector<unsigned> const &domain) const
+PartialPerm PartialPerm::from_perm(Perm const &perm)
 {
-  std::vector<unsigned> pperm_restricted(_dom_max, 0u);
-  unsigned new_dom_max = 0u;
+  std::vector<unsigned> pperm(perm.degree());
 
-  for (unsigned x : domain) {
-    if (x < _dom_min || x > _dom_max)
-      continue;
+  for (unsigned i = 1u; i <= perm.degree(); ++i)
+    pperm[i - 1u] = perm[i];
 
-    unsigned y = (*this)[x];
-
-    if (y != 0u) {
-      pperm_restricted[x - 1u] = y;
-      new_dom_max = std::max(new_dom_max, x);
-    }
-  }
-
-  pperm_restricted.resize(new_dom_max);
-
-  return PartialPerm(pperm_restricted);
+  return PartialPerm(pperm);
 }
 
 Perm PartialPerm::to_perm(unsigned degree) const
@@ -357,9 +312,9 @@ Perm PartialPerm::to_perm(unsigned degree) const
 
   unsigned i;
   for (i = 1u; i <= degree; ++i) {
-    if (i < _dom_min) {
+    if (i < dom_min()) {
       perm[i - 1u] = i;
-    } else if (i > _dom_max) {
+    } else if (i > dom_max()) {
       break;
     } else {
       unsigned im = _pperm[i - 1u];
@@ -382,39 +337,6 @@ Perm PartialPerm::to_perm(unsigned degree) const
   }
 
   return Perm(perm);
-}
-
-std::vector<unsigned> PartialPerm::image(
-  std::vector<unsigned> const &alpha) const
-{
-  std::set<unsigned> res;
-
-  for (unsigned x : alpha) {
-    if (x < _dom_min || x > _dom_max)
-      continue;
-
-    unsigned y = _pperm[x - 1u];
-    if (y != 0u)
-      res.insert(y);
-  }
-
-  return std::vector<unsigned>(res.begin(), res.end());
-}
-
-void PartialPerm::update_limits() {
-  if (_dom.empty()) {
-    _dom_min = _dom_max = 0u;
-  } else {
-    _dom_min = _dom[0];
-    _dom_max = _dom.back();
-  }
-
-  if (_im.empty()) {
-    _im_min = _im_max = 0u;
-  } else {
-    _im_min = _im[0];
-    _im_max = _im.back();
-  }
 }
 
 } // namespace cgtl

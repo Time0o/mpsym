@@ -115,7 +115,8 @@ std::vector<std::vector<unsigned>> action_component(
     for (auto j = 0u; j < generators.size(); ++j) {
       DBG(TRACE) << "== Considering generator " << generators[j];
 
-      std::vector<unsigned> beta_prime = generators[j].image(beta);
+      auto beta_prime(generators[j].image<std::vector>(beta.begin(),
+                                                       beta.end()));
 
       unsigned id = static_cast<unsigned>(component.size());
 
@@ -340,7 +341,7 @@ PermGroup schreier_generators(unsigned i,
       DBG(TRACE) << "~u_l = " << "u_" << l + 1u << " = " << ~ul;
 
       PartialPerm sg(ui * generators[k] * ~ul);
-      sg = sg.restricted(im);
+      sg = sg.restricted(im.begin(), im.end());
 
       DBG(TRACE) << "=> Schreier generator is: " << sg;
 
