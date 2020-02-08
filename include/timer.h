@@ -193,11 +193,11 @@ inline std::ostream &operator<<(std::ostream &s, Timer const &timer)
 #define TIMER_STOP(name) \
   TIMER_OP(timer::Timer::get(name)->stop())
 #define TIMER_DUMP(name) \
-  TIMER_OP(*timer::Timer::out << *timer::Timer::get(name); \
+  TIMER_OP(*timer::Timer::out << *timer::Timer::get(name) << std::endl; \
            timer::Timer::destroy(name))
 #define TIMER_DUMP_ALL() \
   TIMER_OP(for (auto *t : timer::Timer::get_all()) { \
-             *timer::Timer::out << *t << "\n"; \
+             *timer::Timer::out << *t << std::endl; \
              timer::Timer::destroy(t->name()); \
            })
 
