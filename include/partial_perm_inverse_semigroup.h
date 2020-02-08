@@ -32,14 +32,17 @@ namespace cgtl
  */
 class PartialPermInverseSemigroup
 {
-  struct SccRepr {
+  struct SccRepr
+  {
     SccRepr() {}
+
     SccRepr(unsigned i,
             eemp::SchreierTree const &spanning_tree,
             PermGroup const &schreier_generators)
       : i(i),
         spanning_tree(spanning_tree),
-        schreier_generators(schreier_generators) {}
+        schreier_generators(schreier_generators)
+      {}
 
     unsigned i;
     eemp::SchreierTree spanning_tree;
@@ -65,15 +68,6 @@ public:
    */
   PartialPermInverseSemigroup(std::vector<PartialPerm> const &generators);
 
-  /** Check whether an inverse semigroup of partial permutations is trivial, i.e
-   *  contains only the unique partial permutation mapping from the empty set to
-   *  itself
-   *
-   * \return `true` if this inverse semigroup of partial permutations is
-   *         trivial, else `false`
-   */
-  bool trivial() const { return _trivial; }
-
   /** Return a generating set for an inverse semigroup of partial permutations.
    *
    * Note that the returned generators are equal to those passed to this
@@ -84,7 +78,31 @@ public:
    * \return a genering set of partial permutations in form of a vector
    *         containing the elements described above
    */
-  std::vector<PartialPerm> generators() const { return _generators; }
+  std::vector<PartialPerm> generators() const
+  { return _generators; }
+
+  /** Adjoin additional partial permutations to the generating set of an inverse
+   *  semigroup of partial permutations
+   *
+   * \param generators generators to be adjoined
+   *
+   * \param minimize
+   *     if this is set to `true`, the generators are adjoined one by one and
+   *     if in this process a generator is discovered to already be contained
+   *     in the current inverse semigroup, it is skipped completely
+   */
+  void adjoin_generators(std::vector<PartialPerm> const &generators,
+                         bool minimize = false);
+
+  /** Check whether an inverse semigroup of partial permutations is trivial, i.e
+   *  contains only the unique partial permutation mapping from the empty set to
+   *  itself
+   *
+   * \return `true` if this inverse semigroup of partial permutations is
+   *         trivial, else `false`
+   */
+  bool is_trivial() const
+  { return _trivial; }
 
   /** Test membership of a partial permutation in an inverse semigroup of
    *  partial permutations.
@@ -99,19 +117,7 @@ public:
    * \return `true` is `pperm` describes a partial permutation which is an
    *         element of the inverse semigroup described by this object
    */
-  bool is_element(PartialPerm const &pperm) const;
-
-  /** Adjoin additional partial permutations to the generating set of an inverse
-   *  semigroup of partial permutations
-   *
-   * \param generators generators to be adjoined
-   *
-   * \param minimize
-   *     if this is set to `true`, the generators are adjoined one by one and
-   *     if in this process a generator is discovered to already be contained
-   *     in the current inverse semigroup, it is skipped completely
-   */
-  void adjoin(std::vector<PartialPerm> const &generators, bool minimize = false);
+  bool contains_element(PartialPerm const &pperm) const;
 
 private:
   void update_action_component(std::vector<PartialPerm> const &generators);

@@ -58,7 +58,8 @@ PartialPermInverseSemigroup::PartialPermInverseSemigroup(
   _r_class_repr = eemp::r_class_representatives(_st_im, _generators);
 }
 
-bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
+bool PartialPermInverseSemigroup::contains_element(
+  PartialPerm const &pperm) const
 {
   DBG(DEBUG) << "Testing membership of:";
   DBG(DEBUG) << pperm;
@@ -143,8 +144,9 @@ bool PartialPermInverseSemigroup::is_element(PartialPerm const &pperm) const
   return false;
 }
 
-void PartialPermInverseSemigroup::adjoin(
-  std::vector<PartialPerm> const &generators, bool minimize)
+void PartialPermInverseSemigroup::adjoin_generators(
+  std::vector<PartialPerm> const &generators,
+  bool minimize)
 {
   DBG(DEBUG) << "Adjoining generators: " << generators;
   DBG(DEBUG) << "to inverse semigroups with generators: " << _generators;
@@ -172,7 +174,7 @@ void PartialPermInverseSemigroup::adjoin(
     for (auto j = 0u; j < generators.size(); ++j) {
       auto const &gen(generators[j]);
 
-      if (is_element(gen)) {
+      if (contains_element(gen)) {
         DBG(TRACE) << "Skipping " << gen << " (is already an element)";
         continue;
       }

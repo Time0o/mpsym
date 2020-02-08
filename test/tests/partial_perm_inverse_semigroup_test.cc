@@ -306,12 +306,12 @@ protected:
 TEST_F(PartialPermInverseSemigroupTest, CanTestMembership)
 {
   for (PartialPerm const &pperm : expected_elements) {
-    EXPECT_TRUE(inverse_semigroup.is_element(pperm))
+    EXPECT_TRUE(inverse_semigroup.contains_element(pperm))
       << "Can recognize inverse semigroup element (" << pperm << ").";
   }
 
   for (PartialPerm const &pperm : expected_non_elements) {
-    EXPECT_FALSE(inverse_semigroup.is_element(pperm))
+    EXPECT_FALSE(inverse_semigroup.contains_element(pperm))
       << "Can recognize inverse semigroup non-element (" << pperm << ").";
   }
 }
@@ -320,26 +320,26 @@ TEST_F(PartialPermInverseSemigroupTest, CanAdjoinGenerators)
 {
   PartialPermInverseSemigroup inverse_semigroup;
 
-  inverse_semigroup.adjoin(
+  inverse_semigroup.adjoin_generators(
     {PartialPerm({1, 2, 3, 4, 5, 6, 7, 8, 9}, {4, 6, 8, 1, 5, 2, 7, 3, 9})});
 
-  inverse_semigroup.adjoin(
+  inverse_semigroup.adjoin_generators(
       {PartialPerm({1, 2, 3, 4, 5, 6, 7, 8, 9}, {5, 7, 9, 2, 4, 1, 6, 3, 8})});
 
-  inverse_semigroup.adjoin(
+  inverse_semigroup.adjoin_generators(
       {PartialPerm({2, 5, 6}, {5, 6, 2})});
 
-  inverse_semigroup.adjoin(
+  inverse_semigroup.adjoin_generators(
       {PartialPerm({1, 2, 3}, {3, 1, 2})});
 
   for (PartialPerm const &pperm : expected_elements) {
-    EXPECT_TRUE(inverse_semigroup.is_element(pperm))
+    EXPECT_TRUE(inverse_semigroup.contains_element(pperm))
       << "Stepwise constructed inverse semigroup contains correct elements ("
       << pperm << ").";
   }
 
   for (PartialPerm const &pperm : expected_non_elements) {
-    EXPECT_FALSE(inverse_semigroup.is_element(pperm))
+    EXPECT_FALSE(inverse_semigroup.contains_element(pperm))
       << "Stepwise constructed inverse semigroup does not contain additional members"
       << pperm << ").";
   }

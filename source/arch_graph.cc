@@ -278,7 +278,7 @@ PartialPermInverseSemigroup ArchGraph::partial_automorphisms()
       DBG(TRACE) << "=> Is a partial automorphism";
       if (!pperm.id()) {
         DBG(TRACE) << "==> Adjoining new generator";
-        res.adjoin({pperm}, true);
+        res.adjoin_generators({pperm}, true);
       }
     } else {
       DBG(TRACE)
