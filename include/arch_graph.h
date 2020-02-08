@@ -9,6 +9,7 @@
 #include <boost/graph/adjacency_list.hpp>
 
 #include "arch_graph_system.h"
+#include "partial_perm.h"
 #include "partial_perm_inverse_semigroup.h"
 #include "perm_group.h"
 
@@ -74,6 +75,13 @@ public:
 
 private:
   PermGroup update_automorphisms() override;
+
+  bool is_partial_automorphism(PartialPerm const &pperm) const;
+
+  void partial_automorphisms_backtrack(
+    std::vector<unsigned> dom,
+    std::vector<unsigned> im,
+    PartialPermInverseSemigroup &res) const;
 
   void create_mesh(unsigned width,
                    unsigned height,

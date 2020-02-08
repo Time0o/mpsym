@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <fstream>
 #include <functional>
 #include <ostream>
@@ -23,6 +24,7 @@
 #include "perm.h"
 #include "perm_group.h"
 #include "perm_set.h"
+#include "timer.h"
 
 namespace cgtl
 {
@@ -185,6 +187,8 @@ PermGroup ArchGraph::update_automorphisms()
     }
   }
 
+  DBG(TRACE) << "=== Coloring vertices";
+
   for (int level = 0; level <= cts_log2; ++level) {
     std::fill(processor_type_counters.begin(),
               processor_type_counters.end(), 0u);
@@ -201,8 +205,6 @@ PermGroup ArchGraph::update_automorphisms()
     }
   }
 
-  DBG(TRACE) << "Colored vertices";
-
   // call nauty
   nauty_generators.clear();
   nauty_generator_degree = n_orig;
@@ -215,101 +217,94 @@ PermGroup ArchGraph::update_automorphisms()
   DYNFREE(orbits, orbits_sz);
   nauty_free();
 
-  return nauty_generators.empty()
+  PermGroup res = nauty_generators.empty()
     ? PermGroup(nauty_generator_degree, {})
     : PermGroup(nauty_generator_degree, nauty_generators);
+
+  DBG(DEBUG) << "==> Automorphisms are:";
+  DBG(DEBUG) << res;
+
+  return res;
+}
+
+bool ArchGraph::is_partial_automorphism(
+  PartialPerm const &pperm) const
+{
+  for (unsigned x : pperm.dom()) {
+    unsigned y = pperm[x];
+    if (_adj[x - 1u].type != _adj[y - 1u].type)
+      return false;
+
+    for (unsigned z : pperm.dom()) {
+      auto edge(boost::edge(x - 1u, z - 1u, _adj));
+      if (!std::get<1>(edge))
+        continue;
+
+      auto edge_perm(boost::edge(y - 1u, z - 1u, _adj));
+      if (!std::get<1>(edge_perm))
+        return false;
+
+      auto edge_type = _adj[std::get<0>(edge)].type;
+      auto edge_perm_type = _adj[std::get<0>(edge_perm)].type;
+
+      if (edge_type != edge_perm_type)
+        return false;
+    }
+  }
+
+  return true;
+}
+
+void ArchGraph::partial_automorphisms_backtrack(
+  std::vector<unsigned> dom,
+  std::vector<unsigned> im,
+  PartialPermInverseSemigroup &res) const
+{
+  PartialPerm pperm(dom, im);
+  DBG(TRACE) << "Considering " << pperm;
+
+  if (!pperm.id()) {
+    if (is_partial_automorphism(pperm)) {
+      DBG(TRACE) << "=> Is a partial automorphism, adjoining new generator";
+      res.adjoin_generators({pperm}, true);
+    } else {
+      DBG(TRACE) << "=> Is not a partial automorphism, pruning search tree";
+      return;
+    }
+  }
+
+  for (unsigned i = dom.empty() ? 1u : dom.back() + 1u; i <= num_processors(); ++i) {
+    dom.push_back(i);
+
+    for (unsigned j = 1u; j <= num_processors(); ++j) {
+      if (std::find(im.begin(), im.end(), j) != im.end())
+        continue;
+
+      im.push_back(j);
+
+      partial_automorphisms_backtrack(dom, im, res);
+
+      im.pop_back();
+    }
+
+    dom.pop_back();
+  }
 }
 
 PartialPermInverseSemigroup ArchGraph::partial_automorphisms()
 {
-  unsigned n = num_processors();
-
-  std::function<bool(PartialPerm const &)>
-  is_partial_automorphism = [&](PartialPerm const &pperm) {
-    for (unsigned x : pperm.dom()) {
-      unsigned y = pperm[x];
-      if (_adj[x - 1u].type != _adj[y - 1u].type)
-        return false;
-
-      for (unsigned z : pperm.dom()) {
-        auto edge(boost::edge(x - 1u, z - 1u, _adj));
-        if (!std::get<1>(edge))
-          continue;
-
-        auto edge_perm(boost::edge(y - 1u, z - 1u, _adj));
-        if (!std::get<1>(edge_perm))
-          return false;
-
-        auto edge_type = _adj[std::get<0>(edge)].type;
-        auto edge_perm_type = _adj[std::get<0>(edge_perm)].type;
-
-        if (edge_type != edge_perm_type)
-          return false;
-      }
-    }
-
-    return true;
-  };
-
-  struct Domain {
-    Domain(std::vector<bool> const &set, unsigned limit)
-      : set(set), limit(limit) {}
-
-    std::vector<bool> set;
-    unsigned limit;
-  };
+  DBG(DEBUG) << "=== Determining partial architecture graph automorphisms";
 
   PartialPermInverseSemigroup res;
 
-  std::function<void(Domain const &, std::vector<unsigned> const &)>
-  backtrack = [&](Domain const &domain, std::vector<unsigned> const &image) {
-    std::vector<unsigned> tmp(domain.limit, 0u);
+  std::vector<unsigned> dom, im;
+  dom.reserve(num_processors());
+  im.reserve(num_processors());
 
-    unsigned j = 0u;
-    for (unsigned i = 0u; i < domain.limit; ++i) {
-      if (domain.set[i])
-        tmp[i] = image[j++];
-    }
+  partial_automorphisms_backtrack(dom, im, res);
 
-    PartialPerm pperm(tmp);
-    DBG(TRACE) << "Considering " << pperm << ':';
-
-    if (is_partial_automorphism(pperm)) {
-      DBG(TRACE) << "=> Is a partial automorphism";
-      if (!pperm.id()) {
-        DBG(TRACE) << "==> Adjoining new generator";
-        res.adjoin_generators({pperm}, true);
-      }
-    } else {
-      DBG(TRACE)
-        << "=> Is not a partial automorphism, pruning backtrack tree...";
-      return;
-    }
-
-    Domain next_domain(domain);
-
-    std::vector<unsigned> next_image(image);
-    next_image.resize(next_image.size() + 1u);
-
-    for (unsigned i = domain.limit; i < n; ++i) {
-      next_domain.set[i] = true;
-      next_domain.limit = i + 1u;
-
-      for (unsigned j = 1u; j <= n; ++j) {
-        if (std::find(image.begin(), image.end(), j) != image.end())
-          continue;
-
-        next_image.back() = j;
-        backtrack(next_domain, next_image);
-      }
-
-      next_domain.set[i] = false;
-    }
-  };
-
-  DBG(DEBUG) << "Finding partial automorphisms for arch graph";
-
-  backtrack(Domain(std::vector<bool>(num_processors(), false), 0u), {});
+  DBG(DEBUG) << "==> Partial automorphisms are:";
+  DBG(DEBUG) << res;
 
   return res;
 }

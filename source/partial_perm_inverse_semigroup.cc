@@ -10,6 +10,7 @@
 #include <boost/graph/random_spanning_tree.hpp>
 
 #include "dbg.h"
+#include "dump.h"
 #include "eemp.h"
 #include "partial_perm.h"
 #include "partial_perm_inverse_semigroup.h"
@@ -319,6 +320,13 @@ void PartialPermInverseSemigroup::update_scc_representatives()
       found_repr[c] = 1;
     }
   }
+}
+
+std::ostream &operator<<(std::ostream &os,
+                         PartialPermInverseSemigroup const &ppisg)
+{
+  os << "GENERATORS: " << DUMP(ppisg.generators());
+  return os;
 }
 
 } // namespace cgtl

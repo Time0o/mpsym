@@ -1,6 +1,8 @@
 #ifndef _GUARD_PARTIAL_PERM_INVERSE_SEMIGROUP_H
 #define _GUARD_PARTIAL_PERM_INVERSE_SEMIGROUP_H
+
 #include <cstddef>
+#include <ostream>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -140,6 +142,9 @@ private:
 
   std::vector<PartialPerm> _r_class_repr;
 };
+
+std::ostream &operator<<(std::ostream &os,
+                         PartialPermInverseSemigroup const &ppisg);
 
 } // namespace cgtl
 
