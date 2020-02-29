@@ -775,163 +775,27 @@ TEST(SpecialPermGroupTest, CanConstructAlternatingGroup)
 
 TEST(SpecialPermGroupTest, CanConstructDihedralGroup)
 {
-  EXPECT_TRUE(perm_group_equal(verified_perm_group(D1),
-                               PermGroup::dihedral(1)))
-    << "Can construct dihedral group D_1.";
-
   EXPECT_TRUE(perm_group_equal(verified_perm_group(D2),
                                PermGroup::dihedral(2)))
     << "Can construct dihedral group D_2.";
-
-  EXPECT_TRUE(perm_group_equal(verified_perm_group(D3),
-                               PermGroup::dihedral(3)))
-    << "Can construct dihedral group D_3.";
 
   EXPECT_TRUE(perm_group_equal(verified_perm_group(D4),
                                PermGroup::dihedral(4)))
     << "Can construct dihedral group D_4.";
 
-  EXPECT_TRUE(perm_group_equal(verified_perm_group(D5),
-                               PermGroup::dihedral(5)))
-    << "Can construct dihedral group D_5.";
-
   EXPECT_TRUE(perm_group_equal(verified_perm_group(D6),
                                PermGroup::dihedral(6)))
     << "Can construct dihedral group D_6.";
-
-  EXPECT_TRUE(perm_group_equal(verified_perm_group(D7),
-                               PermGroup::dihedral(7)))
-    << "Can construct dihedral group D_7.";
 
   EXPECT_TRUE(perm_group_equal(verified_perm_group(D8),
                                PermGroup::dihedral(8)))
     << "Can construct dihedral group D_8.";
 
-  EXPECT_TRUE(perm_group_equal(verified_perm_group(D9),
-                               PermGroup::dihedral(9)))
-    << "Can construct dihedral group D_9.";
-
   EXPECT_TRUE(perm_group_equal(verified_perm_group(D10),
                                PermGroup::dihedral(10)))
     << "Can construct dihedral group D_10.";
-}
 
-TEST(SpecialPermGroupTest, CanConstructSymmetricGroupWithSupport)
-{
-  PermGroup symmetric_groups[] = {
-    PermGroup::symmetric({6, 9}),
-    PermGroup::symmetric({7, 2, 4})
-  };
-
-  PermSet expected_elements[] = {
-    {
-      Perm(9, {{6, 9}})
-    },
-    {
-      Perm(7, {{7, 2, 4}}),
-      Perm(7, {{7, 2}}),
-      Perm(7, {{7, 4, 2}}),
-      Perm(7, {{7, 4}}),
-      Perm(7, {{2, 4}})
-    }
-  };
-
-  for (auto i = 0u; i < sizeof(symmetric_groups) / sizeof(symmetric_groups[0]); ++i) {
-    EXPECT_TRUE(perm_group_equal(expected_elements[i], symmetric_groups[i]))
-      << "Symmetric group constructed for specific support has correct elements.";
-  }
-}
-
-TEST(SpecialPermGroupTest, CanConstructCyclicGroupWithSupport)
-{
-  std::vector<PermGroup> cyclic_groups {
-    PermGroup::cyclic({6, 9}),
-    PermGroup::cyclic({7, 2, 4}),
-    PermGroup::cyclic({1, 8, 4, 5})
-  };
-
-  PermSet expected_elements[] = {
-    {
-      Perm(9, {{6, 9}})
-    },
-    {
-      Perm(7, {{7, 2, 4}}),
-      Perm(7, {{7, 4, 2}})
-    },
-    {
-      Perm(8, {{1, 8, 4, 5}}),
-      Perm(8, {{1, 4}, {8, 5}}),
-      Perm(8, {{1, 5, 4, 8}})
-    }
-  };
-
-  for (auto i = 0u; i < cyclic_groups.size(); ++i) {
-    EXPECT_TRUE(perm_group_equal(expected_elements[i], cyclic_groups[i]))
-      << "Cyclic group constructed for specific support has correct elements.";
-  }
-}
-
-TEST(SpecialPermGroupTest, CanConstructAlternatingGroupWithSupport)
-{
-  PermGroup alternating_groups[] = {
-    PermGroup::alternating({7, 2, 4}),
-    PermGroup::alternating({1, 8, 4, 5})
-  };
-
-  PermSet expected_elements[] = {
-    {
-      Perm(7, {{7, 2, 4}}),
-      Perm(7, {{7, 4, 2}})
-    },
-    {
-      Perm(8, {{1, 8, 4}}),
-      Perm(8, {{1, 8, 5}}),
-      Perm(8, {{1, 8}, {4, 5}}),
-      Perm(8, {{1, 4, 8}}),
-      Perm(8, {{1, 4, 5}}),
-      Perm(8, {{1, 4}, {8, 5}}),
-      Perm(8, {{1, 5, 8}}),
-      Perm(8, {{1, 5, 4}}),
-      Perm(8, {{1, 5}, {8, 4}}),
-      Perm(8, {{8, 4, 5}}),
-      Perm(8, {{8, 5, 4}})
-    }
-  };
-
-  for (auto i = 0u; i < sizeof(alternating_groups) / sizeof(alternating_groups[0]); ++i) {
-    EXPECT_TRUE(perm_group_equal(expected_elements[i], alternating_groups[i]))
-      << "Alternating group constructed for specific support has correct elements.";
-  }
-}
-
-TEST(SpecialPermGroupTest, CanConstructDihedralGroupWithSupport)
-{
-  PermGroup dihedral_groups[] = {
-    PermGroup::dihedral({7, 2, 4}),
-    PermGroup::dihedral({1, 8, 4, 5})
-  };
-
-  PermSet expected_elements[] = {
-    {
-      Perm(7, {{7, 2, 4}}),
-      Perm(7, {{7, 2}}),
-      Perm(7, {{7, 4, 2}}),
-      Perm(7, {{7, 4}}),
-      Perm(7, {{2, 4}})
-    },
-    {
-      Perm(8, {{1, 8, 4, 5}}),
-      Perm(8, {{1, 8}, {4, 5}}),
-      Perm(8, {{1, 4}, {8, 5}}),
-      Perm(8, {{1, 4}}),
-      Perm(8, {{1, 5, 4, 8}}),
-      Perm(8, {{1, 5}, {8, 4}}),
-      Perm(8, {{8, 5}})
-    }
-  };
-
-  for (auto i = 0u; i < sizeof(dihedral_groups) / sizeof(dihedral_groups[0]); ++i) {
-    EXPECT_TRUE(perm_group_equal(expected_elements[i], dihedral_groups[i]))
-      << "Dihedral group constructed for specific support has correct elements.";
-  }
+  EXPECT_TRUE(perm_group_equal(verified_perm_group(D12),
+                               PermGroup::dihedral(12)))
+    << "Can construct dihedral group D_12.";
 }

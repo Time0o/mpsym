@@ -15,8 +15,8 @@ enum VerifiedGroup {
   S1, S2, S3, S4, S5,
   C1, C2, C3, C4, C5,
   A1, A2, A3, A4, A5,
-  D1, D2, D3, D4, D5,
-  D6, D7, D8, D9, D10
+  D2, D4, D6, D8, D10,
+  D12
 };
 
 testing::AssertionResult perm_equal(std::vector<unsigned> const &expected,

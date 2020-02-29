@@ -79,21 +79,6 @@ PermGroup PermGroup::symmetric(unsigned degree)
   return PermGroup(degree, {Perm(degree, {{1, 2}}), Perm(degree, {gen})});
 }
 
-PermGroup PermGroup::symmetric(std::vector<unsigned> const &support)
-{
-  // TODO: explicit BSGS
-
-  assert(support.size() > 1u);
-
-  unsigned degree = *std::max_element(support.begin(), support.end());
-
-  if (support.size() == 1u)
-    return PermGroup(degree, {});
-
-  return PermGroup(degree, {Perm(degree, {{support[0], support[1]}}),
-                            Perm(degree, {support})});
-}
-
 PermGroup PermGroup::cyclic(unsigned degree)
 {
   // TODO: explicit BSGS
@@ -105,17 +90,6 @@ PermGroup PermGroup::cyclic(unsigned degree)
     gen.push_back(i);
 
   return PermGroup(degree, {Perm(degree, {gen})});
-}
-
-PermGroup PermGroup::cyclic(std::vector<unsigned> const &support)
-{
-  // TODO: explicit BSGS
-
-  assert(support.size() > 1u);
-
-  unsigned degree = *std::max_element(support.begin(), support.end());
-
-  return PermGroup(degree, {Perm(degree, {support})});
 }
 
 PermGroup PermGroup::alternating(unsigned degree)
@@ -137,72 +111,40 @@ PermGroup PermGroup::alternating(unsigned degree)
   return PermGroup(degree, gens);
 }
 
-PermGroup PermGroup::alternating(std::vector<unsigned> const &support)
-{
-  // TODO: explicit BSGS
-
-  unsigned degree = *std::max_element(support.begin(), support.end());
-
-  PermSet gens;
-  for (unsigned i = 2u; i < support.size(); ++i)
-    gens.emplace(Perm(degree, {{support[0], support[1], support[i]}}));
-
-  return PermGroup(degree, gens);
-}
-
 PermGroup PermGroup::dihedral(unsigned degree)
 {
   // TODO: explicit BSGS
 
-  assert(degree > 0u);
-
-  if (degree == 1u)
-    return PermGroup(2, {Perm({2, 1})});
+  assert(degree > 0u && degree % 2 == 0);
 
   if (degree == 2u)
+    return PermGroup(2, {Perm({2, 1})});
+
+  if (degree == 4u)
     return PermGroup(4, {Perm({2, 1, 3, 4}), Perm({1, 2, 4, 3})});
 
-  std::vector<unsigned> rotation(degree);
-  for (unsigned i = 0u; i < degree - 1u; ++i)
+  std::vector<unsigned> rotation(degree / 2u);
+
+  // rotation
+  for (unsigned i = 0u; i < degree / 2u - 1u; ++i)
     rotation[i] = i + 2u;
-  rotation.back() = 1u;
 
-  std::vector<unsigned> reflection(degree);
-  for (unsigned i = 0u; i < degree / 2; ++i) {
-    reflection[i] = degree - i;
-    reflection[degree - i - 1u] = i + 1u;
+  rotation[degree / 2u - 1u] = 1u;
+
+  // reflection
+  std::vector<unsigned> reflection(degree / 2u);
+
+  reflection[0] = 1u;
+
+  for (unsigned i = 1u; i < (degree / 2u + 1u) / 2u; ++i) {
+    reflection[i] = degree / 2u - i + 1u;
+    reflection[degree / 2u - i] = i + 1u;
   }
 
-  if (degree % 2u == 1u)
-    reflection[degree / 2u] = degree / 2u + 1u;
+  if ((degree / 2u) % 2 == 0)
+    reflection[degree / 4u] = degree / 4u + 1u;
 
-  return PermGroup(degree, {Perm(rotation), Perm(reflection)});
-}
-
-PermGroup PermGroup::dihedral(std::vector<unsigned> const &support)
-{
-  // TODO: explicit BSGS
-
-  assert(support.size() > 2u);
-
-  unsigned degree = *std::max_element(support.begin(), support.end());
-
-  std::vector<unsigned> rotation(degree);
-  for (unsigned i = 1u; i <= degree; ++i)
-    rotation[i - 1u] = i;
-
-  std::vector<unsigned> reflection(rotation);
-
-  for (unsigned i = 1u; i < support.size(); ++i)
-    rotation[support[i - 1u] - 1u] = support[i];
-  rotation[support.back() - 1u] = support[0];
-
-  for (unsigned i = 0u; i < support.size() / 2; ++i) {
-    reflection[support[i] - 1u] = support[support.size() - i - 1u];
-    reflection[support[support.size() - i - 1u] - 1u] = support[i];;
-  }
-
-  return PermGroup(degree, {Perm(rotation), Perm(reflection)});
+  return PermGroup(degree / 2u, {Perm(rotation), Perm(reflection)});
 }
 
 PermGroup PermGroup::wreath_product(PermGroup const &lhs_, PermGroup const &rhs_)
