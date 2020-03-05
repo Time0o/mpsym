@@ -345,9 +345,8 @@ TEST(SpecialArchGraphTest, CanConstructFullyConnected)
 TEST(SpecialArchGraphTest, CanConstructRegularMesh)
 {
   // TODO: test non-quadratic meshes
-  for (unsigned i = 1u; i < 5u; ++i) {
-    EXPECT_EQ(PermGroup::dihedral(8),
-              ArchGraph::regular_mesh(i, i).automorphisms())
+  for (unsigned i = 2u; i < 5u; ++i) {
+    EXPECT_EQ(8u, ArchGraph::regular_mesh(i, i).automorphisms().order())
       << "Regular mesh architecture graph with " << i * i
       << " processing elements has correct automorphism group.";
   }

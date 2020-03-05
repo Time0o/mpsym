@@ -352,9 +352,6 @@ ArchGraph ArchGraph::regular_mesh(unsigned width,
 
   ag.create_mesh(width, height, pe, ch);
 
-  if (height == width)
-    ag.set_automorphisms(PermGroup::dihedral(8));
-
   return ag;
 }
 
