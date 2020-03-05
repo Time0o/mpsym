@@ -75,6 +75,7 @@ public:
 
 private:
   PermGroup update_automorphisms() override;
+  PermGroup update_automorphisms_nauty();
 
   bool is_partial_automorphism(PartialPerm const &pperm) const;
 

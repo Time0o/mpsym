@@ -7,6 +7,7 @@ include_directories("${INCLUDE_DIR}"
 
 add_library("${MAIN_LIB}"
             "arch_graph.cc"
+            "arch_graph_nauty.cc"
             "arch_graph_cluster.cc"
             "arch_graph_system.cc"
             "arch_uniform_super_graph.cc"
