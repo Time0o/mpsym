@@ -57,11 +57,11 @@ as_cluster(std::shared_ptr<cgtl::ArchGraphSystem> ag)
 { return std::dynamic_pointer_cast<cgtl::ArchGraphCluster>(ag); }
 
 bool
-is_supergraph(std::shared_ptr<cgtl::ArchGraphSystem> ag)
+is_super_graph(std::shared_ptr<cgtl::ArchGraphSystem> ag)
 { return dynamic_cast<cgtl::ArchUniformSuperGraph *>(ag.get()); }
 
 std::shared_ptr<cgtl::ArchUniformSuperGraph>
-as_supergraph(std::shared_ptr<cgtl::ArchGraphSystem> ag)
+as_super_graph(std::shared_ptr<cgtl::ArchGraphSystem> ag)
 { return std::dynamic_pointer_cast<cgtl::ArchUniformSuperGraph>(ag); }
 
 std::vector<cgtl::PermGroup>
@@ -73,7 +73,7 @@ decompose_cluster(std::shared_ptr<cgtl::ArchGraphCluster> ag,
 }
 
 std::vector<cgtl::PermGroup>
-decompose_supergraph(std::shared_ptr<cgtl::ArchUniformSuperGraph> ag,
+decompose_super_graph(std::shared_ptr<cgtl::ArchUniformSuperGraph> ag,
                      ProfileOptions const &)
 { return ag->automorphisms().wreath_decomposition(); }
 
@@ -111,7 +111,7 @@ decompose_cluster_wrapper(std::shared_ptr<cgtl::ArchGraphCluster> ag,
 }
 
 void
-decompose_supergraph_wrapper(std::shared_ptr<cgtl::ArchUniformSuperGraph> ag,
+decompose_super_graph_wrapper(std::shared_ptr<cgtl::ArchUniformSuperGraph> ag,
                              ProfileOptions const &options,
                              double *t)
 {
@@ -119,13 +119,13 @@ decompose_supergraph_wrapper(std::shared_ptr<cgtl::ArchUniformSuperGraph> ag,
   using cgtl::PermGroup;
 
   if (options.verbose)
-    info("Trying to decompose supergraph...");
+    info("Trying to decompose super_graph...");
 
   auto decomposition(
-    run_cpp([&]{ return decompose_supergraph(ag, options); }, t));
+    run_cpp([&]{ return decompose_super_graph(ag, options); }, t));
 
   if (decomposition.empty())
-    warning("Failed to find supergraph decomposition");
+    warning("Failed to find super_graph decomposition");
 
   if (options.check_accuracy) {
     info("Checking accuracy...");
@@ -184,11 +184,11 @@ run(std::shared_ptr<cgtl::ArchGraphSystem> ag,
 
     decompose_cluster_wrapper(as_cluster(ag), options, &t);
 
-  } else if (is_supergraph(ag)) {
+  } else if (is_super_graph(ag)) {
     if (options.verbose)
-      info("Graph is supergraph");
+      info("Graph is super_graph");
 
-    decompose_supergraph_wrapper(as_supergraph(ag), options, &t);
+    decompose_super_graph_wrapper(as_super_graph(ag), options, &t);
   }
 
   return t;

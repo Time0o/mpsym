@@ -516,11 +516,11 @@ protected:
     construct_minimal();
   }
 
-  std::shared_ptr<ArchUniformSuperGraph> supergraph_minimal;
+  std::shared_ptr<ArchUniformSuperGraph> super_graph_minimal;
 
 private:
   void construct_minimal() {
-    // construct uniform supergraph
+    // construct uniform super_graph
     auto super(std::make_shared<ArchGraph>());
 
     auto sp = super->new_processor_type();
@@ -550,9 +550,9 @@ private:
     proto->add_channel(pe2, pe3, c);
     proto->add_channel(pe3, pe1, c);
 
-    supergraph_minimal = std::make_shared<ArchUniformSuperGraph>();
-    supergraph_minimal->set_subsystem_supergraph(super);
-    supergraph_minimal->set_subsystem_proto(proto);
+    super_graph_minimal = std::make_shared<ArchUniformSuperGraph>();
+    super_graph_minimal->set_subsystem_super_graph(super);
+    super_graph_minimal->set_subsystem_proto(proto);
   }
 };
 
@@ -561,14 +561,14 @@ class ArchUniformSuperGraphTest
 
 TEST_F(ArchUniformSuperGraphTest, CanDetermineNumberOfProcessors)
 {
-  EXPECT_EQ(12u, supergraph_minimal->num_processors())
-    << "Number of processors in uniform architecture supergraph determined correctly.";
+  EXPECT_EQ(12u, super_graph_minimal->num_processors())
+    << "Number of processors in uniform architecture super_graph determined correctly.";
 }
 
 TEST_F(ArchUniformSuperGraphTest, CanDetermineNumberOfChannels)
 {
-  EXPECT_EQ(16u, supergraph_minimal->num_channels())
-    << "Number of channels in uniform architecture supergraph determined correctly.";
+  EXPECT_EQ(16u, super_graph_minimal->num_channels())
+    << "Number of channels in uniform architecture super_graph determined correctly.";
 }
 
 TEST_F(ArchUniformSuperGraphTest, CanObtainAutormorphisms)
@@ -588,6 +588,6 @@ TEST_F(ArchUniformSuperGraphTest, CanObtainAutormorphisms)
     }
   );
 
-  EXPECT_EQ(expected_automorphisms, supergraph_minimal->automorphisms())
-    << "Automorphisms of uniform architecture supergraph correct.";
+  EXPECT_EQ(expected_automorphisms, super_graph_minimal->automorphisms())
+    << "Automorphisms of uniform architecture super_graph correct.";
 }

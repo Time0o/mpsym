@@ -212,24 +212,24 @@ std::shared_ptr<cgtl::ArchGraphSystem> build_arch_graph_system(
 
     return cluster;
 
-  } else if (pt.get_child_optional("supergraph")) {
-    auto child(pt.get_child("supergraph"));
+  } else if (pt.get_child_optional("super_graph")) {
+    auto child(pt.get_child("super_graph"));
 
-    auto supergraph_it(child.begin());
+    auto super_graph_it(child.begin());
     auto proto_it(child.begin()); ++proto_it;
 
     if (std::distance(child.begin(), child.end()) != 2)
-      throw std::invalid_argument("supergraph must be composed of two components");
+      throw std::invalid_argument("super_graph must be composed of two components");
 
-    auto supergraph(std::make_shared<ArchUniformSuperGraph>());
+    auto super_graph(std::make_shared<ArchUniformSuperGraph>());
 
-    supergraph->set_subsystem_supergraph(
-      build_arch_graph_system(supergraph_it->second));
+    super_graph->set_subsystem_super_graph(
+      build_arch_graph_system(super_graph_it->second));
 
-    supergraph->set_subsystem_proto(
+    super_graph->set_subsystem_proto(
       build_arch_graph_system(proto_it->second));
 
-    return supergraph;
+    return super_graph;
 
   } else {
     throw std::invalid_argument("malformed arch graph system description");

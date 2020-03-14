@@ -10,15 +10,15 @@ namespace cgtl
 unsigned
 ArchUniformSuperGraph::num_processors() const
 {
-  return _subsystem_supergraph->num_processors() *
+  return _subsystem_super_graph->num_processors() *
          _subsystem_proto->num_processors();
 }
 
 unsigned
 ArchUniformSuperGraph::num_channels() const
 {
-  return _subsystem_supergraph->num_channels() +
-         (_subsystem_supergraph->num_processors() *
+  return _subsystem_super_graph->num_channels() +
+         (_subsystem_super_graph->num_processors() *
           _subsystem_proto->num_channels());
 }
 
@@ -27,7 +27,7 @@ ArchUniformSuperGraph::update_automorphisms()
 {
   // TODO: swap???
   return PermGroup::wreath_product(
-    _subsystem_proto->automorphisms(), _subsystem_supergraph->automorphisms());
+    _subsystem_proto->automorphisms(), _subsystem_super_graph->automorphisms());
 }
 
 } // namespace cgtl
