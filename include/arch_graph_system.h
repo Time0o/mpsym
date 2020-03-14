@@ -26,6 +26,8 @@ public:
     bool match_reprs = true;
   };
 
+  static std::shared_ptr<ArchGraphSystem> from_lua(std::string const &lua);
+
   virtual unsigned num_processors() const
   { throw std::logic_error("not implemented"); }
 
