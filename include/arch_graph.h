@@ -16,13 +16,11 @@
 namespace cgtl
 {
 
-using ProcessorLabel = char const *;
-using ChannelLabel = char const *;
-using SubsystemLabel = char const *;
+using ProcessorLabel = std::string const &;
+using ChannelLabel = std::string const &;
 
 #define DEFAULT_PROCESSOR_LABEL ""
 #define DEFAULT_CHANNEL_LABEL ""
-#define DEFAULT_SUBSYSTEM_LABEL ""
 
 class ArchGraph : public ArchGraphSystem
 {
