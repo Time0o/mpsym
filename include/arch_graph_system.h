@@ -26,24 +26,8 @@ public:
     bool match_reprs = true;
   };
 
-  ArchGraphSystem()
-  : _automorphisms_valid(false),
-    _augmented_generators_valid(false)
-  {}
-
-  ArchGraphSystem(PermGroup const &automorphisms)
-  : _automorphisms(automorphisms),
-    _automorphisms_valid(true),
-    _augmented_generators_valid(false)
-  {}
-
   virtual unsigned num_processors() const
-  {
-    if (_automorphisms_valid)
-      return _automorphisms.degree();
-    else
-      throw std::logic_error("not implemented");
-  }
+  { throw std::logic_error("not implemented"); }
 
   virtual unsigned num_channels() const
   { throw std::logic_error("not implemented"); }
@@ -82,8 +66,7 @@ protected:
   { _automorphisms_valid = false; }
 
 private:
-  virtual PermGroup update_automorphisms()
-  { throw std::logic_error("not implemented"); }
+  virtual PermGroup update_automorphisms() = 0;
 
   TaskAllocation min_elem_iterate(TaskAllocation const &tasks,
                                   unsigned offset,
@@ -113,10 +96,10 @@ private:
   static MappingOptions _default_mapping_options;
 
   PermGroup _automorphisms;
-  bool _automorphisms_valid;
+  bool _automorphisms_valid = false;
 
   PermSet _augmented_generators;
-  bool _augmented_generators_valid;
+  bool _augmented_generators_valid = false;
 };
 
 // TODO: outstream operator

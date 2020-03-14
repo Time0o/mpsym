@@ -13,6 +13,7 @@
 #include <getopt.h>
 #include <libgen.h>
 
+#include "arch_graph_automorphisms.h"
 #include "arch_graph_system.h"
 #include "dump.h"
 #include "perm_set.h"
@@ -183,11 +184,13 @@ cgtl::TaskOrbits map_tasks_mpsym(
   cgtl::TaskAllocationVector const &task_allocation_vector,
   ProfileOptions const &options)
 {
+  using cgtl::ArchGraphAutomorphisms;
   using cgtl::ArchGraphSystem;
   using cgtl::PermGroup;
   using cgtl::TaskOrbits;
 
-  ArchGraphSystem ag(PermGroup(generators.degree(), generators));
+  auto ag(std::make_shared<ArchGraphAutomorphisms>(
+    PermGroup(generators.degree(), generators)));
 
   auto task_allocations(task_allocation_vector.task_allocations);
 
@@ -212,7 +215,7 @@ cgtl::TaskOrbits map_tasks_mpsym(
     if (options.verbosity > 0)
       debug_progress("Mapping task", i + 1u, "of", task_allocations.size());
 
-    auto mapping(ag.mapping(
+    auto mapping(ag->mapping(
       task_allocations[i], 0u, &mapping_options, &task_orbits));
   }
 

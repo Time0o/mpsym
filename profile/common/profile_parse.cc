@@ -11,6 +11,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
+#include "arch_graph_automorphisms.h"
 #include "arch_graph_cluster.h"
 #include "arch_graph_system.h"
 #include "arch_uniform_super_graph.h"
@@ -180,6 +181,7 @@ split_task_allocations(std::string const &task_allocations_str,
 std::shared_ptr<cgtl::ArchGraphSystem> build_arch_graph_system(
   boost::property_tree::ptree const &pt)
 {
+  using cgtl::ArchGraphAutomorphisms;
   using cgtl::ArchGraphCluster;
   using cgtl::ArchGraphSystem;
   using cgtl::ArchUniformSuperGraph;
@@ -202,7 +204,7 @@ std::shared_ptr<cgtl::ArchGraphSystem> build_arch_graph_system(
     // explicitly construct arch graph system from automorphism group
     PermGroup automorphisms(degree, generators);
 
-    return std::make_shared<ArchGraphSystem>(automorphisms);
+    return std::make_shared<ArchGraphAutomorphisms>(automorphisms);
 
   } else if (pt.get_child_optional("cluster")) {
     auto cluster(std::make_shared<ArchGraphCluster>());
