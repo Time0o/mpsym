@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <numeric>
@@ -37,14 +38,15 @@ void usage(std::ostream &s)
 {
   char const *opts[] = {
     "[-h|--help]",
-    "-i|--implementation        {gap|mpsym|permlib}",
-    "[-s|--schreier-sims]       {deterministic|random}",
-    "[-t|--transversal-storage] {explicit|schreier-trees|shallow-schreier-trees}",
+    "-i|--implementation  {gap|mpsym|permlib}",
+    "[-s|--schreier-sims] {deterministic|random}",
+    "[-t|--transversals]  {explicit|schreier-trees|shallow-schreier-trees}",
+    "-g|--groups GROUPS"
+    "-a|--arch-graph ARCH_GRAPH",
     "[-c|--num-cycles]",
     "[-r|--num-runs]",
     "[-v|--verbose]",
-    "[--show-gap-errors]",
-    "GROUPS"
+    "[--show-gap-errors]"
   };
 
   s << "usage: " << progname << '\n';
@@ -54,9 +56,11 @@ void usage(std::ostream &s)
 
 struct ProfileOptions
 {
-  VariantOption library{"gap", "mpsym", "permlib"};
+  VariantOption implementation{"gap", "mpsym", "permlib"};
   VariantOption schreier_sims{"deterministic", "random"};
   VariantOption transversals{"explicit", "schreier-trees", "shallow-schreier-trees"};
+  bool groups_input = false;
+  bool arch_graph_input = false;
   unsigned num_cycles = 1u;
   unsigned num_runs = 1u;
   bool verbose = false;
@@ -159,46 +163,98 @@ void make_perm_group_permlib(permlib::PermSet const &generators,
   }, permlib_transversal_type(options.transversals));
 }
 
-std::vector<double> run(unsigned degree,
-                        std::string const &generators,
-                        ProfileOptions const &options)
+double run_groups(unsigned degree,
+                  std::string const &generators,
+                  ProfileOptions const &options)
 {
-  std::vector<double> ts;
+  double t = 0.0;
 
-  for (unsigned r = 0; r < options.num_runs; ++r) {
-    if (options.verbose)
-      debug_progress("Executing run", r + 1, "/", options.num_runs);
+  if (options.implementation.is("gap")) {
+    auto generators_gap(parse_generators_gap(degree, generators));
 
-    double t;
-    if (options.library.is("gap")) {
-      auto generators_gap(parse_generators_gap(degree, generators));
+    auto gap_script(make_perm_group_gap(generators_gap, options));
 
-      auto gap_script(make_perm_group_gap(generators_gap, options));
+    run_gap(gap_script, options.verbose, !options.show_gap_errors, &t);
 
-      run_gap(gap_script, options.verbose, !options.show_gap_errors, &t);
+  } else if (options.implementation.is("mpsym")) {
+    auto generators_mpsym(parse_generators_mpsym(degree, generators));
 
-    } else if (options.library.is("mpsym")) {
-      auto generators_mpsym(parse_generators_mpsym(degree, generators));
+    run_cpp([&]{ make_perm_group_mpsym(generators_mpsym, options); }, &t);
 
-      run_cpp([&]{ make_perm_group_mpsym(generators_mpsym, options); }, &t);
+  } else if (options.implementation.is("permlib")) {
+    auto generators_permlib(parse_generators_permlib(degree, generators));
 
-    } else if (options.library.is("permlib")) {
-      auto generators_permlib(parse_generators_permlib(degree, generators));
-
-      run_cpp([&]{ make_perm_group_permlib(generators_permlib, options); }, &t);
-    }
-
-    ts.push_back(t);
+    run_cpp([&]{ make_perm_group_permlib(generators_permlib, options); }, &t);
   }
 
-  return ts;
+  return t;
 }
 
-void profile(Stream &groups_stream,
+double run_arch_graph(std::string const &arch_graph,
+                      ProfileOptions const &options)
+{
+  // TODO: BSGS options
+  using cgtl::ArchGraphSystem;
+
+  double t = 0.0;
+
+  if (options.implementation.is("gap")) {
+    throw std::logic_error("TODO");
+
+  } else if (options.implementation.is("mpsym")) {
+    auto ag(ArchGraphSystem::from_lua(arch_graph));
+
+    run_cpp([&]{ ag->automorphisms(); }, &t);
+
+    if (options.verbose) {
+      info("Automorphism generators are:");
+      info(ag->automorphisms_generators());
+    }
+
+  } else if (options.implementation.is("permlib")) {
+    throw std::logic_error("graph autormorphisms not supported by permlib");
+  }
+
+  return t;
+}
+
+template<typename FUNC>
+void profile_loop(FUNC &&f,
+                  ProfileOptions const &options)
+{
+  std::vector<double> ts(options.num_runs);
+
+  for (unsigned r = 0; r < options.num_runs; ++r) {
+    if (options.verbose && options.num_runs > 1)
+      debug_progress("Executing run", r + 1, "/", options.num_runs);
+
+    ts[r] = f(options);
+  }
+
+  double t_mean, t_stddev;
+  util::mean_stddev(ts, &t_mean, &t_stddev);
+
+  result("Mean:", t_mean, "s");
+  result("Stddev:", t_stddev, "s");
+
+  if (options.verbose && options.num_runs > 1)
+    debug_progress_done();
+
+  if (options.verbose && options.implementation.is("mpsym")) {
+    debug("Timer dumps:");
+    debug_timer_dump("strip");
+    debug_timer_dump("extend base");
+    debug_timer_dump("update strong gens");
+  }
+}
+
+void profile(Stream &instream,
              ProfileOptions const &options)
 {
+  using namespace std::placeholders;
+
   if (options.verbose) {
-    debug("Implementation:", options.library.get());
+    debug("Implementation:", options.implementation.get());
     debug("Schreier-sims variant:", options.schreier_sims.get());
     debug("Transversals:", options.transversals.get());
 
@@ -206,37 +262,29 @@ void profile(Stream &groups_stream,
       debug("Constructions per run:", options.num_cycles);
   }
 
-  foreach_line(groups_stream.stream, [&](std::string const &line, unsigned lineno){
-    auto group(parse_group(line));
+  if (options.groups_input) {
+    foreach_line(instream.stream, [&](std::string const &line, unsigned lineno){
+      auto group(parse_group(line));
 
-    if (options.verbose) {
-      info("Constructing group", lineno);
-      info("=> degree", group.degree);
-      info("=> orders", group.order);
-      info("=> generators", group.generators);
-    } else {
-      info("Constructing group", lineno);
-    }
-
-    auto ts = run(group.degree, group.generators, options);
-
-    double t_mean, t_stddev;
-    util::mean_stddev(ts, &t_mean, &t_stddev);
-
-    result("Mean:", t_mean, "s");
-    result("Stddev:", t_stddev, "s");
-
-    if (options.verbose) {
-      debug_progress_done();
-
-      if (options.library.is("mpsym")) {
-        debug("Timer dumps:");
-        debug_timer_dump("strip");
-        debug_timer_dump("extend base");
-        debug_timer_dump("update strong gens");
+      if (options.verbose) {
+        info("Constructing group", lineno);
+        info("=> degree", group.degree);
+        info("=> orders", group.order);
+        info("=> generators", group.generators);
+      } else {
+        info("Constructing group", lineno);
       }
-    }
-  });
+
+      profile_loop(std::bind(run_groups, group.degree, group.generators, _1),
+                   options);
+    });
+
+  } else if (options.arch_graph_input) {
+    info("Constructing automorphism group");
+
+    profile_loop(std::bind(run_arch_graph, read_file(instream.stream), _1),
+                 options);
+  }
 }
 
 } // namespace
@@ -249,7 +297,9 @@ int main(int argc, char **argv)
     {"help",                no_argument,       0,       'h'},
     {"implementation",      required_argument, 0,       'i'},
     {"schreier-sims",       required_argument, 0,       's'},
-    {"transversal-storage", required_argument, 0,       't'},
+    {"transversals",        required_argument, 0,       't'},
+    {"groups",              no_argument,       0,       'g'},
+    {"arch-graph",          no_argument,       0,       'a'},
     {"num-cyles",           required_argument, 0,       'c'},
     {"num-runs",            required_argument, 0,       'r'},
     {"verbose",             no_argument,       0,       'v'},
@@ -259,10 +309,10 @@ int main(int argc, char **argv)
 
   ProfileOptions options;
 
-  Stream groups_stream;
+  Stream instream;
 
   for (;;) {
-    int c = getopt_long(argc, argv, "hi:s:t:r:c:v", long_options, nullptr);
+    int c = getopt_long(argc, argv, "hi:s:t:g:a:c:r:v", long_options, nullptr);
     if (c == -1)
       break;
 
@@ -272,13 +322,21 @@ int main(int argc, char **argv)
         usage(std::cout);
         return EXIT_SUCCESS;
       case 'i':
-        options.library.set(optarg);
+        options.implementation.set(optarg);
         break;
       case 's':
         options.schreier_sims.set(optarg);
         break;
       case 't':
         options.transversals.set(optarg);
+        break;
+      case 'g':
+        OPEN_STREAM(instream, optarg);
+        options.groups_input = true;
+        break;
+      case 'a':
+        OPEN_STREAM(instream, optarg);
+        options.arch_graph_input = true;
         break;
       case 'c':
         options.num_cycles = stox<unsigned>(optarg);
@@ -302,21 +360,20 @@ int main(int argc, char **argv)
     }
   }
 
-  CHECK_OPTION(options.library.is_set(),
+  CHECK_OPTION(options.implementation.is_set(),
                "--implementation option is mandatory");
 
-  CHECK_OPTION((options.library.is("gap") || options.schreier_sims.is_set()),
+  CHECK_OPTION((options.implementation.is("gap") || options.schreier_sims.is_set()),
                "--schreier-sims option is mandatory when not using gap");
 
-  CHECK_OPTION((options.library.is("gap") || options.transversals.is_set()),
+  CHECK_OPTION((options.implementation.is("gap") || options.transversals.is_set()),
                "--transversal-storage option is mandatory when not using gap");
 
-  CHECK_ARGUMENT("GROUPS");
-
-  OPEN_STREAM(groups_stream, argv[optind]);
+  CHECK_OPTION(options.groups_input != options.arch_graph_input,
+               "EITHER --arch-graph OR --groups must be given");
 
   try {
-    profile(groups_stream, options);
+    profile(instream, options);
   } catch (std::exception const &e) {
     error("profiling failed:", e.what());
     return EXIT_FAILURE;
