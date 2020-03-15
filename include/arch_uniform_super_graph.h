@@ -17,11 +17,11 @@ namespace cgtl
 class ArchUniformSuperGraph : public ArchGraphSystem
 {
 public:
-  void set_subsystem_super_graph(std::shared_ptr<ArchGraphSystem> super_graph)
-  { _subsystem_super_graph = super_graph; }
-
-  void set_subsystem_proto(std::shared_ptr<ArchGraphSystem> proto)
-  { _subsystem_proto = proto; }
+  ArchUniformSuperGraph(std::shared_ptr<ArchGraphSystem> super_graph,
+                        std::shared_ptr<ArchGraphSystem> proto)
+  : _subsystem_super_graph(super_graph),
+    _subsystem_proto(proto)
+  {}
 
   unsigned num_processors() const override;
   unsigned num_channels() const override;

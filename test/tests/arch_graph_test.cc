@@ -521,20 +521,20 @@ protected:
 private:
   void construct_minimal() {
     // construct uniform super_graph
-    auto super(std::make_shared<ArchGraph>());
+    auto super_graph(std::make_shared<ArchGraph>());
 
-    auto sp = super->new_processor_type();
-    auto sc = super->new_channel_type();
+    auto sp = super_graph->new_processor_type();
+    auto sc = super_graph->new_channel_type();
 
-    auto spe1 = super->add_processor(sp);
-    auto spe2 = super->add_processor(sp);
-    auto spe3 = super->add_processor(sp);
-    auto spe4 = super->add_processor(sp);
+    auto spe1 = super_graph->add_processor(sp);
+    auto spe2 = super_graph->add_processor(sp);
+    auto spe3 = super_graph->add_processor(sp);
+    auto spe4 = super_graph->add_processor(sp);
 
-    super->add_channel(spe1, spe2, sc);
-    super->add_channel(spe2, spe3, sc);
-    super->add_channel(spe3, spe4, sc);
-    super->add_channel(spe4, spe1, sc);
+    super_graph->add_channel(spe1, spe2, sc);
+    super_graph->add_channel(spe2, spe3, sc);
+    super_graph->add_channel(spe3, spe4, sc);
+    super_graph->add_channel(spe4, spe1, sc);
 
     // construct subsystem prototype
     auto proto(std::make_shared<ArchGraph>());
@@ -550,9 +550,8 @@ private:
     proto->add_channel(pe2, pe3, c);
     proto->add_channel(pe3, pe1, c);
 
-    super_graph_minimal = std::make_shared<ArchUniformSuperGraph>();
-    super_graph_minimal->set_subsystem_super_graph(super);
-    super_graph_minimal->set_subsystem_proto(proto);
+    super_graph_minimal =
+      std::make_shared<ArchUniformSuperGraph>(super_graph, proto);
   }
 };
 

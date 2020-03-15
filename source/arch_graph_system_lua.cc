@@ -301,17 +301,15 @@ std::shared_ptr<cgtl::ArchGraphCluster> lua_make_arch_graph_cluster(
 std::shared_ptr<cgtl::ArchUniformSuperGraph> lua_make_arch_uniform_super_graph(
   lua_State *L)
 {
-  auto ausg(std::make_shared<cgtl::ArchUniformSuperGraph>());
-
   lua_getfield(L, -1, "super_graph");
-  ausg->set_subsystem_super_graph(lua_make_arch_graph_system(L));
+  auto super_graph(lua_make_arch_graph_system(L));
   lua_pop(L, 1);
 
   lua_getfield(L, -1, "proto");
-  ausg->set_subsystem_proto(lua_make_arch_graph_system(L));
+  auto proto(lua_make_arch_graph_system(L));
   lua_pop(L, 1);
 
-  return ausg;
+  return std::make_shared<cgtl::ArchUniformSuperGraph>(super_graph, proto);
 }
 
 std::shared_ptr<cgtl::ArchGraphSystem> lua_make_arch_graph_system(lua_State *L)
