@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "arch_graph_system.h"
+#include "bsgs.h"
 #include "partial_perm_inverse_semigroup.h"
 #include "perm_group.h"
 #include "task_allocation.h"
@@ -32,7 +33,7 @@ public:
                          TaskOrbits *orbits = nullptr) override;
 
 private:
-  PermGroup update_automorphisms() override;
+  PermGroup update_automorphisms(BSGS::Options const *bsgs_options) override;
 
   std::vector<std::shared_ptr<ArchGraphSystem>> _subsystems;
 };

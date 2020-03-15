@@ -130,7 +130,7 @@ top:
 }
 
 void BSGS::schreier_sims_random(PermSet const &generators,
-                                Options const &options)
+                                Options const *options)
 {
   DBG(TRACE) << "Executing (random) schreier sims algorithm";
 
@@ -139,7 +139,7 @@ void BSGS::schreier_sims_random(PermSet const &generators,
   std::vector<PermSet> strong_generators;
   std::vector<Orbit> fundamental_orbits;
 
-  if (!options.schreier_sims_random_guarantee) {
+  if (!options->schreier_sims_random_guarantee) {
     schreier_sims_init(generators, strong_generators, fundamental_orbits);
     schreier_sims_random(strong_generators, fundamental_orbits, options);
 
@@ -147,13 +147,13 @@ void BSGS::schreier_sims_random(PermSet const &generators,
     // run algorithm (possible repeatedly) until correctness has been achieved
     bool correct = false;
 
-    for (unsigned i = 0u; i <= options.schreier_sims_random_retries; ++i) {
+    for (unsigned i = 0u; i <= options->schreier_sims_random_retries; ++i) {
       schreier_sims_init(generators, strong_generators, fundamental_orbits);
       schreier_sims_random(strong_generators, fundamental_orbits, options);
 
       // we assume that if the BSGS is correct if it has the correct order
-      if (options.schreier_sims_random_known_order > 0ULL
-          && order() == options.schreier_sims_random_known_order) {
+      if (options->schreier_sims_random_known_order > 0ULL
+          && order() == options->schreier_sims_random_known_order) {
         correct = true;
         break;
       }
@@ -177,13 +177,13 @@ void BSGS::schreier_sims_random(PermSet const &generators,
 
 void BSGS::schreier_sims_random(std::vector<PermSet> &strong_generators,
                                 std::vector<Orbit> &fundamental_orbits,
-                                Options const &options)
+                                Options const *options)
 {
   // random group element generator
   PrRandomizer pr(_strong_generators);
 
   unsigned c = 0u;
-  while (c < options.schreier_sims_random_w) {
+  while (c < options->schreier_sims_random_w) {
     // generate random group element
     Perm rand_perm = pr.next();
     DBG(TRACE) << "Random group element: " << rand_perm;

@@ -3,6 +3,7 @@
 
 #include "arch_graph_system.h"
 #include "arch_uniform_super_graph.h"
+#include "bsgs.h"
 
 namespace cgtl
 {
@@ -23,11 +24,12 @@ ArchUniformSuperGraph::num_channels() const
 }
 
 PermGroup
-ArchUniformSuperGraph::update_automorphisms()
+ArchUniformSuperGraph::update_automorphisms(BSGS::Options const *bsgs_options)
 {
-  // TODO: swap???
   return PermGroup::wreath_product(
-    _subsystem_proto->automorphisms(), _subsystem_super_graph->automorphisms());
+    _subsystem_proto->automorphisms(bsgs_options),
+    _subsystem_super_graph->automorphisms(bsgs_options),
+    bsgs_options);
 }
 
 } // namespace cgtl

@@ -53,12 +53,9 @@ BSGS::BSGS(unsigned degree, PermSet const &generators, Options const *options_)
 
   generators.assert_degree(degree);
 
-  Options options;
+  auto options(Options::fill_defaults(options_));
 
-  if (options_)
-    options = *options_;
-
-  switch (options.transversals) {
+  switch (options->transversals) {
     case Transversals::EXPLICIT:
       _transversals = std::make_shared<BSGSTransversals<ExplicitTransversals>>();
       break;
@@ -72,7 +69,7 @@ BSGS::BSGS(unsigned degree, PermSet const &generators, Options const *options_)
   DBG(DEBUG) << "=== Constructing BSGS";
   DBG(DEBUG) << "Generators: " << generators;
 
-  if (options.check_altsym && degree > 8u) {
+  if (options->check_altsym && degree > 8u) {
     PrRandomizer pr(generators);
 
     if (pr.test_symmetric()) {
@@ -196,9 +193,9 @@ void BSGS::construct_alternating()
     update_schreier_structure(i, _strong_generators.subset(0, _degree - i - 2u));
 }
 
-void BSGS::construct_unknown(PermSet const &generators, Options const &options)
+void BSGS::construct_unknown(PermSet const &generators, Options const *options)
 {
-  switch (options.construction) {
+  switch (options->construction) {
     case Construction::SCHREIER_SIMS:
       schreier_sims(generators);
       break;
@@ -210,7 +207,7 @@ void BSGS::construct_unknown(PermSet const &generators, Options const &options)
       break;
   }
 
-  if (options.reduce_gens)
+  if (options->reduce_gens)
     reduce_gens();
 }
 

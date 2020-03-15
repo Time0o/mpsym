@@ -7,6 +7,7 @@
 
 #include "arch_graph.h"
 #include "arch_graph_system.h"
+#include "bsgs.h"
 #include "partial_perm_inverse_semigroup.h"
 #include "perm_group.h"
 
@@ -26,7 +27,7 @@ public:
   unsigned num_channels() const override;
 
 private:
-  PermGroup update_automorphisms() override;
+  PermGroup update_automorphisms(BSGS::Options const *bsgs_options) override;
 
   std::shared_ptr<ArchGraphSystem> _subsystem_super_graph;
   std::shared_ptr<ArchGraphSystem> _subsystem_proto;

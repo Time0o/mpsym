@@ -1,6 +1,7 @@
 #include <vector>
 
 #include "arch_graph.h"
+#include "bsgs.h"
 #include "nauty.h"
 #include "perm_set.h"
 
@@ -31,7 +32,8 @@ void nauty_free()
 namespace cgtl
 {
 
-PermGroup ArchGraph::update_automorphisms_nauty()
+PermGroup ArchGraph::update_automorphisms_nauty(
+  BSGS::Options const *bsgs_options)
 {
   // allocate nauty structures
   DYNALLSTAT(graph, g, g_sz);
@@ -132,7 +134,7 @@ PermGroup ArchGraph::update_automorphisms_nauty()
 
   nauty_free();
 
-  return PermGroup(nauty_generator_degree, nauty_generators);
+  return PermGroup(BSGS(nauty_generator_degree, nauty_generators, bsgs_options));
 }
 
 } // namespace cgtl

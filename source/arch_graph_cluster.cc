@@ -4,6 +4,7 @@
 
 #include "arch_graph_cluster.h"
 #include "arch_graph_system.h"
+#include "bsgs.h"
 #include "dbg.h"
 #include "task_orbits.h"
 
@@ -36,15 +37,17 @@ ArchGraphCluster::num_subsystems() const
 
 
 PermGroup
-ArchGraphCluster::update_automorphisms()
+ArchGraphCluster::update_automorphisms(BSGS::Options const *bsgs_options)
 {
   assert(!_subsystems.empty());
 
   std::vector<PermGroup> automorphisms(_subsystems.size());
   for (auto i = 0u; i < _subsystems.size(); ++i)
-    automorphisms[i] = _subsystems[i]->automorphisms();
+    automorphisms[i] = _subsystems[i]->automorphisms(bsgs_options);
 
-  return PermGroup::direct_product(automorphisms.begin(), automorphisms.end());
+  return PermGroup::direct_product(automorphisms.begin(),
+                                   automorphisms.end(),
+                                   bsgs_options);
 }
 
 TaskAllocation

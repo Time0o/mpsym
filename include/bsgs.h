@@ -71,6 +71,12 @@ public:
 
   struct Options
   {
+    static Options const *fill_defaults(Options const *options)
+    {
+      static Options default_options;
+      return options ? options : &default_options;
+    }
+
     Construction construction = Construction::SCHREIER_SIMS_RANDOM;
     Transversals transversals = Transversals::EXPLICIT;
     bool check_altsym = true;
@@ -116,7 +122,7 @@ public:
 private:
   void construct_symmetric();
   void construct_alternating();
-  void construct_unknown(PermSet const &generators, Options const &options);
+  void construct_unknown(PermSet const &generators, Options const *options);
 
   // schreier sims initialization
   void schreier_sims(PermSet const &generators);
@@ -125,11 +131,11 @@ private:
                      std::vector<Orbit> &fundamental_orbits);
 
   void schreier_sims_random(PermSet const &generators,
-                            Options const &options);
+                            Options const *options);
 
   void schreier_sims_random(std::vector<PermSet> &strong_generators,
                             std::vector<Orbit> &fundamental_orbits,
-                            Options const &options);
+                            Options const *options);
 
   void schreier_sims_init(PermSet const &generators,
                           std::vector<PermSet> &strong_generators,

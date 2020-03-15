@@ -16,6 +16,7 @@
 
 #include "arch_graph.h"
 #include "arch_graph_system.h"
+#include "bsgs.h"
 #include "dbg.h"
 #include "dump.h"
 #include "partial_perm.h"
@@ -73,8 +74,8 @@ unsigned ArchGraph::num_processors() const
 unsigned ArchGraph::num_channels() const
 { return static_cast<unsigned>(boost::num_edges(_adj)); }
 
-PermGroup ArchGraph::update_automorphisms()
-{ return update_automorphisms_nauty(); }
+PermGroup ArchGraph::update_automorphisms(BSGS::Options const *bsgs_options)
+{ return update_automorphisms_nauty(bsgs_options); }
 
 bool ArchGraph::is_partial_automorphism(
   PartialPerm const &pperm) const

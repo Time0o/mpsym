@@ -158,7 +158,9 @@ public:
 
   /// TODO
   template<typename IT>
-  static PermGroup direct_product(IT first, IT last)
+  static PermGroup direct_product(IT first,
+                                  IT last,
+                                  BSGS::Options const *bsgs_options = nullptr)
   {
     assert(std::distance(first, last) > 0);
 
@@ -178,7 +180,7 @@ public:
 
     generators.minimize_degree();
 
-    return PermGroup(generators.degree(), generators);
+    return PermGroup(BSGS(total_degree, generators, bsgs_options));
   }
 
   /** Compute the wreath product of two permutation groups.
@@ -189,7 +191,9 @@ public:
    *
    * \return the permutation group wreath product of `lhs` and `rhs`
    */
-  static PermGroup wreath_product(PermGroup const &lhs, PermGroup const &rhs);
+  static PermGroup wreath_product(PermGroup const &lhs,
+                                  PermGroup const &rhs,
+                                  BSGS::Options const *bsgs_options = nullptr);
 
   /** Obtain a constant iterator iterating over this group's elements.
    *

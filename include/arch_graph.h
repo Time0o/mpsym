@@ -9,6 +9,7 @@
 #include <boost/graph/adjacency_list.hpp>
 
 #include "arch_graph_system.h"
+#include "bsgs.h"
 #include "partial_perm.h"
 #include "partial_perm_inverse_semigroup.h"
 #include "perm_group.h"
@@ -72,8 +73,8 @@ public:
   PartialPermInverseSemigroup partial_automorphisms() override;
 
 private:
-  PermGroup update_automorphisms() override;
-  PermGroup update_automorphisms_nauty();
+  PermGroup update_automorphisms(BSGS::Options const *bsgs_options) override;
+  PermGroup update_automorphisms_nauty(BSGS::Options const *bsgs_options);
 
   bool is_partial_automorphism(PartialPerm const &pperm) const;
 

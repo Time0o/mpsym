@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "bsgs.h"
 #include "partial_perm_inverse_semigroup.h"
 #include "perm_group.h"
 #include "task_allocation.h"
@@ -34,10 +35,10 @@ public:
   virtual unsigned num_channels() const
   { throw std::logic_error("not implemented"); }
 
-  virtual PermGroup automorphisms()
+  virtual PermGroup automorphisms(BSGS::Options const *bsgs_options = nullptr)
   {
     if (!_automorphisms_valid) {
-      _automorphisms = update_automorphisms();
+      _automorphisms = update_automorphisms(bsgs_options);
       _automorphisms_valid = true;
     }
 
@@ -68,7 +69,7 @@ protected:
   { _automorphisms_valid = false; }
 
 private:
-  virtual PermGroup update_automorphisms() = 0;
+  virtual PermGroup update_automorphisms(BSGS::Options const *bsgs_options) = 0;
 
   TaskAllocation min_elem_iterate(TaskAllocation const &tasks,
                                   unsigned offset,

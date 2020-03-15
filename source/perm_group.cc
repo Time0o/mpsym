@@ -147,9 +147,10 @@ PermGroup PermGroup::dihedral(unsigned degree)
   return PermGroup(degree / 2u, {Perm(rotation), Perm(reflection)});
 }
 
-PermGroup PermGroup::wreath_product(PermGroup const &lhs_, PermGroup const &rhs_)
+PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
+                                    PermGroup const &rhs_,
+                                    BSGS::Options const *bsgs_options_)
 {
-  using boost::multiprecision::cpp_int;
   using boost::multiprecision::pow;
 
   auto lhs(lhs_.generators());
@@ -193,12 +194,6 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_, PermGroup const &rhs_
     generators.emplace(degree, shifted_cycles);
   }
 
-  // because of the potentially very large size of the generating set the
-  // classic Schreier Sims algorithm is way too slow to generate a BSGS for
-  // most wreath products so we need to make use of the Random Schreier Sims
-  // algorithm, guaranteeing correctness via our knowledge of the expected
-  // order of the resulting group.
-
   auto wreath_product_order = [&]() {
     auto lhs_order(lhs_.order());
     auto rhs_order(rhs_.order());
@@ -209,12 +204,8 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_, PermGroup const &rhs_
     return pow(lhs_order, static_cast<unsigned>(rhs_order)) * rhs_order;
   };
 
-  BSGS::Options bsgs_options;
-  bsgs_options.construction = BSGS::Construction::SCHREIER_SIMS_RANDOM;
-  bsgs_options.schreier_sims_random_guarantee = true;
-  cpp_int known_order = wreath_product_order();
-  bsgs_options.schreier_sims_random_known_order = known_order;
-  bsgs_options.schreier_sims_random_retries = 99u;
+  auto bsgs_options(*BSGS::Options::fill_defaults(bsgs_options_));
+  bsgs_options.schreier_sims_random_known_order = wreath_product_order();
 
   return PermGroup(BSGS(degree, generators, &bsgs_options));
 }
