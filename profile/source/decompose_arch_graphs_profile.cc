@@ -101,7 +101,7 @@ decompose_cluster_wrapper(std::shared_ptr<cgtl::ArchGraphCluster> ag,
     info("Checking accuracy...");
 
     auto reconstruction(
-      PermGroup::group_union(decomposition.begin(), decomposition.end()));
+      PermGroup::direct_product(decomposition.begin(), decomposition.end()));
 
     if (reconstruction != ag->automorphisms())
       info("Decomposition is incorrect");

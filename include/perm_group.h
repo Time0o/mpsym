@@ -158,22 +158,6 @@ public:
 
   /// TODO
   template<typename IT>
-  static PermGroup group_union(IT first, IT last)
-  {
-    assert(std::distance(first, last) > 0);
-
-    PermSet generator_union;
-    for (auto it = first; it != last; ++it) {
-      PermSet generators(it->generators());
-
-      generator_union.insert(generators.begin(), generators.end());
-    }
-
-    return PermGroup(generator_union.degree(), generator_union);
-  }
-
-  /// TODO
-  template<typename IT>
   static PermGroup direct_product(IT first, IT last)
   {
     assert(std::distance(first, last) > 0);
@@ -192,7 +176,9 @@ public:
       current_degree += it->degree();
     }
 
-    return PermGroup(total_degree, generators);
+    generators.minimize_degree();
+
+    return PermGroup(generators.degree(), generators);
   }
 
   /** Compute the wreath product of two permutation groups.
