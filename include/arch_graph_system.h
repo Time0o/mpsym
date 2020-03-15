@@ -2,6 +2,7 @@
 #define _GUARD_ARCH_GRAPH_SYSTEM_H
 
 #include <memory>
+#include <string>
 
 #include "bsgs.h"
 #include "partial_perm_inverse_semigroup.h"
@@ -28,6 +29,8 @@ public:
   };
 
   static std::shared_ptr<ArchGraphSystem> from_lua(std::string const &lua);
+
+  virtual std::string to_gap() const = 0;
 
   virtual unsigned num_processors() const
   { throw std::logic_error("not implemented"); }

@@ -1,5 +1,6 @@
 #include <cassert>
 #include <memory>
+#include <string>
 
 #include "arch_graph_system.h"
 #include "arch_uniform_super_graph.h"
@@ -7,6 +8,13 @@
 
 namespace cgtl
 {
+
+std::string
+ArchUniformSuperGraph::to_gap() const
+{
+  return "StandardWreathProduct("
+    + _subsystem_super_graph->to_gap() + "," + _subsystem_proto->to_gap() + ")";
+}
 
 unsigned
 ArchUniformSuperGraph::num_processors() const

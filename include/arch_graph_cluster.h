@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -19,6 +20,8 @@ namespace cgtl
 class ArchGraphCluster : public ArchGraphSystem
 {
 public:
+  std::string to_gap() const override;
+
   // TODO: detect equivalent subsystems?
   void add_subsystem(std::shared_ptr<ArchGraphSystem> subsystem)
   { _subsystems.push_back(subsystem); }

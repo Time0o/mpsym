@@ -61,6 +61,8 @@ public:
                               ProcessorLabel pl = DEFAULT_PROCESSOR_LABEL,
                               ChannelLabel cl = DEFAULT_CHANNEL_LABEL);
 
+  std::string to_gap() const override;
+
   ProcessorType new_processor_type(ProcessorLabel pl = DEFAULT_PROCESSOR_LABEL);
   ChannelType new_channel_type(ChannelLabel cl = DEFAULT_CHANNEL_LABEL);
 

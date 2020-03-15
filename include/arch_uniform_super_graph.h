@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "arch_graph.h"
@@ -22,6 +23,8 @@ public:
   : _subsystem_super_graph(super_graph),
     _subsystem_proto(proto)
   {}
+
+  std::string to_gap() const override;
 
   unsigned num_processors() const override;
   unsigned num_channels() const override;

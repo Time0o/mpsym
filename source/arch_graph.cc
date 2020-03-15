@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <fstream>
 #include <functional>
+#include <iterator>
 #include <ostream>
 #include <set>
 #include <stdexcept>
@@ -28,6 +29,30 @@
 
 namespace cgtl
 {
+
+std::string ArchGraph::to_gap() const
+{
+  std::stringstream ss;
+
+  typename boost::graph_traits<adjacency_type>::edge_iterator ei, ei_end;
+
+  ss << "AutGroupGraph(EdgeOrbitsGraph(Group(()),[";
+
+  for (std::tie(ei, ei_end) = boost::edges(_adj); ei != ei_end; ++ei) {
+    auto source = boost::source(*ei, _adj) + 1;
+    auto target = boost::target(*ei, _adj) + 1;
+
+    ss << "[" << source << "," << target << "],"
+       << "[" << target << "," << source << "]";
+
+    if (std::next(ei) != ei_end)
+      ss << ",";
+  }
+
+  ss << "]," << boost::num_vertices(_adj) << "))";
+
+  return ss.str();
+}
 
 ArchGraph::ProcessorType ArchGraph::new_processor_type(ProcessorLabel pl)
 {

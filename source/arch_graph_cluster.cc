@@ -1,5 +1,7 @@
 #include <cassert>
 #include <memory>
+#include <sstream>
+#include <string>
 #include <vector>
 
 #include "arch_graph_cluster.h"
@@ -10,6 +12,22 @@
 
 namespace cgtl
 {
+
+std::string
+ArchGraphCluster::to_gap() const
+{
+  if (_subsystems.empty())
+    return "()";
+
+  std::stringstream ss;
+
+  ss << "DirectProduct(" << _subsystems[0];
+  for (auto i = 1u; i < _subsystems.size(); ++i)
+    ss << "," << _subsystems[i];
+  ss << ")";
+
+  return ss.str();
+}
 
 unsigned
 ArchGraphCluster::num_processors() const
