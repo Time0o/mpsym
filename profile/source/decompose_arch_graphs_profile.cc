@@ -201,23 +201,23 @@ profile(Stream &arch_graphs_stream,
   foreach_line(arch_graphs_stream.stream,
                [&](std::string const &line, unsigned lineno){
 
-    auto ag(parse_arch_graph_system(line));
+    throw std::logic_error("TODO");
 
-    if (options.verbose) {
-      info("Decomposing graph", lineno);
-      info("=>", ag->num_processors(), "processors");
-    } else {
-      info("Decomposing graph", lineno);
-    }
-
-    if (options.verbose)
-      info("Constructing automorphism group");
-
-    (void)ag->automorphisms();
-
-    double t = run(ag, options);
-
-    result("Runtime:", t, "s");
+//    if (options.verbose) {
+//      info("Decomposing graph", lineno);
+//      info("=>", ag->num_processors(), "processors");
+//    } else {
+//      info("Decomposing graph", lineno);
+//    }
+//
+//    if (options.verbose)
+//      info("Constructing automorphism group");
+//
+//    (void)ag->automorphisms();
+//
+//    double t = run(ag, options);
+//
+//    result("Runtime:", t, "s");
   });
 }
 

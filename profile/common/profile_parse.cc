@@ -178,66 +178,6 @@ split_task_allocations(std::string const &task_allocations_str,
   return {min_pe, max_pe, task_allocations};
 }
 
-std::shared_ptr<cgtl::ArchGraphSystem> build_arch_graph_system(
-  boost::property_tree::ptree const &pt)
-{
-  using cgtl::ArchGraphAutomorphisms;
-  using cgtl::ArchGraphCluster;
-  using cgtl::ArchGraphSystem;
-  using cgtl::ArchUniformSuperGraph;
-  using cgtl::PermGroup;
-
-  // determine type of arch graph system to construct by first (and only) key in tree
-
-  if (pt.get_child_optional("component")) {
-    auto child(pt.get_child("component"));
-
-    // parse component automorphism group generators
-    unsigned degree = stox<unsigned>(child.begin()->second.data());
-
-    std::vector<std::string> gen_str;
-    for (auto it = child.begin(); it != child.end(); ++it)
-      gen_str.push_back(it->second.data());
-
-    auto generators(parse_generators_mpsym(degree, "[" + join(gen_str) + "]"));
-
-    // explicitly construct arch graph system from automorphism group
-    PermGroup automorphisms(degree, generators);
-
-    return std::make_shared<ArchGraphAutomorphisms>(automorphisms);
-
-  } else if (pt.get_child_optional("cluster")) {
-    auto cluster(std::make_shared<ArchGraphCluster>());
-
-    for (auto const &subsystem : pt.get_child("cluster"))
-       cluster->add_subsystem(build_arch_graph_system(subsystem.second));
-
-    return cluster;
-
-  } else if (pt.get_child_optional("super_graph")) {
-    auto child(pt.get_child("super_graph"));
-
-    auto super_graph_it(child.begin());
-    auto proto_it(child.begin()); ++proto_it;
-
-    if (std::distance(child.begin(), child.end()) != 2)
-      throw std::invalid_argument("super_graph must be composed of two components");
-
-    auto super_graph(std::make_shared<ArchUniformSuperGraph>());
-
-    super_graph->set_subsystem_super_graph(
-      build_arch_graph_system(super_graph_it->second));
-
-    super_graph->set_subsystem_proto(
-      build_arch_graph_system(proto_it->second));
-
-    return super_graph;
-
-  } else {
-    throw std::invalid_argument("malformed arch graph system description");
-  }
-}
-
 } // namespace
 
 GenericGroup parse_group(std::string const &group_str)
@@ -325,21 +265,4 @@ cgtl::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
   return {std::get<0>(task_allocations),
           std::get<1>(task_allocations),
           std::get<2>(task_allocations)};
-}
-
-std::shared_ptr<cgtl::ArchGraphSystem> parse_arch_graph_system(
-  std::string const &arch_graph_str)
-{
-  // read json arch graph description
-  std::stringstream ss(arch_graph_str);
-
-  boost::property_tree::ptree pt;
-
-  try {
-    boost::property_tree::read_json(ss, pt);
-  } catch (std::exception const &) {
-    throw std::invalid_argument("failed to parse json arch graph description");
-  }
-
-  return build_arch_graph_system(pt);
 }

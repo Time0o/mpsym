@@ -70,7 +70,4 @@ cgtl::TaskAllocationVector parse_task_allocations_mpsym(
 cgtl::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
   std::string const &gap_output_str);
 
-std::shared_ptr<cgtl::ArchGraphSystem> parse_arch_graph_system(
-  std::string const &arch_graph_str);
-
 #endif // _GUARD_PROFILE_PARSE_H
