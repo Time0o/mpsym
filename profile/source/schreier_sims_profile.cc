@@ -39,10 +39,12 @@ void usage(std::ostream &s)
   char const *opts[] = {
     "[-h|--help]",
     "-i|--implementation  {gap|mpsym|permlib}",
-    "[-s|--schreier-sims] {deterministic|random}",
+    "[-s|--schreier-sims] {deterministic|random|random-no-guarantee}",
     "[-t|--transversals]  {explicit|schreier-trees|shallow-schreier-trees}",
-    "-g|--groups GROUPS"
-    "-a|--arch-graph ARCH_GRAPH",
+    "[--check-altsym]",
+    "[--no-reduce-gens]",
+    "[-g|--groups GROUPS]",
+    "[-a|--arch-graph ARCH_GRAPH]",
     "[-c|--num-cycles]",
     "[-r|--num-runs]",
     "[-v|--verbose]",
@@ -57,8 +59,10 @@ void usage(std::ostream &s)
 struct ProfileOptions
 {
   VariantOption implementation{"gap", "mpsym", "permlib"};
-  VariantOption schreier_sims{"deterministic", "random"};
+  VariantOption schreier_sims{"deterministic", "random", "random-no-guarantee"};
   VariantOption transversals{"explicit", "schreier-trees", "shallow-schreier-trees"};
+  bool check_altsym = false;
+  bool no_reduce_gens = false;
   bool groups_input = false;
   bool arch_graph_input = false;
   unsigned num_cycles = 1u;
@@ -66,6 +70,41 @@ struct ProfileOptions
   bool verbose = false;
   bool show_gap_errors = false;
 };
+
+cgtl::BSGS::Options bsgs_options_mpsym(ProfileOptions const &options)
+{
+  using cgtl::BSGS;
+
+  BSGS::Options bsgs_options;
+
+  if (options.schreier_sims.is("deterministic")) {
+    bsgs_options.construction = BSGS::Construction::SCHREIER_SIMS;
+  } else if (options.schreier_sims.is("random")) {
+    bsgs_options.construction = BSGS::Construction::SCHREIER_SIMS_RANDOM;
+  } else if (options.schreier_sims.is("random-no-guarantee")) {
+    bsgs_options.construction = BSGS::Construction::SCHREIER_SIMS_RANDOM;
+    bsgs_options.schreier_sims_random_guarantee = false;
+  } else {
+    throw std::logic_error("unreachable");
+  }
+
+  if (options.transversals.is("explicit"))
+    bsgs_options.transversals = BSGS::Transversals::EXPLICIT;
+  else if (options.transversals.is("schreier-trees"))
+    bsgs_options.transversals = BSGS::Transversals::SCHREIER_TREES;
+  else if (options.transversals.is("shallow-schreier-trees"))
+    bsgs_options.transversals = BSGS::Transversals::SHALLOW_SCHREIER_TREES;
+  else
+    throw std::logic_error("unreachable");
+
+  if (options.check_altsym)
+    bsgs_options.check_altsym = true;
+
+  if (options.no_reduce_gens)
+    bsgs_options.reduce_gens = false;
+
+  return bsgs_options;
+}
 
 std::string make_perm_group_gap(gap::PermSet const &generators,
                                 ProfileOptions const &options)
@@ -85,23 +124,7 @@ void make_perm_group_mpsym(cgtl::PermSet const &generators,
   using cgtl::PermGroup;
   using cgtl::PermSet;
 
-  BSGS::Options bsgs_options;
-
-  if (options.schreier_sims.is("deterministic"))
-    bsgs_options.construction = BSGS::Construction::SCHREIER_SIMS;
-  else if (options.schreier_sims.is("random"))
-    bsgs_options.construction = BSGS::Construction::SCHREIER_SIMS_RANDOM;
-  else
-    throw std::logic_error("unreachable");
-
-  if (options.transversals.is("explicit"))
-    bsgs_options.transversals = BSGS::Transversals::EXPLICIT;
-  else if (options.transversals.is("schreier-trees"))
-    bsgs_options.transversals = BSGS::Transversals::SCHREIER_TREES;
-  else if (options.transversals.is("shallow-schreier-trees"))
-    bsgs_options.transversals = BSGS::Transversals::SHALLOW_SCHREIER_TREES;
-  else
-    throw std::logic_error("unreachable");
+  auto bsgs_options(bsgs_options_mpsym(options));
 
   for (unsigned i = 0u; i < options.num_cycles; ++i)
     PermGroup g(BSGS(generators.degree(), generators, &bsgs_options));
@@ -193,23 +216,38 @@ double run_groups(unsigned degree,
 double run_arch_graph(std::string const &arch_graph,
                       ProfileOptions const &options)
 {
-  // TODO: BSGS options
   using cgtl::ArchGraphSystem;
+  using cgtl::PermSet;
 
   double t = 0.0;
 
-  if (options.implementation.is("gap")) {
-    throw std::logic_error("TODO");
+  auto ag(ArchGraphSystem::from_lua(arch_graph));
 
-  } else if (options.implementation.is("mpsym")) {
-    auto ag(ArchGraphSystem::from_lua(arch_graph));
-
-    run_cpp([&]{ ag->automorphisms(); }, &t);
-
+  auto dump_automorphisms_generators =
+    [&](PermSet const &automorphisms_generators)
+  {
     if (options.verbose) {
       info("Automorphism generators are:");
-      info(ag->automorphisms_generators());
+      info(automorphisms_generators);
     }
+  };
+
+  if (options.implementation.is("gap")) {
+    auto gap_script("LoadPackage(\"grape\");\n"
+                    "Print(GeneratorsOfGroup(" + ag->to_gap() + "), \"\\n\");\n");
+
+    auto automorphisms_generators_gap(
+      compress_gap_output(run_gap(gap_script, true, !options.show_gap_errors, &t)));
+
+    dump_automorphisms_generators(
+      parse_generators_mpsym(ag->num_processors(), automorphisms_generators_gap));
+
+  } else if (options.implementation.is("mpsym")) {
+    auto bsgs_options(bsgs_options_mpsym(options));
+
+    run_cpp([&]{ ag->automorphisms(&bsgs_options); }, &t);
+
+    dump_automorphisms_generators(ag->automorphisms_generators());
 
   } else if (options.implementation.is("permlib")) {
     throw std::logic_error("graph autormorphisms not supported by permlib");
@@ -298,12 +336,14 @@ int main(int argc, char **argv)
     {"implementation",      required_argument, 0,       'i'},
     {"schreier-sims",       required_argument, 0,       's'},
     {"transversals",        required_argument, 0,       't'},
+    {"check-altsym",        no_argument,       0,        1 },
+    {"no-reduce-gens",      no_argument,       0,        2 },
     {"groups",              no_argument,       0,       'g'},
     {"arch-graph",          no_argument,       0,       'a'},
     {"num-cyles",           required_argument, 0,       'c'},
     {"num-runs",            required_argument, 0,       'r'},
     {"verbose",             no_argument,       0,       'v'},
-    {"show-gap-errors",     no_argument,       0,        1 },
+    {"show-gap-errors",     no_argument,       0,        3 },
     {nullptr,               0,                 nullptr,  0 }
   };
 
@@ -330,6 +370,12 @@ int main(int argc, char **argv)
       case 't':
         options.transversals.set(optarg);
         break;
+      case 1:
+        options.check_altsym = true;
+        break;
+      case 2:
+        options.no_reduce_gens = true;
+        break;
       case 'g':
         OPEN_STREAM(instream, optarg);
         options.groups_input = true;
@@ -348,7 +394,7 @@ int main(int argc, char **argv)
         options.verbose = true;
         TIMER_ENABLE();
         break;
-      case 1:
+      case 3:
         options.show_gap_errors = true;
         break;
       default:
