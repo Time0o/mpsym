@@ -1,5 +1,6 @@
 #include <cstring>
 #include <ostream>
+#include <string>
 #include <sstream>
 #include <vector>
 
@@ -8,13 +9,20 @@
 
 void debug_timer_dump(char const *timer)
 {
+  if (!TIMER_EXISTS(timer)) {
+    debug("TIMER (" + std::string(timer) + "): never invoked");
+    return;
+  }
+
   std::ostream *os = TIMER_GET_OUT();
 
   std::stringstream ss;
   TIMER_SET_OUT(&ss);
 
   TIMER_DUMP(timer);
-  debug(ss.str());
+
+  auto str(ss.str());
+  debug(str.substr(0u, str.size() - 1u));
 
   TIMER_SET_OUT(os);
 }

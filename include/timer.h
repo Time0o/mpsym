@@ -43,6 +43,9 @@ public:
     _start(time())
   {}
 
+  static bool exists(char const *name)
+  { return _timers.find(name) != _timers.end(); }
+
   static void create(char const *name, Precision precision = SECONDS)
   {
     if (!exists(name))
@@ -111,9 +114,6 @@ public:
   }
 
 private:
-  static bool exists(char const *name)
-  { return _timers.find(name) != _timers.end(); }
-
   static std::map<std::string, Timer>::iterator find(char const *name)
   {
     auto it = _timers.find(name);
@@ -192,6 +192,8 @@ inline std::ostream &operator<<(std::ostream &s, Timer const &timer)
   TIMER_OP(timer::Timer::create(name); timer::Timer::get(name)->start())
 #define TIMER_STOP(name) \
   TIMER_OP(timer::Timer::get(name)->stop())
+#define TIMER_EXISTS(name) \
+  timer::Timer::exists(name)
 #define TIMER_DUMP(name) \
   TIMER_OP(*timer::Timer::out << *timer::Timer::get(name) << std::endl; \
            timer::Timer::destroy(name))
