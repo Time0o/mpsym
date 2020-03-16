@@ -28,10 +28,17 @@ namespace
 
 std::vector<std::string> split_generators(std::string const &gen_str)
 {
-  auto res(split(gen_str.substr(1, gen_str.size() - 2), "),"));
+  auto gen_first = gen_str.find('(');
+  auto gen_last = gen_str.rfind(')');
 
-  for (auto i = 0u; i < res.size() - 1u; ++i)
-    res[i] += ")";
+  auto gen_str_trimmed(gen_str.substr(gen_first, gen_last - gen_first + 1u));
+
+  auto res(split(gen_str_trimmed, "),"));
+
+  if (res.size() > 0u) {
+    for (auto i = 0u; i < res.size() - 1u; ++i)
+      res[i] += ")";
+  }
 
   return res;
 }

@@ -21,6 +21,9 @@ void debug_timer_dump(char const *timer)
 
 std::vector<std::string> split(std::string const &str, char const *delim)
 {
+  if (str.find(delim) == std::string::npos)
+    return {str};
+
   std::vector<std::string> res;
 
   std::size_t pos = 0u, nextpos;
