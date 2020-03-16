@@ -14,6 +14,8 @@ std::string run_gap(std::string const &script,
                     bool hide_errors,
                     double *t);
 
+std::string compress_gap_output(std::string const &gap_output);
+
 // TODO: use invoke_result instead
 template<typename FUNC>
 typename std::result_of<FUNC()>::type run_cpp(FUNC &&f, double *t)
