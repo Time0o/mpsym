@@ -79,7 +79,7 @@ public:
 
     Construction construction = Construction::SCHREIER_SIMS_RANDOM;
     Transversals transversals = Transversals::EXPLICIT;
-    bool check_altsym = true;
+    bool check_altsym = false;
     bool reduce_gens = true;
     bool schreier_sims_random_guarantee = true;
     order_type schreier_sims_random_known_order = 0;
