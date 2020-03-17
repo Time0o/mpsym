@@ -154,7 +154,7 @@ std::string compress_gap_output(std::string const &gap_output_)
 {
   auto res(gap_output_);
 
-  for (char space : " \n")
+  for (char space : " \n\\")
     res.erase(std::remove(res.begin(), res.end(), space), res.end());
 
   return res;

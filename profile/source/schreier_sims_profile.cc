@@ -12,6 +12,8 @@
 #include <variant>
 #include <vector>
 
+#include <boost/multiprecision/cpp_int.hpp>
+
 #include <getopt.h>
 #include <libgen.h>
 
@@ -216,6 +218,8 @@ double run_groups(unsigned degree,
 double run_arch_graph(std::string const &arch_graph,
                       ProfileOptions const &options)
 {
+  using boost::multiprecision::cpp_int;
+
   using cgtl::ArchGraphSystem;
   using cgtl::PermSet;
 
@@ -223,7 +227,7 @@ double run_arch_graph(std::string const &arch_graph,
 
   auto ag(ArchGraphSystem::from_lua(arch_graph));
 
-  unsigned num_automorphisms;
+  cpp_int num_automorphisms;
   PermSet automorphisms_generators;
 
   if (options.implementation.is("gap")) {
@@ -237,7 +241,7 @@ double run_arch_graph(std::string const &arch_graph,
 
     auto gap_output_split(split(gap_output, ";"));
 
-    num_automorphisms = stox<unsigned>(gap_output_split[0]);
+    num_automorphisms = cpp_int(gap_output_split[0]);
     automorphisms_generators = parse_generators_mpsym(0, gap_output_split[1]);
 
   } else if (options.implementation.is("mpsym")) {
@@ -245,7 +249,7 @@ double run_arch_graph(std::string const &arch_graph,
 
     run_cpp([&]{ ag->automorphisms(&bsgs_options); }, &t);
 
-    num_automorphisms = static_cast<unsigned>(ag->automorphisms().order());
+    num_automorphisms = ag->automorphisms().order();
     automorphisms_generators = ag->automorphisms_generators();
 
   } else if (options.implementation.is("permlib")) {
