@@ -38,8 +38,6 @@ set(PROFILE_SRC_DIR "${PROJECT_SOURCE_DIR}/profile/source")
 set(PROFILE_COMMON_DIR "${PROJECT_SOURCE_DIR}/profile/common")
 set(PROFILE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/profile/include")
 
-set(EXAMPLE_SRC_DIR "${PROJECT_SOURCE_DIR}/examples/source")
-
 set(RESOURCE_DIR "${PROJECT_SOURCE_DIR}/resources")
 set(RESOURCE_RESOURCE_DIR "${PROJECT_SOURCE_DIR}/resources/resources")
 set(RESOURCE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/resources/include")
@@ -343,4 +341,3 @@ endif()
 
 # MpSym
 add_subdirectory("${SRC_DIR}")
-add_subdirectory("${EXAMPLE_SRC_DIR}")
