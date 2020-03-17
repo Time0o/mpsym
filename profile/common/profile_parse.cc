@@ -45,9 +45,12 @@ std::vector<std::string> split_generators(std::string const &gen_str)
 
 using gen_type = std::vector<std::vector<std::vector<unsigned>>>;
 
-gen_type parse_generators(std::vector<std::string> const &gen_strs)
+std::pair<gen_type, unsigned> parse_generators(
+  std::vector<std::string> const &gen_strs)
 {
   gen_type gens;
+
+  unsigned largest_moved_point = 0u;
 
   for (auto const &gen_str : gen_strs) {
     gen_type::value_type perm;
@@ -66,6 +69,9 @@ gen_type parse_generators(std::vector<std::string> const &gen_strs)
         {
           int n = stox<int>(gen_str.substr(n_beg, i - n_beg));
 
+          largest_moved_point = std::max(largest_moved_point,
+                                         static_cast<unsigned>(n));
+
           cycle.push_back(n);
           if (c == ')')
             perm.push_back(cycle);
@@ -82,7 +88,7 @@ gen_type parse_generators(std::vector<std::string> const &gen_strs)
     gens.push_back(perm);
   }
 
-  return gens;
+  return {gens, largest_moved_point};
 }
 
 cgtl::PermSet convert_generators_mpsym(unsigned degree, gen_type const &gens)
@@ -220,14 +226,22 @@ gap::PermSet parse_generators_gap(unsigned degree, std::string const &gen_str)
 
 cgtl::PermSet parse_generators_mpsym(unsigned degree, std::string const &gen_str)
 {
-   gen_type gen_vect(parse_generators(split_generators(gen_str)));
-   return convert_generators_mpsym(degree, gen_vect);
+   gen_type gen_vect;
+   unsigned largest_moved_point;
+
+   std::tie(gen_vect, largest_moved_point) = parse_generators(split_generators(gen_str));
+
+   return convert_generators_mpsym(degree == 0 ? largest_moved_point : degree, gen_vect);
 }
 
 permlib::PermSet parse_generators_permlib(unsigned degree, std::string const &gen_str)
 {
-   gen_type gen_vect(parse_generators(split_generators(gen_str)));
-   return convert_generators_permlib(degree, gen_vect);
+   gen_type gen_vect;
+   unsigned largest_moved_point;
+
+   std::tie(gen_vect, largest_moved_point) = parse_generators(split_generators(gen_str));
+
+   return convert_generators_permlib(degree == 0 ? largest_moved_point : degree, gen_vect);
 }
 
 gap::TaskAllocationVector parse_task_allocations_gap(

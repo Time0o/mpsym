@@ -356,6 +356,18 @@ function fully_connected_channels(processors, ctype)
   return channels
 end
 
+function fully_cross_connected_channels(processors1, processors2, ctype)
+  local channels = {}
+
+  for i = 1,#processors1 do
+    for j = 1,#processors2 do
+      table.insert(channels, {processors1[i][1], processors2[j][1], ctype})
+    end
+  end
+
+  return channels
+end
+
 function grid_channels(processors, ctype, height, width)
   local channels = {}
 
@@ -423,6 +435,7 @@ return {
   cyclic_channels = cyclic_channels,
   self_connected_channels = self_connected_channels,
   fully_connected_channels = fully_connected_channels,
+  fully_cross_connected_channels = fully_cross_connected_channels,
   grid_channels = grid_channels,
   append_channels = append_channels
 }

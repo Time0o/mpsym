@@ -223,34 +223,41 @@ double run_arch_graph(std::string const &arch_graph,
 
   auto ag(ArchGraphSystem::from_lua(arch_graph));
 
-  auto dump_automorphisms_generators =
-    [&](PermSet const &automorphisms_generators)
-  {
-    if (options.verbose) {
-      info("Automorphism generators are:");
-      info(automorphisms_generators);
-    }
-  };
+  unsigned num_automorphisms;
+  PermSet automorphisms_generators;
 
   if (options.implementation.is("gap")) {
     auto gap_script("LoadPackage(\"grape\");\n"
-                    "Print(GeneratorsOfGroup(" + ag->to_gap() + "), \"\\n\");\n");
+                    "G:=" + ag->to_gap() + ";\n"
+                    "Print(Size(G), \";\");\n"
+                    "Print(GeneratorsOfGroup(G), \"\\n\");\n");
 
-    auto automorphisms_generators_gap(
+    auto gap_output(
       compress_gap_output(run_gap(gap_script, true, !options.show_gap_errors, &t)));
 
-    dump_automorphisms_generators(
-      parse_generators_mpsym(ag->num_processors(), automorphisms_generators_gap));
+    auto gap_output_split(split(gap_output, ";"));
+
+    num_automorphisms = stox<unsigned>(gap_output_split[0]);
+    automorphisms_generators = parse_generators_mpsym(0, gap_output_split[1]);
 
   } else if (options.implementation.is("mpsym")) {
     auto bsgs_options(bsgs_options_mpsym(options));
 
     run_cpp([&]{ ag->automorphisms(&bsgs_options); }, &t);
 
-    dump_automorphisms_generators(ag->automorphisms_generators());
+    num_automorphisms = static_cast<unsigned>(ag->automorphisms().order());
+    automorphisms_generators = ag->automorphisms_generators();
 
   } else if (options.implementation.is("permlib")) {
-    throw std::logic_error("graph autormorphisms not supported by permlib");
+    throw std::logic_error("graph automorphisms not supported by permlib");
+  }
+
+  if (options.verbose) {
+    info("Automorphism group has order:");
+    info(num_automorphisms);
+
+    info("Automorphism generators are:");
+    info(automorphisms_generators);
   }
 
   return t;
