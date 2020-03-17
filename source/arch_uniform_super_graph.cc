@@ -12,8 +12,8 @@ namespace cgtl
 std::string
 ArchUniformSuperGraph::to_gap() const
 {
-  return "StandardWreathProduct("
-    + _subsystem_super_graph->to_gap() + "," + _subsystem_proto->to_gap() + ")";
+  return "WreathProduct("
+    + _subsystem_proto->to_gap() + "," + _subsystem_super_graph->to_gap() + ")";
 }
 
 unsigned
