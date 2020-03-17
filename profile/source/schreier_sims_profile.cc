@@ -233,6 +233,7 @@ double run_arch_graph(std::string const &arch_graph,
   if (options.implementation.is("gap")) {
     auto gap_script("LoadPackage(\"grape\");\n"
                     "G:=" + ag->to_gap() + ";\n"
+                    "StabChain(G);\n"
                     "Print(Size(G), \";\");\n"
                     "Print(GeneratorsOfGroup(G), \"\\n\");\n");
 
