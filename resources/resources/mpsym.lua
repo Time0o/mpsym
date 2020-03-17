@@ -114,8 +114,13 @@ local function is_arch_graph(obj)
     return false, "not a table"
   end
 
-  if obj.processors == nil then
-    return false, "missing 'processors' element"
+  if obj.processors == nil and obj.clusters == nil then
+    return false, "missing 'processors/clusters' element"
+  end
+
+  if obj.clusters ~= nil then
+    obj.processors = obj.clusters
+    obj.clusters = nil
   end
 
   if obj.channels == nil then

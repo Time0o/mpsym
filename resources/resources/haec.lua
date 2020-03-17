@@ -8,7 +8,7 @@ local proto_channels = mpsym.grid_channels(proto_processors, 'optical')
 
 return mpsym.ArchUniformSuperGraph:create{
   super_graph = mpsym.ArchGraph:create{
-    processors = super_graph_clusters,
+    clusters = super_graph_clusters,
     channels = super_graph_channels
   },
   proto = mpsym.ArchGraph:create{
