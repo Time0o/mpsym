@@ -198,10 +198,10 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
     auto lhs_order(lhs_.order());
     auto rhs_order(rhs_.order());
 
-    if (rhs_order > std::numeric_limits<unsigned>::max())
+    if (rhs_order > std::numeric_limits<unsigned>::max() / 2u)
       throw std::overflow_error("order of wreath product would overflow");
 
-    return pow(lhs_order, static_cast<unsigned>(rhs_order)) * rhs_order;
+    return pow(lhs_order, static_cast<unsigned>(rhs_order) * 2u) * rhs_order;
   };
 
   auto bsgs_options(*BSGS::Options::fill_defaults(bsgs_options_));
