@@ -144,25 +144,33 @@ void BSGS::schreier_sims_random(PermSet const &generators,
     schreier_sims_random(strong_generators, fundamental_orbits, options);
 
   } else {
-    // run algorithm (possible repeatedly) until correctness has been achieved
-    bool correct = false;
-
-    for (unsigned i = 0u; i <= options->schreier_sims_random_retries; ++i) {
+    auto try_bsgs = [&](bool check_order){
       schreier_sims_init(generators, strong_generators, fundamental_orbits);
       schreier_sims_random(strong_generators, fundamental_orbits, options);
 
       // we assume that if the BSGS is correct if it has the correct order
-      if (options->schreier_sims_random_known_order > 0ULL
-          && order() == options->schreier_sims_random_known_order) {
-        correct = true;
-        break;
-      }
+      if (check_order)
+         return order() == options->schreier_sims_random_known_order;
 
-      // TODO: use TCSS/Verify to check BSGS for small base groups of large degree
-      // if (...) {
-      //  correct = true;
-      //  break;
-      //}
+      return false;
+    };
+
+    // run algorithm (possible repeatedly) until correctness has been achieved
+    bool correct = false;
+
+    if (options->schreier_sims_random_known_order > 0ULL) {
+      if (options->schreier_sims_random_retries < 0) {
+        while (!(correct = try_bsgs(true)))
+          ;
+
+      } else {
+        for (int i = 0; i <= options->schreier_sims_random_retries; ++i) {
+          if ((correct = try_bsgs(true)))
+            break;
+        }
+      }
+    } else {
+      try_bsgs(false);
     }
 
     // force correctness by running the deterministic Schreier Sims algorithm

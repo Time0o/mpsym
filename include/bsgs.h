@@ -83,7 +83,7 @@ public:
     bool reduce_gens = true;
     bool schreier_sims_random_guarantee = true;
     order_type schreier_sims_random_known_order = 0;
-    unsigned schreier_sims_random_retries = 0u;
+    int schreier_sims_random_retries = -1;
     unsigned schreier_sims_random_w = 10u;
   };
 
