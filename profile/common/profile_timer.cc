@@ -47,7 +47,7 @@ public:
   void stop(double *t)
   {
     _timer.stop();
-    *t = _timer.total();
+    *t = _timer.last();
   }
 
 private:

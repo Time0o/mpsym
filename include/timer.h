@@ -100,6 +100,9 @@ public:
   std::vector<count_type>::size_type invoked() const
   { return _meas.size(); }
 
+  double last() const
+  { return scale(_meas.back()); }
+
   double total() const
   { return scale(std::accumulate(_meas.begin(), _meas.end(), 0ULL)); }
 
