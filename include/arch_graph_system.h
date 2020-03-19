@@ -53,6 +53,9 @@ public:
   virtual PartialPermInverseSemigroup partial_automorphisms()
   { throw std::logic_error("not implemented"); }
 
+  void invalidate_automorphisms()
+  { _automorphisms_valid = false; }
+
   virtual TaskAllocation mapping(TaskAllocation const &allocation,
                                  unsigned offset = 0u,
                                  MappingOptions *options = nullptr,
@@ -67,9 +70,6 @@ protected:
     _automorphisms = automorphisms;
     _automorphisms_valid = true;
   }
-
-  void invalidate_automorphisms()
-  { _automorphisms_valid = false; }
 
 private:
   virtual PermGroup update_automorphisms(BSGS::Options const *bsgs_options) = 0;
