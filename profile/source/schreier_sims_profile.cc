@@ -31,6 +31,8 @@
 #include "profile_timer.h"
 #include "profile_util.h"
 
+using namespace profile;
+
 namespace
 {
 
@@ -307,8 +309,8 @@ void run(FUNC &&f,
   }
 }
 
-void profile(Stream &instream,
-             ProfileOptions const &options)
+void do_profile(Stream &instream,
+                ProfileOptions const &options)
 {
   using namespace std::placeholders;
 
@@ -345,7 +347,7 @@ void profile(Stream &instream,
   }
 }
 
-} // namespace
+} // anonymous namespace
 
 int main(int argc, char **argv)
 {
@@ -443,7 +445,7 @@ int main(int argc, char **argv)
                "EITHER --arch-graph OR --groups must be given");
 
   try {
-    profile(instream, options);
+    do_profile(instream, options);
   } catch (std::exception const &e) {
     error("profiling failed:", e.what());
     return EXIT_FAILURE;

@@ -11,6 +11,9 @@
 
 #include "profile_util.h"
 
+namespace profile
+{
+
 struct VariantOptionBase
 {
   std::vector<char const *>::size_type choice_index(char const *choice) const
@@ -109,5 +112,7 @@ private:
     error(e.what(), ":", arg); \
     return EXIT_FAILURE; \
   }
+
+} // namespace profile
 
 #endif // _GUARD_PROFILE_ARGS_H

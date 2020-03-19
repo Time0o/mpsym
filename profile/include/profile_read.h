@@ -6,6 +6,9 @@
 #include <stdexcept>
 #include <string>
 
+namespace profile
+{
+
 struct Stream
 {
   std::ifstream stream;
@@ -48,5 +51,7 @@ void foreach_line(std::ifstream &stream, FUNC &&f)
   if (stream.bad())
     throw std::runtime_error("failed to read file");
 }
+
+} // namespace profile
 
 #endif // _GUARD_PROFILE_READ_H

@@ -7,6 +7,9 @@
 #include "profile_util.h"
 #include "timer.h"
 
+namespace profile
+{
+
 void debug_timer_dump(char const *timer)
 {
   if (!TIMER_EXISTS(timer)) {
@@ -63,3 +66,5 @@ std::string join(std::vector<std::string> const &strs, char const *delim)
 
   return res;
 }
+
+} // namespace profile

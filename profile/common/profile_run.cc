@@ -17,96 +17,101 @@
 
 namespace
 {
-  std::string build_script(std::initializer_list<std::string> packages,
-                           std::string const &script,
-                           unsigned num_discarded_runs,
-                           unsigned num_runs)
-  {
-    std::stringstream ss;
 
-    for (auto const &package : packages)
-      ss << "LoadPackage(\"" << package << "\");\n";
+std::string build_script(std::initializer_list<std::string> packages,
+                         std::string const &script,
+                         unsigned num_discarded_runs,
+                         unsigned num_runs)
+{
+  std::stringstream ss;
 
-    ss << "_ts:=[];\n";
-    ss << "for _r in [1.." << num_discarded_runs + num_runs << "] do\n";
-    ss << "  _start:=NanosecondsSinceEpoch();\n";
-    ss << script;
-    ss << "  if _r > " << num_discarded_runs << " then\n";
-    ss << "    Add(_ts, NanosecondsSinceEpoch() - _start);\n";
-    ss << "  fi;\n";
-    ss << "od;\n";
-    ss << "Print(_ts, \"\\n\");\n";
+  for (auto const &package : packages)
+    ss << "LoadPackage(\"" << package << "\");\n";
 
-    return ss.str();
-  }
+  ss << "_ts:=[];\n";
+  ss << "for _r in [1.." << num_discarded_runs + num_runs << "] do\n";
+  ss << "  _start:=NanosecondsSinceEpoch();\n";
+  ss << script;
+  ss << "  if _r > " << num_discarded_runs << " then\n";
+  ss << "    Add(_ts, NanosecondsSinceEpoch() - _start);\n";
+  ss << "  fi;\n";
+  ss << "od;\n";
+  ss << "Print(_ts, \"\\n\");\n";
 
-  void dup_fd(int from, int to)
-  {
-    for (;;) {
-      if (dup2(from, to) == -1) {
-        if (errno == EINTR)
-          continue;
-        else
-          throw std::runtime_error("dup failed");
-      } else {
-        break;
-      }
+  return ss.str();
+}
+
+void dup_fd(int from, int to)
+{
+  for (;;) {
+    if (dup2(from, to) == -1) {
+      if (errno == EINTR)
+        continue;
+      else
+        throw std::runtime_error("dup failed");
+    } else {
+      break;
     }
-  }
-
-  std::string read_output(int from, bool echo)
-  {
-    static char buf[256];
-
-    std::string res;
-
-    for (;;) {
-      auto count = read(from, buf, sizeof(buf));
-
-      if (count == -1) {
-        if (errno == EINTR)
-          continue;
-        else
-          throw std::runtime_error("read failed");
-        break;
-      } else if (count == 0) {
-        break;
-      } else {
-        std::string block(buf, buf + count);
-
-        if (echo)
-          std::cout << block << std::flush;
-
-        res += block;
-      }
-    }
-
-    return res;
-  }
-
-  std::string clean_output(std::string const &output)
-  {
-    std::size_t i = 0u, j = output.size() - 1u;
-
-    while (std::isspace(output[i]))
-      ++i;
-
-    while (std::isspace(output[j]))
-      --j;
-
-    return output.substr(i, j - i + 1u);
-  }
-
-  std::string compress_output(std::string const &output)
-  {
-    auto res(output);
-
-    for (char space : " \n\\")
-      res.erase(std::remove(res.begin(), res.end(), space), res.end());
-
-    return res;
   }
 }
+
+std::string read_output(int from, bool echo)
+{
+  static char buf[256];
+
+  std::string res;
+
+  for (;;) {
+    auto count = read(from, buf, sizeof(buf));
+
+    if (count == -1) {
+      if (errno == EINTR)
+        continue;
+      else
+        throw std::runtime_error("read failed");
+      break;
+    } else if (count == 0) {
+      break;
+    } else {
+      std::string block(buf, buf + count);
+
+      if (echo)
+        std::cout << block << std::flush;
+
+      res += block;
+    }
+  }
+
+  return res;
+}
+
+std::string clean_output(std::string const &output)
+{
+  std::size_t i = 0u, j = output.size() - 1u;
+
+  while (std::isspace(output[i]))
+    ++i;
+
+  while (std::isspace(output[j]))
+    --j;
+
+  return output.substr(i, j - i + 1u);
+}
+
+std::string compress_output(std::string const &output)
+{
+  auto res(output);
+
+  for (char space : " \n\\")
+    res.erase(std::remove(res.begin(), res.end(), space), res.end());
+
+  return res;
+}
+
+}
+
+namespace profile
+{
 
 std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
                                  std::string const &script,
@@ -201,3 +206,5 @@ std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
 
   return output_vals;
 }
+
+} // namespace profile

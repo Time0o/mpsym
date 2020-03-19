@@ -55,7 +55,10 @@ private:
 
 } realtime_timer;
 
-} // namespace
+} // anonymous namespace
+
+namespace profile
+{
 
 void timer_start()
 {
@@ -91,3 +94,5 @@ double timer_stop(pid_t child)
 
   return t;
 }
+
+} // namespace profile

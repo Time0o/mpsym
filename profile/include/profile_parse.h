@@ -53,6 +53,9 @@ namespace permlib
   };
 }
 
+namespace profile
+{
+
 GenericGroup parse_group(std::string const &group_str);
 
 gap::PermSet parse_generators_gap(unsigned degree, std::string const &gen_str);
@@ -69,5 +72,7 @@ cgtl::TaskAllocationVector parse_task_allocations_mpsym(
 
 cgtl::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
   std::string const &gap_output_str);
+
+} // namespace profile
 
 #endif // _GUARD_PROFILE_PARSE_H

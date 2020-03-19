@@ -33,7 +33,7 @@ std::vector<std::string> split_generators(std::string const &gen_str)
 
   auto gen_str_trimmed(gen_str.substr(gen_first, gen_last - gen_first + 1u));
 
-  auto res(split(gen_str_trimmed, "),"));
+  auto res(profile::split(gen_str_trimmed, "),"));
 
   if (res.size() > 0u) {
     for (auto i = 0u; i < res.size() - 1u; ++i)
@@ -67,7 +67,7 @@ std::pair<gen_type, unsigned> parse_generators(
       case ',':
       case ')':
         {
-          int n = stox<int>(gen_str.substr(n_beg, i - n_beg));
+          int n = profile::stox<int>(gen_str.substr(n_beg, i - n_beg));
 
           largest_moved_point = std::max(largest_moved_point,
                                          static_cast<unsigned>(n));
@@ -162,7 +162,7 @@ split_task_allocations(std::string const &task_allocations_str,
     for (;;) {
       pos_end = task_allocation_str.find(delim, pos_begin);
 
-      pe = stox<unsigned>(
+      pe = profile::stox<unsigned>(
         pos_end == std::string::npos ?
           task_allocation_str.substr(pos_begin) :
           task_allocation_str.substr(pos_begin, pos_end - pos_begin));
@@ -191,7 +191,10 @@ split_task_allocations(std::string const &task_allocations_str,
   return {min_pe, max_pe, task_allocations};
 }
 
-} // namespace
+} // anonymous namespace
+
+namespace profile
+{
 
 GenericGroup parse_group(std::string const &group_str)
 {
@@ -287,3 +290,5 @@ cgtl::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
           std::get<1>(task_allocations),
           std::get<2>(task_allocations)};
 }
+
+} // namespace profile

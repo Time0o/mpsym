@@ -10,6 +10,9 @@
 #include "profile_timer.h"
 #include "profile_util.h"
 
+namespace profile
+{
+
 std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
                                  std::string const &script,
                                  unsigned num_discarded_runs,
@@ -79,5 +82,7 @@ typename std::result_of<FUNC()>::type run_cpp(FUNC &&f,
     throw std::logic_error("unreachable");
 #endif
 }
+
+} // namespace profile
 
 #endif // _GUARD_PROFILE_RUN_H
