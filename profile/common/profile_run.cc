@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -16,6 +17,29 @@
 
 namespace
 {
+  std::string build_script(std::initializer_list<std::string> packages,
+                           std::string const &script,
+                           unsigned num_discarded_runs,
+                           unsigned num_runs)
+  {
+    std::stringstream ss;
+
+    for (auto const &package : packages)
+      ss << "LoadPackage(\"" << package << "\");\n";
+
+    ss << "_ts:=[];\n";
+    ss << "for _r in [1.." << num_discarded_runs + num_runs << "] do\n";
+    ss << "  _start:=NanosecondsSinceEpoch();\n";
+    ss << script;
+    ss << "  if _r > " << num_discarded_runs << " then\n";
+    ss << "    Add(_ts, NanosecondsSinceEpoch() - _start);\n";
+    ss << "  fi;\n";
+    ss << "od;\n";
+    ss << "Print(_ts, \"\\n\");\n";
+
+    return ss.str();
+  }
+
   void dup_fd(int from, int to)
   {
     for (;;) {
@@ -72,12 +96,25 @@ namespace
 
     return output.substr(i, j - i + 1u);
   }
+
+  std::string compress_output(std::string const &output)
+  {
+    auto res(output);
+
+    for (char space : " \n\\")
+      res.erase(std::remove(res.begin(), res.end(), space), res.end());
+
+    return res;
+  }
 }
 
-std::string run_gap(std::string const &script,
-                    bool hide_output,
-                    bool hide_errors,
-                    double *t)
+std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
+                                 std::string const &script,
+                                 unsigned num_discarded_runs,
+                                 unsigned num_runs,
+                                 bool hide_output,
+                                 bool hide_errors,
+                                 std::vector<double> *ts)
 {
   // create temporary gap script
 
@@ -98,7 +135,7 @@ std::string run_gap(std::string const &script,
   if (f.fail())
     throw std::runtime_error("failed to create temporary file");
 
-  f << script;
+  f << build_script(packages, script, num_discarded_runs, num_runs);
 
   f.flush();
 
@@ -140,22 +177,27 @@ std::string run_gap(std::string const &script,
 
   close(fds[1]);
 
-  auto output(clean_output(read_output(fds[0], !hide_output)));
+  // get output
+
+  auto output(compress_output(clean_output(read_output(fds[0], !hide_output))));
+
+  // parse output
+  auto output_split(split(output, ";"));
+
+  std::vector<std::string> output_vals(
+    output_split.begin(),
+    output_split.begin() + (output_split.size() - 1u) / num_runs);
+
+  if (ts) {
+    auto parse_output_times = [](std::string const &output_times){
+      return split(output_times.substr(1u, output_times.size() - 2u), ",");
+    };
+
+    for (auto const &output_time : parse_output_times(output_split.back()))
+      ts->push_back(stox<double>(output_time) / 1e9);
+  }
 
   close(fds[0]);
 
-  if (t)
-    *t = timer_stop(child);
-
-  return output;
-}
-
-std::string compress_gap_output(std::string const &gap_output_)
-{
-  auto res(gap_output_);
-
-  for (char space : " \n\\")
-    res.erase(std::remove(res.begin(), res.end(), space), res.end());
-
-  return res;
+  return output_vals;
 }
