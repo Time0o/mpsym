@@ -47,8 +47,9 @@ void usage(std::ostream &s)
     "[--no-reduce-gens]",
     "[-g|--groups GROUPS]",
     "[-a|--arch-graph ARCH_GRAPH]",
-    "[-c|--num-cycles]",
     "[-r|--num-runs]",
+    "[--num-discarded-runs NUM_DISCARDED_RUNS]",
+    "[--summarize-runs]",
     "[-v|--verbose]",
     "[--show-gap-errors]"
   };
@@ -67,8 +68,9 @@ struct ProfileOptions
   bool no_reduce_gens = false;
   bool groups_input = false;
   bool arch_graph_input = false;
-  unsigned num_cycles = 1u;
   unsigned num_runs = 1u;
+  unsigned num_discarded_runs = 0u;
+  bool summarize_runs = false;
   bool verbose = false;
   bool show_gap_errors = false;
 };
@@ -111,12 +113,9 @@ cgtl::BSGS::Options bsgs_options_mpsym(ProfileOptions const &options)
 std::string make_perm_group_gap(gap::PermSet const &generators,
                                 ProfileOptions const &options)
 {
-  std::stringstream ss;
-  ss << "for i in [1.." << options.num_cycles << "] do\n";
-  ss << "  StabChain(Group(" + generators.permutations + "));\n";
-  ss << "od;\n";
+  (void)options;
 
-  return ss.str();
+  return "StabChain(Group(" + generators.permutations + "));\n";
 }
 
 void make_perm_group_mpsym(cgtl::PermSet const &generators,
@@ -128,8 +127,7 @@ void make_perm_group_mpsym(cgtl::PermSet const &generators,
 
   auto bsgs_options(bsgs_options_mpsym(options));
 
-  for (unsigned i = 0u; i < options.num_cycles; ++i)
-    PermGroup g(BSGS(generators.degree(), generators, &bsgs_options));
+  PermGroup g(BSGS(generators.degree(), generators, &bsgs_options));
 }
 
 template <typename T>
@@ -166,9 +164,8 @@ void make_perm_group_permlib(permlib::PermSet const &generators,
       SchreierSimsConstruction<Permutation, transv_type>
       construction(generators.degree);
 
-      for (unsigned i = 0; i < options.num_cycles; ++i)
-        construction.construct(generators.permutations.begin(),
-                               generators.permutations.end());
+      construction.construct(generators.permutations.begin(),
+                             generators.permutations.end());
 
     } else if (options.schreier_sims.is("random")) {
       BSGS<Permutation, transv_type> bsgs(generators.degree);
@@ -180,50 +177,59 @@ void make_perm_group_permlib(permlib::PermSet const &generators,
       construction(generators.degree, random_generator.get());
 
       bool guaranteed = true;
-      for (unsigned i = 0; i < options.num_cycles; ++i)
-        construction.construct(generators.permutations.begin(),
-                               generators.permutations.end(),
-                               guaranteed);
+      construction.construct(generators.permutations.begin(),
+                             generators.permutations.end(),
+                             guaranteed);
     }
   }, permlib_transversal_type(options.transversals));
 }
 
-double run_groups(unsigned degree,
-                  std::string const &generators,
-                  ProfileOptions const &options)
+std::vector<double> run_groups(unsigned degree,
+                               std::string const &generators,
+                               ProfileOptions const &options)
 {
-  double t = 0.0;
+  std::vector<double> ts;
 
   if (options.implementation.is("gap")) {
     auto generators_gap(parse_generators_gap(degree, generators));
 
-    auto gap_script(make_perm_group_gap(generators_gap, options));
-
-    run_gap(gap_script, options.verbose, !options.show_gap_errors, &t);
+    run_gap({},
+            make_perm_group_gap(generators_gap, options),
+            options.num_discarded_runs,
+            options.num_runs,
+            options.verbose,
+            !options.show_gap_errors,
+            &ts);
 
   } else if (options.implementation.is("mpsym")) {
     auto generators_mpsym(parse_generators_mpsym(degree, generators));
 
-    run_cpp([&]{ make_perm_group_mpsym(generators_mpsym, options); }, &t);
+    run_cpp([&]{ make_perm_group_mpsym(generators_mpsym, options); },
+            options.num_discarded_runs,
+            options.num_runs,
+            &ts);
 
   } else if (options.implementation.is("permlib")) {
     auto generators_permlib(parse_generators_permlib(degree, generators));
 
-    run_cpp([&]{ make_perm_group_permlib(generators_permlib, options); }, &t);
+    run_cpp([&]{ make_perm_group_permlib(generators_permlib, options); },
+            options.num_discarded_runs,
+            options.num_runs,
+            &ts);
   }
 
-  return t;
+  return ts;
 }
 
-double run_arch_graph(std::string const &arch_graph,
-                      ProfileOptions const &options)
+std::vector<double> run_arch_graph(std::string const &arch_graph,
+                                   ProfileOptions const &options)
 {
   using boost::multiprecision::cpp_int;
 
   using cgtl::ArchGraphSystem;
   using cgtl::PermSet;
 
-  double t = 0.0;
+  std::vector<double> ts;
 
   auto ag(ArchGraphSystem::from_lua(arch_graph));
 
@@ -231,24 +237,30 @@ double run_arch_graph(std::string const &arch_graph,
   PermSet automorphisms_generators;
 
   if (options.implementation.is("gap")) {
-    auto gap_script("LoadPackage(\"grape\");\n"
-                    "G:=" + ag->to_gap() + ";\n"
+    auto gap_script("G:=" + ag->to_gap() + ";\n"
                     "StabChain(G);\n"
-                    "Print(Size(G), \";\");\n"
-                    "Print(GeneratorsOfGroup(G), \"\\n\");\n");
+                    "Print(Size(G), \";\\n\");\n"
+                    "Print(GeneratorsOfGroup(G), \";\\n\");\n");
 
-    auto gap_output(
-      compress_gap_output(run_gap(gap_script, true, !options.show_gap_errors, &t)));
+    auto gap_output(run_gap({"grape"},
+                            gap_script,
+                            options.num_discarded_runs,
+                            options.num_runs,
+                            true,
+                            !options.show_gap_errors,
+                            &ts));
 
-    auto gap_output_split(split(gap_output, ";"));
-
-    num_automorphisms = cpp_int(gap_output_split[0]);
-    automorphisms_generators = parse_generators_mpsym(0, gap_output_split[1]);
+    num_automorphisms = cpp_int(gap_output[0]);
+    automorphisms_generators = parse_generators_mpsym(0, gap_output[1]);
 
   } else if (options.implementation.is("mpsym")) {
     auto bsgs_options(bsgs_options_mpsym(options));
 
-    run_cpp([&]{ ag->automorphisms(&bsgs_options); }, &t);
+    run_cpp([&]{ ag->invalidate_automorphisms();
+                 ag->automorphisms(&bsgs_options); },
+            options.num_discarded_runs,
+            options.num_runs,
+            &ts);
 
     num_automorphisms = ag->automorphisms().order();
     automorphisms_generators = ag->automorphisms_generators();
@@ -265,30 +277,27 @@ double run_arch_graph(std::string const &arch_graph,
     info(automorphisms_generators);
   }
 
-  return t;
+  return ts;
 }
 
 template<typename FUNC>
-void profile_loop(FUNC &&f,
-                  ProfileOptions const &options)
+void run(FUNC &&f,
+         ProfileOptions const &options)
 {
-  std::vector<double> ts(options.num_runs);
+  auto ts(f(options));
 
-  for (unsigned r = 0; r < options.num_runs; ++r) {
-    if (options.verbose && options.num_runs > 1)
-      debug_progress("Executing run", r + 1, "/", options.num_runs);
+  if (options.summarize_runs) {
+    double t_mean, t_stddev;
+    util::mean_stddev(ts, &t_mean, &t_stddev);
 
-    ts[r] = f(options);
+    result("Mean:", t_mean, "s");
+    result("Stddev:", t_stddev, "s");
+
+  } else {
+    result("Runtimes:");
+    for (double t : ts)
+      result(t, "s");
   }
-
-  double t_mean, t_stddev;
-  util::mean_stddev(ts, &t_mean, &t_stddev);
-
-  result("Mean:", t_mean, "s");
-  result("Stddev:", t_stddev, "s");
-
-  if (options.verbose && options.num_runs > 1)
-    debug_progress_done();
 
   if (options.verbose && options.implementation.is("mpsym")) {
     debug("Timer dumps:");
@@ -305,11 +314,11 @@ void profile(Stream &instream,
 
   if (options.verbose) {
     debug("Implementation:", options.implementation.get());
-    debug("Schreier-sims variant:", options.schreier_sims.get());
-    debug("Transversals:", options.transversals.get());
 
-    if (options.num_cycles > 1)
-      debug("Constructions per run:", options.num_cycles);
+    if (!options.implementation.is("gap")) {
+      debug("Schreier-sims variant:", options.schreier_sims.get());
+      debug("Transversals:", options.transversals.get());
+    }
   }
 
   if (options.groups_input) {
@@ -325,15 +334,14 @@ void profile(Stream &instream,
         info("Constructing group", lineno);
       }
 
-      profile_loop(std::bind(run_groups, group.degree, group.generators, _1),
-                   options);
+      run(std::bind(run_groups, group.degree, group.generators, _1), options);
     });
 
   } else if (options.arch_graph_input) {
-    info("Constructing automorphism group");
+    if (options.verbose)
+      info("Constructing automorphism group");
 
-    profile_loop(std::bind(run_arch_graph, read_file(instream.stream), _1),
-                 options);
+    run(std::bind(run_arch_graph, read_file(instream.stream), _1), options);
   }
 }
 
@@ -352,10 +360,11 @@ int main(int argc, char **argv)
     {"no-reduce-gens",      no_argument,       0,        2 },
     {"groups",              no_argument,       0,       'g'},
     {"arch-graph",          no_argument,       0,       'a'},
-    {"num-cyles",           required_argument, 0,       'c'},
     {"num-runs",            required_argument, 0,       'r'},
+    {"num-discarded-runs",  required_argument, 0,        3 },
+    {"summarize-runs",      no_argument, 0,              4 },
     {"verbose",             no_argument,       0,       'v'},
-    {"show-gap-errors",     no_argument,       0,        3 },
+    {"show-gap-errors",     no_argument,       0,        5 },
     {nullptr,               0,                 nullptr,  0 }
   };
 
@@ -364,7 +373,7 @@ int main(int argc, char **argv)
   Stream instream;
 
   for (;;) {
-    int c = getopt_long(argc, argv, "hi:s:t:g:a:c:r:v", long_options, nullptr);
+    int c = getopt_long(argc, argv, "hi:s:t:g:a:r:v", long_options, nullptr);
     if (c == -1)
       break;
 
@@ -396,17 +405,20 @@ int main(int argc, char **argv)
         OPEN_STREAM(instream, optarg);
         options.arch_graph_input = true;
         break;
-      case 'c':
-        options.num_cycles = stox<unsigned>(optarg);
-        break;
       case 'r':
         options.num_runs = stox<unsigned>(optarg);
+        break;
+      case 3:
+        options.num_discarded_runs = stox<unsigned>(optarg);
+        break;
+      case 4:
+        options.summarize_runs = true;
         break;
       case 'v':
         options.verbose = true;
         TIMER_ENABLE();
         break;
-      case 3:
+      case 5:
         options.show_gap_errors = true;
         break;
       default:
