@@ -118,7 +118,7 @@ if __name__ == '__main__':
     if ns.min_task > ns.max_task:
         error(__file__, "--min-task must be <= --max-task")
 
-    if ns.max_task - ns.min_task + 1 < ns.num_tasks:
+    if not ns.processor_sharing and ns.max_task - ns.min_task + 1 < ns.num_tasks:
         error(__file__, "number of unique tasks smaller than tasks per allocation")
 
     if ns.num_tasks < 0:
