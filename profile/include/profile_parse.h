@@ -11,37 +11,22 @@
 #include "permlib.h"
 #include "task_allocation.h"
 
-struct GenericGroup
-{
-  unsigned degree;
-  unsigned long long order;
-  std::string generators;
-};
-
 namespace gap
 {
+  using PermGroup = std::string;
+
   struct PermSet
   {
     unsigned degree;
     std::string permutations;
   };
 
-  struct TaskAllocationVector
-  {
-    unsigned min_pe;
-    unsigned max_pe;
-    std::string task_allocations;
-  };
+  using TaskAllocationVector = std::string;
 }
 
 namespace cgtl
 {
-  struct TaskAllocationVector
-  {
-    unsigned min_pe;
-    unsigned max_pe;
-    std::vector<cgtl::TaskAllocation> task_allocations;
-  };
+  using TaskAllocationVector = std::vector<cgtl::TaskAllocation>;
 }
 
 namespace permlib
@@ -55,6 +40,15 @@ namespace permlib
 
 namespace profile
 {
+
+struct GenericGroup
+{
+  std::shared_ptr<cgtl::ArchGraphSystem> to_arch_graph_system() const;
+
+  unsigned degree;
+  unsigned long long order;
+  std::string generators;
+};
 
 GenericGroup parse_group(std::string const &group_str);
 
@@ -71,7 +65,7 @@ cgtl::TaskAllocationVector parse_task_allocations_mpsym(
   std::string const &task_allocations_str);
 
 cgtl::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
-  std::string const &gap_output_str);
+  std::vector<std::string> const &gap_output);
 
 } // namespace profile
 

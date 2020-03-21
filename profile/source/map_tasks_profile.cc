@@ -28,6 +28,8 @@
 #include "profile_timer.h"
 #include "profile_util.h"
 
+using namespace profile;
+
 namespace
 {
 
@@ -40,7 +42,8 @@ void usage(std::ostream &s)
     "-i|--implementation {gap|mpsym}",
     "-m|--mapping-method {iterate|local_search|orbits}",
     "[--mapping-options {dont_match_reprs}]",
-    "-g|--groups GROUPS",
+    "[-g|--groups GROUPS]",
+    "[-a|--arch-graph ARCH_GRAPH]",
     "-t|--task-allocations TASK_ALLOCATIONS",
     "[--check-accuracy]",
     "[-v|--verbose]",
@@ -57,6 +60,8 @@ struct ProfileOptions
   VariantOption library{"gap", "mpsym"};
   VariantOption mapping_method{"iterate", "local_search", "orbits"};
   VariantOptionSet mapping_options{"dont_match_reprs"};
+  bool groups_input = false;
+  bool arch_graph_input = false;
   bool check_accuracy = false;
   int verbosity = 0;
   bool show_gap_errors = false;
@@ -123,21 +128,18 @@ std::string map_tasks_gap_orbits(ProfileOptions const &options)
 }
 
 std::string map_tasks_gap(
-  gap::PermSet const &generators,
-  gap::TaskAllocationVector const &task_allocation_vector,
+  gap::PermGroup const &automorphisms,
+  gap::TaskAllocationVector const &task_allocations,
   ProfileOptions const &options)
 {
   std::stringstream ss;
 
-  // load the "orb" package containing orbit enumeration and hashing functions
-  ss << "LoadPackage(\"orb\");\n";
-
   // construct the automorphism group
-  ss << "automorphisms:=Group(" << generators.permutations << ");\n";
+  ss << "automorphisms:=" << automorphisms << ";\n";
 
   // construct the vector of task allocations to be mapped
   ss << "task_allocations:=[\n";
-  ss << task_allocation_vector.task_allocations;
+  ss << task_allocations;
   ss << "];\n";
 
   ss << "orbit_representatives:=[];\n";
@@ -166,12 +168,12 @@ std::string map_tasks_gap(
 
   // display orbit representatives found
   if (options.check_accuracy || options.verbosity > 0) {
-    ss << "Print(\"\\nDEBUG: => Found \", Length(orbit_representatives), "
-          "      \" orbit representatives\\n\");\n";
+    ss << "Print(\"\\n;DEBUG: => Found \", Length(orbit_representatives), "
+          "      \" orbit representatives;\\n\");\n";
 
     if (options.check_accuracy || options.verbosity > 1) {
       ss << "for orbit_repr in orbit_representatives do\n";
-      ss << "  Print(\"DEBUG: \", orbit_repr, \"\\n\");\n";
+      ss << "  Print(\"DEBUG: \", orbit_repr, \";\\n\");\n";
       ss << "od;\n";
     }
   }
@@ -180,19 +182,14 @@ std::string map_tasks_gap(
 }
 
 cgtl::TaskOrbits map_tasks_mpsym(
-  cgtl::PermSet const &generators,
-  cgtl::TaskAllocationVector const &task_allocation_vector,
+  std::shared_ptr<cgtl::ArchGraphSystem> ags,
+  cgtl::TaskAllocationVector const &task_allocations,
   ProfileOptions const &options)
 {
   using cgtl::ArchGraphAutomorphisms;
   using cgtl::ArchGraphSystem;
   using cgtl::PermGroup;
   using cgtl::TaskOrbits;
-
-  auto ag(std::make_shared<ArchGraphAutomorphisms>(
-    PermGroup(generators.degree(), generators)));
-
-  auto task_allocations(task_allocation_vector.task_allocations);
 
   // setup mapping options
   ArchGraphSystem::MappingOptions mapping_options;
@@ -215,75 +212,69 @@ cgtl::TaskOrbits map_tasks_mpsym(
     if (options.verbosity > 0)
       debug_progress("Mapping task", i + 1u, "of", task_allocations.size());
 
-    auto mapping(ag->mapping(
+    auto mapping(ags->mapping(
       task_allocations[i], 0u, &mapping_options, &task_orbits));
   }
 
   return task_orbits;
 }
 
-void map_tasks_gap_wrapper(unsigned degree,
-                           std::string const &generators,
-                           std::string const &task_allocations,
+void map_tasks_gap_wrapper(gap::PermGroup const &automorphisms,
+                           gap::TaskAllocationVector const &task_allocations,
                            ProfileOptions const &options,
                            cgtl::TaskOrbits *task_orbits,
                            double *t)
 {
   using cgtl::TaskOrbits;
 
-  // parse input
-
-  auto generators_gap(parse_generators_gap(degree, generators));
-  auto task_allocations_gap(parse_task_allocations_gap(task_allocations));
-
-  if (task_allocations_gap.max_pe > generators_gap.degree)
-    throw std::invalid_argument("pe index out of range");
-
   // run gap script
 
-  auto gap_script(map_tasks_gap(generators_gap,
-                                task_allocations_gap,
+  auto gap_script(map_tasks_gap(automorphisms,
+                                task_allocations,
                                 options));
 
-  auto gap_output(run_gap(gap_script,
+  std::vector<double> ts;
+
+  auto gap_output(run_gap({"orb", "grape"},
+                          gap_script,
+                          0,
+                          1,
                           options.check_accuracy,
                           !options.show_gap_errors,
-                          t));
+                          &ts));
+
+  if (t)
+    *t = ts[0];
 
   // parse output
 
   if (options.check_accuracy) {
-    auto representatives_gap(parse_task_allocations_gap_to_mpsym(gap_output));
+    auto representatives_gap(parse_task_allocations_gap_to_mpsym(
+      std::vector<std::string>(gap_output.begin() + 2, gap_output.end())));
 
-    task_orbits->insert_all(representatives_gap.task_allocations.begin(),
-                            representatives_gap.task_allocations.end());
+    task_orbits->insert_all(representatives_gap.begin(),
+                            representatives_gap.end());
   }
 }
 
-void map_tasks_mpsym_wrapper(unsigned degree,
-                             std::string const &generators,
-                             std::string const &task_allocations,
+void map_tasks_mpsym_wrapper(std::shared_ptr<cgtl::ArchGraphSystem> ags,
+                             cgtl::TaskAllocationVector const &task_allocations,
                              ProfileOptions const &options,
                              cgtl::TaskOrbits *task_orbits,
                              double *t)
 {
   using cgtl::TaskOrbits;
 
-  // parse input
-
-  auto generators_mpsym(parse_generators_mpsym(degree, generators));
-  auto task_allocations_mpsym(parse_task_allocations_mpsym(task_allocations));
-
-  if (task_allocations_mpsym.max_pe > generators_mpsym.degree())
-    throw std::invalid_argument("pe index out of range");
-
   // run task mapping code
 
+  std::vector<double> ts;
+
   *task_orbits = run_cpp([&]{
-    return map_tasks_mpsym(generators_mpsym,
-                           task_allocations_mpsym,
-                           options);
-  }, t);
+    return map_tasks_mpsym(ags, task_allocations, options);
+  }, 0, 1, &ts);
+
+  if (t)
+    *t = ts[0];
 
   if (options.verbosity > 0) {
     debug_progress_done();
@@ -346,8 +337,7 @@ void check_accuracy(cgtl::TaskOrbits const &task_orbits_mpsym,
   }
 }
 
-double run(unsigned degree,
-           std::string const &generators,
+double run(std::shared_ptr<cgtl::ArchGraphSystem> ags,
            std::string const &task_allocations,
            ProfileOptions const &options)
 {
@@ -356,9 +346,8 @@ double run(unsigned degree,
   double t;
 
   if (options.library.is("gap")) {
-    map_tasks_gap_wrapper(degree,
-                          generators,
-                          task_allocations,
+    map_tasks_gap_wrapper(ags->to_gap(),
+                          parse_task_allocations_gap(task_allocations),
                           options,
                           nullptr,
                           &t);
@@ -366,9 +355,8 @@ double run(unsigned degree,
   } else if (options.library.is("mpsym")) {
     TaskOrbits task_orbits_mpsym, task_orbits_gap;
 
-    map_tasks_mpsym_wrapper(degree,
-                            generators,
-                            task_allocations,
+    map_tasks_mpsym_wrapper(ags,
+                            parse_task_allocations_mpsym(task_allocations),
                             options,
                             &task_orbits_mpsym,
                             &t);
@@ -376,9 +364,8 @@ double run(unsigned degree,
     if (options.check_accuracy) {
       info("Checking accuracy...");
 
-      map_tasks_gap_wrapper(degree,
-                            generators,
-                            task_allocations,
+      map_tasks_gap_wrapper(ags->to_gap(),
+                            parse_task_allocations_gap(task_allocations),
                             options,
                             &task_orbits_gap,
                             nullptr);
@@ -390,41 +377,56 @@ double run(unsigned degree,
   return t;
 }
 
-void profile(Stream &groups_stream,
-             Stream &task_allocations_stream,
-             ProfileOptions const &options)
+void do_profile(Stream &automorphisms_stream,
+                Stream &task_allocations_stream,
+                ProfileOptions const &options)
 {
+  using cgtl::ArchGraphAutomorphisms;
+  using cgtl::ArchGraphSystem;
+  using cgtl::PermGroup;
+
   if (options.verbosity > 0)
     debug("Implementation:", options.library.get());
 
+  std::shared_ptr<ArchGraphSystem> ags;
+
   auto task_allocations(read_file(task_allocations_stream.stream));
 
-  foreach_line(groups_stream.stream, [&](std::string const &line, unsigned lineno){
-    auto group(parse_group(line));
+  if (options.groups_input) {
+    foreach_line(automorphisms_stream.stream,
+                 [&](std::string const &line, unsigned lineno){
 
-    if (options.verbosity > 0) {
-      info("Using automorphism group", lineno);
-      info("=> degree", group.degree);
-      info("=> orders", group.order);
-      info("=> generators", group.generators);
-    } else {
-      info("Using automorphism group", lineno);
-    }
+      auto group(parse_group(line));
 
-    double t = run(group.degree, group.generators, task_allocations, options);
+      if (options.verbosity > 0) {
+        info("Using automorphism group", lineno);
+        info("=> degree", group.degree);
+        info("=> orders", group.order);
+        info("=> generators", group.generators);
+      } else {
+        info("Using automorphism group", lineno);
+      }
 
-    result("Runtime:", t, "s");
+      ags = group.to_arch_graph_system();
+    });
 
-    if (options.verbosity > 0) {
-      debug("Timer dumps:");
-      if (options.mapping_method.is("iterate"))
-        debug_timer_dump("map bruteforce iterate");
-      else if (options.mapping_method.is("local_search"))
-        debug_timer_dump("map approx local search");
-      else if (options.mapping_method.is("orbits"))
-        debug_timer_dump("map bruteforce orbits");
-    }
-  });
+  } else if (options.arch_graph_input) {
+    ags = ArchGraphSystem::from_lua(read_file(automorphisms_stream.stream));
+  }
+
+  double t = run(ags, task_allocations, options);
+
+  result("Runtime:", t, "s");
+
+  if (options.verbosity > 0) {
+    debug("Timer dumps:");
+    if (options.mapping_method.is("iterate"))
+      debug_timer_dump("map bruteforce iterate");
+    else if (options.mapping_method.is("local_search"))
+      debug_timer_dump("map approx local search");
+    else if (options.mapping_method.is("orbits"))
+      debug_timer_dump("map bruteforce orbits");
+  }
 }
 
 } // namespace
@@ -439,6 +441,7 @@ int main(int argc, char **argv)
     {"mapping-method",       required_argument, 0,       'm'},
     {"mapping-options",      required_argument, 0,        2 },
     {"groups",               required_argument, 0,       'g'},
+    {"arch-graph",           required_argument, 0,       'a'},
     {"task-allocations",     required_argument, 0,       't'},
     {"check-accuracy",       no_argument,       0,        3 },
     {"verbose",              no_argument,       0,       'v'},
@@ -448,11 +451,11 @@ int main(int argc, char **argv)
 
   ProfileOptions options;
 
-  Stream groups_stream;
+  Stream automorphisms_stream;
   Stream task_allocations_stream;
 
   for (;;) {
-    int c = getopt_long(argc, argv, "hi:m:g:t:v", long_options, nullptr);
+    int c = getopt_long(argc, argv, "hi:m:g:a:t:v", long_options, nullptr);
     if (c == -1)
       break;
 
@@ -472,7 +475,12 @@ int main(int argc, char **argv)
           options.mapping_options.set(option.c_str());
         break;
       case 'g':
-        OPEN_STREAM(groups_stream, optarg);
+        OPEN_STREAM(automorphisms_stream, optarg);
+        options.groups_input = true;
+        break;
+      case 'a':
+        OPEN_STREAM(automorphisms_stream, optarg);
+        options.arch_graph_input = true;
         break;
       case 't':
         OPEN_STREAM(task_allocations_stream, optarg);
@@ -503,15 +511,16 @@ int main(int argc, char **argv)
   CHECK_OPTION(!options.library.is("gap") || !options.mapping_method.is("local_search"),
                "local_search only supported when using mpsym");
 
-  CHECK_OPTION(groups_stream.valid, "--groups option is mandatory");
-
   CHECK_OPTION(task_allocations_stream.valid, "--task-allocations option is mandatory");
+
+  CHECK_OPTION(options.groups_input != options.arch_graph_input,
+               "EITHER --arch-graph OR --groups must be given");
 
   CHECK_OPTION(!options.check_accuracy || !options.library.is("gap"),
                "--check-accuracy only available when using mpsym")
 
   try {
-    profile(groups_stream, task_allocations_stream, options);
+    do_profile(automorphisms_stream, task_allocations_stream, options);
   } catch (std::exception const &e) {
     error("profiling failed:", e.what());
     return EXIT_FAILURE;

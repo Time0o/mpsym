@@ -309,7 +309,7 @@ void run(FUNC &&f,
   }
 }
 
-void do_profile(Stream &instream,
+void do_profile(Stream &automorphisms_stream,
                 ProfileOptions const &options)
 {
   using namespace std::placeholders;
@@ -324,7 +324,9 @@ void do_profile(Stream &instream,
   }
 
   if (options.groups_input) {
-    foreach_line(instream.stream, [&](std::string const &line, unsigned lineno){
+    foreach_line(automorphisms_stream.stream,
+                 [&](std::string const &line, unsigned lineno){
+
       auto group(parse_group(line));
 
       if (options.verbose) {
@@ -343,7 +345,7 @@ void do_profile(Stream &instream,
     if (options.verbose)
       info("Constructing automorphism group");
 
-    run(std::bind(run_arch_graph, read_file(instream.stream), _1), options);
+    run(std::bind(run_arch_graph, read_file(automorphisms_stream.stream), _1), options);
   }
 }
 
@@ -372,7 +374,7 @@ int main(int argc, char **argv)
 
   ProfileOptions options;
 
-  Stream instream;
+  Stream automorphisms_stream;
 
   for (;;) {
     int c = getopt_long(argc, argv, "hi:s:t:g:a:r:v", long_options, nullptr);
@@ -400,11 +402,11 @@ int main(int argc, char **argv)
         options.no_reduce_gens = true;
         break;
       case 'g':
-        OPEN_STREAM(instream, optarg);
+        OPEN_STREAM(automorphisms_stream, optarg);
         options.groups_input = true;
         break;
       case 'a':
-        OPEN_STREAM(instream, optarg);
+        OPEN_STREAM(automorphisms_stream, optarg);
         options.arch_graph_input = true;
         break;
       case 'r':
@@ -445,7 +447,7 @@ int main(int argc, char **argv)
                "EITHER --arch-graph OR --groups must be given");
 
   try {
-    do_profile(instream, options);
+    do_profile(automorphisms_stream, options);
   } catch (std::exception const &e) {
     error("profiling failed:", e.what());
     return EXIT_FAILURE;

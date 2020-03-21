@@ -2,6 +2,7 @@
 #include <cctype>
 #include <cerrno>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -36,7 +37,7 @@ std::string build_script(std::initializer_list<std::string> packages,
   ss << "    Add(_ts, NanosecondsSinceEpoch() - _start);\n";
   ss << "  fi;\n";
   ss << "od;\n";
-  ss << "Print(_ts, \"\\n\");\n";
+  ss << "Print(\"RESULT: \", _ts, \"\\n\");\n";
 
   return ss.str();
 }
@@ -75,8 +76,14 @@ std::string read_output(int from, bool echo)
     } else {
       std::string block(buf, buf + count);
 
-      if (echo)
-        std::cout << block << std::flush;
+      if (echo && block.find("RESULT") == std::string::npos) {
+        auto echo_block(block);
+
+        echo_block.erase(std::remove(echo_block.begin(), echo_block.end(), ';'),
+                         echo_block.end());
+
+        std::cout << echo_block << std::flush;
+      }
 
       res += block;
     }
@@ -194,8 +201,11 @@ std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
     output_split.begin() + (output_split.size() - 1u) / num_runs);
 
   if (ts) {
-    auto parse_output_times = [](std::string const &output_times){
-      return split(output_times.substr(1u, output_times.size() - 2u), ",");
+    auto parse_output_times = [](std::string output_times){
+      output_times = output_times.substr(std::strlen("RESULT: "));
+      output_times = output_times.substr(1u, output_times.size() - 2u);
+
+      return split(output_times, ",");
     };
 
     for (auto const &output_time : parse_output_times(output_split.back()))

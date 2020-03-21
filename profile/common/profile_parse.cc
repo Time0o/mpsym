@@ -196,6 +196,12 @@ split_task_allocations(std::string const &task_allocations_str,
 namespace profile
 {
 
+std::shared_ptr<cgtl::ArchGraphSystem> GenericGroup::to_arch_graph_system() const
+{
+  return std::make_shared<cgtl::ArchGraphAutomorphisms>(
+    cgtl::PermGroup(degree, parse_generators_mpsym(degree, generators)));
+}
+
 GenericGroup parse_group(std::string const &group_str)
 {
   static std::regex re_group("degree:(\\d+),order:(\\d+),gens:(.*)");
@@ -257,9 +263,7 @@ gap::TaskAllocationVector parse_task_allocations_gap(
   for (auto const &task_allocation : std::get<2>(task_allocations))
     ss << DUMP(task_allocation) << ",\n";
 
-  return {std::get<0>(task_allocations),
-          std::get<1>(task_allocations),
-          ss.str()};
+  return ss.str();
 }
 
 cgtl::TaskAllocationVector parse_task_allocations_mpsym(
@@ -268,27 +272,21 @@ cgtl::TaskAllocationVector parse_task_allocations_mpsym(
   auto task_allocations(
     split_task_allocations(task_allocations_str, R"((\d+(?: \d+)*))", ' '));
 
-  return {std::get<0>(task_allocations),
-          std::get<1>(task_allocations),
-          std::get<2>(task_allocations)};
+  return std::get<2>(task_allocations);
 }
 
 cgtl::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
-  std::string const &gap_output_str)
+  std::vector<std::string> const &gap_output)
 {
-  static std::regex re_task_allocations(
-    R"(Found \d+ orbit representatives\n((?:.|\n)*))");
+  std::stringstream ss;
 
-  std::smatch m;
-  if (!std::regex_search(gap_output_str, m, re_task_allocations))
-    throw std::invalid_argument("malformed gap output");
+  for (auto const &line : gap_output)
+    ss << line << "\n";
 
   auto task_allocations(split_task_allocations(
-    m[1], R"(.*\[ (\d+(?:, \d+)*) \])", ','));
+    ss.str(), R"(.*\[(\d+(?:,\d+)*)\])", ','));
 
-  return {std::get<0>(task_allocations),
-          std::get<1>(task_allocations),
-          std::get<2>(task_allocations)};
+  return std::get<2>(task_allocations);
 }
 
 } // namespace profile
