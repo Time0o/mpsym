@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
+from math import factorial
 from random import randint, shuffle
 
 from modules.args import NiceArgumentParser
 from modules.perm import cycle_form
 from modules.run import normalize_gap_output, run_gap
-from modules.util import usage
+from modules.util import error, usage
 
 
 USAGE = usage(__file__, """[--degree-min DEGREE_MIN]
@@ -29,8 +30,11 @@ GAP_CMD = \
 
 
 def random_perm(degree):
-    domain = list(range(1, degree + 1))
-    shuffle(domain)
+    id_domain = list(range(1, degree + 1))
+    domain = id_domain[:]
+
+    while domain == id_domain:
+        shuffle(domain)
 
     return cycle_form(domain)
 
@@ -44,10 +48,20 @@ def random_perm_groups(degree_min,
     generating_sets = []
 
     for _ in range(num_perm_groups):
-        degree = randint(degree_min, degree_max + 1)
-        num_generators = randint(num_generators_min, num_generators_max + 1)
+        degree = randint(degree_min, degree_max)
 
-        generating_set = [random_perm(degree) for _ in range(num_generators)]
+        num_generators = min(randint(num_generators_min, num_generators_max),
+                             factorial(degree) - 1)
+
+        generating_set = set()
+
+        for _ in range(num_generators):
+            while True:
+                generator = random_perm(degree)
+
+                if generator not in generating_set:
+                    generating_set.add(generator)
+                    break
 
         generating_sets.append(
             'Tuple([{}, [{}]])'.format(degree, ','.join(generating_set)))
@@ -60,16 +74,16 @@ def random_perm_groups(degree_min,
 if __name__ == '__main__':
     parser = NiceArgumentParser(usage=USAGE, description=DESC)
 
-    parser.add_argument('--degree-min', type=int, default=1,
+    parser.add_argument('--degree-min', type=int, default=2,
         help="minimal degree of permutation group")
 
-    parser.add_argument('--degree-max', type=int, default=1,
+    parser.add_argument('--degree-max', type=int, required=True,
         help="maximal degree of permutation group")
 
     parser.add_argument('--num-generators-min', type=int, default=1,
         help="minimal size of generating set")
 
-    parser.add_argument('--num-generators-max', type=int, default=10,
+    parser.add_argument('--num-generators-max', type=int, default=2,
         help="maximal size of generating set")
 
     parser.add_argument('num_perm_groups', metavar='NUM_PERM_GROUPS', type=int,
