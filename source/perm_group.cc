@@ -151,6 +151,13 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
                                     PermGroup const &rhs_,
                                     BSGS::Options const *bsgs_options_)
 {
+  if (lhs_.is_trivial())
+    return rhs_;
+
+  if (rhs_.is_trivial())
+    return lhs_;
+
+  using boost::multiprecision::cpp_int;
   using boost::multiprecision::pow;
 
   auto lhs(lhs_.generators());
@@ -162,8 +169,10 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
   lhs.minimize_degree();
   rhs.minimize_degree();
 
+  // degree of wreath product
   unsigned degree = lhs.degree() * rhs.degree();
 
+  // determine generators of wreath product
   PermSet generators;
 
   for (unsigned i = 0u; i < rhs.degree(); ++i) {
@@ -194,19 +203,38 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
     generators.emplace(degree, shifted_cycles);
   }
 
-  auto wreath_product_order = [&]() {
-    auto lhs_order(lhs_.order());
-    auto rhs_order(rhs_.order());
+  // largest point moved by rhs
+  unsigned rhs_lmp = rhs.degree();
 
-    if (rhs_order > std::numeric_limits<unsigned>::max() / 2u)
-      throw std::overflow_error("order of wreath product would overflow");
+  while (rhs_lmp >= 1u) {
+    bool fixed = true;
 
-    return pow(lhs_order, static_cast<unsigned>(rhs_order) * 2u) * rhs_order;
-  };
+    for (auto const &perm : rhs) {
+      if (perm[rhs_lmp] != rhs_lmp) {
+        fixed = false;
+        break;
+      }
+    }
+
+    if (!fixed)
+      break;
+
+    --rhs_lmp;
+  }
+
+  // order of resulting wreath product
+  auto lhs_order(lhs_.order());
+  auto rhs_order(rhs_.order());
+
+  if (rhs_order > std::numeric_limits<unsigned>::max() / 2u)
+    throw std::overflow_error("order of wreath product would overflow");
+
+  cpp_int wreath_product_order(pow(lhs_order, rhs_lmp) * rhs_order);
 
   auto bsgs_options(*BSGS::Options::fill_defaults(bsgs_options_));
-  bsgs_options.schreier_sims_random_known_order = wreath_product_order();
+  bsgs_options.schreier_sims_random_known_order = wreath_product_order;
 
+  // construct wreath product
   return PermGroup(BSGS(degree, generators, &bsgs_options));
 }
 
