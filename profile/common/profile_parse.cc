@@ -278,13 +278,8 @@ cgtl::TaskAllocationVector parse_task_allocations_mpsym(
 cgtl::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
   std::vector<std::string> const &gap_output)
 {
-  std::stringstream ss;
-
-  for (auto const &line : gap_output)
-    ss << line << "\n";
-
   auto task_allocations(split_task_allocations(
-    ss.str(), R"(.*\[(\d+(?:,\d+)*)\])", ','));
+    join(gap_output, "\n"), R"(.*\[(\d+(?:,\d+)*)\])", ','));
 
   return std::get<2>(task_allocations);
 }

@@ -45,7 +45,8 @@ void usage(std::ostream &s)
     "[-g|--groups GROUPS]",
     "[-a|--arch-graph ARCH_GRAPH]",
     "-t|--task-allocations TASK_ALLOCATIONS",
-    "[--check-accuracy]",
+    "[-l|--task-allocations-limit TASK_ALLOCATIONS_LIMIT]",
+    "[-c|--check-accuracy]",
     "[-v|--verbose]",
     "[--show-gap-errors]"
   };
@@ -62,6 +63,7 @@ struct ProfileOptions
   VariantOptionSet mapping_options{"dont_match_reprs"};
   bool groups_input = false;
   bool arch_graph_input = false;
+  unsigned task_allocation_limit = 0u;
   bool check_accuracy = false;
   int verbosity = 0;
   bool show_gap_errors = false;
@@ -385,12 +387,13 @@ void do_profile(Stream &automorphisms_stream,
   using cgtl::ArchGraphSystem;
   using cgtl::PermGroup;
 
-  if (options.verbosity > 0)
-    debug("Implementation:", options.library.get());
-
   std::shared_ptr<ArchGraphSystem> ags;
 
-  auto task_allocations(read_file(task_allocations_stream.stream));
+  auto task_allocations(read_file(task_allocations_stream.stream,
+                                  options.task_allocation_limit));
+
+  if (options.verbosity > 0)
+    debug("Implementation:", options.library.get());
 
   if (options.groups_input) {
     foreach_line(automorphisms_stream.stream,
@@ -436,17 +439,18 @@ int main(int argc, char **argv)
   progname = basename(argv[0]);
 
   struct option long_options[] = {
-    {"help",                 no_argument,       0,       'h'},
-    {"implementation",       required_argument, 0,       'i'},
-    {"mapping-method",       required_argument, 0,       'm'},
-    {"mapping-options",      required_argument, 0,        2 },
-    {"groups",               required_argument, 0,       'g'},
-    {"arch-graph",           required_argument, 0,       'a'},
-    {"task-allocations",     required_argument, 0,       't'},
-    {"check-accuracy",       no_argument,       0,        3 },
-    {"verbose",              no_argument,       0,       'v'},
-    {"show-gap-errors",      no_argument,       0,        4 },
-    {nullptr,                0,                 nullptr,  0 }
+    {"help",                   no_argument,       0,       'h'},
+    {"implementation",         required_argument, 0,       'i'},
+    {"mapping-method",         required_argument, 0,       'm'},
+    {"mapping-options",        required_argument, 0,        2 },
+    {"groups",                 required_argument, 0,       'g'},
+    {"arch-graph",             required_argument, 0,       'a'},
+    {"task-allocations",       required_argument, 0,       't'},
+    {"task-allocations-limit", required_argument, 0,       'l'},
+    {"check-accuracy",         no_argument,       0,       'c'},
+    {"verbose",                no_argument,       0,       'v'},
+    {"show-gap-errors",        no_argument,       0,        3 },
+    {nullptr,                  0,                 nullptr,  0 }
   };
 
   ProfileOptions options;
@@ -455,7 +459,7 @@ int main(int argc, char **argv)
   Stream task_allocations_stream;
 
   for (;;) {
-    int c = getopt_long(argc, argv, "hi:m:g:a:t:v", long_options, nullptr);
+    int c = getopt_long(argc, argv, "hi:m:g:a:t:l:v", long_options, nullptr);
     if (c == -1)
       break;
 
@@ -485,14 +489,17 @@ int main(int argc, char **argv)
       case 't':
         OPEN_STREAM(task_allocations_stream, optarg);
         break;
-      case 3:
+      case 'l':
+        options.task_allocation_limit = stox<unsigned>(optarg);
+        break;
+      case 'c':
         options.check_accuracy = true;
         break;
       case 'v':
         ++options.verbosity;
         TIMER_ENABLE();
         break;
-      case 4:
+      case 3:
         options.show_gap_errors = true;
         break;
       default:

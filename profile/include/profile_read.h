@@ -33,10 +33,22 @@ inline std::string read_line(std::ifstream &stream)
   return line;
 }
 
-inline std::string read_file(std::ifstream &stream)
+inline std::string read_file(std::ifstream &stream, unsigned max_lines = 0u)
 {
-  return std::string((std::istreambuf_iterator<char>(stream)),
+  std::string content((std::istreambuf_iterator<char>(stream)),
                       std::istreambuf_iterator<char>());
+
+  if (max_lines == 0u)
+    return content;
+
+  auto lines(split(content, "\n"));
+
+  if (lines.size() <= max_lines)
+    return content;
+
+  lines.resize(max_lines);
+
+  return join(lines, "\n");
 }
 
 template<typename FUNC>
