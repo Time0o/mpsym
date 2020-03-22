@@ -178,8 +178,6 @@ public:
       current_degree += it->degree();
     }
 
-    generators.minimize_degree();
-
     return PermGroup(BSGS(total_degree, generators, bsgs_options));
   }
 
