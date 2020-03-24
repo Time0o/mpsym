@@ -248,16 +248,31 @@ function ArchGraph:create(obj)
   obj._num_channels = #obj.channels
 
   obj._processor_types = {}
+
+  local processor_type_set = {}
   for _, p in ipairs(obj.processors) do
-    table.insert(obj._processor_types, p[2])
+    local ptype = p[2]
+
+    if not processor_type_set[ptype] then
+      processor_type_set[ptype] = true
+      table.insert(obj._processor_types, ptype)
+    end
   end
 
   obj._channel_types = {}
+
+  local channel_type_set = {}
   for _, c in ipairs(obj.channels) do
-    table.insert(obj._channel_types, c[3])
+    local ctype = c[3]
+
+    if not channel_type_set[ctype] then
+      channel_type_set[ctype] = true
+      table.insert(obj._channel_types, ctype)
+    end
   end
 
   return obj
+
 end
 
 function ArchGraphCluster:create(obj)
