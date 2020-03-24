@@ -86,7 +86,6 @@ PermGroup ArchGraph::update_automorphisms_nauty(
    *  (1)-----(2)--- ... ---(n)
    */
   for (int level = 0; level <= cts_log2; ++level) {
-
     if (level > 0) {
       for (int v = 0; v < n_orig; ++v)
         ADDONEEDGE(g, v + level * n_orig, v + (level - 1) * n_orig, m);
@@ -101,7 +100,6 @@ PermGroup ArchGraph::update_automorphisms_nauty(
 
         ADDONEEDGE(g, source + level * n_orig, target + level * n_orig, m);
       }
-      t >>= 1u;
     }
   }
 
