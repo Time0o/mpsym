@@ -5,6 +5,7 @@
 #include <cassert>
 #include <initializer_list>
 #include <ostream>
+#include <sstream>
 #include <vector>
 
 #include "dump.h"
@@ -150,7 +151,9 @@ private:
 
 inline std::ostream &operator<<(std::ostream &os, PermSet const &ps)
 {
-  os << DUMP(ps._perms, "{}");
+  std::vector<Perm> perms(ps._perms);
+  std::sort(perms.begin(), perms.end());
+  os << DUMP(perms, "{}");
   return os;
 }
 

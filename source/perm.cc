@@ -105,12 +105,6 @@ Perm Perm::operator~() const
   return Perm(inverse);
 }
 
-Perm operator*(Perm const &lhs, Perm const &rhs)
-{
-  Perm result(lhs);
-  return result *= rhs;
-}
-
 std::ostream &operator<<(std::ostream &os, const Perm &perm)
 {
   if (perm.id()) {
@@ -135,10 +129,8 @@ bool Perm::operator==(Perm const &rhs) const
   return true;
 }
 
-bool Perm::operator!=(Perm const &rhs) const
-{
-  return !((*this) == rhs);
-}
+bool Perm::operator<(Perm const &rhs) const
+{ return cycles() < rhs.cycles(); }
 
 Perm& Perm::operator*=(Perm const &rhs)
 {

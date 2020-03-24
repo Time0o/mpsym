@@ -6,6 +6,8 @@
 #include <ostream>
 #include <vector>
 
+#include <boost/operators.hpp>
+
 /**
  * @file perm.h
  * @brief Defines `Perm`.
@@ -45,7 +47,7 @@ namespace cgtl
  * always has a domain of the form \f$\{1, 2, 3, \dots, n\}\f$ with \f$ n \in
  * \mathbb{N}_+\f$.
  */
-class Perm
+class Perm : boost::operators<Perm>
 {
 friend std::size_t std::hash<Perm>::operator()(Perm const &perm) const;
 
@@ -134,18 +136,8 @@ public:
    */
   bool operator==(Perm const &rhs) const;
 
-  /** Check whether two permutations are not equal.
-   *
-   * This function's result is always equal to `!(*this == rhs)`.
-   *
-   * \param rhs
-   *     the permutation which is to be compared with this one, if `rhs`'s
-   *     degree() is not equal to this permutation's degree(), this operator's
-   *     behaviour is undefined
-   *
-   * \return `true` if `rhs` is not equal (see `operator==`) to this permutation
-   */
-  bool operator!=(Perm const &rhs) const;
+  // TODO
+  bool operator<(Perm const &rhs) const;
 
   /** "Chain" another permutation to an existing permutation.
    *
@@ -281,7 +273,6 @@ private:
 };
 
 std::ostream &operator<<(std::ostream &os, Perm const &perm);
-Perm operator*(Perm const &lhs, Perm const &rhs);
 
 } // namespace cgtl
 
