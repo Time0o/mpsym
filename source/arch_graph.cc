@@ -32,9 +32,12 @@ namespace cgtl
 
 std::string ArchGraph::to_gap() const
 {
-  std::stringstream ss;
+  if (_processor_types.size() > 1u || _channel_types.size() > 1u)
+    throw std::logic_error("ArchGraph::to_gap only available for uncolored ArchGraphs");
 
   typename boost::graph_traits<adjacency_type>::edge_iterator ei, ei_end;
+
+  std::stringstream ss;
 
   ss << "AutGroupGraph(EdgeOrbitsGraph(Group(()),[";
 
@@ -42,8 +45,10 @@ std::string ArchGraph::to_gap() const
     auto source = boost::source(*ei, _adj) + 1;
     auto target = boost::target(*ei, _adj) + 1;
 
-    ss << "[" << source << "," << target << "],"
-       << "[" << target << "," << source << "]";
+    ss << "[" << source << "," << target << "]";
+
+    if (source != target)
+      ss << ",[" << target << "," << source << "]";
 
     if (std::next(ei) != ei_end)
       ss << ",";
