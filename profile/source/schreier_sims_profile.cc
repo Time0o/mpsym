@@ -265,7 +265,7 @@ std::vector<double> run_arch_graph(std::string const &arch_graph,
             &ts);
 
     num_automorphisms = ag->automorphisms().order();
-    automorphisms_generators = ag->automorphisms_generators();
+    automorphisms_generators = ag->automorphisms().generators();
 
   } else if (options.implementation.is("permlib")) {
     throw std::logic_error("graph automorphisms not supported by permlib");

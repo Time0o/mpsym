@@ -48,8 +48,6 @@ public:
     return _automorphisms;
   }
 
-  virtual PermSet automorphisms_generators(bool augmented = false);
-
   virtual PartialPermInverseSemigroup partial_automorphisms()
   { throw std::logic_error("not implemented"); }
 
@@ -103,9 +101,6 @@ private:
 
   PermGroup _automorphisms;
   bool _automorphisms_valid = false;
-
-  PermSet _augmented_generators;
-  bool _augmented_generators_valid = false;
 };
 
 // TODO: outstream operator

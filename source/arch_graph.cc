@@ -371,7 +371,7 @@ void ArchGraph::dump_automorphisms(std::ostream& os)
 {
   os << "automorphism group: [";
 
-  auto gens(automorphisms_generators());
+  auto gens(automorphisms().generators());
 
   for (auto i = 0u; i < gens.size(); ++i) {
     os << "\n  " << gens[i];

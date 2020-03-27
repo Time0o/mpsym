@@ -18,28 +18,6 @@
 namespace cgtl
 {
 
-PermSet ArchGraphSystem::automorphisms_generators(bool augmented)
-{
-  if (!augmented)
-    return automorphisms().generators();
-
-  if (!_augmented_generators_valid) {
-    _augmented_generators.clear();
-
-    for (Perm const &generator : automorphisms_generators(false)) {
-      _augmented_generators.insert(generator);
-
-      Perm generator_inverted(~generator);
-      if (generator_inverted != generator)
-        _augmented_generators.insert(generator_inverted);
-    }
-
-    _augmented_generators_valid = true;
-  }
-
-  return _augmented_generators;
-}
-
 TaskAllocation ArchGraphSystem::mapping(TaskAllocation const &allocation,
                                         unsigned offset,
                                         MappingOptions *options,
@@ -111,7 +89,7 @@ TaskAllocation ArchGraphSystem::min_elem_local_search(TaskAllocation const &task
   while (!stationary) {
     stationary = true;
 
-    for (Perm const &generator : automorphisms_generators(true)) {
+    for (Perm const &generator : automorphisms().generators()) {
       if (representative.less_than(representative, generator, offset)) {
         representative.permute(generator, offset);
 
@@ -152,7 +130,7 @@ TaskAllocation ArchGraphSystem::min_elem_orbits(TaskAllocation const &tasks,
     if (current.less_than(representative))
       representative = current;
 
-    for (Perm const &generator : automorphisms_generators(false)) {
+    for (Perm const &generator : automorphisms().generators()) {
       TaskAllocation next(current.permuted(generator, offset));
 
       if (is_representative(next, options, orbits)) {

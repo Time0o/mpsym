@@ -56,7 +56,7 @@ ArchUniformSuperGraph::wreath_product_action_proto() const
 
   std::vector<PermSet> sigmas_proto_gens(degree_super_graph);
 
-  for (auto const &gen_ : _subsystem_proto->automorphisms_generators()) {
+  for (auto const &gen_ : _subsystem_proto->automorphisms().generators()) {
     for (unsigned b = 0u; b < sigmas_proto_gens.size(); ++b) {
       std::vector<unsigned> gen(degree_super_graph * degree_proto);
       std::iota(gen.begin(), gen.end(), 1u);
@@ -87,7 +87,7 @@ ArchUniformSuperGraph::wreath_product_action_super_graph() const
 
   PermSet sigma_super_graph_gens;
 
-  for (auto const &gen_ : _subsystem_super_graph->automorphisms_generators()) {
+  for (auto const &gen_ : _subsystem_super_graph->automorphisms().generators()) {
     std::vector<unsigned> gen(degree_super_graph * degree_proto);
 
     for (unsigned i = 1u; i <= gen.size(); ++i) {
