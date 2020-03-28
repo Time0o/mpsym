@@ -33,13 +33,8 @@ namespace cgtl
 
 PermGroup::PermGroup(unsigned degree, PermSet const &generators)
 {
-  if (generators.empty() || (generators.size() == 1u && generators[0].id())) {
-    _bsgs = BSGS(degree);
-    _order = 1;
-  } else {
-    _bsgs = BSGS(degree, generators);
-    _order = _bsgs.order();
-  }
+  _bsgs = BSGS(degree, generators);
+  _order = _bsgs.order();
 }
 
 bool PermGroup::operator==(PermGroup const &rhs) const

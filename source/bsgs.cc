@@ -49,6 +49,9 @@ BSGS::BSGS(unsigned degree)
 BSGS::BSGS(unsigned degree, PermSet const &generators, Options const *options_)
 : _degree(degree)
 {
+  if (generators.empty() || (generators.size() == 1u && generators[0].id()))
+    return;
+
   assert(degree > 0);
 
   generators.assert_degree(degree);
