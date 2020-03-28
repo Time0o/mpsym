@@ -107,6 +107,7 @@ unsigned ArchGraph::num_channels() const
 PermGroup ArchGraph::update_automorphisms(BSGS::Options const *bsgs_options)
 { return update_automorphisms_nauty(bsgs_options); }
 
+#if 0
 bool ArchGraph::is_partial_automorphism(
   PartialPerm const &pperm) const
 {
@@ -188,6 +189,7 @@ PartialPermInverseSemigroup ArchGraph::partial_automorphisms()
 
   return res;
 }
+#endif
 
 ArchGraph ArchGraph::fully_connected(unsigned n,
                                      ProcessorLabel pl,

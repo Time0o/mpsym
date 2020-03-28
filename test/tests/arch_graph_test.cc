@@ -324,14 +324,6 @@ TEST_F(ArchGraphTest, CanObtainAutomorphisms)
     << "Automorphisms of minimal triangular architecture graph correct.";
 }
 
-TEST_F(ArchGraphTest, DISABLED_CanObtainPartialAutomorphisms)
-{
-  auto ag(ag_grid22());
-  auto partial_perm_inverse_semigroup(ag.partial_automorphisms());
-
-  FAIL() << "TODO";
-}
-
 TEST(SpecialArchGraphTest, CanConstructFullyConnected)
 {
   for (unsigned i = 1u; i < 5u; ++i) {

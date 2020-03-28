@@ -49,9 +49,6 @@ public:
     return _automorphisms;
   }
 
-  virtual PartialPermInverseSemigroup partial_automorphisms()
-  { throw std::logic_error("not implemented"); }
-
   void invalidate_automorphisms()
   { _automorphisms_valid = false; }
 
