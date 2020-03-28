@@ -16,15 +16,15 @@ namespace mpsym
 class ArchGraphSystem
 {
 public:
-  enum class MappingMethod {
+  enum class ReprMethod {
     ITERATE,
     LOCAL_SEARCH,
     ORBITS,
     AUTO = ITERATE
   };
 
-  struct MappingOptions {
-    MappingMethod method = MappingMethod::AUTO;
+  struct ReprOptions {
+    ReprMethod method = ReprMethod::AUTO;
     unsigned offset = 0u;
     bool match_reprs = true;
   };
@@ -52,14 +52,14 @@ public:
   void invalidate_automorphisms()
   { _automorphisms_valid = false; }
 
-  virtual TaskAllocation mapping(TaskAllocation const &allocation,
-                                 MappingOptions const *options = nullptr,
-                                 TaskOrbits *orbits = nullptr);
+  virtual TaskAllocation repr(TaskAllocation const &allocation,
+                              ReprOptions const *options = nullptr,
+                              TaskOrbits *orbits = nullptr);
 
 protected:
-  static MappingOptions complete_options(MappingOptions const *options)
+  static ReprOptions complete_options(ReprOptions const *options)
   {
-    static MappingOptions _default_mapping_options;
+    static ReprOptions _default_mapping_options;
 
     return options ? *options : _default_mapping_options;
   }
@@ -68,25 +68,25 @@ private:
   virtual PermGroup update_automorphisms(BSGS::Options const *bsgs_options) = 0;
 
   TaskAllocation min_elem_iterate(TaskAllocation const &tasks,
-                                  MappingOptions const *options,
+                                  ReprOptions const *options,
                                   TaskOrbits *orbits);
 
   TaskAllocation min_elem_local_search(TaskAllocation const &tasks,
-                                       MappingOptions const *options,
+                                       ReprOptions const *options,
                                        TaskOrbits *orbits);
 
   TaskAllocation min_elem_orbits(TaskAllocation const &tasks,
-                                 MappingOptions const *options,
+                                 ReprOptions const *options,
                                  TaskOrbits *orbits);
 
-  static bool is_representative(TaskAllocation const &tasks,
-                                MappingOptions const *options,
+  static bool is_repr(TaskAllocation const &tasks,
+                                ReprOptions const *options,
                                 TaskOrbits *orbits)
   {
     if (!options->match_reprs || !orbits)
       return false;
 
-    return orbits->is_representative(tasks);
+    return orbits->is_repr(tasks);
   }
 
   PermGroup _automorphisms;

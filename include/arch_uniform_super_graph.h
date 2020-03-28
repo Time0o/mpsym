@@ -28,9 +28,9 @@ public:
   unsigned num_processors() const override;
   unsigned num_channels() const override;
 
-  TaskAllocation mapping(TaskAllocation const &allocation_,
-                         MappingOptions const *options = nullptr,
-                         TaskOrbits *orbits = nullptr) override;
+  TaskAllocation repr(TaskAllocation const &allocation_,
+                      ReprOptions const *options = nullptr,
+                      TaskOrbits *orbits = nullptr) override;
 
 private:
   ArchGraphAutomorphisms wreath_product_action_super_graph() const;

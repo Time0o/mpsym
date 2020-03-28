@@ -30,9 +30,9 @@ public:
   unsigned num_channels() const override;
   unsigned num_subsystems() const;
 
-  TaskAllocation mapping(TaskAllocation const &allocation,
-                         MappingOptions const *options = nullptr,
-                         TaskOrbits *orbits = nullptr) override;
+  TaskAllocation repr(TaskAllocation const &allocation,
+                      ReprOptions const *options = nullptr,
+                      TaskOrbits *orbits = nullptr) override;
 
 private:
   PermGroup update_automorphisms(BSGS::Options const *bsgs_options) override;

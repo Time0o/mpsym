@@ -32,10 +32,10 @@ using testing::UnorderedElementsAreArray;
 
 typedef std::vector<std::vector<unsigned>> orbit;
 
-static void expect_mapping_generates_orbits(
+static void expect_generates_orbits(
   std::shared_ptr<ArchGraphSystem> const &ag,
   std::vector<orbit> expected_orbits,
-  ArchGraphSystem::MappingMethod method)
+  ArchGraphSystem::ReprMethod method)
 {
   std::unordered_map<TaskAllocation, std::vector<TaskAllocation>> orbits;
 
@@ -43,17 +43,16 @@ static void expect_mapping_generates_orbits(
     for (auto j = 1u; j <= ag->num_processors(); ++j) {
       TaskAllocation allocation({i, j});
 
-      ArchGraphSystem::MappingOptions options;
+      ArchGraphSystem::ReprOptions options;
       options.method = method;
 
-      TaskAllocation representative(ag->mapping(allocation, &options));
+      TaskAllocation repr(ag->repr(allocation, &options));
 
-      auto it = orbits.find(representative);
-      if (it == orbits.end())
-        orbits[representative] = {representative};
+      if (orbits.find(repr) == orbits.end())
+        orbits[repr] = {repr};
 
-      if (allocation != representative)
-        orbits[representative].push_back(allocation);
+      if (allocation != repr)
+        orbits[repr].push_back(allocation);
     }
   }
 
@@ -344,11 +343,11 @@ TEST(SpecialArchGraphTest, CanConstructRegularMesh)
   }
 }
 
-class ArchGraphMappingVariantTest :
-  public ArchGraphTestBase<testing::TestWithParam<ArchGraphSystem::MappingMethod>>
+class ArchGraphReprVariantTest :
+  public ArchGraphTestBase<testing::TestWithParam<ArchGraphSystem::ReprMethod>>
 {};
 
-TEST_P(ArchGraphMappingVariantTest, CanTestMappingEquivalence)
+TEST_P(ArchGraphReprVariantTest, CanTestReprEquivalence)
 {
   std::vector<std::shared_ptr<ArchGraphSystem>> const arch_graphs {
     std::make_shared<ArchGraph>(ag_nocol()),
@@ -389,18 +388,16 @@ TEST_P(ArchGraphMappingVariantTest, CanTestMappingEquivalence)
     },
   };
 
-  for (auto i = 0u; i < arch_graphs.size(); ++i) {
-    expect_mapping_generates_orbits(
-      arch_graphs[i], expected_orbits[i], GetParam());
-  }
+  for (auto i = 0u; i < arch_graphs.size(); ++i)
+    expect_generates_orbits(arch_graphs[i], expected_orbits[i], GetParam());
 }
 
 INSTANTIATE_TEST_CASE_P(
-  ArchGraphMappingVariants,
-  ArchGraphMappingVariantTest,
-  testing::Values(ArchGraphSystem::MappingMethod::ITERATE,
-                  ArchGraphSystem::MappingMethod::LOCAL_SEARCH,
-                  ArchGraphSystem::MappingMethod::ORBITS));
+  ArchGraphReprVariants,
+  ArchGraphReprVariantTest,
+  testing::Values(ArchGraphSystem::ReprMethod::ITERATE,
+                  ArchGraphSystem::ReprMethod::LOCAL_SEARCH,
+                  ArchGraphSystem::ReprMethod::ORBITS));
 
 template<typename T>
 class ArchGraphClusterTestBase : public T
@@ -468,11 +465,11 @@ TEST_F(ArchGraphClusterTest, CanObtainAutormorphisms)
     << "Automorphisms of minimal architecture graph cluster correct.";
 }
 
-class ArchGraphClusterMappingVariantTest :
-  public ArchGraphClusterTestBase<testing::TestWithParam<ArchGraphSystem::MappingMethod>>
+class ArchGraphClusterReprVariantTest :
+  public ArchGraphClusterTestBase<testing::TestWithParam<ArchGraphSystem::ReprMethod>>
 {};
 
-TEST_P(ArchGraphClusterMappingVariantTest, CanTestMappingEquivalence)
+TEST_P(ArchGraphClusterReprVariantTest, CanTestReprEquivalence)
 {
   std::vector<std::shared_ptr<ArchGraphSystem>> const clusters {cluster_minimal};
 
@@ -487,18 +484,16 @@ TEST_P(ArchGraphClusterMappingVariantTest, CanTestMappingEquivalence)
     }
   };
 
-  for (auto i = 0u; i < clusters.size(); ++i) {
-    expect_mapping_generates_orbits(
-      clusters[i], expected_orbits[i], GetParam());
-  }
+  for (auto i = 0u; i < clusters.size(); ++i)
+    expect_generates_orbits(clusters[i], expected_orbits[i], GetParam());
 }
 
 INSTANTIATE_TEST_CASE_P(
-  ArchGraphClusterMappingVariants,
-  ArchGraphClusterMappingVariantTest,
-  testing::Values(ArchGraphSystem::MappingMethod::ITERATE,
-                  ArchGraphSystem::MappingMethod::LOCAL_SEARCH,
-                  ArchGraphSystem::MappingMethod::ORBITS));
+  ArchGraphClusterReprVariants,
+  ArchGraphClusterReprVariantTest,
+  testing::Values(ArchGraphSystem::ReprMethod::ITERATE,
+                  ArchGraphSystem::ReprMethod::LOCAL_SEARCH,
+                  ArchGraphSystem::ReprMethod::ORBITS));
 
 template<typename T>
 class ArchUniformSuperGraphTestBase : public T

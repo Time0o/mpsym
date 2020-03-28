@@ -16,15 +16,15 @@ namespace mpsym
 
 class TaskOrbits
 {
-  using orbit_representatives_map = std::unordered_map<TaskAllocation, unsigned>;
+  using orbit_reprs_map = std::unordered_map<TaskAllocation, unsigned>;
 
 public:
   class const_iterator
   : public std::iterator<std::forward_iterator_tag, TaskAllocation>
   {
   public:
-    const_iterator(orbit_representatives_map::const_iterator current_it,
-                   orbit_representatives_map::const_iterator end_it)
+    const_iterator(orbit_reprs_map::const_iterator current_it,
+                   orbit_reprs_map::const_iterator end_it)
     : _current_it(current_it),
       _end_it(end_it),
       _current_key(current_it == _end_it ? TaskAllocation({}) : _current_it->first)
@@ -59,14 +59,14 @@ public:
         _current_key = _current_it->first;
     }
 
-    orbit_representatives_map::const_iterator _current_it;
-    orbit_representatives_map::const_iterator _end_it;
+    orbit_reprs_map::const_iterator _current_it;
+    orbit_reprs_map::const_iterator _end_it;
 
     TaskAllocation _current_key;
   };
 
   bool operator==(TaskOrbits const &rhs) const
-  { return orbit_representative_set() == rhs.orbit_representative_set(); }
+  { return orbit_repr_set() == rhs.orbit_repr_set(); }
 
   bool operator!=(TaskOrbits const &rhs) const
   { return !(*this == rhs); }
@@ -76,12 +76,12 @@ public:
     bool new_orbit;
     unsigned equivalence_class;
 
-    auto it = _orbit_representatives.find(allocation);
-    if (it == _orbit_representatives.end()) {
+    auto it = _orbit_reprs.find(allocation);
+    if (it == _orbit_reprs.end()) {
       new_orbit = true;
       equivalence_class = num_orbits();
 
-      _orbit_representatives[allocation] = equivalence_class;
+      _orbit_reprs[allocation] = equivalence_class;
 
     } else {
       new_orbit = false;
@@ -98,39 +98,39 @@ public:
       insert(*it);
   }
 
-  bool is_representative(TaskAllocation const &allocation) const
+  bool is_repr(TaskAllocation const &allocation) const
   {
-    auto it(_orbit_representatives.find(allocation));
+    auto it(_orbit_reprs.find(allocation));
 
-    return it != _orbit_representatives.end();
+    return it != _orbit_reprs.end();
   }
 
   unsigned num_orbits() const
-  { return static_cast<unsigned>(_orbit_representatives.size()); }
+  { return static_cast<unsigned>(_orbit_reprs.size()); }
 
   const_iterator begin() const
   {
-    return const_iterator(_orbit_representatives.begin(),
-                          _orbit_representatives.end());
+    return const_iterator(_orbit_reprs.begin(),
+                          _orbit_reprs.end());
   }
 
   const_iterator end() const
   {
-    return const_iterator(_orbit_representatives.end(),
-                          _orbit_representatives.end());
+    return const_iterator(_orbit_reprs.end(),
+                          _orbit_reprs.end());
   }
 
 private:
-  std::unordered_set<TaskAllocation> orbit_representative_set() const
+  std::unordered_set<TaskAllocation> orbit_repr_set() const
   {
     std::unordered_set<TaskAllocation> ret;
-    for (auto const &repr : _orbit_representatives)
+    for (auto const &repr : _orbit_reprs)
       ret.insert(repr.first);
 
     return ret;
   }
 
-  orbit_representatives_map _orbit_representatives;
+  orbit_reprs_map _orbit_reprs;
 };
 
 } // namespace mpsym

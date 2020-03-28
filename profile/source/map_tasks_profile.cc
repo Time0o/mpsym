@@ -40,8 +40,8 @@ void usage(std::ostream &s)
   char const *opts[] = {
     "[-h|--help]",
     "-i|--implementation {gap|mpsym}",
-    "-m|--mapping-method {iterate|local_search|orbits}",
-    "[--mapping-options {dont_match_reprs}]",
+    "-m|--repr-method {iterate|local_search|orbits}",
+    "[--repr-options {dont_match_reprs}]",
     "[-g|--groups GROUPS]",
     "[-a|--arch-graph ARCH_GRAPH]",
     "-t|--task-allocations TASK_ALLOCATIONS",
@@ -59,8 +59,8 @@ void usage(std::ostream &s)
 struct ProfileOptions
 {
   VariantOption library{"gap", "mpsym"};
-  VariantOption mapping_method{"iterate", "local_search", "orbits"};
-  VariantOptionSet mapping_options{"dont_match_reprs"};
+  VariantOption repr_method{"iterate", "local_search", "orbits"};
+  VariantOptionSet repr_options{"dont_match_reprs"};
   bool groups_input = false;
   bool arch_graph_input = false;
   unsigned task_allocation_limit = 0u;
@@ -79,7 +79,7 @@ std::string map_tasks_gap_iterate(ProfileOptions const &options)
   ss << "for element in automorphisms do\n";
   ss << "  permuted:=OnTuples(task_allocation, element);\n";
 
-  if (options.mapping_options.is_set("dont_match_reprs")) {
+  if (options.repr_options.is_set("dont_match_reprs")) {
     ss << "  if permuted < orbit_repr then\n";
     ss << "    orbit_repr:=permuted;\n";
     ss << "  fi;\n";
@@ -112,7 +112,7 @@ std::string map_tasks_gap_orbits(ProfileOptions const &options)
 {
   std::stringstream ss;
 
-  if (options.mapping_options.is_set("dont_match_reprs")) {
+  if (options.repr_options.is_set("dont_match_reprs")) {
     ss << "orbit:=Orb(automorphisms, task_allocation, OnTuples);\n";
     ss << "orbit_repr:=Elements(Enumerate(orbit))[1];\n";
 
@@ -157,10 +157,10 @@ std::string map_tasks_gap(
           "        Length(task_allocations), \"\\r\\c\");\n";
   }
 
-  // concrete mapping code depending on chosen implementation
-  if (options.mapping_method.is("iterate"))
+  // concrete code depending on chosen implementation
+  if (options.repr_method.is("iterate"))
     ss << map_tasks_gap_iterate(options);
-  else if (options.mapping_method.is("orbits"))
+  else if (options.repr_method.is("orbits"))
     ss << map_tasks_gap_orbits(options);
   else
     throw std::logic_error("unreachable");
@@ -193,30 +193,26 @@ mpsym::TaskOrbits map_tasks_mpsym(
   using mpsym::PermGroup;
   using mpsym::TaskOrbits;
 
-  // setup mapping options
-  ArchGraphSystem::MappingOptions mapping_options;
+  ArchGraphSystem::ReprOptions repr_options;
 
-  if (options.mapping_method.is("iterate"))
-    mapping_options.method = ArchGraphSystem::MappingMethod::ITERATE;
-  else if (options.mapping_method.is("local_search"))
-    mapping_options.method = ArchGraphSystem::MappingMethod::LOCAL_SEARCH;
-  else if (options.mapping_method.is("orbits"))
-    mapping_options.method = ArchGraphSystem::MappingMethod::ORBITS;
+  if (options.repr_method.is("iterate"))
+    repr_options.method = ArchGraphSystem::ReprMethod::ITERATE;
+  else if (options.repr_method.is("local_search"))
+    repr_options.method = ArchGraphSystem::ReprMethod::LOCAL_SEARCH;
+  else if (options.repr_method.is("orbits"))
+    repr_options.method = ArchGraphSystem::ReprMethod::ORBITS;
   else
     throw std::logic_error("unreachable");
 
-  if (options.mapping_options.is_set("dont_match_reprs"))
-      mapping_options.match_reprs = false;
+  if (options.repr_options.is_set("dont_match_reprs"))
+      repr_options.match_reprs = false;
 
-  // perform mappings
   TaskOrbits task_orbits;
   for (auto i = 0u; i < task_allocations.size(); ++i) {
     if (options.verbosity > 0)
       debug_progress("Mapping task", i + 1u, "of", task_allocations.size());
 
-    auto mapping(ags->mapping(task_allocations[i],
-                              &mapping_options,
-                              &task_orbits));
+    ags->repr(task_allocations[i], &repr_options, &task_orbits);
   }
 
   return task_orbits;
@@ -267,8 +263,6 @@ void map_tasks_mpsym_wrapper(std::shared_ptr<mpsym::ArchGraphSystem> ags,
                              double *t)
 {
   using mpsym::TaskOrbits;
-
-  // run task mapping code
 
   std::vector<double> ts;
 
@@ -424,11 +418,11 @@ void do_profile(Stream &automorphisms_stream,
 
   if (options.verbosity > 0) {
     debug("Timer dumps:");
-    if (options.mapping_method.is("iterate"))
+    if (options.repr_method.is("iterate"))
       debug_timer_dump("map bruteforce iterate");
-    else if (options.mapping_method.is("local_search"))
+    else if (options.repr_method.is("local_search"))
       debug_timer_dump("map approx local search");
-    else if (options.mapping_method.is("orbits"))
+    else if (options.repr_method.is("orbits"))
       debug_timer_dump("map bruteforce orbits");
   }
 }
@@ -442,8 +436,8 @@ int main(int argc, char **argv)
   struct option long_options[] = {
     {"help",                   no_argument,       0,       'h'},
     {"implementation",         required_argument, 0,       'i'},
-    {"mapping-method",         required_argument, 0,       'm'},
-    {"mapping-options",        required_argument, 0,        2 },
+    {"repr-method",            required_argument, 0,       'm'},
+    {"repr-options",           required_argument, 0,        2 },
     {"groups",                 required_argument, 0,       'g'},
     {"arch-graph",             required_argument, 0,       'a'},
     {"task-allocations",       required_argument, 0,       't'},
@@ -473,11 +467,11 @@ int main(int argc, char **argv)
         options.library.set(optarg);
         break;
       case 'm':
-        options.mapping_method.set(optarg);
+        options.repr_method.set(optarg);
         break;
       case 2:
         for (auto const &option : split(optarg, " "))
-          options.mapping_options.set(option.c_str());
+          options.repr_options.set(option.c_str());
         break;
       case 'g':
         OPEN_STREAM(automorphisms_stream, optarg);
@@ -514,12 +508,13 @@ int main(int argc, char **argv)
 
   CHECK_OPTION(options.library.is_set(), "--implementation option is mandatory");
 
-  CHECK_OPTION(options.mapping_method.is_set(), "--mapping-method is mandatory");
+  CHECK_OPTION(options.repr_method.is_set(), "--repr-method is mandatory");
 
-  CHECK_OPTION(!options.library.is("gap") || !options.mapping_method.is("local_search"),
+  CHECK_OPTION(!options.library.is("gap") || !options.repr_method.is("local_search"),
                "local_search only supported when using mpsym");
 
-  CHECK_OPTION(task_allocations_stream.valid, "--task-allocations option is mandatory");
+  CHECK_OPTION(task_allocations_stream.valid,
+               "--task-allocations option is mandatory");
 
   CHECK_OPTION(options.groups_input != options.arch_graph_input,
                "EITHER --arch-graph OR --groups must be given");

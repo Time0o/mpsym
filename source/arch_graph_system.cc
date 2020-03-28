@@ -18,20 +18,20 @@
 namespace mpsym
 {
 
-TaskAllocation ArchGraphSystem::mapping(TaskAllocation const &allocation,
-                                        MappingOptions const *options_,
-                                        TaskOrbits *orbits)
+TaskAllocation ArchGraphSystem::repr(TaskAllocation const &allocation,
+                                     ReprOptions const *options_,
+                                     TaskOrbits *orbits)
 {
   auto options(complete_options(options_));
 
   DBG(DEBUG) << "Requested task mapping for: " << allocation;
 
   TaskAllocation representative =
-    options.method == MappingMethod::ITERATE ?
+    options.method == ReprMethod::ITERATE ?
       min_elem_iterate(allocation, &options, orbits) :
-    options.method == MappingMethod::LOCAL_SEARCH ?
+    options.method == ReprMethod::LOCAL_SEARCH ?
       min_elem_local_search(allocation, &options, orbits) :
-    options.method == MappingMethod::ORBITS ?
+    options.method == ReprMethod::ORBITS ?
       min_elem_orbits(allocation, &options, orbits) :
     throw std::logic_error("unreachable");
 
@@ -42,7 +42,7 @@ TaskAllocation ArchGraphSystem::mapping(TaskAllocation const &allocation,
 }
 
 TaskAllocation ArchGraphSystem::min_elem_iterate(TaskAllocation const &tasks,
-                                                 MappingOptions const *options,
+                                                 ReprOptions const *options,
                                                  TaskOrbits *orbits)
 {
   DBG(DEBUG) << "Performing mapping by iteration";
@@ -55,7 +55,7 @@ TaskAllocation ArchGraphSystem::min_elem_iterate(TaskAllocation const &tasks,
     if (tasks.less_than(representative, element, options->offset)) {
       representative = tasks.permuted(element, options->offset);
 
-      if (is_representative(representative, options, orbits)) {
+      if (is_repr(representative, options, orbits)) {
         TIMER_STOP("map bruteforce iterate");
         return representative;
       }
@@ -71,7 +71,7 @@ TaskAllocation ArchGraphSystem::min_elem_iterate(TaskAllocation const &tasks,
 
 TaskAllocation ArchGraphSystem::min_elem_local_search(
   TaskAllocation const &tasks,
-  MappingOptions const *options,
+  ReprOptions const *options,
   TaskOrbits *)
 {
   DBG(TRACE) << "Performing approximate mapping by local search";
@@ -101,7 +101,7 @@ TaskAllocation ArchGraphSystem::min_elem_local_search(
 }
 
 TaskAllocation ArchGraphSystem::min_elem_orbits(TaskAllocation const &tasks,
-                                                MappingOptions const *options,
+                                                ReprOptions const *options,
                                                 TaskOrbits *orbits)
 {
   DBG(TRACE) << "Performing mapping by orbit construction";
@@ -127,7 +127,7 @@ TaskAllocation ArchGraphSystem::min_elem_orbits(TaskAllocation const &tasks,
     for (Perm const &generator : automorphisms().generators()) {
       TaskAllocation next(current.permuted(generator, options->offset));
 
-      if (is_representative(next, options, orbits)) {
+      if (is_repr(next, options, orbits)) {
         TIMER_STOP("map bruteforce orbits");
         return next;
       } else if (processed.find(next) == processed.end()) {
