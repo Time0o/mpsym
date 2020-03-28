@@ -215,8 +215,6 @@ ArchGraph ArchGraph::fully_connected(unsigned n,
     }
   }
 
-  ag.set_automorphisms(PermGroup::symmetric(n));
-
   return ag;
 }
 

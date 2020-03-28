@@ -64,12 +64,6 @@ protected:
     return options ? *options : _default_mapping_options;
   }
 
-  void set_automorphisms(PermGroup const &automorphisms)
-  {
-    _automorphisms = automorphisms;
-    _automorphisms_valid = true;
-  }
-
 private:
   virtual PermGroup update_automorphisms(BSGS::Options const *bsgs_options) = 0;
 
