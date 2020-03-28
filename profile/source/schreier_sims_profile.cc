@@ -77,9 +77,9 @@ struct ProfileOptions
   bool show_gap_errors = false;
 };
 
-cgtl::BSGS::Options bsgs_options_mpsym(ProfileOptions const &options)
+mpsym::BSGS::Options bsgs_options_mpsym(ProfileOptions const &options)
 {
-  using cgtl::BSGS;
+  using mpsym::BSGS;
 
   BSGS::Options bsgs_options;
 
@@ -120,12 +120,12 @@ std::string make_perm_group_gap(gap::PermSet const &generators,
   return "StabChain(Group(" + generators.permutations + "));\n";
 }
 
-void make_perm_group_mpsym(cgtl::PermSet const &generators,
+void make_perm_group_mpsym(mpsym::PermSet const &generators,
                            ProfileOptions const &options)
 {
-  using cgtl::BSGS;
-  using cgtl::PermGroup;
-  using cgtl::PermSet;
+  using mpsym::BSGS;
+  using mpsym::PermGroup;
+  using mpsym::PermSet;
 
   auto bsgs_options(bsgs_options_mpsym(options));
 
@@ -228,8 +228,8 @@ std::vector<double> run_arch_graph(std::string const &arch_graph,
 {
   using boost::multiprecision::cpp_int;
 
-  using cgtl::ArchGraphSystem;
-  using cgtl::PermSet;
+  using mpsym::ArchGraphSystem;
+  using mpsym::PermSet;
 
   std::vector<double> ts;
 

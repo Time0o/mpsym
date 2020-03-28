@@ -11,7 +11,7 @@
 #include "dump.h"
 #include "perm.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 class PermSet

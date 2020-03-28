@@ -10,7 +10,7 @@
 #include "dbg.h"
 #include "task_orbits.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 std::string
@@ -97,4 +97,4 @@ ArchGraphCluster::mapping(TaskAllocation const &allocation_,
   return allocation;
 }
 
-} // namespace cgtl
+} // namespace mpsym

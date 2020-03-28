@@ -28,7 +28,7 @@
  * @author Timo Nicolai
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 PermGroup::PermGroup(unsigned degree, PermSet const &generators)
@@ -371,4 +371,4 @@ std::ostream &operator<<(std::ostream &os, PermGroup const &pg)
   return os;
 }
 
-} // namespace cgtl
+} // namespace mpsym

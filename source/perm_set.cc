@@ -5,7 +5,7 @@
 #include "perm.h"
 #include "perm_set.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 void PermSet::make_unique()
@@ -71,4 +71,4 @@ void PermSet::minimize_degree()
   }
 }
 
-} // namespace cgtl
+} // namespace mpsym

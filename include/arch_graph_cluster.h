@@ -14,7 +14,7 @@
 #include "task_allocation.h"
 #include "task_orbits.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 class ArchGraphCluster : public ArchGraphSystem
@@ -40,6 +40,6 @@ private:
   std::vector<std::shared_ptr<ArchGraphSystem>> _subsystems;
 };
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_ARCH_GRAPH_CLUSTER_H

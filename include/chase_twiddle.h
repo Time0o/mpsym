@@ -3,7 +3,7 @@
 
 #include <vector>
 
-namespace cgtl
+namespace mpsym
 {
 
 class ChaseTwiddle
@@ -39,6 +39,6 @@ private:
   std::vector<int> _p;
 };
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_CHASE_TWIDDLE

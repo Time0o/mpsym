@@ -233,17 +233,17 @@ bool lua_is_arch_graph_system(lua_State *L, int index)
          || lua_is_arch_uniform_super_graph(L, index);
 }
 
-std::shared_ptr<cgtl::ArchGraphSystem> lua_make_arch_graph_system(lua_State *L);
+std::shared_ptr<mpsym::ArchGraphSystem> lua_make_arch_graph_system(lua_State *L);
 
-std::shared_ptr<cgtl::ArchGraph> lua_make_arch_graph(lua_State *L)
+std::shared_ptr<mpsym::ArchGraph> lua_make_arch_graph(lua_State *L)
 {
   assert(lua_is_arch_graph(L, -1));
 
-  auto ag(std::make_shared<cgtl::ArchGraph>());
+  auto ag(std::make_shared<mpsym::ArchGraph>());
 
   // add processors
   std::map<lua_Integer, unsigned> processors;
-  std::map<std::string, cgtl::ArchGraph::ProcessorType> processor_types;
+  std::map<std::string, mpsym::ArchGraph::ProcessorType> processor_types;
 
   lua_foreach_in_field(L, "_processor_types", [&](lua_State *L){
     auto pl(lua_get_and_pop<std::string>(L));
@@ -259,7 +259,7 @@ std::shared_ptr<cgtl::ArchGraph> lua_make_arch_graph(lua_State *L)
   });
 
   // add channels
-  std::map<std::string, cgtl::ArchGraph::ChannelType> channel_types;
+  std::map<std::string, mpsym::ArchGraph::ChannelType> channel_types;
 
   lua_foreach_in_field(L, "_channel_types", [&](lua_State *L){
     auto cl(lua_get_and_pop<std::string>(L));
@@ -286,10 +286,10 @@ std::shared_ptr<cgtl::ArchGraph> lua_make_arch_graph(lua_State *L)
   return ag;
 }
 
-std::shared_ptr<cgtl::ArchGraphCluster> lua_make_arch_graph_cluster(
+std::shared_ptr<mpsym::ArchGraphCluster> lua_make_arch_graph_cluster(
   lua_State *L)
 {
-  auto agc(std::make_shared<cgtl::ArchGraphCluster>());
+  auto agc(std::make_shared<mpsym::ArchGraphCluster>());
 
   lua_foreach_in_table(L, [&](lua_State *L){
     agc->add_subsystem(lua_make_arch_graph_system(L));
@@ -298,7 +298,7 @@ std::shared_ptr<cgtl::ArchGraphCluster> lua_make_arch_graph_cluster(
   return agc;
 }
 
-std::shared_ptr<cgtl::ArchUniformSuperGraph> lua_make_arch_uniform_super_graph(
+std::shared_ptr<mpsym::ArchUniformSuperGraph> lua_make_arch_uniform_super_graph(
   lua_State *L)
 {
   lua_getfield(L, -1, "super_graph");
@@ -309,10 +309,10 @@ std::shared_ptr<cgtl::ArchUniformSuperGraph> lua_make_arch_uniform_super_graph(
   auto proto(lua_make_arch_graph_system(L));
   lua_pop(L, 1);
 
-  return std::make_shared<cgtl::ArchUniformSuperGraph>(super_graph, proto);
+  return std::make_shared<mpsym::ArchUniformSuperGraph>(super_graph, proto);
 }
 
-std::shared_ptr<cgtl::ArchGraphSystem> lua_make_arch_graph_system(lua_State *L)
+std::shared_ptr<mpsym::ArchGraphSystem> lua_make_arch_graph_system(lua_State *L)
 {
   assert(lua_is_arch_graph_system(L, -1));
 
@@ -328,7 +328,7 @@ std::shared_ptr<cgtl::ArchGraphSystem> lua_make_arch_graph_system(lua_State *L)
 
 } // anonymous namespace
 
-namespace cgtl
+namespace mpsym
 {
 
 std::shared_ptr<ArchGraphSystem> ArchGraphSystem::from_lua(
@@ -369,4 +369,4 @@ std::shared_ptr<ArchGraphSystem> ArchGraphSystem::from_lua(
   return lua_make_arch_graph_system(L);
 }
 
-} // namespace cgtl
+} // namespace mpsym

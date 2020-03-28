@@ -21,7 +21,7 @@
  * @author Timo Nicolai
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 PrRandomizer::PrRandomizer(PermSet const &generators,
@@ -160,4 +160,4 @@ bool PrRandomizer::generators_even()
   return true;
 }
 
-} // namespace cgtl
+} // namespace mpsym

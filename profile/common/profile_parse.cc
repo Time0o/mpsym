@@ -91,9 +91,9 @@ std::pair<gen_type, unsigned> parse_generators(
   return {gens, largest_moved_point};
 }
 
-cgtl::PermSet convert_generators_mpsym(unsigned degree, gen_type const &gens)
+mpsym::PermSet convert_generators_mpsym(unsigned degree, gen_type const &gens)
 {
-  cgtl::PermSet gens_conv;
+  mpsym::PermSet gens_conv;
 
   for (auto const &gen : gens)
     gens_conv.emplace(degree, gen);
@@ -131,7 +131,7 @@ permlib::PermSet convert_generators_permlib(unsigned degree,
   return {degree, gens_conv};
 }
 
-std::tuple<unsigned, unsigned, std::vector<cgtl::TaskAllocation>>
+std::tuple<unsigned, unsigned, std::vector<mpsym::TaskAllocation>>
 split_task_allocations(std::string const &task_allocations_str,
                        std::string const &regex_str,
                        char delim)
@@ -141,7 +141,7 @@ split_task_allocations(std::string const &task_allocations_str,
   unsigned min_pe = UINT_MAX;
   unsigned max_pe = 0u;
 
-  std::vector<cgtl::TaskAllocation> task_allocations;
+  std::vector<mpsym::TaskAllocation> task_allocations;
 
   std::stringstream ss(task_allocations_str);
   std::regex re_task_allocation(regex_str);
@@ -152,7 +152,7 @@ split_task_allocations(std::string const &task_allocations_str,
     if (!std::regex_match(line, m, re_task_allocation))
       throw std::invalid_argument("malformed task allocation expression");
 
-    cgtl::TaskAllocation task_allocation;
+    mpsym::TaskAllocation task_allocation;
 
     std::string task_allocation_str(m[1]);
     std::size_t pos_begin = 0u;
@@ -196,10 +196,10 @@ split_task_allocations(std::string const &task_allocations_str,
 namespace profile
 {
 
-std::shared_ptr<cgtl::ArchGraphSystem> GenericGroup::to_arch_graph_system() const
+std::shared_ptr<mpsym::ArchGraphSystem> GenericGroup::to_arch_graph_system() const
 {
-  return std::make_shared<cgtl::ArchGraphAutomorphisms>(
-    cgtl::PermGroup(degree, parse_generators_mpsym(degree, generators)));
+  return std::make_shared<mpsym::ArchGraphAutomorphisms>(
+    mpsym::PermGroup(degree, parse_generators_mpsym(degree, generators)));
 }
 
 GenericGroup parse_group(std::string const &group_str)
@@ -233,7 +233,7 @@ GenericGroup parse_group(std::string const &group_str)
 gap::PermSet parse_generators_gap(unsigned degree, std::string const &gen_str)
 { return {degree, gen_str}; }
 
-cgtl::PermSet parse_generators_mpsym(unsigned degree, std::string const &gen_str)
+mpsym::PermSet parse_generators_mpsym(unsigned degree, std::string const &gen_str)
 {
    gen_type gen_vect;
    unsigned largest_moved_point;
@@ -266,7 +266,7 @@ gap::TaskAllocationVector parse_task_allocations_gap(
   return ss.str();
 }
 
-cgtl::TaskAllocationVector parse_task_allocations_mpsym(
+mpsym::TaskAllocationVector parse_task_allocations_mpsym(
   std::string const &task_allocations_str)
 {
   auto task_allocations(
@@ -275,7 +275,7 @@ cgtl::TaskAllocationVector parse_task_allocations_mpsym(
   return std::get<2>(task_allocations);
 }
 
-cgtl::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
+mpsym::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
   std::vector<std::string> const &gap_output)
 {
   auto task_allocations(split_task_allocations(

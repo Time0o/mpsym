@@ -15,7 +15,7 @@
 #include "task_orbits.h"
 #include "timer.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 TaskAllocation ArchGraphSystem::mapping(TaskAllocation const &allocation,
@@ -141,4 +141,4 @@ TaskAllocation ArchGraphSystem::min_elem_orbits(TaskAllocation const &tasks,
   return representative;;
 }
 
-} // namespace cgtl
+} // namespace mpsym

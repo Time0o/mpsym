@@ -19,7 +19,7 @@
  * @author Timo Nicolai
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 namespace eemp
@@ -28,7 +28,7 @@ namespace eemp
 /** Schreier tree data structure.
  *
  * Describes an OrbitGraph spanning tree. Similar to, but not to be confused
- * with cgtl::SchreierTree. Should be treated as opaque by
+ * with mpsym::SchreierTree. Should be treated as opaque by
  * functions other than those defined in eemp.h.
  */
 struct SchreierTree {
@@ -266,6 +266,6 @@ std::ostream &operator<<(std::ostream &os, OrbitGraph const &orbit_graph);
 
 } // namespace eemp
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_EEMP_H

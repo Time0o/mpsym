@@ -29,7 +29,7 @@
 
 #include "chase_twiddle.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 void ChaseTwiddle::init(int n, int k, std::vector<int> &p)
@@ -111,4 +111,4 @@ bool ChaseTwiddle::twiddle(int *x, int *y, int *z, std::vector<int> &p)
   return false;
 }
 
-} // namespace cgtl
+} // namespace mpsym

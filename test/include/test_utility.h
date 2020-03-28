@@ -20,17 +20,17 @@ enum VerifiedGroup {
 };
 
 testing::AssertionResult perm_equal(std::vector<unsigned> const &expected,
-  cgtl::Perm const &perm);
+  mpsym::Perm const &perm);
 
 testing::AssertionResult perm_word_equal(std::vector<unsigned> const &expected,
-  cgtl::PermWord const &pw);
+  mpsym::PermWord const &pw);
 
-testing::AssertionResult perm_group_equal(cgtl::PermGroup const &expected,
-                                          cgtl::PermGroup const &actual);
+testing::AssertionResult perm_group_equal(mpsym::PermGroup const &expected,
+                                          mpsym::PermGroup const &actual);
 
-testing::AssertionResult perm_group_equal(cgtl::PermSet expected_elements,
-                                          cgtl::PermGroup const &actual);
+testing::AssertionResult perm_group_equal(mpsym::PermSet expected_elements,
+                                          mpsym::PermGroup const &actual);
 
-cgtl::PermGroup verified_perm_group(VerifiedGroup group);
+mpsym::PermGroup verified_perm_group(VerifiedGroup group);
 
 #endif // _GUARD_TEST_UTILITY_H

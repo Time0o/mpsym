@@ -9,7 +9,7 @@
 #include "perm_set.h"
 #include "schreier_structure.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 struct SchreierTree : public SchreierStructure
@@ -45,6 +45,6 @@ private:
   std::map<unsigned, unsigned> _edge_labels;
 };
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_SCHREIER_TREE_H

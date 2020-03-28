@@ -6,7 +6,7 @@
 #include "dbg.h"
 #include "perm.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 void BSGS::base_change(std::vector<unsigned> prefix)
@@ -188,4 +188,4 @@ void BSGS::conjugate(Perm const &conj)
     update_schreier_structure(i, strong_generators(i));
 }
 
-} // namespace cgtl
+} // namespace mpsym

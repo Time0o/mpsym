@@ -7,7 +7,7 @@
 #include "perm.h"
 #include "perm_set.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 struct SchreierStructure
@@ -38,6 +38,6 @@ inline std::ostream &operator<<(std::ostream &os, SchreierStructure const &ss)
   return os;
 }
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_SCHREIER_SIMS_H

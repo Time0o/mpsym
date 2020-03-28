@@ -9,8 +9,8 @@
 
 #include "test_main.cc"
 
-using cgtl::Perm;
-using cgtl::PermWord;
+using mpsym::Perm;
+using mpsym::PermWord;
 
 using testing::UnorderedElementsAreArray;
 

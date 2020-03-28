@@ -8,7 +8,7 @@
 #include "bsgs.h"
 #include "perm_group.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 class ArchGraphAutomorphisms : public ArchGraphSystem
@@ -32,6 +32,6 @@ private:
   PermGroup _automorphisms;
 };
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_ARCH_GRAPH_AUTOMORPHISMS_H

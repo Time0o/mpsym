@@ -10,7 +10,7 @@
 #include "perm_set.h"
 #include "schreier_structure.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 Orbit Orbit::generate(unsigned x,
@@ -264,4 +264,4 @@ void OrbitPartition::update_partition_indices()
   }
 }
 
-} // namespace cgtl
+} // namespace mpsym

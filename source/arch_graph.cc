@@ -27,7 +27,7 @@
 #include "perm_set.h"
 #include "timer.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 std::string ArchGraph::to_gap() const
@@ -400,4 +400,4 @@ std::ostream &operator<<(std::ostream &os, ArchGraph &ag)
   return os;
 }
 
-} // namespace cgtl
+} // namespace mpsym

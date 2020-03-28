@@ -11,7 +11,7 @@
 #include "perm.h"
 #include "util.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 class TaskAllocation : public std::vector<unsigned>
@@ -119,15 +119,15 @@ inline std::ostream &operator<<(std::ostream &os, TaskAllocation const &ta)
   return os;
 }
 
-} // namespace cgtl
+} // namespace mpsym
 
 namespace std
 {
 
 template<>
-struct hash<cgtl::TaskAllocation>
+struct hash<mpsym::TaskAllocation>
 {
-  std::size_t operator()(cgtl::TaskAllocation const &ta) const
+  std::size_t operator()(mpsym::TaskAllocation const &ta) const
   { return util::container_hash(ta.begin(), ta.end()); }
 };
 

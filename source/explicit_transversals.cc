@@ -4,7 +4,7 @@
 #include "perm.h"
 #include "explicit_transversals.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 void ExplicitTransversals::create_edge(
@@ -62,4 +62,4 @@ void ExplicitTransversals::dump(std::ostream &os) const
     os << tr.first << ": " << tr.second << "\n";
 }
 
-} // namespace cgtl
+} // namespace mpsym

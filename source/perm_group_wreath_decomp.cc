@@ -16,7 +16,7 @@
  * @author Timo Nicolai
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 std::vector<PermGroup> PermGroup::wreath_decomposition() const
@@ -186,4 +186,4 @@ bool PermGroup::wreath_decomp_reconstruct_block_permuter(
   return found_monomorphism;
 }
 
-} // namespace cgtl
+} // namespace mpsym

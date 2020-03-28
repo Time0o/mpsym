@@ -11,11 +11,11 @@
 
 #include "test_main.cc"
 
-using cgtl::ExplicitTransversals;
-using cgtl::Orbit;
-using cgtl::Perm;
-using cgtl::PermSet;
-using cgtl::SchreierTree;
+using mpsym::ExplicitTransversals;
+using mpsym::Orbit;
+using mpsym::Perm;
+using mpsym::PermSet;
+using mpsym::SchreierTree;
 
 using testing::UnorderedElementsAreArray;
 

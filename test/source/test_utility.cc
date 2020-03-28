@@ -12,10 +12,10 @@
 #include "perm_set.h"
 #include "test_utility.h"
 
-using cgtl::Perm;
-using cgtl::PermGroup;
-using cgtl::PermSet;
-using cgtl::PermWord;
+using mpsym::Perm;
+using mpsym::PermGroup;
+using mpsym::PermSet;
+using mpsym::PermWord;
 
 template <typename P>
 static testing::AssertionResult _perm_equal(

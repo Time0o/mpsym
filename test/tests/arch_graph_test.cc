@@ -19,14 +19,14 @@
 
 #include "test_main.cc"
 
-using cgtl::ArchGraph;
-using cgtl::ArchGraphCluster;
-using cgtl::ArchGraphSystem;
-using cgtl::ArchUniformSuperGraph;
-using cgtl::PartialPerm;
-using cgtl::Perm;
-using cgtl::PermGroup;
-using cgtl::TaskAllocation;
+using mpsym::ArchGraph;
+using mpsym::ArchGraphCluster;
+using mpsym::ArchGraphSystem;
+using mpsym::ArchUniformSuperGraph;
+using mpsym::PartialPerm;
+using mpsym::Perm;
+using mpsym::PermGroup;
+using mpsym::TaskAllocation;
 
 using testing::UnorderedElementsAreArray;
 

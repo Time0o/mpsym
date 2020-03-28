@@ -9,7 +9,7 @@
 #include "perm_group.h"
 #include "perm_set.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 class BlockSystem
@@ -146,6 +146,6 @@ private:
 
 std::ostream &operator<<(std::ostream &os, BlockSystem const &bs);
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_BLOCK_SYSTEM_H

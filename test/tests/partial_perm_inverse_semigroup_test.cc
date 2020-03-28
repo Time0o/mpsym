@@ -3,8 +3,8 @@
 
 #include "test_main.cc"
 
-using cgtl::PartialPerm;
-using cgtl::PartialPermInverseSemigroup;
+using mpsym::PartialPerm;
+using mpsym::PartialPermInverseSemigroup;
 
 class PartialPermInverseSemigroupTest : public testing::Test
 {

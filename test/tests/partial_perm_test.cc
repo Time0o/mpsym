@@ -12,8 +12,8 @@
 
 #include "test_main.cc"
 
-using cgtl::PartialPerm;
-using cgtl::Perm;
+using mpsym::PartialPerm;
+using mpsym::Perm;
 
 TEST(PartialPermTest, CanConstructPartialPerm)
 {

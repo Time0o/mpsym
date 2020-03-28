@@ -17,7 +17,7 @@
  * @brief Implements `PartialPerm`.
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 PartialPerm::PartialPerm(unsigned degree)
@@ -339,13 +339,13 @@ Perm PartialPerm::to_perm(unsigned degree) const
   return Perm(perm);
 }
 
-} // namespace cgtl
+} // namespace mpsym
 
 namespace std
 {
 
-std::size_t hash<cgtl::PartialPerm>::operator()(
-  cgtl::PartialPerm const &pperm) const
+std::size_t hash<mpsym::PartialPerm>::operator()(
+  mpsym::PartialPerm const &pperm) const
 { return util::container_hash(pperm._pperm.begin(), pperm._pperm.end()); }
 
 } // namespace std

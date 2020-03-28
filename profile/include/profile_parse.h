@@ -24,9 +24,9 @@ namespace gap
   using TaskAllocationVector = std::string;
 }
 
-namespace cgtl
+namespace mpsym
 {
-  using TaskAllocationVector = std::vector<cgtl::TaskAllocation>;
+  using TaskAllocationVector = std::vector<mpsym::TaskAllocation>;
 }
 
 namespace permlib
@@ -43,7 +43,7 @@ namespace profile
 
 struct GenericGroup
 {
-  std::shared_ptr<cgtl::ArchGraphSystem> to_arch_graph_system() const;
+  std::shared_ptr<mpsym::ArchGraphSystem> to_arch_graph_system() const;
 
   unsigned degree;
   unsigned long long order;
@@ -54,17 +54,17 @@ GenericGroup parse_group(std::string const &group_str);
 
 gap::PermSet parse_generators_gap(unsigned degree, std::string const &gen_str);
 
-cgtl::PermSet parse_generators_mpsym(unsigned degree, std::string const &gen_str);
+mpsym::PermSet parse_generators_mpsym(unsigned degree, std::string const &gen_str);
 
 permlib::PermSet parse_generators_permlib(unsigned degree, std::string const &gen_str);
 
 gap::TaskAllocationVector parse_task_allocations_gap(
   std::string const &task_allocations_str);
 
-cgtl::TaskAllocationVector parse_task_allocations_mpsym(
+mpsym::TaskAllocationVector parse_task_allocations_mpsym(
   std::string const &task_allocations_str);
 
-cgtl::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
+mpsym::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
   std::vector<std::string> const &gap_output);
 
 } // namespace profile

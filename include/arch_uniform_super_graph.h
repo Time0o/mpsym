@@ -14,7 +14,7 @@
 #include "task_allocation.h"
 #include "task_orbits.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 class ArchUniformSuperGraph : public ArchGraphSystem
@@ -45,6 +45,6 @@ private:
   std::vector<ArchGraphAutomorphisms> _sigmas_proto;
 };
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_ARCH_GRAPH_H

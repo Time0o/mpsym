@@ -16,7 +16,7 @@
  * @author Timo Nicolai
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 Perm::Perm(unsigned deg)
@@ -244,12 +244,12 @@ Perm Perm::shifted(unsigned shift) const
   return Perm(perm_shifted);
 }
 
-} // namespace cgtl
+} // namespace mpsym
 
 namespace std
 {
 
-std::size_t hash<cgtl::Perm>::operator()(cgtl::Perm const &perm) const
+std::size_t hash<mpsym::Perm>::operator()(mpsym::Perm const &perm) const
 { return util::container_hash(perm._perm.begin() + 1u, perm._perm.end()); }
 
 } // namespace std

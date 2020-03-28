@@ -11,10 +11,10 @@
 
 #include "test_main.cc"
 
-using cgtl::BlockSystem;
-using cgtl::Perm;
-using cgtl::PermGroup;
-using cgtl::PermSet;
+using mpsym::BlockSystem;
+using mpsym::Perm;
+using mpsym::PermGroup;
+using mpsym::PermSet;
 
 static std::string block_to_string(BlockSystem::Block const &block)
 {

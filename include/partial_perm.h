@@ -15,12 +15,12 @@
  * @brief Defines `PartialPerm`.
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 class PartialPerm;
 
-} // namespace cgtl
+} // namespace mpsym
 
 namespace std
 {
@@ -28,14 +28,14 @@ namespace std
 /** A partial permutation hash functor.
  */
 template<>
-struct hash<cgtl::PartialPerm>
+struct hash<mpsym::PartialPerm>
 {
-  std::size_t operator()(cgtl::PartialPerm const &pperm) const;
+  std::size_t operator()(mpsym::PartialPerm const &pperm) const;
 };
 
 } // namespace std
 
-namespace cgtl
+namespace mpsym
 {
 
 class PartialPerm
@@ -255,6 +255,6 @@ std::ostream &operator<<(std::ostream &os, PartialPerm const &pperm);
  */
 PartialPerm operator*(PartialPerm const &lhs, PartialPerm const &rhs);
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_PARTIAL_PERM_H

@@ -11,10 +11,10 @@
 
 #include "test_main.cc"
 
-using cgtl::BSGS;
-using cgtl::Perm;
-using cgtl::PermGroup;
-using cgtl::PermSet;
+using mpsym::BSGS;
+using mpsym::Perm;
+using mpsym::PermGroup;
+using mpsym::PermSet;
 
 TEST(DISABLED_BSGSSolveTest, CanSolveBSGS)
 {

@@ -11,7 +11,7 @@
 
 #include "task_allocation.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 class TaskOrbits
@@ -133,6 +133,6 @@ private:
   orbit_representatives_map _orbit_representatives;
 };
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_TASK_ORBITS_H

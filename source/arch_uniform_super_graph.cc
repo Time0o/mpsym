@@ -14,7 +14,7 @@
 #include "task_allocation.h"
 #include "task_orbits.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 ArchUniformSuperGraph::ArchUniformSuperGraph(
@@ -132,4 +132,4 @@ ArchUniformSuperGraph::mapping(TaskAllocation const &allocation_,
   return allocation;
 }
 
-} // namespace cgtl
+} // namespace mpsym

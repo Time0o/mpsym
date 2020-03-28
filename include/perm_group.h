@@ -19,7 +19,7 @@
  * @author Timo Nicolai
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 class BlockSystem;
@@ -454,6 +454,6 @@ private:
 
 std::ostream &operator<<(std::ostream &os, PermGroup const &pg);
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_PERM_GROUP_H

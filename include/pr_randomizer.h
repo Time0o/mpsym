@@ -11,7 +11,7 @@
  * @author Timo Nicolai
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 /** A class encapsulation of the product replacement algorithm and
@@ -113,6 +113,6 @@ private:
   PermSet _gens;
 };
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_PR_RANDOMIZER_H

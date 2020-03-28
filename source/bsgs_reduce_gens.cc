@@ -9,7 +9,7 @@
 #include "perm.h"
 #include "perm_set.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 void BSGS::reduce_gens()
@@ -121,4 +121,4 @@ std::unordered_set<Perm> BSGS::reduce_gens_set_difference(
 }
 
 
-} // namespace cgtl
+} // namespace mpsym

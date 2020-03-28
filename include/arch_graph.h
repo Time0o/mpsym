@@ -14,7 +14,7 @@
 #include "partial_perm_inverse_semigroup.h"
 #include "perm_group.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 using ProcessorLabel = std::string const &;

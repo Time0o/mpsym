@@ -9,7 +9,7 @@
 #include "perm_set.h"
 #include "schreier_structure.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 struct ExplicitTransversals : public SchreierStructure
@@ -44,6 +44,6 @@ private:
   std::map<unsigned, Perm> _orbit;
 };
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_EXPLICIT_TRANSVERSALS_H

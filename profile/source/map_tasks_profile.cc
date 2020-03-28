@@ -183,15 +183,15 @@ std::string map_tasks_gap(
   return ss.str();
 }
 
-cgtl::TaskOrbits map_tasks_mpsym(
-  std::shared_ptr<cgtl::ArchGraphSystem> ags,
-  cgtl::TaskAllocationVector const &task_allocations,
+mpsym::TaskOrbits map_tasks_mpsym(
+  std::shared_ptr<mpsym::ArchGraphSystem> ags,
+  mpsym::TaskAllocationVector const &task_allocations,
   ProfileOptions const &options)
 {
-  using cgtl::ArchGraphAutomorphisms;
-  using cgtl::ArchGraphSystem;
-  using cgtl::PermGroup;
-  using cgtl::TaskOrbits;
+  using mpsym::ArchGraphAutomorphisms;
+  using mpsym::ArchGraphSystem;
+  using mpsym::PermGroup;
+  using mpsym::TaskOrbits;
 
   // setup mapping options
   ArchGraphSystem::MappingOptions mapping_options;
@@ -225,10 +225,10 @@ cgtl::TaskOrbits map_tasks_mpsym(
 void map_tasks_gap_wrapper(gap::PermGroup const &automorphisms,
                            gap::TaskAllocationVector const &task_allocations,
                            ProfileOptions const &options,
-                           cgtl::TaskOrbits *task_orbits,
+                           mpsym::TaskOrbits *task_orbits,
                            double *t)
 {
-  using cgtl::TaskOrbits;
+  using mpsym::TaskOrbits;
 
   // run gap script
 
@@ -260,13 +260,13 @@ void map_tasks_gap_wrapper(gap::PermGroup const &automorphisms,
   }
 }
 
-void map_tasks_mpsym_wrapper(std::shared_ptr<cgtl::ArchGraphSystem> ags,
-                             cgtl::TaskAllocationVector const &task_allocations,
+void map_tasks_mpsym_wrapper(std::shared_ptr<mpsym::ArchGraphSystem> ags,
+                             mpsym::TaskAllocationVector const &task_allocations,
                              ProfileOptions const &options,
-                             cgtl::TaskOrbits *task_orbits,
+                             mpsym::TaskOrbits *task_orbits,
                              double *t)
 {
-  using cgtl::TaskOrbits;
+  using mpsym::TaskOrbits;
 
   // run task mapping code
 
@@ -290,11 +290,11 @@ void map_tasks_mpsym_wrapper(std::shared_ptr<cgtl::ArchGraphSystem> ags,
   }
 }
 
-void check_accuracy(cgtl::TaskOrbits const &task_orbits_mpsym,
-                    cgtl::TaskOrbits const &task_orbits_gap,
+void check_accuracy(mpsym::TaskOrbits const &task_orbits_mpsym,
+                    mpsym::TaskOrbits const &task_orbits_gap,
                     ProfileOptions const &options)
 {
-  using cgtl::TaskAllocation;
+  using mpsym::TaskAllocation;
 
   if (task_orbits_mpsym == task_orbits_gap) {
     info("Orbit representatives match");
@@ -340,11 +340,11 @@ void check_accuracy(cgtl::TaskOrbits const &task_orbits_mpsym,
   }
 }
 
-double run(std::shared_ptr<cgtl::ArchGraphSystem> ags,
+double run(std::shared_ptr<mpsym::ArchGraphSystem> ags,
            std::string const &task_allocations,
            ProfileOptions const &options)
 {
-  using cgtl::TaskOrbits;
+  using mpsym::TaskOrbits;
 
   double t;
 
@@ -384,9 +384,9 @@ void do_profile(Stream &automorphisms_stream,
                 Stream &task_allocations_stream,
                 ProfileOptions const &options)
 {
-  using cgtl::ArchGraphAutomorphisms;
-  using cgtl::ArchGraphSystem;
-  using cgtl::PermGroup;
+  using mpsym::ArchGraphAutomorphisms;
+  using mpsym::ArchGraphSystem;
+  using mpsym::PermGroup;
 
   std::shared_ptr<ArchGraphSystem> ags;
 

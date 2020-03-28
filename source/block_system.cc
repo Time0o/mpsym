@@ -14,7 +14,7 @@
 #include "perm_group.h"
 #include "perm_set.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 bool BlockSystem::trivial() const
@@ -552,4 +552,4 @@ std::ostream &operator<<(std::ostream &os, BlockSystem const &bs)
   return os;
 }
 
-} // namespace cgtl
+} // namespace mpsym

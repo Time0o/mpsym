@@ -15,25 +15,25 @@
  * @author Timo Nicolai
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 class Perm;
 
-} // namespace cgtl
+} // namespace mpsym
 
 namespace std
 {
 
 template<>
-struct hash<cgtl::Perm>
+struct hash<mpsym::Perm>
 {
-  std::size_t operator()(cgtl::Perm const &perm) const;
+  std::size_t operator()(mpsym::Perm const &perm) const;
 };
 
 } // namespace std
 
-namespace cgtl
+namespace mpsym
 {
 
 /** A permutation representation.
@@ -274,6 +274,6 @@ private:
 
 std::ostream &operator<<(std::ostream &os, Perm const &perm);
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_PERM_H

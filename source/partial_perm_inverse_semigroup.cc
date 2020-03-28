@@ -24,7 +24,7 @@
  * @brief Implements `PartialPermInverseSemigroup`.
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 PartialPermInverseSemigroup::PartialPermInverseSemigroup() : _trivial(true) {}
@@ -329,4 +329,4 @@ std::ostream &operator<<(std::ostream &os,
   return os;
 }
 
-} // namespace cgtl
+} // namespace mpsym

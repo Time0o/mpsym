@@ -13,17 +13,17 @@
 
 #include "test_main.cc"
 
-using cgtl::PartialPerm;
-using cgtl::Perm;
-using cgtl::PermGroup;
+using mpsym::PartialPerm;
+using mpsym::Perm;
+using mpsym::PermGroup;
 
-using cgtl::eemp::OrbitGraph;
-using cgtl::eemp::SchreierTree;
-using cgtl::eemp::action_component;
-using cgtl::eemp::expand_partition;
-using cgtl::eemp::r_class_representatives;
-using cgtl::eemp::scc_spanning_tree;
-using cgtl::eemp::strongly_connected_components;
+using mpsym::eemp::OrbitGraph;
+using mpsym::eemp::SchreierTree;
+using mpsym::eemp::action_component;
+using mpsym::eemp::expand_partition;
+using mpsym::eemp::r_class_representatives;
+using mpsym::eemp::scc_spanning_tree;
+using mpsym::eemp::strongly_connected_components;
 
 using testing::ElementsAreArray;
 using testing::UnorderedElementsAreArray;

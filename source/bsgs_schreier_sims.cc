@@ -17,7 +17,7 @@
  * @author Timo Nicolai
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 void BSGS::schreier_sims(PermSet const &generators)
@@ -341,4 +341,4 @@ void BSGS::schreier_sims_finish()
   _strong_generators.make_unique();
 }
 
-} // namespace cgtl
+} // namespace mpsym

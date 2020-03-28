@@ -17,7 +17,7 @@
 #include "schreier_generator_queue.h"
 #include "schreier_structure.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 class BSGSTransversalsBase
@@ -199,6 +199,6 @@ private:
 
 std::ostream &operator<<(std::ostream &os, BSGS const &bsgs);
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_BSGS_H

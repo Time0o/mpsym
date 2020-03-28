@@ -5,7 +5,7 @@
 #include "perm.h"
 #include "schreier_tree.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 void SchreierTree::create_edge(
@@ -96,4 +96,4 @@ void SchreierTree::dump(std::ostream &os) const
   os << "]\n";
 }
 
-} // namespace cgtl
+} // namespace mpsym

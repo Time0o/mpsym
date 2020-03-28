@@ -9,7 +9,7 @@ namespace
 {
 
 int nauty_generator_degree;
-cgtl::PermSet nauty_generators;
+mpsym::PermSet nauty_generators;
 
 void nauty_save_generator(int, int *perm, int *, int, int, int)
 {
@@ -29,7 +29,7 @@ void nauty_free()
 
 } // anonymous namespace
 
-namespace cgtl
+namespace mpsym
 {
 
 PermGroup ArchGraph::update_automorphisms_nauty(
@@ -135,4 +135,4 @@ PermGroup ArchGraph::update_automorphisms_nauty(
   return PermGroup(BSGS(nauty_generator_degree, nauty_generators, bsgs_options));
 }
 
-} // namespace cgtl
+} // namespace mpsym

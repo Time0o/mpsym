@@ -12,9 +12,9 @@
 #define RANDOMIZER_RUNS 10000
 #define RANDOMIZER_EPS_REL 5
 
-using cgtl::Perm;
-using cgtl::PermSet;
-using cgtl::PrRandomizer;
+using mpsym::Perm;
+using mpsym::PermSet;
+using mpsym::PrRandomizer;
 
 class PRRandomizerTest : public testing::Test
 {

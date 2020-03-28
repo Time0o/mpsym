@@ -11,7 +11,7 @@
 #include "perm_set.h"
 #include "schreier_structure.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 class SchreierGeneratorQueue
@@ -146,6 +146,6 @@ private:
   Perm _schreier_generator;
 };
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_SCHREIER_GENERATOR_QUEUE_H

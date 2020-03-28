@@ -20,7 +20,7 @@
  * @brief Defines `PartialPermInverseSemigroup`.
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 /** A representation of inverse semigroups of partial permutations.
@@ -146,6 +146,6 @@ private:
 std::ostream &operator<<(std::ostream &os,
                          PartialPermInverseSemigroup const &ppisg);
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_PARTIAL_PERM_INVERSE_SEMIGROUP_H

@@ -15,30 +15,30 @@
  * @author Timo Nicolai
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 class PermWord;
 
 inline std::size_t hash_value(Perm const &perm)
 {
-  return std::hash<cgtl::Perm>()(perm);
+  return std::hash<mpsym::Perm>()(perm);
 }
 
-} // namespace cgtl
+} // namespace mpsym
 
 namespace std
 {
 
 template<>
-struct hash<cgtl::PermWord>
+struct hash<mpsym::PermWord>
 {
-  std::size_t operator()(cgtl::PermWord const &perm_word) const;
+  std::size_t operator()(mpsym::PermWord const &perm_word) const;
 };
 
 } // namespace std
 
-namespace cgtl
+namespace mpsym
 {
 
 class PermWord
@@ -79,6 +79,6 @@ private:
 std::ostream &operator<<(std::ostream &os, PermWord const &pw);
 PermWord operator*(PermWord const &lhs, PermWord const &rhs);
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_PERM_WORD_H

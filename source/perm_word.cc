@@ -8,7 +8,7 @@
 #include "perm.h"
 #include "perm_word.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 PermWord::PermWord(Perm const &perm)
@@ -89,16 +89,16 @@ Perm PermWord::perm() const
   return Perm(perm);
 }
 
-} // namespace cgtl
+} // namespace mpsym
 
 namespace std
 {
 
-std::size_t hash<cgtl::PermWord>::operator()(
-  cgtl::PermWord const &perm_word) const
+std::size_t hash<mpsym::PermWord>::operator()(
+  mpsym::PermWord const &perm_word) const
 {
   std::size_t seed = 0u;
-  for (cgtl::Perm const &perm : perm_word._perms)
+  for (mpsym::Perm const &perm : perm_word._perms)
     boost::hash_combine(seed, perm);
 
   return seed;

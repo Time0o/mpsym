@@ -18,7 +18,7 @@
 #include "explicit_transversals.h"
 #include "schreier_tree.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 void BSGSTransversalsBase::update_schreier_structure(
@@ -222,4 +222,4 @@ std::ostream &operator<<(std::ostream &os, BSGS const &bsgs)
   return os;
 }
 
-} // namespace cgtl
+} // namespace mpsym

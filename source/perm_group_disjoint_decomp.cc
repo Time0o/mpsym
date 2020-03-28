@@ -16,7 +16,7 @@
  * @author Timo Nicolai
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 std::vector<PermGroup> PermGroup::disjoint_decomposition(
@@ -372,4 +372,4 @@ std::vector<PermGroup> PermGroup::disjoint_decomp_incomplete() const
   return decomp;
 }
 
-} // namespace cgtl
+} // namespace mpsym

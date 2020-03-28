@@ -19,7 +19,7 @@
  * @author Timo Nicolai
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 class Orbit : public std::vector<unsigned>
@@ -122,6 +122,6 @@ inline std::ostream &operator<<(std::ostream &os, OrbitPartition const &op)
   return os;
 }
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_ORBITS_H

@@ -10,7 +10,7 @@
 #include "task_allocation.h"
 #include "task_orbits.h"
 
-namespace cgtl
+namespace mpsym
 {
 
 class ArchGraphSystem
@@ -95,6 +95,6 @@ private:
 
 // TODO: outstream operator
 
-} // namespace cgtl
+} // namespace mpsym
 
 #endif // _GUARD_ARCH_GRAPH_SYSTEM_H

@@ -16,7 +16,7 @@
  * @author Timo Nicolai
  */
 
-namespace cgtl
+namespace mpsym
 {
 
 void BSGS::solve(PermSet const &generators)
@@ -197,4 +197,4 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
   DBG(TRACE) << "=== END Adjoining normalizing generator";
 }
 
-} // namespace cgtl
+} // namespace mpsym
