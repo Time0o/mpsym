@@ -25,6 +25,7 @@ public:
 
   struct MappingOptions {
     MappingMethod method = MappingMethod::AUTO;
+    unsigned offset = 0u;
     bool match_reprs = true;
   };
 
@@ -55,13 +56,16 @@ public:
   { _automorphisms_valid = false; }
 
   virtual TaskAllocation mapping(TaskAllocation const &allocation,
-                                 unsigned offset = 0u,
-                                 MappingOptions *options = nullptr,
+                                 MappingOptions const *options = nullptr,
                                  TaskOrbits *orbits = nullptr);
 
 protected:
-  static MappingOptions *get_options(MappingOptions *options)
-  { return options ? options : &_default_mapping_options; }
+  static MappingOptions complete_options(MappingOptions const *options)
+  {
+    static MappingOptions _default_mapping_options;
+
+    return options ? *options : _default_mapping_options;
+  }
 
   void set_automorphisms(PermGroup const &automorphisms)
   {
@@ -73,22 +77,19 @@ private:
   virtual PermGroup update_automorphisms(BSGS::Options const *bsgs_options) = 0;
 
   TaskAllocation min_elem_iterate(TaskAllocation const &tasks,
-                                  unsigned offset,
-                                  MappingOptions *options,
+                                  MappingOptions const *options,
                                   TaskOrbits *orbits);
 
   TaskAllocation min_elem_local_search(TaskAllocation const &tasks,
-                                       unsigned offset,
-                                       MappingOptions *options,
+                                       MappingOptions const *options,
                                        TaskOrbits *orbits);
 
   TaskAllocation min_elem_orbits(TaskAllocation const &tasks,
-                                 unsigned offset,
-                                 MappingOptions *options,
+                                 MappingOptions const *options,
                                  TaskOrbits *orbits);
 
   static bool is_representative(TaskAllocation const &tasks,
-                                MappingOptions *options,
+                                MappingOptions const *options,
                                 TaskOrbits *orbits)
   {
     if (!options->match_reprs || !orbits)
@@ -96,8 +97,6 @@ private:
 
     return orbits->is_representative(tasks);
   }
-
-  static MappingOptions _default_mapping_options;
 
   PermGroup _automorphisms;
   bool _automorphisms_valid = false;

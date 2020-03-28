@@ -31,8 +31,7 @@ public:
   unsigned num_subsystems() const;
 
   TaskAllocation mapping(TaskAllocation const &allocation,
-                         unsigned offset = 0u,
-                         MappingOptions *options = nullptr,
+                         MappingOptions const *options = nullptr,
                          TaskOrbits *orbits = nullptr) override;
 
 private:

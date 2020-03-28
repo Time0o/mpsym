@@ -214,8 +214,9 @@ cgtl::TaskOrbits map_tasks_mpsym(
     if (options.verbosity > 0)
       debug_progress("Mapping task", i + 1u, "of", task_allocations.size());
 
-    auto mapping(ags->mapping(
-      task_allocations[i], 0u, &mapping_options, &task_orbits));
+    auto mapping(ags->mapping(task_allocations[i],
+                              &mapping_options,
+                              &task_orbits));
   }
 
   return task_orbits;

@@ -46,7 +46,7 @@ static void expect_mapping_generates_orbits(
       ArchGraphSystem::MappingOptions options;
       options.method = method;
 
-      TaskAllocation representative(ag->mapping(allocation, 0u, &options));
+      TaskAllocation representative(ag->mapping(allocation, &options));
 
       auto it = orbits.find(representative);
       if (it == orbits.end())

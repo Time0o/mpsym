@@ -116,19 +116,15 @@ ArchUniformSuperGraph::update_automorphisms(BSGS::Options const *bsgs_options)
 
 TaskAllocation
 ArchUniformSuperGraph::mapping(TaskAllocation const &allocation_,
-                               unsigned offset,
-                               MappingOptions *options,
+                               MappingOptions const *options,
                                TaskOrbits *orbits)
 {
-  options = get_options(options);
-
-  // mapping
   TaskAllocation allocation(allocation_);
 
   for (auto &sigma : _sigmas_proto)
-    allocation = sigma.mapping(allocation, offset, options);
+    allocation = sigma.mapping(allocation, options);
 
-  allocation = _sigma_super_graph.mapping(allocation, offset, options);
+  allocation = _sigma_super_graph.mapping(allocation, options);
 
   if (orbits)
     orbits->insert(allocation);

@@ -70,11 +70,10 @@ ArchGraphCluster::update_automorphisms(BSGS::Options const *bsgs_options)
 
 TaskAllocation
 ArchGraphCluster::mapping(TaskAllocation const &allocation_,
-                          unsigned offset,
-                          MappingOptions *options,
+                          MappingOptions const *options_,
                           TaskOrbits *orbits)
 {
-  options = get_options(options);
+  auto options(complete_options(options_));
 
   assert(_subsystems.size() > 0u);
 
@@ -85,11 +84,11 @@ ArchGraphCluster::mapping(TaskAllocation const &allocation_,
   for (auto i = 0u; i < _subsystems.size(); ++i) {
     DBG(DEBUG) << "Subsystem (no. " << i << ")";
 
-    allocation = _subsystems[i]->mapping(allocation, offset, options);
+    allocation = _subsystems[i]->mapping(allocation, &options);
 
     DBG(DEBUG) << "Yields: " << allocation;
 
-    offset += _subsystems[i]->num_processors();
+    options.offset += _subsystems[i]->num_processors();
   }
 
   if (orbits)
