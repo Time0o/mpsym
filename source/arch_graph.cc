@@ -80,7 +80,7 @@ ArchGraph::ChannelType ArchGraph::new_channel_type(ChannelLabel cl)
 
 unsigned ArchGraph::add_processor(ProcessorType pt)
 {
-  invalidate_automorphisms();
+  reset_automorphisms();
 
   _processor_type_instances[pt]++;
 
@@ -90,7 +90,7 @@ unsigned ArchGraph::add_processor(ProcessorType pt)
 
 void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType cht)
 {
-  invalidate_automorphisms();
+  reset_automorphisms();
 
   _channel_type_instances[cht]++;
 
@@ -103,9 +103,6 @@ unsigned ArchGraph::num_processors() const
 
 unsigned ArchGraph::num_channels() const
 { return static_cast<unsigned>(boost::num_edges(_adj)); }
-
-PermGroup ArchGraph::update_automorphisms(BSGS::Options const *bsgs_options)
-{ return update_automorphisms_nauty(bsgs_options); }
 
 #if 0
 bool ArchGraph::is_partial_automorphism(

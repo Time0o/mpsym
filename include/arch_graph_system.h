@@ -16,6 +16,8 @@ namespace mpsym
 class ArchGraphSystem
 {
 public:
+  using AutomorphismOptions = BSGS::Options;
+
   enum class ReprMethod {
     ITERATE,
     LOCAL_SEARCH,
@@ -24,9 +26,15 @@ public:
   };
 
   struct ReprOptions {
+    static ReprOptions fill_defaults(ReprOptions const *options)
+    {
+      static ReprOptions default_options;
+      return options ? *options : default_options;
+    }
+
     ReprMethod method = ReprMethod::AUTO;
     unsigned offset = 0u;
-    bool match_reprs = true;
+    bool match = true;
   };
 
   static std::shared_ptr<ArchGraphSystem> from_lua(std::string const &lua);
@@ -39,55 +47,81 @@ public:
   virtual unsigned num_channels() const
   { throw std::logic_error("not implemented"); }
 
-  virtual PermGroup automorphisms(BSGS::Options const *bsgs_options = nullptr)
+  bool automorphisms_ready() const
+  { return _automorphisms_valid; }
+
+  void reset_automorphisms()
+  { _automorphisms_valid = false; }
+
+  PermGroup automorphisms(AutomorphismOptions const *options = nullptr)
   {
-    if (!_automorphisms_valid) {
-      _automorphisms = update_automorphisms(bsgs_options);
+    if (!automorphisms_ready()) {
+      _automorphisms = automorphisms_(options);
       _automorphisms_valid = true;
     }
 
     return _automorphisms;
   }
 
-  void invalidate_automorphisms()
-  { _automorphisms_valid = false; }
-
-  virtual TaskMapping repr(TaskMapping const &mapping,
-                              ReprOptions const *options = nullptr,
-                              TaskOrbits *orbits = nullptr);
-
-protected:
-  static ReprOptions complete_options(ReprOptions const *options)
+  void init_repr(AutomorphismOptions const *options = nullptr)
   {
-    static ReprOptions _default_mapping_options;
+    if (!repr_ready_())
+      init_repr_(options);
+  }
 
-    return options ? *options : _default_mapping_options;
+  bool repr_ready() const
+  { return repr_ready_(); }
+
+  void reset_repr()
+  { reset_repr_(); }
+
+  TaskMapping repr(TaskMapping const &mapping,
+                   TaskOrbits *orbits = nullptr,
+                   ReprOptions const *options = nullptr)
+  {
+    if (!repr_ready_())
+      init_repr();
+
+    return repr_(mapping, orbits, options);
   }
 
 private:
-  virtual PermGroup update_automorphisms(BSGS::Options const *bsgs_options) = 0;
+  virtual PermGroup automorphisms_(AutomorphismOptions const *options) = 0;
 
-  TaskMapping min_elem_iterate(TaskMapping const &tasks,
-                                ReprOptions const *options,
-                                TaskOrbits *orbits);
+  virtual void init_repr_(AutomorphismOptions const *options)
+  { automorphisms(options); }
 
-  TaskMapping min_elem_local_search(TaskMapping const &tasks,
-                                     ReprOptions const *options,
-                                     TaskOrbits *orbits);
+  virtual bool repr_ready_() const
+  { return automorphisms_ready(); }
 
-  TaskMapping min_elem_orbits(TaskMapping const &tasks,
-                               ReprOptions const *options,
-                               TaskOrbits *orbits);
+  virtual void reset_repr_()
+  { reset_automorphisms(); }
+
+  virtual TaskMapping repr_(TaskMapping const &mapping,
+                            TaskOrbits *orbits,
+                            ReprOptions const *options);
 
   static bool is_repr(TaskMapping const &tasks,
-                      ReprOptions const *options,
-                      TaskOrbits *orbits)
+                      TaskOrbits *orbits,
+                      ReprOptions const *options)
   {
-    if (!options->match_reprs || !orbits)
+    if (!options->match || !orbits)
       return false;
 
     return orbits->is_repr(tasks);
   }
+
+  TaskMapping min_elem_iterate(TaskMapping const &tasks,
+                               TaskOrbits *orbits,
+                               ReprOptions const *options);
+
+  TaskMapping min_elem_orbits(TaskMapping const &tasks,
+                              TaskOrbits *orbits,
+                              ReprOptions const *options);
+
+  TaskMapping min_elem_local_search(TaskMapping const &tasks,
+                                    TaskOrbits *orbits,
+                                    ReprOptions const *options);
 
   PermGroup _automorphisms;
   bool _automorphisms_valid = false;

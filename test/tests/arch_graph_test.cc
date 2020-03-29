@@ -46,7 +46,7 @@ static void expect_generates_orbits(
       ArchGraphSystem::ReprOptions options;
       options.method = method;
 
-      TaskMapping repr(ag->repr(mapping, &options));
+      TaskMapping repr(ag->repr(mapping, nullptr, &options));
 
       if (orbits.find(repr) == orbits.end())
         orbits[repr] = {repr};

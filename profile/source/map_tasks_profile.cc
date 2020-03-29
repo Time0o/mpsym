@@ -41,7 +41,7 @@ void usage(std::ostream &s)
     "[-h|--help]",
     "-i|--implementation {gap|mpsym}",
     "-m|--repr-method {iterate|local_search|orbits}",
-    "[--repr-options {dont_match_reprs}]",
+    "[--repr-options {dont_match}]",
     "[-g|--groups GROUPS]",
     "[-a|--arch-graph ARCH_GRAPH]",
     "-t|--task-mappings TASK_ALLOCATIONS",
@@ -60,7 +60,7 @@ struct ProfileOptions
 {
   VariantOption library{"gap", "mpsym"};
   VariantOption repr_method{"iterate", "local_search", "orbits"};
-  VariantOptionSet repr_options{"dont_match_reprs"};
+  VariantOptionSet repr_options{"dont_match"};
   bool groups_input = false;
   bool arch_graph_input = false;
   unsigned task_mapping_limit = 0u;
@@ -79,7 +79,7 @@ std::string map_tasks_gap_iterate(ProfileOptions const &options)
   ss << "for element in automorphisms do\n";
   ss << "  permuted:=OnTuples(task_mapping, element);\n";
 
-  if (options.repr_options.is_set("dont_match_reprs")) {
+  if (options.repr_options.is_set("dont_match")) {
     ss << "  if permuted < orbit_repr then\n";
     ss << "    orbit_repr:=permuted;\n";
     ss << "  fi;\n";
@@ -112,7 +112,7 @@ std::string map_tasks_gap_orbits(ProfileOptions const &options)
 {
   std::stringstream ss;
 
-  if (options.repr_options.is_set("dont_match_reprs")) {
+  if (options.repr_options.is_set("dont_match")) {
     ss << "orbit:=Orb(automorphisms, task_mapping, OnTuples);\n";
     ss << "orbit_repr:=Elements(Enumerate(orbit))[1];\n";
 
@@ -204,15 +204,15 @@ mpsym::TaskOrbits map_tasks_mpsym(
   else
     throw std::logic_error("unreachable");
 
-  if (options.repr_options.is_set("dont_match_reprs"))
-      repr_options.match_reprs = false;
+  if (options.repr_options.is_set("dont_match"))
+      repr_options.match = false;
 
   TaskOrbits task_orbits;
   for (auto i = 0u; i < task_mappings.size(); ++i) {
     if (options.verbosity > 0)
       debug_progress("Mapping task", i + 1u, "of", task_mappings.size());
 
-    ags->repr(task_mappings[i], &repr_options, &task_orbits);
+    ags->repr(task_mappings[i], &task_orbits, &repr_options);
   }
 
   return task_orbits;

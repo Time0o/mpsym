@@ -71,10 +71,10 @@ public:
 
   struct Options
   {
-    static Options const *fill_defaults(Options const *options)
+    static Options fill_defaults(Options const *options)
     {
       static Options default_options;
-      return options ? options : &default_options;
+      return options ? *options : default_options;
     }
 
     Construction construction = Construction::SCHREIER_SIMS_RANDOM;

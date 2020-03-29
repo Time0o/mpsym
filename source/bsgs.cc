@@ -58,7 +58,7 @@ BSGS::BSGS(unsigned degree, PermSet const &generators, Options const *options_)
 
   auto options(Options::fill_defaults(options_));
 
-  switch (options->transversals) {
+  switch (options.transversals) {
     case Transversals::EXPLICIT:
       _transversals = std::make_shared<BSGSTransversals<ExplicitTransversals>>();
       break;
@@ -72,7 +72,7 @@ BSGS::BSGS(unsigned degree, PermSet const &generators, Options const *options_)
   DBG(DEBUG) << "=== Constructing BSGS";
   DBG(DEBUG) << "Generators: " << generators;
 
-  if (options->check_altsym && degree > 8u) {
+  if (options.check_altsym && degree > 8u) {
     PrRandomizer pr(generators);
 
     if (pr.test_symmetric()) {
@@ -80,9 +80,9 @@ BSGS::BSGS(unsigned degree, PermSet const &generators, Options const *options_)
     } else if (pr.test_alternating())
       construct_alternating();
     else
-      construct_unknown(generators, options);
+      construct_unknown(generators, &options);
   } else {
-    construct_unknown(generators, options);
+    construct_unknown(generators, &options);
   }
 
   DBG(DEBUG) << "==> B = " << _base;

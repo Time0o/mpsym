@@ -28,21 +28,46 @@ public:
   unsigned num_processors() const override;
   unsigned num_channels() const override;
 
-  TaskMapping repr(TaskMapping const &mapping_,
-                   ReprOptions const *options = nullptr,
-                   TaskOrbits *orbits = nullptr) override;
-
 private:
-  ArchGraphAutomorphisms wreath_product_action_super_graph() const;
-  std::vector<ArchGraphAutomorphisms> wreath_product_action_proto() const;
+  PermGroup automorphisms_(AutomorphismOptions const *options) override;
 
-  PermGroup update_automorphisms(BSGS::Options const *bsgs_options) override;
+  void init_repr_(AutomorphismOptions const *options) override
+  {
+    _sigma_super_graph = wreath_product_action_super_graph(options);
+    _sigmas_proto = wreath_product_action_proto(options);
+    _sigmas_valid = true;
+  }
+
+  bool repr_ready_() const override
+  {
+    return _subsystem_super_graph->automorphisms_ready() &&
+           _subsystem_proto->automorphisms_ready() &&
+           _sigmas_valid;
+  }
+
+  void reset_repr_() override
+  {
+    _subsystem_super_graph->reset_automorphisms();
+    _subsystem_proto->reset_automorphisms();
+    _sigmas_valid = false;
+  }
+
+  TaskMapping repr_(TaskMapping const &mapping_,
+                    TaskOrbits *orbits,
+                    ReprOptions const *options) override;
+
+  std::shared_ptr<ArchGraphAutomorphisms>
+  wreath_product_action_super_graph(AutomorphismOptions const *options) const;
+
+  std::vector<std::shared_ptr<ArchGraphAutomorphisms>>
+  wreath_product_action_proto(AutomorphismOptions const *options) const;
 
   std::shared_ptr<ArchGraphSystem> _subsystem_super_graph;
   std::shared_ptr<ArchGraphSystem> _subsystem_proto;
 
-  ArchGraphAutomorphisms _sigma_super_graph;
-  std::vector<ArchGraphAutomorphisms> _sigmas_proto;
+  std::shared_ptr<ArchGraphAutomorphisms> _sigma_super_graph;
+  std::vector<std::shared_ptr<ArchGraphAutomorphisms>> _sigmas_proto;
+  bool _sigmas_valid = false;
 };
 
 } // namespace mpsym

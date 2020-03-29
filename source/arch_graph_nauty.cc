@@ -32,8 +32,7 @@ void nauty_free()
 namespace mpsym
 {
 
-PermGroup ArchGraph::update_automorphisms_nauty(
-  BSGS::Options const *bsgs_options)
+PermGroup ArchGraph::automorphisms_nauty(AutomorphismOptions const *options)
 {
   // allocate nauty structures
   DYNALLSTAT(graph, g, g_sz);
@@ -41,9 +40,9 @@ PermGroup ArchGraph::update_automorphisms_nauty(
   DYNALLSTAT(int, ptn, ptn_sz);
   DYNALLSTAT(int, orbits, orbits_sz);
 
-  static DEFAULTOPTIONS_GRAPH(options);
-  options.defaultptn = FALSE;
-  options.userautomproc = nauty_save_generator;
+  static DEFAULTOPTIONS_GRAPH(nauty_options);
+  nauty_options.defaultptn = FALSE;
+  nauty_options.userautomproc = nauty_save_generator;
 
   statsblk stats;
 
@@ -123,7 +122,7 @@ PermGroup ArchGraph::update_automorphisms_nauty(
   nauty_generators.clear();
   nauty_generator_degree = n_orig;
 
-  densenauty(g, lab, ptn, orbits, &options, &stats, m, n, nullptr);
+  densenauty(g, lab, ptn, orbits, &nauty_options, &stats, m, n, nullptr);
 
   DYNFREE(g, g_sz);
   DYNFREE(lab, lab_sz);
@@ -132,7 +131,7 @@ PermGroup ArchGraph::update_automorphisms_nauty(
 
   nauty_free();
 
-  return PermGroup(BSGS(nauty_generator_degree, nauty_generators, bsgs_options));
+  return PermGroup(BSGS(nauty_generator_degree, nauty_generators, options));
 }
 
 } // namespace mpsym

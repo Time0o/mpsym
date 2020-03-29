@@ -24,18 +24,43 @@ public:
 
   // TODO: detect equivalent subsystems?
   void add_subsystem(std::shared_ptr<ArchGraphSystem> subsystem)
-  { _subsystems.push_back(subsystem); }
+  {
+    reset_automorphisms();
+    _subsystems.push_back(subsystem);
+  }
 
   unsigned num_processors() const override;
   unsigned num_channels() const override;
   unsigned num_subsystems() const;
 
-  TaskMapping repr(TaskMapping const &mapping,
-                   ReprOptions const *options = nullptr,
-                   TaskOrbits *orbits = nullptr) override;
-
 private:
-  PermGroup update_automorphisms(BSGS::Options const *bsgs_options) override;
+  PermGroup automorphisms_(AutomorphismOptions const *options) override;
+
+  void init_repr_(AutomorphismOptions const *options) override
+  {
+    for (auto const &subsystem : _subsystems)
+      subsystem->init_repr(options);
+  }
+
+  bool repr_ready_() const override
+  {
+    for (auto const &subsystem : _subsystems) {
+      if (!subsystem->repr_ready())
+        return false;
+    }
+
+    return true;
+  }
+
+  void reset_repr_() override
+  {
+    for (auto const &subsystem : _subsystems)
+      subsystem->reset_repr();
+  }
+
+  TaskMapping repr_(TaskMapping const &mapping,
+                    TaskOrbits *orbits,
+                    ReprOptions const *options) override;
 
   std::vector<std::shared_ptr<ArchGraphSystem>> _subsystems;
 };

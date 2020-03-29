@@ -26,7 +26,7 @@ public:
   }
 
 private:
-  PermGroup update_automorphisms(BSGS::Options const *) override
+  PermGroup automorphisms_(AutomorphismOptions const *) override
   { return _automorphisms; }
 
   PermGroup _automorphisms;

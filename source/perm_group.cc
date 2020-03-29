@@ -226,7 +226,7 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
 
   cpp_int wreath_product_order(pow(lhs_order, rhs_lmp) * rhs_order);
 
-  auto bsgs_options(*BSGS::Options::fill_defaults(bsgs_options_));
+  auto bsgs_options(BSGS::Options::fill_defaults(bsgs_options_));
   bsgs_options.schreier_sims_random_known_order = wreath_product_order;
 
   // construct wreath product

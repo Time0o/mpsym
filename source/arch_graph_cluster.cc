@@ -55,38 +55,32 @@ ArchGraphCluster::num_subsystems() const
 
 
 PermGroup
-ArchGraphCluster::update_automorphisms(BSGS::Options const *bsgs_options)
+ArchGraphCluster::automorphisms_(AutomorphismOptions const *options)
 {
   assert(!_subsystems.empty());
 
   std::vector<PermGroup> automorphisms(_subsystems.size());
   for (auto i = 0u; i < _subsystems.size(); ++i)
-    automorphisms[i] = _subsystems[i]->automorphisms(bsgs_options);
+    automorphisms[i] = _subsystems[i]->automorphisms(options);
 
   return PermGroup::direct_product(automorphisms.begin(),
                                    automorphisms.end(),
-                                   bsgs_options);
+                                   options);
 }
 
 TaskMapping
-ArchGraphCluster::repr(TaskMapping const &mapping_,
-                       ReprOptions const *options_,
-                       TaskOrbits *orbits)
+ArchGraphCluster::repr_(TaskMapping const &mapping_,
+                        TaskOrbits *orbits,
+                        ReprOptions const *options_)
 {
-  auto options(complete_options(options_));
-
   assert(_subsystems.size() > 0u);
-
-  DBG(DEBUG) << "Requested task mapping for: " << mapping_;
 
   TaskMapping mapping(mapping_);
 
+  auto options(ReprOptions::fill_defaults(options_));
+
   for (auto i = 0u; i < _subsystems.size(); ++i) {
-    DBG(DEBUG) << "Subsystem (no. " << i << ")";
-
-    mapping = _subsystems[i]->repr(mapping, &options);
-
-    DBG(DEBUG) << "Yields: " << mapping;
+    mapping = _subsystems[i]->repr(mapping, orbits, &options);
 
     options.offset += _subsystems[i]->num_processors();
   }

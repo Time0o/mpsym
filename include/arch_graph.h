@@ -77,8 +77,10 @@ public:
 #endif
 
 private:
-  PermGroup update_automorphisms(BSGS::Options const *bsgs_options) override;
-  PermGroup update_automorphisms_nauty(BSGS::Options const *bsgs_options);
+  PermGroup automorphisms_(AutomorphismOptions const *options) override
+  { return automorphisms_nauty(options); }
+
+  PermGroup automorphisms_nauty(AutomorphismOptions const *options);
 
 #if 0
   bool is_partial_automorphism(PartialPerm const &pperm) const;
