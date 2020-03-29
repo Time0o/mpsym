@@ -7,7 +7,7 @@
 #include "bsgs.h"
 #include "partial_perm_inverse_semigroup.h"
 #include "perm_group.h"
-#include "task_allocation.h"
+#include "task_mapping.h"
 #include "task_orbits.h"
 
 namespace mpsym
@@ -52,7 +52,7 @@ public:
   void invalidate_automorphisms()
   { _automorphisms_valid = false; }
 
-  virtual TaskAllocation repr(TaskAllocation const &allocation,
+  virtual TaskMapping repr(TaskMapping const &mapping,
                               ReprOptions const *options = nullptr,
                               TaskOrbits *orbits = nullptr);
 
@@ -67,21 +67,21 @@ protected:
 private:
   virtual PermGroup update_automorphisms(BSGS::Options const *bsgs_options) = 0;
 
-  TaskAllocation min_elem_iterate(TaskAllocation const &tasks,
-                                  ReprOptions const *options,
-                                  TaskOrbits *orbits);
-
-  TaskAllocation min_elem_local_search(TaskAllocation const &tasks,
-                                       ReprOptions const *options,
-                                       TaskOrbits *orbits);
-
-  TaskAllocation min_elem_orbits(TaskAllocation const &tasks,
-                                 ReprOptions const *options,
-                                 TaskOrbits *orbits);
-
-  static bool is_repr(TaskAllocation const &tasks,
+  TaskMapping min_elem_iterate(TaskMapping const &tasks,
                                 ReprOptions const *options,
-                                TaskOrbits *orbits)
+                                TaskOrbits *orbits);
+
+  TaskMapping min_elem_local_search(TaskMapping const &tasks,
+                                     ReprOptions const *options,
+                                     TaskOrbits *orbits);
+
+  TaskMapping min_elem_orbits(TaskMapping const &tasks,
+                               ReprOptions const *options,
+                               TaskOrbits *orbits);
+
+  static bool is_repr(TaskMapping const &tasks,
+                      ReprOptions const *options,
+                      TaskOrbits *orbits)
   {
     if (!options->match_reprs || !orbits)
       return false;

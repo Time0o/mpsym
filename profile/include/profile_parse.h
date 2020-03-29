@@ -9,7 +9,7 @@
 #include "perm.h"
 #include "perm_set.h"
 #include "permlib.h"
-#include "task_allocation.h"
+#include "task_mapping.h"
 
 namespace gap
 {
@@ -21,12 +21,12 @@ namespace gap
     std::string permutations;
   };
 
-  using TaskAllocationVector = std::string;
+  using TaskMappingVector = std::string;
 }
 
 namespace mpsym
 {
-  using TaskAllocationVector = std::vector<mpsym::TaskAllocation>;
+  using TaskMappingVector = std::vector<mpsym::TaskMapping>;
 }
 
 namespace permlib
@@ -58,13 +58,13 @@ mpsym::PermSet parse_generators_mpsym(unsigned degree, std::string const &gen_st
 
 permlib::PermSet parse_generators_permlib(unsigned degree, std::string const &gen_str);
 
-gap::TaskAllocationVector parse_task_allocations_gap(
-  std::string const &task_allocations_str);
+gap::TaskMappingVector parse_task_mappings_gap(
+  std::string const &task_mappings_str);
 
-mpsym::TaskAllocationVector parse_task_allocations_mpsym(
-  std::string const &task_allocations_str);
+mpsym::TaskMappingVector parse_task_mappings_mpsym(
+  std::string const &task_mappings_str);
 
-mpsym::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
+mpsym::TaskMappingVector parse_task_mappings_gap_to_mpsym(
   std::vector<std::string> const &gap_output);
 
 } // namespace profile

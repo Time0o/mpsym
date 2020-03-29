@@ -11,7 +11,7 @@
 #include "arch_graph_system.h"
 #include "bsgs.h"
 #include "partial_perm_inverse_semigroup.h"
-#include "task_allocation.h"
+#include "task_mapping.h"
 #include "task_orbits.h"
 
 namespace mpsym
@@ -28,9 +28,9 @@ public:
   unsigned num_processors() const override;
   unsigned num_channels() const override;
 
-  TaskAllocation repr(TaskAllocation const &allocation_,
-                      ReprOptions const *options = nullptr,
-                      TaskOrbits *orbits = nullptr) override;
+  TaskMapping repr(TaskMapping const &mapping_,
+                   ReprOptions const *options = nullptr,
+                   TaskOrbits *orbits = nullptr) override;
 
 private:
   ArchGraphAutomorphisms wreath_product_action_super_graph() const;

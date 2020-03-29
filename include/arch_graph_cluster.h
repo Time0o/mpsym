@@ -11,7 +11,7 @@
 #include "bsgs.h"
 #include "partial_perm_inverse_semigroup.h"
 #include "perm_group.h"
-#include "task_allocation.h"
+#include "task_mapping.h"
 #include "task_orbits.h"
 
 namespace mpsym
@@ -30,9 +30,9 @@ public:
   unsigned num_channels() const override;
   unsigned num_subsystems() const;
 
-  TaskAllocation repr(TaskAllocation const &allocation,
-                      ReprOptions const *options = nullptr,
-                      TaskOrbits *orbits = nullptr) override;
+  TaskMapping repr(TaskMapping const &mapping,
+                   ReprOptions const *options = nullptr,
+                   TaskOrbits *orbits = nullptr) override;
 
 private:
   PermGroup update_automorphisms(BSGS::Options const *bsgs_options) override;

@@ -9,25 +9,25 @@
 #include <utility>
 #include <vector>
 
-#include "task_allocation.h"
+#include "task_mapping.h"
 
 namespace mpsym
 {
 
 class TaskOrbits
 {
-  using orbit_reprs_map = std::unordered_map<TaskAllocation, unsigned>;
+  using orbit_reprs_map = std::unordered_map<TaskMapping, unsigned>;
 
 public:
   class const_iterator
-  : public std::iterator<std::forward_iterator_tag, TaskAllocation>
+  : public std::iterator<std::forward_iterator_tag, TaskMapping>
   {
   public:
     const_iterator(orbit_reprs_map::const_iterator current_it,
                    orbit_reprs_map::const_iterator end_it)
     : _current_it(current_it),
       _end_it(end_it),
-      _current_key(current_it == _end_it ? TaskAllocation({}) : _current_it->first)
+      _current_key(current_it == _end_it ? TaskMapping({}) : _current_it->first)
     {}
 
     const_iterator operator++()
@@ -43,9 +43,9 @@ public:
       return *this;
     }
 
-    TaskAllocation const & operator*() const
+    TaskMapping const & operator*() const
     { return _current_key; }
-    TaskAllocation const * operator->() const
+    TaskMapping const * operator->() const
     { return &_current_key; }
     bool operator==(const_iterator const &rhs) const
     { return _current_it == rhs._current_it; };
@@ -62,7 +62,7 @@ public:
     orbit_reprs_map::const_iterator _current_it;
     orbit_reprs_map::const_iterator _end_it;
 
-    TaskAllocation _current_key;
+    TaskMapping _current_key;
   };
 
   bool operator==(TaskOrbits const &rhs) const
@@ -71,17 +71,17 @@ public:
   bool operator!=(TaskOrbits const &rhs) const
   { return !(*this == rhs); }
 
-  std::pair<bool, unsigned> insert(TaskAllocation const &allocation)
+  std::pair<bool, unsigned> insert(TaskMapping const &mapping)
   {
     bool new_orbit;
     unsigned equivalence_class;
 
-    auto it = _orbit_reprs.find(allocation);
+    auto it = _orbit_reprs.find(mapping);
     if (it == _orbit_reprs.end()) {
       new_orbit = true;
       equivalence_class = num_orbits();
 
-      _orbit_reprs[allocation] = equivalence_class;
+      _orbit_reprs[mapping] = equivalence_class;
 
     } else {
       new_orbit = false;
@@ -98,9 +98,9 @@ public:
       insert(*it);
   }
 
-  bool is_repr(TaskAllocation const &allocation) const
+  bool is_repr(TaskMapping const &mapping) const
   {
-    auto it(_orbit_reprs.find(allocation));
+    auto it(_orbit_reprs.find(mapping));
 
     return it != _orbit_reprs.end();
   }
@@ -121,9 +121,9 @@ public:
   }
 
 private:
-  std::unordered_set<TaskAllocation> orbit_repr_set() const
+  std::unordered_set<TaskMapping> orbit_repr_set() const
   {
-    std::unordered_set<TaskAllocation> ret;
+    std::unordered_set<TaskMapping> ret;
     for (auto const &repr : _orbit_reprs)
       ret.insert(repr.first);
 

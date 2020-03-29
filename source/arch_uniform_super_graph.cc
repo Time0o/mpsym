@@ -11,7 +11,7 @@
 #include "perm.h"
 #include "perm_group.h"
 #include "perm_set.h"
-#include "task_allocation.h"
+#include "task_mapping.h"
 #include "task_orbits.h"
 
 namespace mpsym
@@ -114,22 +114,22 @@ ArchUniformSuperGraph::update_automorphisms(BSGS::Options const *bsgs_options)
     bsgs_options);
 }
 
-TaskAllocation
-ArchUniformSuperGraph::repr(TaskAllocation const &allocation_,
+TaskMapping
+ArchUniformSuperGraph::repr(TaskMapping const &mapping_,
                             ReprOptions const *options,
                             TaskOrbits *orbits)
 {
-  TaskAllocation allocation(allocation_);
+  TaskMapping mapping(mapping_);
 
   for (auto &sigma : _sigmas_proto)
-    allocation = sigma.repr(allocation, options);
+    mapping = sigma.repr(mapping, options);
 
-  allocation = _sigma_super_graph.repr(allocation, options);
+  mapping = _sigma_super_graph.repr(mapping, options);
 
   if (orbits)
-    orbits->insert(allocation);
+    orbits->insert(mapping);
 
-  return allocation;
+  return mapping;
 }
 
 } // namespace mpsym

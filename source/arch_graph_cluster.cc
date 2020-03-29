@@ -68,8 +68,8 @@ ArchGraphCluster::update_automorphisms(BSGS::Options const *bsgs_options)
                                    bsgs_options);
 }
 
-TaskAllocation
-ArchGraphCluster::repr(TaskAllocation const &allocation_,
+TaskMapping
+ArchGraphCluster::repr(TaskMapping const &mapping_,
                        ReprOptions const *options_,
                        TaskOrbits *orbits)
 {
@@ -77,24 +77,24 @@ ArchGraphCluster::repr(TaskAllocation const &allocation_,
 
   assert(_subsystems.size() > 0u);
 
-  DBG(DEBUG) << "Requested task mapping for: " << allocation_;
+  DBG(DEBUG) << "Requested task mapping for: " << mapping_;
 
-  TaskAllocation allocation(allocation_);
+  TaskMapping mapping(mapping_);
 
   for (auto i = 0u; i < _subsystems.size(); ++i) {
     DBG(DEBUG) << "Subsystem (no. " << i << ")";
 
-    allocation = _subsystems[i]->repr(allocation, &options);
+    mapping = _subsystems[i]->repr(mapping, &options);
 
-    DBG(DEBUG) << "Yields: " << allocation;
+    DBG(DEBUG) << "Yields: " << mapping;
 
     options.offset += _subsystems[i]->num_processors();
   }
 
   if (orbits)
-    orbits->insert(allocation);
+    orbits->insert(mapping);
 
-  return allocation;
+  return mapping;
 }
 
 } // namespace mpsym

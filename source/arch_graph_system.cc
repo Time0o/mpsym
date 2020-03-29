@@ -11,28 +11,28 @@
 #include "dbg.h"
 #include "perm.h"
 #include "perm_set.h"
-#include "task_allocation.h"
+#include "task_mapping.h"
 #include "task_orbits.h"
 #include "timer.h"
 
 namespace mpsym
 {
 
-TaskAllocation ArchGraphSystem::repr(TaskAllocation const &allocation,
+TaskMapping ArchGraphSystem::repr(TaskMapping const &mapping,
                                      ReprOptions const *options_,
                                      TaskOrbits *orbits)
 {
   auto options(complete_options(options_));
 
-  DBG(DEBUG) << "Requested task mapping for: " << allocation;
+  DBG(DEBUG) << "Requested task mapping for: " << mapping;
 
-  TaskAllocation representative =
+  TaskMapping representative =
     options.method == ReprMethod::ITERATE ?
-      min_elem_iterate(allocation, &options, orbits) :
+      min_elem_iterate(mapping, &options, orbits) :
     options.method == ReprMethod::LOCAL_SEARCH ?
-      min_elem_local_search(allocation, &options, orbits) :
+      min_elem_local_search(mapping, &options, orbits) :
     options.method == ReprMethod::ORBITS ?
-      min_elem_orbits(allocation, &options, orbits) :
+      min_elem_orbits(mapping, &options, orbits) :
     throw std::logic_error("unreachable");
 
   if (orbits)
@@ -41,7 +41,7 @@ TaskAllocation ArchGraphSystem::repr(TaskAllocation const &allocation,
   return representative;
 }
 
-TaskAllocation ArchGraphSystem::min_elem_iterate(TaskAllocation const &tasks,
+TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
                                                  ReprOptions const *options,
                                                  TaskOrbits *orbits)
 {
@@ -49,7 +49,7 @@ TaskAllocation ArchGraphSystem::min_elem_iterate(TaskAllocation const &tasks,
 
   TIMER_START("map bruteforce iterate");
 
-  TaskAllocation representative(tasks);
+  TaskMapping representative(tasks);
 
   for (Perm const &element : automorphisms()) {
     if (tasks.less_than(representative, element, options->offset)) {
@@ -69,8 +69,8 @@ TaskAllocation ArchGraphSystem::min_elem_iterate(TaskAllocation const &tasks,
   return representative;
 }
 
-TaskAllocation ArchGraphSystem::min_elem_local_search(
-  TaskAllocation const &tasks,
+TaskMapping ArchGraphSystem::min_elem_local_search(
+  TaskMapping const &tasks,
   ReprOptions const *options,
   TaskOrbits *)
 {
@@ -78,7 +78,7 @@ TaskAllocation ArchGraphSystem::min_elem_local_search(
 
   TIMER_START("map approx local search");
 
-  TaskAllocation representative(tasks);
+  TaskMapping representative(tasks);
 
   bool stationary = false;
   while (!stationary) {
@@ -100,7 +100,7 @@ TaskAllocation ArchGraphSystem::min_elem_local_search(
   return representative;
 }
 
-TaskAllocation ArchGraphSystem::min_elem_orbits(TaskAllocation const &tasks,
+TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
                                                 ReprOptions const *options,
                                                 TaskOrbits *orbits)
 {
@@ -108,15 +108,15 @@ TaskAllocation ArchGraphSystem::min_elem_orbits(TaskAllocation const &tasks,
 
   TIMER_START("map bruteforce orbits");
 
-  TaskAllocation representative(tasks);
+  TaskMapping representative(tasks);
 
-  std::unordered_set<TaskAllocation> processed;
-  std::queue<TaskAllocation> unprocessed;
+  std::unordered_set<TaskMapping> processed;
+  std::queue<TaskMapping> unprocessed;
 
   unprocessed.push(tasks);
 
   while (!unprocessed.empty()) {
-    TaskAllocation current(unprocessed.front());
+    TaskMapping current(unprocessed.front());
     unprocessed.pop();
 
     processed.insert(current);
@@ -125,7 +125,7 @@ TaskAllocation ArchGraphSystem::min_elem_orbits(TaskAllocation const &tasks,
       representative = current;
 
     for (Perm const &generator : automorphisms().generators()) {
-      TaskAllocation next(current.permuted(generator, options->offset));
+      TaskMapping next(current.permuted(generator, options->offset));
 
       if (is_repr(next, options, orbits)) {
         TIMER_STOP("map bruteforce orbits");

@@ -14,7 +14,7 @@
 #include "partial_perm.h"
 #include "perm.h"
 #include "perm_group.h"
-#include "task_allocation.h"
+#include "task_mapping.h"
 #include "test_utility.h"
 
 #include "test_main.cc"
@@ -26,7 +26,7 @@ using mpsym::ArchUniformSuperGraph;
 using mpsym::PartialPerm;
 using mpsym::Perm;
 using mpsym::PermGroup;
-using mpsym::TaskAllocation;
+using mpsym::TaskMapping;
 
 using testing::UnorderedElementsAreArray;
 
@@ -37,28 +37,28 @@ static void expect_generates_orbits(
   std::vector<orbit> expected_orbits,
   ArchGraphSystem::ReprMethod method)
 {
-  std::unordered_map<TaskAllocation, std::vector<TaskAllocation>> orbits;
+  std::unordered_map<TaskMapping, std::vector<TaskMapping>> orbits;
 
   for (auto i = 1u; i <= ag->num_processors(); ++i) {
     for (auto j = 1u; j <= ag->num_processors(); ++j) {
-      TaskAllocation allocation({i, j});
+      TaskMapping mapping({i, j});
 
       ArchGraphSystem::ReprOptions options;
       options.method = method;
 
-      TaskAllocation repr(ag->repr(allocation, &options));
+      TaskMapping repr(ag->repr(mapping, &options));
 
       if (orbits.find(repr) == orbits.end())
         orbits[repr] = {repr};
 
-      if (allocation != repr)
-        orbits[repr].push_back(allocation);
+      if (mapping != repr)
+        orbits[repr].push_back(mapping);
     }
   }
 
   for (auto const &orbit : orbits) {
-    TaskAllocation representative(orbit.first);
-    std::vector<TaskAllocation> actual_orbit(orbit.second);
+    TaskMapping representative(orbit.first);
+    std::vector<TaskMapping> actual_orbit(orbit.second);
 
     std::stringstream ss;
     ss << "{ " << representative[0];

@@ -1,5 +1,5 @@
-#ifndef _GUARD_TASK_ALLOCATION_H
-#define _GUARD_TASK_ALLOCATION_H
+#ifndef _GUARD_TASK_MAPPING_H
+#define _GUARD_TASK_MAPPING_H
 
 #include <cassert>
 #include <initializer_list>
@@ -14,18 +14,18 @@
 namespace mpsym
 {
 
-class TaskAllocation : public std::vector<unsigned>
+class TaskMapping : public std::vector<unsigned>
 {
 public:
-  TaskAllocation()
+  TaskMapping()
   : std::vector<unsigned>()
   {}
 
-  TaskAllocation(std::initializer_list<unsigned> tasks)
+  TaskMapping(std::initializer_list<unsigned> tasks)
   : std::vector<unsigned>(tasks)
   {}
 
-  bool less_than(TaskAllocation const other) const
+  bool less_than(TaskMapping const other) const
   {
     assert(size() == other.size());
 
@@ -42,7 +42,7 @@ public:
     return false;
   }
 
-  bool less_than(TaskAllocation const other,
+  bool less_than(TaskMapping const other,
                  Perm const &perm,
                  unsigned offset = 0u) const
   {
@@ -77,9 +77,9 @@ public:
     );
   }
 
-  TaskAllocation permuted(Perm const &perm, unsigned offset = 0u) const
+  TaskMapping permuted(Perm const &perm, unsigned offset = 0u) const
   {
-    TaskAllocation res(*this);
+    TaskMapping res(*this);
 
     foreach_permuted_task(
       perm,
@@ -113,7 +113,7 @@ private:
   }
 };
 
-inline std::ostream &operator<<(std::ostream &os, TaskAllocation const &ta)
+inline std::ostream &operator<<(std::ostream &os, TaskMapping const &ta)
 {
   os << DUMP(static_cast<std::vector<unsigned> const &>(ta));
   return os;
@@ -125,12 +125,12 @@ namespace std
 {
 
 template<>
-struct hash<mpsym::TaskAllocation>
+struct hash<mpsym::TaskMapping>
 {
-  std::size_t operator()(mpsym::TaskAllocation const &ta) const
+  std::size_t operator()(mpsym::TaskMapping const &ta) const
   { return util::container_hash(ta.begin(), ta.end()); }
 };
 
 } // namespace std
 
-#endif // _GUARD_TASK_ALLOCATION_H
+#endif // _GUARD_TASK_MAPPING_H

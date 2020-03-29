@@ -21,7 +21,7 @@
 #include "permlib.h"
 #include "profile_parse.h"
 #include "profile_util.h"
-#include "task_allocation.h"
+#include "task_mapping.h"
 
 namespace
 {
@@ -131,8 +131,8 @@ permlib::PermSet convert_generators_permlib(unsigned degree,
   return {degree, gens_conv};
 }
 
-std::tuple<unsigned, unsigned, std::vector<mpsym::TaskAllocation>>
-split_task_allocations(std::string const &task_allocations_str,
+std::tuple<unsigned, unsigned, std::vector<mpsym::TaskMapping>>
+split_task_mappings(std::string const &task_mappings_str,
                        std::string const &regex_str,
                        char delim)
 {
@@ -141,36 +141,36 @@ split_task_allocations(std::string const &task_allocations_str,
   unsigned min_pe = UINT_MAX;
   unsigned max_pe = 0u;
 
-  std::vector<mpsym::TaskAllocation> task_allocations;
+  std::vector<mpsym::TaskMapping> task_mappings;
 
-  std::stringstream ss(task_allocations_str);
-  std::regex re_task_allocation(regex_str);
+  std::stringstream ss(task_mappings_str);
+  std::regex re_task_mapping(regex_str);
 
   std::string line;
   while (std::getline(ss, line)) {
     std::smatch m;
-    if (!std::regex_match(line, m, re_task_allocation))
-      throw std::invalid_argument("malformed task allocation expression");
+    if (!std::regex_match(line, m, re_task_mapping))
+      throw std::invalid_argument("malformed task mapping expression");
 
-    mpsym::TaskAllocation task_allocation;
+    mpsym::TaskMapping task_mapping;
 
-    std::string task_allocation_str(m[1]);
+    std::string task_mapping_str(m[1]);
     std::size_t pos_begin = 0u;
     std::size_t pos_end;
     unsigned pe;
 
     for (;;) {
-      pos_end = task_allocation_str.find(delim, pos_begin);
+      pos_end = task_mapping_str.find(delim, pos_begin);
 
       pe = profile::stox<unsigned>(
         pos_end == std::string::npos ?
-          task_allocation_str.substr(pos_begin) :
-          task_allocation_str.substr(pos_begin, pos_end - pos_begin));
+          task_mapping_str.substr(pos_begin) :
+          task_mapping_str.substr(pos_begin, pos_end - pos_begin));
 
       min_pe = std::min(pe, min_pe);
       max_pe = std::max(pe, max_pe);
 
-      task_allocation.push_back(pe);
+      task_mapping.push_back(pe);
 
       if (pos_end == std::string::npos)
         break;
@@ -179,16 +179,16 @@ split_task_allocations(std::string const &task_allocations_str,
     }
 
     if (num_tasks == 0u) {
-      num_tasks = task_allocation.size();
-    } else if (task_allocation.size() != num_tasks) {
+      num_tasks = task_mapping.size();
+    } else if (task_mapping.size() != num_tasks) {
       throw std::invalid_argument(
         "currently only equally sized task sets are supported");
     }
 
-    task_allocations.push_back(task_allocation);
+    task_mappings.push_back(task_mapping);
   }
 
-  return {min_pe, max_pe, task_allocations};
+  return {min_pe, max_pe, task_mappings};
 }
 
 } // anonymous namespace
@@ -253,35 +253,35 @@ permlib::PermSet parse_generators_permlib(unsigned degree, std::string const &ge
    return convert_generators_permlib(degree == 0 ? largest_moved_point : degree, gen_vect);
 }
 
-gap::TaskAllocationVector parse_task_allocations_gap(
-  std::string const &task_allocations_str)
+gap::TaskMappingVector parse_task_mappings_gap(
+  std::string const &task_mappings_str)
 {
-  auto task_allocations(
-    split_task_allocations(task_allocations_str, R"((\d+(?: \d+)*))", ' '));
+  auto task_mappings(
+    split_task_mappings(task_mappings_str, R"((\d+(?: \d+)*))", ' '));
 
   std::stringstream ss;
-  for (auto const &task_allocation : std::get<2>(task_allocations))
-    ss << DUMP(task_allocation) << ",\n";
+  for (auto const &task_mapping : std::get<2>(task_mappings))
+    ss << DUMP(task_mapping) << ",\n";
 
   return ss.str();
 }
 
-mpsym::TaskAllocationVector parse_task_allocations_mpsym(
-  std::string const &task_allocations_str)
+mpsym::TaskMappingVector parse_task_mappings_mpsym(
+  std::string const &task_mappings_str)
 {
-  auto task_allocations(
-    split_task_allocations(task_allocations_str, R"((\d+(?: \d+)*))", ' '));
+  auto task_mappings(
+    split_task_mappings(task_mappings_str, R"((\d+(?: \d+)*))", ' '));
 
-  return std::get<2>(task_allocations);
+  return std::get<2>(task_mappings);
 }
 
-mpsym::TaskAllocationVector parse_task_allocations_gap_to_mpsym(
+mpsym::TaskMappingVector parse_task_mappings_gap_to_mpsym(
   std::vector<std::string> const &gap_output)
 {
-  auto task_allocations(split_task_allocations(
+  auto task_mappings(split_task_mappings(
     join(gap_output, "\n"), R"(.*\[(\d+(?:,\d+)*)\])", ','));
 
-  return std::get<2>(task_allocations);
+  return std::get<2>(task_mappings);
 }
 
 } // namespace profile
