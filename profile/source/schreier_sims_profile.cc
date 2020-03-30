@@ -45,8 +45,7 @@ void usage(std::ostream &s)
     "-i|--implementation  {gap|mpsym|permlib}",
     "[-s|--schreier-sims] {deterministic|random|random-no-guarantee}",
     "[-t|--transversals]  {explicit|schreier-trees|shallow-schreier-trees}",
-    "[--check-altsym]",
-    "[--no-reduce-gens]",
+    "[--bsgs-options {check-altsym,dont_reduce_gens,dont_reduce_arch_graph}]",
     "[-g|--groups GROUPS]",
     "[-a|--arch-graph ARCH_GRAPH]",
     "[-r|--num-runs]",
@@ -66,8 +65,7 @@ struct ProfileOptions
   VariantOption implementation{"gap", "mpsym", "permlib"};
   VariantOption schreier_sims{"deterministic", "random", "random-no-guarantee"};
   VariantOption transversals{"explicit", "schreier-trees", "shallow-schreier-trees"};
-  bool check_altsym = false;
-  bool no_reduce_gens = false;
+  VariantOptionSet bsgs_options{"check_altsym", "dont_reduce_gens", "dont_reduce_arch_graph"};
   bool groups_input = false;
   bool arch_graph_input = false;
   unsigned num_runs = 1u;
@@ -103,10 +101,10 @@ mpsym::BSGS::Options bsgs_options_mpsym(ProfileOptions const &options)
   else
     throw std::logic_error("unreachable");
 
-  if (options.check_altsym)
+  if (options.bsgs_options.is_set("check_altsym"))
     bsgs_options.check_altsym = true;
 
-  if (options.no_reduce_gens)
+  if (options.bsgs_options.is_set("dont_reduce_gens"))
     bsgs_options.reduce_gens = false;
 
   return bsgs_options;
@@ -233,12 +231,12 @@ std::vector<double> run_arch_graph(std::string const &arch_graph,
 
   std::vector<double> ts;
 
-  auto ag(ArchGraphSystem::from_lua(arch_graph));
-
   cpp_int num_automorphisms;
-  PermSet automorphisms_generators;
+  PermSet automorphism_generators;
 
   if (options.implementation.is("gap")) {
+    auto ag(ArchGraphSystem::from_lua(arch_graph));
+
     auto gap_script("G:=" + ag->to_gap() + ";\n"
                     "StabChain(G);\n"
                     "Print(Size(G), \";\\n\");\n"
@@ -253,19 +251,30 @@ std::vector<double> run_arch_graph(std::string const &arch_graph,
                             &ts));
 
     num_automorphisms = cpp_int(gap_output[0]);
-    automorphisms_generators = parse_generators_mpsym(0, gap_output[1]);
+    automorphism_generators = parse_generators_mpsym(0, gap_output[1]);
 
   } else if (options.implementation.is("mpsym")) {
     auto bsgs_options(bsgs_options_mpsym(options));
 
-    run_cpp([&]{ ag->invalidate_automorphisms();
-                 ag->automorphisms(&bsgs_options); },
+    auto ag(ArchGraphSystem::from_lua(arch_graph));
+
+    run_cpp([&]{
+              if (options.bsgs_options.is_set("dont_reduce_arch_graph")) {
+                ag->reset_repr();
+                ag->init_repr(&bsgs_options);
+              } else {
+                ag->reset_automorphisms();
+                ag->automorphisms(&bsgs_options);
+              }
+            },
             options.num_discarded_runs,
             options.num_runs,
             &ts);
 
-    num_automorphisms = ag->automorphisms().order();
-    automorphisms_generators = ag->automorphisms().generators();
+    num_automorphisms = ag->num_automorphisms();
+
+    if (!options.bsgs_options.is_set("dont_reduce_arch_graph"))
+      automorphism_generators = ag->automorphisms().generators();
 
   } else if (options.implementation.is("permlib")) {
     throw std::logic_error("graph automorphisms not supported by permlib");
@@ -275,8 +284,10 @@ std::vector<double> run_arch_graph(std::string const &arch_graph,
     info("Automorphism group has order:");
     info(num_automorphisms);
 
-    info("Automorphism generators are:");
-    info(automorphisms_generators);
+    if (!options.bsgs_options.is_set("dont_reduce_arch_graph")) {
+      info("Automorphism generators are:");
+      info(automorphism_generators);
+    }
   }
 
   return ts;
@@ -360,15 +371,14 @@ int main(int argc, char **argv)
     {"implementation",      required_argument, 0,       'i'},
     {"schreier-sims",       required_argument, 0,       's'},
     {"transversals",        required_argument, 0,       't'},
-    {"check-altsym",        no_argument,       0,        1 },
-    {"no-reduce-gens",      no_argument,       0,        2 },
+    {"bsgs-options",        required_argument, 0,        1 },
     {"groups",              no_argument,       0,       'g'},
     {"arch-graph",          no_argument,       0,       'a'},
     {"num-runs",            required_argument, 0,       'r'},
-    {"num-discarded-runs",  required_argument, 0,        3 },
-    {"summarize-runs",      no_argument, 0,              4 },
+    {"num-discarded-runs",  required_argument, 0,        2 },
+    {"summarize-runs",      no_argument, 0,              3 },
     {"verbose",             no_argument,       0,       'v'},
-    {"show-gap-errors",     no_argument,       0,        5 },
+    {"show-gap-errors",     no_argument,       0,        4 },
     {nullptr,               0,                 nullptr,  0 }
   };
 
@@ -396,10 +406,10 @@ int main(int argc, char **argv)
         options.transversals.set(optarg);
         break;
       case 1:
-        options.check_altsym = true;
-        break;
-      case 2:
-        options.no_reduce_gens = true;
+        for (auto const &option : split(optarg, " ")) {
+          if (!option.empty())
+            options.bsgs_options.set(option.c_str());
+        }
         break;
       case 'g':
         OPEN_STREAM(automorphisms_stream, optarg);
@@ -412,17 +422,17 @@ int main(int argc, char **argv)
       case 'r':
         options.num_runs = stox<unsigned>(optarg);
         break;
-      case 3:
+      case 2:
         options.num_discarded_runs = stox<unsigned>(optarg);
         break;
-      case 4:
+      case 3:
         options.summarize_runs = true;
         break;
       case 'v':
         options.verbose = true;
         TIMER_ENABLE();
         break;
-      case 5:
+      case 4:
         options.show_gap_errors = true;
         break;
       default:

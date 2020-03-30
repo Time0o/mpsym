@@ -470,8 +470,10 @@ int main(int argc, char **argv)
         options.repr_method.set(optarg);
         break;
       case 2:
-        for (auto const &option : split(optarg, " "))
-          options.repr_options.set(option.c_str());
+        for (auto const &option : split(optarg, " ")) {
+          if (!option.empty())
+            options.repr_options.set(option.c_str());
+        }
         break;
       case 'g':
         OPEN_STREAM(automorphisms_stream, optarg);
