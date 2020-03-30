@@ -53,6 +53,9 @@ public:
   void reset_automorphisms()
   { _automorphisms_valid = false; }
 
+  BSGS::order_type num_automorphisms(AutomorphismOptions const *options = nullptr)
+  { return num_automorphisms_(options); }
+
   PermGroup automorphisms(AutomorphismOptions const *options = nullptr)
   {
     if (!automorphisms_ready()) {
@@ -86,6 +89,9 @@ public:
   }
 
 private:
+  virtual BSGS::order_type num_automorphisms_(AutomorphismOptions const *options)
+  { return automorphisms(options).order(); }
+
   virtual PermGroup automorphisms_(AutomorphismOptions const *options) = 0;
 
   virtual void init_repr_(AutomorphismOptions const *options)

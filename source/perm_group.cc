@@ -198,28 +198,10 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
     generators.emplace(degree, shifted_cycles);
   }
 
-  // largest point moved by rhs
-  unsigned rhs_lmp = rhs.degree();
-
-  while (rhs_lmp >= 1u) {
-    bool fixed = true;
-
-    for (auto const &perm : rhs) {
-      if (perm[rhs_lmp] != rhs_lmp) {
-        fixed = false;
-        break;
-      }
-    }
-
-    if (!fixed)
-      break;
-
-    --rhs_lmp;
-  }
-
   // order of resulting wreath product
   auto lhs_order(lhs_.order());
   auto rhs_order(rhs_.order());
+  unsigned rhs_lmp = rhs.largest_moved_point();
 
   if (rhs_order > std::numeric_limits<unsigned>::max() / 2u)
     throw std::overflow_error("order of wreath product would overflow");

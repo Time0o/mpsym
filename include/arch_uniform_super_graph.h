@@ -29,6 +29,19 @@ public:
   unsigned num_channels() const override;
 
 private:
+  BSGS::order_type num_automorphisms_(AutomorphismOptions const *options) override
+  {
+    using boost::multiprecision::pow;
+
+    auto order_super_graph(_subsystem_super_graph->num_automorphisms(options));
+    auto order_proto(_subsystem_proto->num_automorphisms(options));
+
+    unsigned lmp_super_graph =
+      _subsystem_super_graph->automorphisms().generators().largest_moved_point();
+
+    return pow(order_proto, lmp_super_graph) * order_super_graph;
+  }
+
   PermGroup automorphisms_(AutomorphismOptions const *options) override;
 
   void init_repr_(AutomorphismOptions const *options) override

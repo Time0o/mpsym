@@ -2,11 +2,36 @@
 #include <vector>
 #include <queue>
 
+#include <boost/multiprecision/cpp_int.hpp>
+
 #include "perm.h"
 #include "perm_set.h"
 
 namespace mpsym
 {
+
+unsigned PermSet::largest_moved_point() const
+{
+  unsigned lmp = degree();
+
+  while (lmp >= 1u) {
+    bool fixed = true;
+
+    for (auto const &perm : *this) {
+      if (perm[lmp] != lmp) {
+        fixed = false;
+        break;
+      }
+    }
+
+    if (!fixed)
+      break;
+
+    --lmp;
+  }
+
+  return lmp;
+}
 
 void PermSet::make_unique()
 {

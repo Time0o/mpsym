@@ -129,6 +129,8 @@ public:
   void clear()
   { _perms.clear(); }
 
+  unsigned largest_moved_point() const;
+
   void make_unique();
 
   void minimize_degree();
