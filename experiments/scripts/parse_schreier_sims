@@ -1,0 +1,156 @@
+#!/usr/bin/env Rscript
+
+library(ggplot2)
+suppressMessages(library(hash))
+library(scales)
+library(stringr)
+library(tikzDevice)
+
+# constants
+SAVE_FILE <- '.schreier_sims.Rda'
+
+# custom assert
+assert <- function(cond, msg) {
+    if (!cond)
+        stop(paste("assertion failed:", msg))
+}
+
+# argument parsing
+parseArgs <- function() {
+    args <- commandArgs(trailingOnly=TRUE)
+    assert(length(args) == 2, "received correct number of command line arguments")
+
+    args
+}
+
+# read runtime data
+readData <- function(data_dir) {
+    d_files <- list.files(path=data_dir, pattern=".txt", full.names=TRUE)
+    assert(length(d_files) > 0, "data directory not empty")
+
+    d_all = NULL
+
+    invisible(lapply(d_files, function(d_file) {
+        # parse file name
+        tmp <- str_match(d_file, ".*/(.*?)_(.*?)_(.*).txt")
+        assert(length(tmp) == 4, "valid data file name")
+
+        board <- tmp[2]
+        implementation <- tmp[3]
+        schreier_sims <- tmp[4]
+
+        implementation = paste(implementation, gsub('_', ' ', schreier_sims))
+
+        # read data into data frame
+        d <- read.csv(d_file)
+
+        dim_d = dim(d)
+        assert(length(dim_d) == 2 && dim_d[2], "data dimensions correct")
+
+        names(d) <- 'runtime'
+
+        d$board = board
+        d$implementation = implementation
+
+        # concatenate to main data frame
+        if (is.null(d_all))
+          d_all <<- d
+        else
+          d_all <<- rbind(d_all, d)
+    }))
+
+    d_all
+}
+
+# remove extreme outliers
+removeOutliers <- function(d) {
+    for (board in unique(d$board)) {
+        for (implementation in unique(d$implementation)) {
+            sel <- d$board == board & d$implementation == implementation
+
+            r <- d[sel,]$runtime
+
+            cond <- abs(d$runtime - mean(r)) > 6 * sd(r)
+
+            if (any(sel & cond))
+                d[sel & cond,]$runtime <- NA
+        }
+    }
+
+    d
+}
+
+transformColumnNames <- function(d, column, dict) {
+    for (i in 1:length(d[[column]])) {
+        s <- gsub('^.*? ', '', d[[column]][i])
+
+        if (!missing(dict) && !is.null(dict[[s]]))
+            s <- dict[[s]]
+
+        s <- paste(toupper(substring(s, 1, 1)), substring(s, 2), sep='')
+
+        d[[column]][i] <- s
+    }
+
+    d
+}
+
+# create boxplot
+createBoxplot <- function(d, plot_dir, plot_name) {
+    plot_file <- file.path(plot_dir, plot_name)
+
+    # transform column names
+    d <- transformColumnNames(d, 'board',
+        hash(c('haec'), c('HAEC')))
+
+    d <- transformColumnNames(d, 'implementation',
+        hash(c('random', 'random no guarantee'),
+             c('random (guaranteed)', 'random (not guaranteed)')))
+
+    # plot
+    tikz(file=plot_file, width=8, height=5)
+
+    plot <- ggplot(na.omit(d), aes(x=board, y=runtime, fill=implementation)) +
+        stat_boxplot(geom='errorbar') +
+        geom_boxplot(outlier.size=1) +
+        scale_y_continuous(labels = scientific) +
+        theme_bw() +
+        theme(axis.title.x=element_blank(),
+              axis.title.y=element_text(margin=margin(r=10))) +
+        labs(y="Runtime/s$", fill="Implementation")
+
+    print(plot)
+
+    invisible(dev.off())
+}
+
+# parse arguments
+args <- parseArgs()
+data_dir <- args[1]
+plot_dir <- args[2]
+
+# read data
+if (file.exists(SAVE_FILE)) {
+    cat(paste("loading data frame from save file '", SAVE_FILE, "'\n", sep=''))
+    load(file=SAVE_FILE)
+
+} else {
+    cat(paste("reading data from directory '", data_dir, "'\n", sep=''))
+    d <- readData(data_dir)
+
+    cat(paste("saving data to save file '", SAVE_FILE, "'\n", sep=''))
+    save(d, file=SAVE_FILE)
+}
+
+d <- removeOutliers(d)
+
+# create plot
+cat("creating plots\n")
+
+## gap
+d_gap <- d[str_detect(d$implementation, 'gap'),]
+createBoxplot(d_gap, plot_dir, 'boxplot_gap.tex')
+
+# mpsym
+d_mpsym <- d[str_detect(d$implementation, 'mpsym'),]
+createBoxplot(d_mpsym, plot_dir, 'boxplot_mpsym.tex')

@@ -6,4 +6,7 @@ debug/*
 !debug/.gitkeep
 release/*
 !release/.gitkeep
+experiments/scripts/.schreier_sim.Rda
+experiments/data
+experiments/plots
 tmp

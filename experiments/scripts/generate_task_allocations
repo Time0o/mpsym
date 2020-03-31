@@ -1,0 +1,43 @@
+#!/bin/sh
+
+if [ $# -ne 1 ]; then
+  >&2 echo "usage: $0 RESULT_DIR"
+  exit 1
+fi
+
+LUA_PATH="../resources/resources/?.lua"
+
+NUM_ALLOCATIONS=10000
+
+RESULT_DIR="$1"
+
+generate_task_allocations() {
+  board="$1"
+  num_processors=$2
+  k=$3
+
+  outfile="$RESULT_DIR/${board}_${num_processors}_${k}.txt"
+  outfile="${outfile//-/_}"
+
+  if [ -e "$outfile" ]; then
+    echo "skipping $outfile..."
+    return
+  else
+    echo "creating $outfile..."
+  fi
+
+  LUA_PATH="$LUA_PATH" ./random_task_allocations --num-tasks $k \
+                                                 --max-task $num_processors \
+                                                 --processor-sharing \
+                                                 $NUM_ALLOCATIONS > "$outfile"
+}
+
+declare -a boards=("parallella" "exynos" "haec" "kalray")
+declare -a num_processors=(8 64 64 256)
+declare -a num_tasks=(4 8 12)
+
+for i in "${!boards[@]}"; do
+  for k in "${num_tasks[@]}"; do
+    generate_task_allocations "${boards[$i]}" ${num_processors[$i]} $k
+  done
+done
