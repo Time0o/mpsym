@@ -158,7 +158,9 @@ void BSGS::schreier_sims_random(PermSet const &generators,
     // run algorithm (possible repeatedly) until correctness has been achieved
     bool correct = false;
 
-    if (options->schreier_sims_random_known_order > 0ULL) {
+    if (options->schreier_sims_random_use_known_order &&
+        options->schreier_sims_random_known_order > 0ULL) {
+
       if (options->schreier_sims_random_retries < 0) {
         while (!(correct = try_bsgs(true)))
           ;

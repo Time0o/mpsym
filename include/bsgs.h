@@ -82,6 +82,7 @@ public:
     bool check_altsym = false;
     bool reduce_gens = true;
     bool schreier_sims_random_guarantee = true;
+    bool schreier_sims_random_use_known_order = false;
     order_type schreier_sims_random_known_order = 0;
     int schreier_sims_random_retries = -1;
     unsigned schreier_sims_random_w = 10u;

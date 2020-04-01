@@ -45,7 +45,8 @@ void usage(std::ostream &s)
     "-i|--implementation  {gap|mpsym|permlib}",
     "[-s|--schreier-sims] {deterministic|random|random-no-guarantee}",
     "[-t|--transversals]  {explicit|schreier-trees|shallow-schreier-trees}",
-    "[--bsgs-options {check-altsym,dont_reduce_gens,dont_reduce_arch_graph}]",
+    "[--bsgs-options      {check-altsym,use_known_order,dont_reduce_gens",
+    "                      dont_reduce_arch_graph}]",
     "[-g|--groups GROUPS]",
     "[-a|--arch-graph ARCH_GRAPH]",
     "[-r|--num-runs]",
@@ -65,7 +66,8 @@ struct ProfileOptions
   VariantOption implementation{"gap", "mpsym", "permlib"};
   VariantOption schreier_sims{"deterministic", "random", "random-no-guarantee"};
   VariantOption transversals{"explicit", "schreier-trees", "shallow-schreier-trees"};
-  VariantOptionSet bsgs_options{"check_altsym", "dont_reduce_gens", "dont_reduce_arch_graph"};
+  VariantOptionSet bsgs_options{"check_altsym", "use_known_order",
+                                "dont_reduce_gens", "dont_reduce_arch_graph"};
   bool groups_input = false;
   bool arch_graph_input = false;
   unsigned num_runs = 1u;
@@ -103,6 +105,9 @@ mpsym::BSGS::Options bsgs_options_mpsym(ProfileOptions const &options)
 
   if (options.bsgs_options.is_set("check_altsym"))
     bsgs_options.check_altsym = true;
+
+  if (options.bsgs_options.is_set("use_known_order"))
+    bsgs_options.schreier_sims_random_use_known_order = true;
 
   if (options.bsgs_options.is_set("dont_reduce_gens"))
     bsgs_options.reduce_gens = false;
