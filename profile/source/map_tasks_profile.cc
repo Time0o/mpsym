@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <functional>
 #include <fstream>
 #include <iostream>
 #include <numeric>
@@ -40,13 +41,20 @@ void usage(std::ostream &s)
   char const *opts[] = {
     "[-h|--help]",
     "-i|--implementation {gap|mpsym}",
-    "-m|--repr-method {iterate|local_search|orbits}",
-    "[--repr-options {dont_match}]",
+    "-m|--repr-method {iterate|orbits|local_search}",
+    "---repr-variant {local_search_bfs|local_search_dfs|local_search_sa_linear}",
+    "--repr-local-search-invert-generators",
+    "--repr-local-search-append-generators",
+    "--repr-local-search-iterations",
+    "--repr-local-search-sa-T-init",
+    "[--repr-options {dont_match,dont_optimize_symmetric}]",
     "[-g|--groups GROUPS]",
     "[-a|--arch-graph ARCH_GRAPH]",
+    "[--arch-graph-args ARCH_GRAPH_ARGS]",
     "-t|--task-mappings TASK_ALLOCATIONS",
     "[-l|--task-mappings-limit TASK_ALLOCATIONS_LIMIT]",
-    "[-c|--check-accuracy]",
+    "[-c|--check-accuracy-gap]",
+    "[--check-accuracy-mpsym]",
     "[-v|--verbose]",
     "[--show-gap-errors]"
   };
@@ -59,12 +67,23 @@ void usage(std::ostream &s)
 struct ProfileOptions
 {
   VariantOption library{"gap", "mpsym"};
-  VariantOption repr_method{"iterate", "local_search", "orbits"};
-  VariantOptionSet repr_options{"dont_match"};
+  VariantOption repr_method{"iterate", "orbits", "local_search"};
+  VariantOption repr_variant{
+    "local_search_bfs", "local_search_dfs", "local_search_sa_linear"};
+  VariantOptionSet repr_options{"dont_match", "dont_optimize_symmetric"};
+
+  bool repr_local_search_invert_generators = false;
+  unsigned repr_local_search_append_generators = 0u;
+  double repr_local_search_sa_iterations = 0.0;
+  double repr_local_search_sa_T_init = 0.0;
+
+  std::vector<std::string> arch_graph_args;
+
   bool groups_input = false;
   bool arch_graph_input = false;
   unsigned task_mapping_limit = 0u;
-  bool check_accuracy = false;
+  bool check_accuracy_gap = false;
+  bool check_accuracy_mpsym = false;
   int verbosity = 0;
   bool show_gap_errors = false;
 };
@@ -139,6 +158,11 @@ std::string map_tasks_gap(
   // construct the automorphism group
   ss << "automorphisms:=" << automorphisms << ";\n";
 
+  if (options.verbosity > 0)
+    ss << "Print(\"DEBUG: Constructing BSGS\\n\");\n";
+
+  ss << "StabChain(automorphisms);\n";
+
   // construct the vector of task mappings to be mapped
   ss << "task_mappings:=[\n";
   ss << task_mappings;
@@ -169,11 +193,11 @@ std::string map_tasks_gap(
   ss << "od;\n";
 
   // display orbit representatives found
-  if (options.check_accuracy || options.verbosity > 0) {
+  if (options.check_accuracy_gap || options.verbosity > 0) {
     ss << "Print(\"\\n;DEBUG: => Found \", Length(orbit_representatives), "
           "      \" orbit representatives;\\n\");\n";
 
-    if (options.check_accuracy || options.verbosity > 1) {
+    if (options.check_accuracy_gap || options.verbosity > 1) {
       ss << "for orbit_repr in orbit_representatives do\n";
       ss << "  Print(\"DEBUG: \", orbit_repr, \";\\n\");\n";
       ss << "od;\n";
@@ -195,24 +219,57 @@ mpsym::TaskOrbits map_tasks_mpsym(
 
   ArchGraphSystem::ReprOptions repr_options;
 
-  if (options.repr_method.is("iterate"))
+  if (options.repr_method.is("iterate")) {
     repr_options.method = ArchGraphSystem::ReprMethod::ITERATE;
-  else if (options.repr_method.is("local_search"))
-    repr_options.method = ArchGraphSystem::ReprMethod::LOCAL_SEARCH;
-  else if (options.repr_method.is("orbits"))
+  } else if (options.repr_method.is("orbits")) {
     repr_options.method = ArchGraphSystem::ReprMethod::ORBITS;
-  else
+  } else if (options.repr_method.is("local_search")) {
+    repr_options.method = ArchGraphSystem::ReprMethod::LOCAL_SEARCH;
+
+    if (options.repr_variant.is("local_search_bfs"))
+      repr_options.variant = ArchGraphSystem::ReprVariant::LOCAL_SEARCH_BFS;
+    else if (options.repr_variant.is("local_search_dfs"))
+      repr_options.variant = ArchGraphSystem::ReprVariant::LOCAL_SEARCH_DFS;
+    else if (options.repr_variant.is("local_search_sa_linear"))
+      repr_options.variant = ArchGraphSystem::ReprVariant::LOCAL_SEARCH_SA_LINEAR;
+
+    repr_options.local_search_invert_generators =
+      options.repr_local_search_invert_generators;
+
+    repr_options.local_search_append_generators =
+      options.repr_local_search_append_generators;
+
+    if (options.repr_local_search_sa_iterations > 0u) {
+      repr_options.local_search_sa_iterations =
+        options.repr_local_search_sa_iterations;
+    }
+
+    if (options.repr_local_search_sa_T_init > 0.0) {
+      repr_options.local_search_sa_T_init =
+        options.repr_local_search_sa_T_init;
+    }
+
+  } else {
     throw std::logic_error("unreachable");
+  }
 
   if (options.repr_options.is_set("dont_match"))
-      repr_options.match = false;
+    repr_options.match = false;
+
+  if (options.repr_options.is_set("dont_optimize_symmetric"))
+    repr_options.optimize_symmetric = false;
+
+  if (options.verbosity > 0)
+    debug("Constructing BSGS");
+
+  ags->init_repr();
 
   TaskOrbits task_orbits;
   for (auto i = 0u; i < task_mappings.size(); ++i) {
     if (options.verbosity > 0)
       debug_progress("Mapping task", i + 1u, "of", task_mappings.size());
 
-    ags->repr(task_mappings[i], &task_orbits, &repr_options);
+    auto tmp(ags->repr(task_mappings[i], &task_orbits, &repr_options));
   }
 
   return task_orbits;
@@ -238,7 +295,7 @@ void map_tasks_gap_wrapper(gap::PermGroup const &automorphisms,
                           gap_script,
                           0,
                           1,
-                          options.check_accuracy,
+                          options.verbosity == 0,
                           !options.show_gap_errors,
                           &ts));
 
@@ -247,7 +304,7 @@ void map_tasks_gap_wrapper(gap::PermGroup const &automorphisms,
 
   // parse output
 
-  if (options.check_accuracy) {
+  if (options.check_accuracy_gap) {
     auto representatives_gap(parse_task_mappings_gap_to_mpsym(
       std::vector<std::string>(gap_output.begin() + 2, gap_output.end())));
 
@@ -284,13 +341,13 @@ void map_tasks_mpsym_wrapper(std::shared_ptr<mpsym::ArchGraphSystem> ags,
   }
 }
 
-void check_accuracy(mpsym::TaskOrbits const &task_orbits_mpsym,
-                    mpsym::TaskOrbits const &task_orbits_gap,
+void check_accuracy(mpsym::TaskOrbits const &task_orbits_actual,
+                    mpsym::TaskOrbits const &task_orbits_check,
                     ProfileOptions const &options)
 {
   using mpsym::TaskMapping;
 
-  if (task_orbits_mpsym == task_orbits_gap) {
+  if (task_orbits_actual == task_orbits_check) {
     info("Orbit representatives match");
     return;
   }
@@ -298,19 +355,21 @@ void check_accuracy(mpsym::TaskOrbits const &task_orbits_mpsym,
   info("Orbit representatives do not match:");
 
   // construct representative sets
-  std::set<TaskMapping> reprs_mpsym, reprs_gap, reprs_missing, reprs_extra;
+  std::set<TaskMapping> reprs_actual, reprs_check, reprs_found, reprs_missing, reprs_extra;
 
-  for (auto const &repr : task_orbits_mpsym)
-    reprs_mpsym.insert(repr);
+  for (auto const &repr : task_orbits_actual)
+    reprs_actual.insert(repr);
 
-  for (auto const &repr : task_orbits_gap)
-    reprs_gap.insert(repr);
+  for (auto const &repr : task_orbits_check)
+    reprs_check.insert(repr);
 
   // find missing/extra representatives
-  if (!reprs_gap.empty()) {
-    for (auto const &repr : reprs_gap) {
-      if (reprs_mpsym.find(repr) == reprs_mpsym.end())
+  if (!reprs_check.empty()) {
+    for (auto const &repr : reprs_check) {
+      if (reprs_actual.find(repr) == reprs_actual.end())
         reprs_missing.insert(repr);
+      else
+        reprs_found.insert(repr);
     }
 
     info("=>", reprs_missing.size(), "Missing orbit representatives");
@@ -320,54 +379,69 @@ void check_accuracy(mpsym::TaskOrbits const &task_orbits_mpsym,
     }
   }
 
-  if (!reprs_mpsym.empty()) {
-    for (auto const &repr : reprs_mpsym) {
-      if (reprs_gap.find(repr) == reprs_gap.end())
+  if (!reprs_actual.empty()) {
+    for (auto const &repr : reprs_actual) {
+      if (reprs_check.find(repr) == reprs_check.end())
         reprs_extra.insert(repr);
     }
 
-    info("=>", reprs_extra.size(), "Missing orbit representatives");
+    info("=>", reprs_extra.size(), "Extra orbit representatives");
     if (options.verbosity > 1) {
       for (auto const &repr : reprs_extra)
         info(DUMP(repr));
     }
   }
+
+  info("=> Found", reprs_found.size(), "of", reprs_check.size(), "representatives");
 }
 
 double run(std::shared_ptr<mpsym::ArchGraphSystem> ags,
            std::string const &task_mappings,
            ProfileOptions const &options)
 {
+  using namespace std::placeholders;
+
   using mpsym::TaskOrbits;
 
   double t;
 
+  auto run_gap(std::bind(map_tasks_gap_wrapper,
+                         ags->to_gap(),
+                         parse_task_mappings_gap(task_mappings),
+                         options,
+                         _1,
+                         _2));
+
+  auto run_mpsym(std::bind(map_tasks_mpsym_wrapper,
+                           ags,
+                           parse_task_mappings_mpsym(task_mappings),
+                           _1,
+                           _2,
+                           _3));
+
   if (options.library.is("gap")) {
-    map_tasks_gap_wrapper(ags->to_gap(),
-                          parse_task_mappings_gap(task_mappings),
-                          options,
-                          nullptr,
-                          &t);
+    run_gap(nullptr, &t);
 
   } else if (options.library.is("mpsym")) {
-    TaskOrbits task_orbits_mpsym, task_orbits_gap;
+    TaskOrbits task_orbits, task_orbits_check;
 
-    map_tasks_mpsym_wrapper(ags,
-                            parse_task_mappings_mpsym(task_mappings),
-                            options,
-                            &task_orbits_mpsym,
-                            &t);
+    run_mpsym(options, &task_orbits, &t);
 
-    if (options.check_accuracy) {
+    if (options.check_accuracy_gap || options.check_accuracy_mpsym) {
       info("Checking accuracy...");
 
-      map_tasks_gap_wrapper(ags->to_gap(),
-                            parse_task_mappings_gap(task_mappings),
-                            options,
-                            &task_orbits_gap,
-                            nullptr);
+      auto options_(options);
+      options_.repr_method.set("orbits");
+      options_.repr_options.unset("dont_match");
+      options_.repr_options.unset("dont_optimize_symmetric");
+      options_.verbosity = 0;
 
-      check_accuracy(task_orbits_mpsym, task_orbits_gap, options);
+      if (options.check_accuracy_gap)
+        run_gap(&task_orbits_check, nullptr);
+      else if (options.check_accuracy_mpsym)
+        run_mpsym(options_, &task_orbits_check, nullptr);
+
+      check_accuracy(task_orbits, task_orbits_check, options);
     }
   }
 
@@ -409,7 +483,9 @@ void do_profile(Stream &automorphisms_stream,
     });
 
   } else if (options.arch_graph_input) {
-    ags = ArchGraphSystem::from_lua(read_file(automorphisms_stream.stream));
+    auto arch_graph(read_file(automorphisms_stream.stream));
+
+    ags = ArchGraphSystem::from_lua(arch_graph, options.arch_graph_args);
   }
 
   double t = run(ags, task_mappings, options);
@@ -434,18 +510,25 @@ int main(int argc, char **argv)
   progname = basename(argv[0]);
 
   struct option long_options[] = {
-    {"help",                   no_argument,       0,       'h'},
-    {"implementation",         required_argument, 0,       'i'},
-    {"repr-method",            required_argument, 0,       'm'},
-    {"repr-options",           required_argument, 0,        2 },
-    {"groups",                 required_argument, 0,       'g'},
-    {"arch-graph",             required_argument, 0,       'a'},
-    {"task-mappings",       required_argument, 0,       't'},
-    {"task-mappings-limit", required_argument, 0,       'l'},
-    {"check-accuracy",         no_argument,       0,       'c'},
-    {"verbose",                no_argument,       0,       'v'},
-    {"show-gap-errors",        no_argument,       0,        3 },
-    {nullptr,                  0,                 nullptr,  0 }
+    {"help",                                no_argument,       0,       'h'},
+    {"implementation",                      required_argument, 0,       'i'},
+    {"repr-method",                         required_argument, 0,       'm'},
+    {"repr-variant",                        required_argument, 0,        1 },
+    {"repr-local-search-invert-generators", no_argument,       0,        2 },
+    {"repr-local-search-append-generators", required_argument, 0,        3 },
+    {"repr-local-search-sa-iterations",     required_argument, 0,        4 },
+    {"repr-local-search-sa-T-init",         required_argument, 0,        5 },
+    {"repr-options",                        required_argument, 0,        6 },
+    {"groups",                              required_argument, 0,       'g'},
+    {"arch-graph",                          required_argument, 0,       'a'},
+    {"arch-graph-args",                     required_argument, 0,        7 },
+    {"task-mappings",                       required_argument, 0,       't'},
+    {"task-mappings-limit",                 required_argument, 0,       'l'},
+    {"check-accuracy-gap",                  no_argument,       0,       'c'},
+    {"check-accuracy-mpsym",                no_argument,       0,        8 },
+    {"verbose",                             no_argument,       0,       'v'},
+    {"show-gap-errors",                     no_argument,       0,        9 },
+    {nullptr,                               0,                 nullptr,  0 }
   };
 
   ProfileOptions options;
@@ -454,7 +537,7 @@ int main(int argc, char **argv)
   Stream task_mappings_stream;
 
   for (;;) {
-    int c = getopt_long(argc, argv, "hi:m:g:a:t:l:v", long_options, nullptr);
+    int c = getopt_long(argc, argv, "hi:m:g:a:t:l:cv", long_options, nullptr);
     if (c == -1)
       break;
 
@@ -469,11 +552,25 @@ int main(int argc, char **argv)
       case 'm':
         options.repr_method.set(optarg);
         break;
+      case 1:
+        options.repr_variant.set(optarg);
+        break;
       case 2:
-        for (auto const &option : split(optarg, " ")) {
-          if (!option.empty())
-            options.repr_options.set(option.c_str());
-        }
+        options.repr_local_search_invert_generators = true;
+        break;
+      case 3:
+        options.repr_local_search_append_generators = stox<unsigned>(optarg);
+        break;
+      case 4:
+        options.repr_local_search_sa_iterations = stox<unsigned>(optarg);
+        break;
+      case 5:
+        options.repr_local_search_sa_T_init = stof<double>(optarg);
+        break;
+      case 6:
+        foreach_option(optarg,
+                       [&](std::string const &option)
+                       { options.repr_options.set(option.c_str()); });
         break;
       case 'g':
         OPEN_STREAM(automorphisms_stream, optarg);
@@ -483,6 +580,11 @@ int main(int argc, char **argv)
         OPEN_STREAM(automorphisms_stream, optarg);
         options.arch_graph_input = true;
         break;
+      case 7:
+        foreach_option(optarg,
+                       [&](std::string const &option)
+                       { options.arch_graph_args.push_back(option); });
+        break;
       case 't':
         OPEN_STREAM(task_mappings_stream, optarg);
         break;
@@ -490,13 +592,16 @@ int main(int argc, char **argv)
         options.task_mapping_limit = stox<unsigned>(optarg);
         break;
       case 'c':
-        options.check_accuracy = true;
+        options.check_accuracy_gap = true;
+        break;
+      case 8:
+        options.check_accuracy_mpsym = true;
         break;
       case 'v':
         ++options.verbosity;
         TIMER_ENABLE();
         break;
-      case 3:
+      case 9:
         options.show_gap_errors = true;
         break;
       default:
@@ -521,8 +626,9 @@ int main(int argc, char **argv)
   CHECK_OPTION(options.groups_input != options.arch_graph_input,
                "EITHER --arch-graph OR --groups must be given");
 
-  CHECK_OPTION(!options.check_accuracy || !options.library.is("gap"),
-               "--check-accuracy only available when using mpsym")
+  CHECK_OPTION(!options.library.is("gap") ||
+               !(options.check_accuracy_gap || options.check_accuracy_mpsym),
+               "--check-accuracy-* only available when using mpsym")
 
   try {
     do_profile(automorphisms_stream, task_mappings_stream, options);

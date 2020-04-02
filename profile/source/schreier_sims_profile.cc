@@ -404,7 +404,7 @@ int main(int argc, char **argv)
   Stream automorphisms_stream;
 
   for (;;) {
-    int c = getopt_long(argc, argv, "hi:s:t:g:a:r:v", long_options, nullptr);
+    int c = getopt_long(argc, argv, "hi:s:t:g:a:r:cv", long_options, nullptr);
     if (c == -1)
       break;
 
