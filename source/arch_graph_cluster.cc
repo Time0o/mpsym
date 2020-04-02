@@ -80,7 +80,7 @@ ArchGraphCluster::repr_(TaskMapping const &mapping_,
   auto options(ReprOptions::fill_defaults(options_));
 
   for (auto i = 0u; i < _subsystems.size(); ++i) {
-    mapping = _subsystems[i]->repr(mapping, orbits, &options);
+    mapping = _subsystems[i]->repr(mapping, nullptr, &options);
 
     options.offset += _subsystems[i]->num_processors();
   }
