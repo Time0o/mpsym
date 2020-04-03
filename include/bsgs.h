@@ -77,12 +77,12 @@ public:
       return options ? *options : default_options;
     }
 
-    Construction construction = Construction::SCHREIER_SIMS_RANDOM;
+    Construction construction = Construction::SCHREIER_SIMS;
     Transversals transversals = Transversals::EXPLICIT;
-    bool check_altsym = false;
+    bool check_altsym = true;
     bool reduce_gens = true;
     bool schreier_sims_random_guarantee = true;
-    bool schreier_sims_random_use_known_order = false;
+    bool schreier_sims_random_use_known_order = true;
     order_type schreier_sims_random_known_order = 0;
     int schreier_sims_random_retries = -1;
     unsigned schreier_sims_random_w = 10u;
