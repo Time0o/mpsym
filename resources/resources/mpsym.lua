@@ -2,6 +2,34 @@ local function is_number(obj)
   return type(obj) == 'number'
 end
 
+local function is_integer(obj)
+  return is_number(obj) and math.floor(obj) == obj
+end
+
+local function to_integer(obj)
+  obj = tonumber(obj)
+
+  if not is_integer(obj) then
+    error("not convertible to integer: '" .. obj .. "'")
+  end
+
+  return obj
+end
+
+local function is_float(obj)
+  return is_number(obj) and not is_integer(obj)
+end
+
+local function to_float(obj)
+  obj = tonumber(obj)
+
+  if not is_float(obj) then
+    error("not convertible to float: '" .. obj .. "'")
+  end
+
+  return obj
+end
+
 local function is_string(obj)
   return type(obj) == 'string'
 end
@@ -443,6 +471,29 @@ function append_channels(old_channels, new_channels)
   end
 end
 
+function parse_args(args, types)
+  if #args ~= #types then
+    error("expected " .. #types .. " command line arguments but got " .. #args)
+  end
+
+  local ret = {}
+
+  for i = 1,#types do
+    local t = types:sub(i, i)
+    if t == 'i' then
+      table.insert(ret, to_integer(args[i]))
+    elseif t == 'f' then
+      table.insert(ret, to_float(args[i]))
+    elseif t == 's' then
+      table.insert(ret, args[i])
+    else
+      error("unknown type identifier '" .. t .. "'")
+    end
+  end
+
+  return ret
+end
+
 return {
   ArchGraph = ArchGraph,
   ArchGraphCluster = ArchGraphCluster,
@@ -457,5 +508,6 @@ return {
   fully_connected_channels = fully_connected_channels,
   fully_cross_connected_channels = fully_cross_connected_channels,
   grid_channels = grid_channels,
-  append_channels = append_channels
+  append_channels = append_channels,
+  parse_args = parse_args
 }

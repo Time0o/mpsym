@@ -332,13 +332,27 @@ namespace mpsym
 {
 
 std::shared_ptr<ArchGraphSystem> ArchGraphSystem::from_lua(
-  std::string const &lua)
+  std::string const &lua,
+  std::vector<std::string> const &args)
 {
   using namespace std::placeholders;
 
   // initialize
   lua_State *L = luaL_newstate();
   luaL_openlibs(L);
+
+  // populate args table
+  if (args.size() > 0u) {
+    lua_createtable(L, args.size(), 0);
+
+    for (auto i = 0u; i < args.size(); ++i) {
+      lua_pushinteger(L, i + 1u);
+      lua_pushstring(L, args[i].c_str());
+      lua_settable(L, -3);
+    }
+
+    lua_setglobal(L, "args");
+  }
 
   // load chunk
   switch (luaL_loadstring(L, lua.c_str())) {

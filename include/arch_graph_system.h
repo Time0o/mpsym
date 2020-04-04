@@ -37,7 +37,9 @@ public:
     bool match = true;
   };
 
-  static std::shared_ptr<ArchGraphSystem> from_lua(std::string const &lua);
+  static std::shared_ptr<ArchGraphSystem> from_lua(
+    std::string const &lua,
+    std::vector<std::string> const &args = {});
 
   virtual std::string to_gap() const = 0;
 

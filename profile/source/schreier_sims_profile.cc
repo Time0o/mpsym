@@ -51,6 +51,7 @@ void usage(std::ostream &s)
     "                      dont_reduce_arch_graph}]",
     "[-g|--groups GROUPS]",
     "[-a|--arch-graph ARCH_GRAPH]",
+    "[--arch-graph-args ARCH_GRAPH_ARGS]",
     "[-r|--num-runs]",
     "[--num-discarded-runs NUM_DISCARDED_RUNS]",
     "[--summarize-runs]",
@@ -77,6 +78,9 @@ struct ProfileOptions
                                 "dont_reduce_gens",
                                 "dont_use_known_order",
                                 "dont_reduce_arch_graph"};
+
+  std::vector<std::string> arch_graph_args;
+
   bool groups_input = false;
   bool arch_graph_input = false;
   unsigned num_runs = 1u;
@@ -248,9 +252,9 @@ std::vector<double> run_arch_graph(std::string const &arch_graph,
   cpp_int num_automorphisms;
   PermSet automorphism_generators;
 
-  if (options.implementation.is("gap")) {
-    auto ag(ArchGraphSystem::from_lua(arch_graph));
+  auto ag(ArchGraphSystem::from_lua(arch_graph, options.arch_graph_args));
 
+  if (options.implementation.is("gap")) {
     auto gap_script("G:=" + ag->to_gap() + ";\n"
                     "StabChain(G);\n"
                     "Print(Size(G), \";\\n\");\n"
@@ -269,8 +273,6 @@ std::vector<double> run_arch_graph(std::string const &arch_graph,
 
   } else if (options.implementation.is("mpsym")) {
     auto bsgs_options(bsgs_options_mpsym(options));
-
-    auto ag(ArchGraphSystem::from_lua(arch_graph));
 
     run_cpp([&]{
               if (options.bsgs_options.is_set("dont_reduce_arch_graph")) {
@@ -388,11 +390,12 @@ int main(int argc, char **argv)
     {"bsgs-options",        required_argument, 0,        1 },
     {"groups",              no_argument,       0,       'g'},
     {"arch-graph",          no_argument,       0,       'a'},
+    {"arch-graph-args",     required_argument, 0,        2 },
     {"num-runs",            required_argument, 0,       'r'},
-    {"num-discarded-runs",  required_argument, 0,        2 },
-    {"summarize-runs",      no_argument, 0,              3 },
+    {"num-discarded-runs",  required_argument, 0,        3 },
+    {"summarize-runs",      no_argument, 0,              4 },
     {"verbose",             no_argument,       0,       'v'},
-    {"show-gap-errors",     no_argument,       0,        4 },
+    {"show-gap-errors",     no_argument,       0,        5 },
     {nullptr,               0,                 nullptr,  0 }
   };
 
@@ -420,10 +423,9 @@ int main(int argc, char **argv)
         options.transversals.set(optarg);
         break;
       case 1:
-        for (auto const &option : split(optarg, " ")) {
-          if (!option.empty())
-            options.bsgs_options.set(option.c_str());
-        }
+        foreach_option(optarg,
+                       [&](std::string const &option)
+                       { options.bsgs_options.set(option.c_str()); });
         break;
       case 'g':
         OPEN_STREAM(automorphisms_stream, optarg);
@@ -433,20 +435,25 @@ int main(int argc, char **argv)
         OPEN_STREAM(automorphisms_stream, optarg);
         options.arch_graph_input = true;
         break;
+      case 2:
+        foreach_option(optarg,
+                       [&](std::string const &option)
+                       { options.arch_graph_args.push_back(option); });
+        break;
       case 'r':
         options.num_runs = stox<unsigned>(optarg);
         break;
-      case 2:
+      case 3:
         options.num_discarded_runs = stox<unsigned>(optarg);
         break;
-      case 3:
+      case 4:
         options.summarize_runs = true;
         break;
       case 'v':
         options.verbose = true;
         TIMER_ENABLE();
         break;
-      case 4:
+      case 5:
         options.show_gap_errors = true;
         break;
       default:

@@ -91,6 +91,15 @@ private:
   std::unordered_set<std::vector<char const *>::size_type> _selected;
 };
 
+template<typename FUNC>
+void foreach_option(char const *optarg, FUNC &&f)
+{
+  for (auto const &option : split(optarg, ",")) {
+    if (!option.empty())
+      f(option);
+  }
+}
+
 #define CHECK_OPTION(cond, msg) \
   if (!(cond)) { \
     usage(std::cerr); \
