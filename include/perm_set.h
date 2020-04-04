@@ -129,10 +129,10 @@ public:
   void clear()
   { _perms.clear(); }
 
+  unsigned smallest_moved_point() const;
   unsigned largest_moved_point() const;
 
   void make_unique();
-
   void minimize_degree();
 
   void assert_not_empty() const
@@ -148,6 +148,16 @@ public:
   }
 
 private:
+  bool all_id() const
+  {
+    for (auto const &perm : *this) {
+      if (!perm.id())
+        return false;
+    }
+
+    return true;
+  }
+
   std::vector<Perm> _perms;
 };
 

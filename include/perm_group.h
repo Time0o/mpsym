@@ -8,6 +8,8 @@
 #include <type_traits>
 #include <vector>
 
+#include <boost/multiprecision/cpp_int.hpp>
+
 #include "bsgs.h"
 #include "perm.h"
 #include "perm_set.h"
@@ -254,6 +256,14 @@ public:
    */
   PermSet generators() const { return _bsgs.strong_generators(); }
 
+  // TODO
+  unsigned smallest_moved_point() const
+  { return generators().smallest_moved_point(); }
+
+  // TODO
+  unsigned largest_moved_point() const
+  { return generators().largest_moved_point(); }
+
   /** Obtain a permutation group's base and strong generating set.
    *
    * This function is only meaningful is the permutation group's elements are
@@ -285,12 +295,18 @@ public:
    */
   bool is_symmetric() const;
 
+  // TODO
+  bool is_shifted_symmetric() const;
+
   /** Check whether a permutation group is symmetric.
    *
    * \return `true` if the permutation group \f$G \leq S_n\f$ represented by
    *          this object is the alternating group \f$A_n\f$, else `false`
    */
   bool is_alternating() const;
+
+  // TODO
+  bool is_shifted_alternating() const;
 
   /** Check whether a permutation group is *transitive*.
    *
@@ -382,6 +398,24 @@ public:
   std::vector<PermGroup> wreath_decomposition() const;
 
 private:
+  static boost::multiprecision::cpp_int symmetric_order(unsigned deg)
+  {
+    boost::multiprecision::cpp_int ret(1);
+    for (unsigned i = deg; i > 0u; --i)
+      ret *= i;
+
+    return ret;
+  }
+
+  static boost::multiprecision::cpp_int alternating_order(unsigned deg)
+  {
+    boost::multiprecision::cpp_int ret(1);
+    for (unsigned i = deg; i > 2u; --i)
+      ret *= i;
+
+    return ret;
+  }
+
   // complete disjoint decomposition
   bool disjoint_decomp_orbits_dependent(
     Orbit const &orbit1,

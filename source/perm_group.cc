@@ -27,6 +27,8 @@
  *
  * @author Timo Nicolai
  */
+using boost::multiprecision::cpp_int;
+using boost::multiprecision::pow;
 
 namespace mpsym
 {
@@ -152,9 +154,6 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
   if (rhs_.is_trivial())
     return lhs_;
 
-  using boost::multiprecision::cpp_int;
-  using boost::multiprecision::pow;
-
   auto lhs(lhs_.generators());
   auto rhs(rhs_.generators());
 
@@ -217,33 +216,38 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
 
 bool PermGroup::is_symmetric() const
 {
-  if (degree() == 1u)
+  if (_bsgs.is_symmetric() || degree() == 1u)
     return true;
 
-  unsigned buf = 1u;
-  for (unsigned i = degree(); i > 0; --i) {
-    assert(buf <= UINT_MAX / i);
-    buf *= i;
-  }
+  return _order == symmetric_order(degree());
+}
 
-  return _order == buf;
+bool PermGroup::is_shifted_symmetric() const
+{
+  unsigned degree_ = largest_moved_point() - smallest_moved_point() + 1u;
+
+  return _order == symmetric_order(degree_);
 }
 
 bool PermGroup::is_alternating() const
 {
+  if (_bsgs.is_alternating())
+    return true;
+
   if (degree() == 1u)
     return false;
 
   if (degree() == 2u)
     return _order == 1u;
 
-  unsigned buf = 1u;
-  for (unsigned i = degree(); i > 2; --i) {
-    assert(buf <= UINT_MAX / i);
-    buf *= i;
-  }
+  return _order == alternating_order(degree());
+}
 
-  return _order == buf;
+bool PermGroup::is_shifted_alternating() const
+{
+  unsigned degree_ = largest_moved_point() - smallest_moved_point() + 1u;
+
+  return _order == alternating_order(degree_);
 }
 
 bool PermGroup::is_transitive() const

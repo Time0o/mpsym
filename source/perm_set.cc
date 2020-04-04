@@ -10,27 +10,32 @@
 namespace mpsym
 {
 
-unsigned PermSet::largest_moved_point() const
+unsigned PermSet::smallest_moved_point() const
 {
-  unsigned lmp = degree();
+  assert(!all_id());
 
-  while (lmp >= 1u) {
-    bool fixed = true;
-
+  for (unsigned smp = 1u; smp <= degree(); ++smp) {
     for (auto const &perm : *this) {
-      if (perm[lmp] != lmp) {
-        fixed = false;
-        break;
-      }
+      if (perm[smp] != smp)
+        return smp;
     }
-
-    if (!fixed)
-      break;
-
-    --lmp;
   }
 
-  return lmp;
+  throw std::logic_error("unreachable");
+}
+
+unsigned PermSet::largest_moved_point() const
+{
+  assert(!all_id());
+
+  for (unsigned lmp = degree(); lmp >= 1u; --lmp) {
+    for (auto const &perm : *this) {
+      if (perm[lmp] != lmp)
+        return lmp;
+    }
+  }
+
+  throw std::logic_error("unreachable");
 }
 
 void PermSet::make_unique()

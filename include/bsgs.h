@@ -104,6 +104,9 @@ public:
   unsigned degree() const { return _degree; }
   order_type order() const;
 
+  bool is_symmetric() const { return _is_symmetric; }
+  bool is_alternating() const { return _is_alternating; }
+
   bool base_empty() const { return _base.empty(); }
   unsigned base_size() const { return _base.size(); }
   unsigned base_point(unsigned i) const { return _base[i]; }
@@ -193,9 +196,13 @@ private:
   }
 
   unsigned _degree;
+
   std::vector<unsigned> _base;
   std::shared_ptr<BSGSTransversalsBase> _transversals;
   PermSet _strong_generators;
+
+  bool _is_symmetric = false;
+  bool _is_alternating = false;
 };
 
 std::ostream &operator<<(std::ostream &os, BSGS const &bsgs);

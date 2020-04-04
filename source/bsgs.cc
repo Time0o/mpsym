@@ -177,6 +177,8 @@ void BSGS::construct_symmetric()
 
   for (unsigned i = 0u; i < _base.size(); ++i)
     update_schreier_structure(i, _strong_generators.subset(0, _degree - i - 1u));
+
+  _is_symmetric = true;
 }
 
 void BSGS::construct_alternating()
@@ -194,6 +196,8 @@ void BSGS::construct_alternating()
 
   for (unsigned i = 0u; i < _base.size(); ++i)
     update_schreier_structure(i, _strong_generators.subset(0, _degree - i - 2u));
+
+  _is_alternating = true;
 }
 
 void BSGS::construct_unknown(PermSet const &generators, Options const *options)

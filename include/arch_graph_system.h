@@ -35,6 +35,7 @@ public:
     ReprMethod method = ReprMethod::AUTO;
     unsigned offset = 0u;
     bool match = true;
+    bool optimize_symmetric = true;
   };
 
   static std::shared_ptr<ArchGraphSystem> from_lua(
@@ -128,8 +129,12 @@ private:
                               ReprOptions const *options);
 
   TaskMapping min_elem_local_search(TaskMapping const &tasks,
-                                    TaskOrbits *orbits,
                                     ReprOptions const *options);
+
+  TaskMapping min_elem_symmetric(TaskMapping const &tasks,
+                                 unsigned task_min,
+                                 unsigned task_max,
+                                 ReprOptions const *options);
 
   PermGroup _automorphisms;
   bool _automorphisms_valid = false;
