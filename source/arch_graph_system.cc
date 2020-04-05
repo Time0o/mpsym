@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <queue>
 #include <stdexcept>
 #include <type_traits>
@@ -118,18 +119,40 @@ TaskMapping ArchGraphSystem::min_elem_local_search(TaskMapping const &tasks,
 {
   TIMER_START("map approx local search");
 
+  auto generators(automorphisms().generators());
+
   TaskMapping representative(tasks);
 
-  bool stationary = false;
-  while (!stationary) {
-    stationary = true;
+  std::vector<TaskMapping> possible_representatives;
+  possible_representatives.reserve(generators.size());
 
-    for (Perm const &generator : automorphisms().generators()) {
+  for (;;) {
+    bool stationary = true;
+
+    for (Perm const &generator : generators) {
       if (representative.less_than(representative, generator, options->offset)) {
-        representative.permute(generator, options->offset);
+        if (options->variant == ReprVariant::LOCAL_SEARCH_BFS) {
+          possible_representatives.push_back(
+            representative.permuted(generator, options->offset));
+        } else {
+          representative.permute(generator, options->offset);
+        }
 
         stationary = false;
       }
+    }
+
+    if (stationary)
+      break;
+
+    if (options->variant == ReprVariant::LOCAL_SEARCH_BFS) {
+      representative = *std::min_element(possible_representatives.begin(),
+                                         possible_representatives.end(),
+                                         [](TaskMapping const &lhs,
+                                            TaskMapping const &rhs)
+                                         { return lhs.less_than(rhs); });
+
+      possible_representatives.clear();
     }
   }
 

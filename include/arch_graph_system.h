@@ -25,6 +25,11 @@ public:
     AUTO = ITERATE
   };
 
+  enum class ReprVariant {
+    LOCAL_SEARCH_BFS,
+    LOCAL_SEARCH_DFS
+  };
+
   struct ReprOptions {
     static ReprOptions fill_defaults(ReprOptions const *options)
     {
@@ -33,6 +38,7 @@ public:
     }
 
     ReprMethod method = ReprMethod::AUTO;
+    ReprVariant variant = ReprVariant::LOCAL_SEARCH_BFS;
     unsigned offset = 0u;
     bool match = true;
     bool optimize_symmetric = true;
