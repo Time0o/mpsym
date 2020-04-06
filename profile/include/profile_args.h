@@ -23,7 +23,9 @@ struct VariantOptionBase
         return i;
     }
 
-    throw std::invalid_argument("invalid parameter choice");
+    std::string msg("invalid parameter choice: ");
+
+    throw std::invalid_argument(msg + choice);
   }
 
   std::vector<char const *> _choices;
