@@ -49,7 +49,7 @@ public:
     return foreach_permuted_task(
       perm,
       offset,
-      [&](unsigned i, unsigned task_permuted, bool &flag){
+      [&](unsigned i, unsigned, unsigned task_permuted, bool &flag){
         unsigned task_min = other[i];
 
         if (task_permuted > task_min) {
@@ -65,26 +65,42 @@ public:
     );
   }
 
-  void permute(Perm const &perm, unsigned offset = 0u)
+  void permute(Perm const &perm,
+               unsigned offset = 0u,
+               bool *modified = nullptr)
   {
+    if (modified)
+      *modified = false;
+
     foreach_permuted_task(
       perm,
       offset,
-      [&](unsigned i, unsigned task_permuted, bool &){
+      [&](unsigned i, unsigned task, unsigned task_permuted, bool &){
+        if (modified && task_permuted != task)
+          *modified = true;
+
         (*this)[i] = task_permuted;
         return false;
       }
     );
   }
 
-  TaskMapping permuted(Perm const &perm, unsigned offset = 0u) const
+  TaskMapping permuted(Perm const &perm,
+                       unsigned offset = 0u,
+                       bool *modified = nullptr) const
   {
     TaskMapping res(*this);
+
+    if (modified)
+      *modified = false;
 
     foreach_permuted_task(
       perm,
       offset,
-      [&](unsigned i, unsigned task_permuted, bool &){
+      [&](unsigned i, unsigned task, unsigned task_permuted, bool &){
+        if (modified && task_permuted != task)
+          *modified = true;
+
         res[i] = task_permuted;
         return false;
       }
@@ -105,7 +121,7 @@ private:
       unsigned task_permuted = perm[task - offset] + offset;
 
       bool flag;
-      if (f(i, task_permuted, flag))
+      if (f(i, task, task_permuted, flag))
         return flag;
     }
 

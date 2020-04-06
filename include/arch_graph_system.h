@@ -27,7 +27,8 @@ public:
 
   enum class ReprVariant {
     LOCAL_SEARCH_BFS,
-    LOCAL_SEARCH_DFS
+    LOCAL_SEARCH_DFS,
+    LOCAL_SEARCH_SA_LINEAR
   };
 
   struct ReprOptions {
@@ -39,9 +40,16 @@ public:
 
     ReprMethod method = ReprMethod::AUTO;
     ReprVariant variant = ReprVariant::LOCAL_SEARCH_BFS;
+
     unsigned offset = 0u;
+
     bool match = true;
     bool optimize_symmetric = true;
+
+    bool local_search_invert_generators = false;
+    unsigned local_search_append_generators = 0u;
+    unsigned local_search_sa_iterations = 100u;
+    double local_search_sa_T_init = 1.0;
   };
 
   static std::shared_ptr<ArchGraphSystem> from_lua(
@@ -136,6 +144,21 @@ private:
 
   TaskMapping min_elem_local_search(TaskMapping const &tasks,
                                     ReprOptions const *options);
+
+  static PermSet local_search_augment_gens(PermGroup const &automorphisms,
+                                           ReprOptions const *options);
+
+  TaskMapping min_elem_local_search_sa(TaskMapping const &tasks,
+                                       unsigned task_min,
+                                       unsigned task_max,
+                                       ReprOptions const *options);
+
+  static double local_search_sa_schedule_T(unsigned i,
+                                           ReprOptions const *options);
+
+  static double local_search_sa_value(TaskMapping const &representative,
+                                      unsigned task_min,
+                                      unsigned task_max);
 
   TaskMapping min_elem_symmetric(TaskMapping const &tasks,
                                  unsigned task_min,
