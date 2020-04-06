@@ -84,6 +84,28 @@ T stox(std::string const &str)
   return i;
 }
 
+template<typename T>
+T stof(std::string const &str)
+{
+  T d;
+  bool success;
+
+  try {
+    std::size_t idx;
+
+    d = std::stod(str, &idx);
+
+    success = idx == str.size();
+  } catch (...) {
+    success = false;
+  }
+
+  if (!success)
+    throw std::invalid_argument("stof failed");
+
+  return d;
+}
+
 std::vector<std::string> split(std::string const &str, char const *delim = " ");
 
 std::string join(std::vector<std::string> const &strs, char const *delim = ",");
