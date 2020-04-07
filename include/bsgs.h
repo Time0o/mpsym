@@ -58,6 +58,7 @@ public:
   using order_type = boost::multiprecision::cpp_int;
 
   enum class Construction {
+    AUTO,
     SCHREIER_SIMS,
     SCHREIER_SIMS_RANDOM,
     SOLVE
@@ -77,10 +78,12 @@ public:
       return options ? *options : default_options;
     }
 
-    Construction construction = Construction::SCHREIER_SIMS;
+    Construction construction = Construction::AUTO;
     Transversals transversals = Transversals::EXPLICIT;
+
     bool check_altsym = true;
     bool reduce_gens = true;
+
     bool schreier_sims_random_guarantee = true;
     bool schreier_sims_random_use_known_order = true;
     order_type schreier_sims_random_known_order = 0;

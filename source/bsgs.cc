@@ -203,6 +203,14 @@ void BSGS::construct_alternating()
 void BSGS::construct_unknown(PermSet const &generators, Options const *options)
 {
   switch (options->construction) {
+    case Construction::AUTO:
+      if (options->schreier_sims_random_use_known_order &&
+          options->schreier_sims_random_known_order > 0) {
+        schreier_sims_random(generators, options);
+      } else {
+        schreier_sims(generators);
+      }
+      break;
     case Construction::SCHREIER_SIMS:
       schreier_sims(generators);
       break;
