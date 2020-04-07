@@ -51,6 +51,7 @@ void usage(std::ostream &s)
     "[-g|--groups GROUPS]",
     "[-a|--arch-graph ARCH_GRAPH]",
     "[--arch-graph-args ARCH_GRAPH_ARGS]",
+    "[--dont-decompose-arch-graph]",
     "-t|--task-mappings TASK_ALLOCATIONS",
     "[-l|--task-mappings-limit TASK_ALLOCATIONS_LIMIT]",
     "[-c|--check-accuracy-gap]",
@@ -77,10 +78,10 @@ struct ProfileOptions
   double repr_local_search_sa_iterations = 0.0;
   double repr_local_search_sa_T_init = 0.0;
 
-  std::vector<std::string> arch_graph_args;
-
   bool groups_input = false;
   bool arch_graph_input = false;
+  std::vector<std::string> arch_graph_args;
+  bool dont_decompose_arch_graph = false;
   unsigned task_mapping_limit = 0u;
   bool check_accuracy_gap = false;
   bool check_accuracy_mpsym = false;
@@ -260,7 +261,7 @@ mpsym::TaskOrbits map_tasks_mpsym(
     repr_options.optimize_symmetric = false;
 
   if (options.verbosity > 0)
-    debug("Constructing BSGS");
+    debug("Initializing architecture graph");
 
   ags->init_repr();
 
@@ -396,6 +397,7 @@ void check_accuracy(mpsym::TaskOrbits const &task_orbits_actual,
 }
 
 double run(std::shared_ptr<mpsym::ArchGraphSystem> ags,
+           std::shared_ptr<mpsym::ArchGraphSystem> ags_check,
            std::string const &task_mappings,
            ProfileOptions const &options)
 {
@@ -437,9 +439,9 @@ double run(std::shared_ptr<mpsym::ArchGraphSystem> ags,
       options_.verbosity = 0;
 
       if (options.check_accuracy_gap)
-        run_gap(ags->to_gap(), options_, &task_orbits_check, nullptr);
+        run_gap(ags_check->to_gap(), options_, &task_orbits_check, nullptr);
       else if (options.check_accuracy_mpsym)
-        run_mpsym(ags, options_, &task_orbits_check, nullptr);
+        run_mpsym(ags_check, options_, &task_orbits_check, nullptr);
 
       check_accuracy(task_orbits, task_orbits_check, options);
     }
@@ -456,7 +458,7 @@ void do_profile(Stream &automorphisms_stream,
   using mpsym::ArchGraphSystem;
   using mpsym::PermGroup;
 
-  std::shared_ptr<ArchGraphSystem> ags;
+  std::shared_ptr<ArchGraphSystem> ags, ags_check;
 
   auto task_mappings(read_file(task_mappings_stream.stream,
                                   options.task_mapping_limit));
@@ -480,15 +482,24 @@ void do_profile(Stream &automorphisms_stream,
       }
 
       ags = group.to_arch_graph_system();
+      ags_check = ags;
     });
 
   } else if (options.arch_graph_input) {
     auto arch_graph(read_file(automorphisms_stream.stream));
 
     ags = ArchGraphSystem::from_lua(arch_graph, options.arch_graph_args);
+    ags_check = ags;
+
+    if (options.dont_decompose_arch_graph) {
+      if (options.verbosity > 0)
+        debug("Determining automorphisms");
+
+      ags = std::make_shared<ArchGraphAutomorphisms>(ags->automorphisms());
+    }
   }
 
-  double t = run(ags, task_mappings, options);
+  double t = run(ags, ags_check, task_mappings, options);
 
   result("Runtime:", t, "s");
 
@@ -522,12 +533,13 @@ int main(int argc, char **argv)
     {"groups",                              required_argument, 0,       'g'},
     {"arch-graph",                          required_argument, 0,       'a'},
     {"arch-graph-args",                     required_argument, 0,        7 },
+    {"dont-decompose-arch-graph",           no_argument, 0,              8 },
     {"task-mappings",                       required_argument, 0,       't'},
     {"task-mappings-limit",                 required_argument, 0,       'l'},
     {"check-accuracy-gap",                  no_argument,       0,       'c'},
-    {"check-accuracy-mpsym",                no_argument,       0,        8 },
+    {"check-accuracy-mpsym",                no_argument,       0,        9 },
     {"verbose",                             no_argument,       0,       'v'},
-    {"show-gap-errors",                     no_argument,       0,        9 },
+    {"show-gap-errors",                     no_argument,       0,        10},
     {nullptr,                               0,                 nullptr,  0 }
   };
 
@@ -595,13 +607,16 @@ int main(int argc, char **argv)
         options.check_accuracy_gap = true;
         break;
       case 8:
+        options.dont_decompose_arch_graph = true;
+        break;
+      case 9:
         options.check_accuracy_mpsym = true;
         break;
       case 'v':
         ++options.verbosity;
         TIMER_ENABLE();
         break;
-      case 9:
+      case 10:
         options.show_gap_errors = true;
         break;
       default:
