@@ -406,26 +406,26 @@ double run(std::shared_ptr<mpsym::ArchGraphSystem> ags,
   double t;
 
   auto run_gap(std::bind(map_tasks_gap_wrapper,
-                         ags->to_gap(),
-                         parse_task_mappings_gap(task_mappings),
-                         options,
                          _1,
-                         _2));
+                         parse_task_mappings_gap(task_mappings),
+                         _2,
+                         _3,
+                         _4));
 
   auto run_mpsym(std::bind(map_tasks_mpsym_wrapper,
-                           ags,
-                           parse_task_mappings_mpsym(task_mappings),
                            _1,
+                           parse_task_mappings_mpsym(task_mappings),
                            _2,
-                           _3));
+                           _3,
+                           _4));
 
   if (options.library.is("gap")) {
-    run_gap(nullptr, &t);
+    run_gap(ags->to_gap(), options, nullptr, &t);
 
   } else if (options.library.is("mpsym")) {
     TaskOrbits task_orbits, task_orbits_check;
 
-    run_mpsym(options, &task_orbits, &t);
+    run_mpsym(ags, options, &task_orbits, &t);
 
     if (options.check_accuracy_gap || options.check_accuracy_mpsym) {
       info("Checking accuracy...");
@@ -437,9 +437,9 @@ double run(std::shared_ptr<mpsym::ArchGraphSystem> ags,
       options_.verbosity = 0;
 
       if (options.check_accuracy_gap)
-        run_gap(&task_orbits_check, nullptr);
+        run_gap(ags->to_gap(), options_, &task_orbits_check, nullptr);
       else if (options.check_accuracy_mpsym)
-        run_mpsym(options_, &task_orbits_check, nullptr);
+        run_mpsym(ags, options_, &task_orbits_check, nullptr);
 
       check_accuracy(task_orbits, task_orbits_check, options);
     }
