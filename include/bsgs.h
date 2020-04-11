@@ -88,7 +88,7 @@ public:
     bool schreier_sims_random_use_known_order = true;
     order_type schreier_sims_random_known_order = 0;
     int schreier_sims_random_retries = -1;
-    unsigned schreier_sims_random_w = 10u;
+    unsigned schreier_sims_random_w = 100u;
   };
 
   struct SolveError : public std::runtime_error
