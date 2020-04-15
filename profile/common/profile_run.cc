@@ -19,6 +19,32 @@
 namespace
 {
 
+class TmpFile
+{
+public:
+  TmpFile(std::string const &content)
+  {
+    if (mkstemp(name) == -1)
+      throw std::runtime_error("failed to create temporary file");
+
+    _f = std::ofstream(name);
+
+    if (_f.fail())
+      throw std::runtime_error("failed to create temporary file");
+
+    _f << content;
+    _f.flush();
+  }
+
+  ~TmpFile()
+  { std::remove(name); }
+
+  char name[6] = {'X', 'X', 'X', 'X', 'X', 'X'};
+
+private:
+  std::ofstream _f;
+};
+
 std::string build_script(std::initializer_list<std::string> packages,
                          std::string const &script,
                          unsigned num_discarded_runs,
@@ -76,6 +102,8 @@ std::string read_output(int from, bool echo)
     } else {
       std::string block(buf, buf + count);
 
+      res += block;
+
       if (echo && block.find("RESULT") == std::string::npos) {
         auto echo_block(block);
 
@@ -83,9 +111,9 @@ std::string read_output(int from, bool echo)
                          echo_block.end());
 
         std::cout << echo_block << std::flush;
+      } else {
+        break;
       }
-
-      res += block;
     }
   }
 
@@ -115,6 +143,37 @@ std::string compress_output(std::string const &output)
   return res;
 }
 
+std::vector<std::string> parse_output(std::string const &output_,
+                                      unsigned num_runs,
+                                      std::vector<double> *ts)
+{
+  using profile::split;
+  using profile::stof;
+
+  auto output(compress_output(clean_output(output_)));
+
+  // parse output
+  auto output_split(split(output, ";"));
+
+  std::vector<std::string> output_vals(
+    output_split.begin(),
+    output_split.begin() + (output_split.size() - 1u) / num_runs);
+
+  if (ts) {
+    auto parse_output_times = [](std::string output_times){
+      output_times = output_times.substr(std::strlen("RESULT:"));
+      output_times = output_times.substr(1u, output_times.size() - 2u);
+
+      return split(output_times, ",");
+    };
+
+    for (auto const &output_time : parse_output_times(output_split.back()))
+      ts->push_back(stof<double>(output_time) / 1e9);
+  }
+
+  return output_vals;
+}
+
 }
 
 namespace profile
@@ -130,26 +189,7 @@ std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
 {
   // create temporary gap script
 
-  char ftmp[] = {'X', 'X', 'X', 'X', 'X', 'X'};
-  if (mkstemp(ftmp) == -1)
-    throw std::runtime_error("failed to create temporary file");
-
-  class FileRemover
-  {
-  public:
-    FileRemover(std::string const &f) : _f(f) {}
-    ~FileRemover() { std::remove(_f.c_str()); }
-  private:
-    std::string _f;
-  } file_remover(ftmp);
-
-  std::ofstream f(ftmp);
-  if (f.fail())
-    throw std::runtime_error("failed to create temporary file");
-
-  f << build_script(packages, script, num_discarded_runs, num_runs);
-
-  f.flush();
+  TmpFile f(build_script(packages, script, num_discarded_runs, num_runs));
 
   // create pipe for capturing gaps output
 
@@ -159,8 +199,6 @@ std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
 
   // run gap in a child process
 
-  timer_start();
-
   pid_t child;
   switch ((child = fork())) {
   case -1:
@@ -168,8 +206,6 @@ std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
   case 0:
     {
       dup_fd(fds[1], STDOUT_FILENO);
-
-      fcntl(STDOUT_FILENO, F_SETFL, fcntl(STDOUT_FILENO, F_GETFL) | O_DIRECT);
 
       close(fds[1]);
       close(fds[0]);
@@ -180,41 +216,19 @@ std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
           dup_fd(dev_null, STDERR_FILENO);
       }
 
-      if (execlp("gap", "gap", "--nointeract", "-q", ftmp, nullptr) == -1)
+      if (execlp("gap", "gap", "--nointeract", "-q", f.name, nullptr) == -1)
         _Exit(EXIT_FAILURE);
-
-      _Exit(EXIT_SUCCESS);
     }
   }
 
-  close(fds[1]);
-
-  // get output
-
-  auto output(compress_output(clean_output(read_output(fds[0], !hide_output))));
-
   // parse output
-  auto output_split(split(output, ";"));
 
-  std::vector<std::string> output_vals(
-    output_split.begin(),
-    output_split.begin() + (output_split.size() - 1u) / num_runs);
+  auto output(read_output(fds[0], !hide_output));
 
-  if (ts) {
-    auto parse_output_times = [](std::string output_times){
-      output_times = output_times.substr(std::strlen("RESULT: "));
-      output_times = output_times.substr(1u, output_times.size() - 2u);
-
-      return split(output_times, ",");
-    };
-
-    for (auto const &output_time : parse_output_times(output_split.back()))
-      ts->push_back(stox<double>(output_time) / 1e9);
-  }
-
+  close(fds[1]);
   close(fds[0]);
 
-  return output_vals;
+  return parse_output(output, num_runs, ts);
 }
 
 } // namespace profile
