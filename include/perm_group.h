@@ -44,16 +44,35 @@ public:
     const_iterator() : _end(true) {};
     const_iterator(PermGroup const &pg);
 
-    const_iterator operator++();
-    const_iterator operator++(int) { next_state(); return *this; }
-    Perm const & operator*() const { return _current_result; }
-    Perm const * operator->() const { return &_current_result; }
+    const_iterator & operator++()
+    {
+      next_state();
+      return *this;
+    }
+
+    Perm const & operator*()
+    {
+      update_current_result();
+      return _current_result;
+    }
+
+    Perm const * operator->()
+    {
+      update_current_result();
+      return &_current_result;
+    }
+
+    PermSet const & factors() const
+    { return _current_factors; }
+
     bool operator==(const_iterator const &rhs) const;
-    bool operator!=(const_iterator const &rhs) const { return !((*this) == rhs); }
+
+    bool operator!=(const_iterator const &rhs) const
+    { return !((*this) == rhs); }
 
   private:
     void next_state();
-    void update_result();
+    void update_current_result();
 
     std::vector<unsigned> _state;
     bool _trivial;
@@ -62,6 +81,7 @@ public:
     std::vector<PermSet> _transversals;
     PermSet _current_factors;
     Perm _current_result;
+    bool _current_result_valid;
   };
 
   /// TODO

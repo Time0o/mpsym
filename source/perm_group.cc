@@ -289,15 +289,8 @@ PermGroup::const_iterator::const_iterator(PermGroup const &pg)
       _current_factors.insert(transv[0]);
     }
 
-    update_result();
+    _current_result_valid = false;
   }
-}
-
-PermGroup::const_iterator PermGroup::const_iterator::operator++()
-{
-  PermGroup::const_iterator pre(*this);
-  next_state();
-  return pre;
 }
 
 bool PermGroup::const_iterator::operator==(
@@ -339,14 +332,19 @@ void PermGroup::const_iterator::next_state()
       break;
   }
 
-  update_result();
+  _current_result_valid = false;
 }
 
-void PermGroup::const_iterator::update_result()
+void PermGroup::const_iterator::update_current_result()
 {
+  if (_current_result_valid)
+    return;
+
   _current_result = _current_factors[0];
   for (unsigned j = 1u; j < _current_factors.size(); ++j)
     _current_result = _current_factors[j] * _current_result;
+
+  _current_result_valid = true;
 }
 
 std::ostream &operator<<(std::ostream &os, PermGroup const &pg)

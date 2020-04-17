@@ -4,6 +4,7 @@
 #include <cassert>
 #include <initializer_list>
 #include <ostream>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -42,8 +43,9 @@ public:
     return false;
   }
 
+  template<typename PERM>
   bool less_than(TaskMapping const other,
-                 Perm const &perm,
+                 PERM const &perm,
                  unsigned offset = 0u) const
   {
     return foreach_permuted_task(
@@ -65,7 +67,8 @@ public:
     );
   }
 
-  void permute(Perm const &perm,
+  template<typename PERM>
+  void permute(PERM const &perm,
                unsigned offset = 0u,
                bool *modified = nullptr)
   {
@@ -85,7 +88,8 @@ public:
     );
   }
 
-  TaskMapping permuted(Perm const &perm,
+  template<typename PERM>
+  TaskMapping permuted(PERM const &perm,
                        unsigned offset = 0u,
                        bool *modified = nullptr) const
   {
@@ -110,22 +114,55 @@ public:
   }
 
 private:
-  template<typename FUNC>
-  bool foreach_permuted_task(Perm const &perm, unsigned offset, FUNC &&f) const
+  template<typename PERM, typename FUNC>
+  bool foreach_permuted_task_(PERM &&perm,
+                              unsigned offset,
+                              unsigned degree,
+                              FUNC &&func) const
   {
     for (auto i = 0u; i < size(); ++i) {
       unsigned task = (*this)[i];
-      if (task <= offset || task > offset + perm.degree())
+      if (task <= offset || task > degree + offset)
         continue;
 
-      unsigned task_permuted = perm[task - offset] + offset;
+      unsigned task_permuted = perm(task - offset) + offset;
 
       bool flag;
-      if (f(i, task, task_permuted, flag))
+      if (func(i, task, task_permuted, flag))
         return flag;
     }
 
     return false;
+  }
+
+  template<typename PERM, typename FUNC>
+  typename std::enable_if<std::is_same<PERM, Perm>::value, bool>::type
+  foreach_permuted_task(PERM const &perm,
+                        unsigned offset,
+                        FUNC &&func) const
+  {
+    return foreach_permuted_task_(
+      [&](unsigned task){ return perm[task]; },
+      offset,
+      perm.degree(),
+      func);
+  }
+
+  template<typename PERM, typename FUNC>
+  typename std::enable_if<std::is_same<PERM, PermSet>::value, bool>::type
+  foreach_permuted_task(PERM const &perm_word,
+                        unsigned offset,
+                        FUNC &&func) const
+  {
+    return foreach_permuted_task_(
+      [&](unsigned task){
+        for (auto it = perm_word.rbegin(); it != perm_word.rend(); ++it)
+          task = (*it)[task];
+        return task;
+      },
+      offset,
+      perm_word.degree(),
+      func);
   }
 };
 

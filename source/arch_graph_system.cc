@@ -65,18 +65,21 @@ TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
                                               TaskOrbits *orbits,
                                               ReprOptions const *options)
 {
+  auto automs(automorphisms());
+
   TIMER_START("map bruteforce iterate");
 
   TaskMapping representative(tasks);
 
-  for (Perm const &element : automorphisms()) {
-    if (tasks.less_than(representative, element, options->offset)) {
-      representative = tasks.permuted(element, options->offset);
+  for (auto it = automs.begin(); it != automs.end(); ++it) {
+    auto const &factors(it.factors());
 
-      if (is_repr(representative, orbits, options)) {
-        TIMER_STOP("map bruteforce iterate");
-        return representative;
-      }
+    if (tasks.less_than(representative, factors, options->offset))
+      representative = tasks.permuted(factors, options->offset);
+
+    if (is_repr(representative, orbits, options)) {
+      TIMER_STOP("map bruteforce iterate");
+      return representative;
     }
   }
 

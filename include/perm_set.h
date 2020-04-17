@@ -21,6 +21,8 @@ class PermSet
 public:
   typedef std::vector<Perm>::iterator iterator;
   typedef std::vector<Perm>::const_iterator const_iterator;
+  typedef std::vector<Perm>::reverse_iterator reverse_iterator;
+  typedef std::vector<Perm>::const_reverse_iterator const_reverse_iterator;
   typedef std::vector<Perm>::size_type size_type;
 
   PermSet()
@@ -65,17 +67,15 @@ public:
     return _perms[i];
   }
 
-  iterator begin()
-  { return _perms.begin(); }
+  iterator begin() { return _perms.begin(); }
+  iterator end() { return _perms.end(); }
+  const_iterator begin() const { return _perms.begin(); }
+  const_iterator end() const { return _perms.end(); }
 
-  iterator end()
-  { return _perms.end(); }
-
-  const_iterator begin() const
-  { return _perms.begin(); }
-
-  const_iterator end() const
-  { return _perms.end(); }
+  reverse_iterator rbegin() { return _perms.rbegin(); }
+  reverse_iterator rend() { return _perms.rend(); }
+  const_reverse_iterator rbegin() const { return _perms.rbegin(); }
+  const_reverse_iterator rend() const { return _perms.rend(); }
 
   void insert(Perm const &perm) {
     assert_degree(perm.degree());
