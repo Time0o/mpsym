@@ -16,7 +16,6 @@
 #include "perm_set.h"
 #include "task_mapping.h"
 #include "task_orbits.h"
-#include "timer.h"
 #include "util.h"
 
 namespace mpsym
@@ -67,8 +66,6 @@ TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
 {
   auto automs(automorphisms());
 
-  TIMER_START("map bruteforce iterate");
-
   TaskMapping representative(tasks);
 
   for (auto it = automs.begin(); it != automs.end(); ++it) {
@@ -78,12 +75,9 @@ TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
       representative = tasks.permuted(factors, options->offset);
 
     if (is_repr(representative, orbits, options)) {
-      TIMER_STOP("map bruteforce iterate");
       return representative;
     }
   }
-
-  TIMER_STOP("map bruteforce iterate");
 
   return representative;
 }
@@ -92,8 +86,6 @@ TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
                                              TaskOrbits *orbits,
                                              ReprOptions const *options)
 {
-  TIMER_START("map bruteforce orbits");
-
   TaskMapping representative(tasks);
 
   std::unordered_set<TaskMapping> processed;
@@ -114,15 +106,12 @@ TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
       TaskMapping next(current.permuted(generator, options->offset));
 
       if (is_repr(next, orbits, options)) {
-        TIMER_STOP("map bruteforce orbits");
         return next;
       } else if (processed.find(next) == processed.end()) {
         unprocessed.push(next);
       }
     }
   }
-
-  TIMER_STOP("map bruteforce orbits");
 
   return representative;
 }
@@ -132,8 +121,6 @@ TaskMapping ArchGraphSystem::min_elem_local_search(TaskMapping const &tasks,
 {
   auto automs(automorphisms());
   auto gens(local_search_augment_gens(automs, options));
-
-  TIMER_START("map approx local search");
 
   TaskMapping representative(tasks);
 
@@ -169,8 +156,6 @@ TaskMapping ArchGraphSystem::min_elem_local_search(TaskMapping const &tasks,
       possible_representatives.clear();
     }
   }
-
-  TIMER_STOP("map approx local search");
 
   return representative;
 }
@@ -212,8 +197,6 @@ TaskMapping ArchGraphSystem::min_elem_local_search_sa(TaskMapping const &tasks,
   // value function
   auto value(std::bind(local_search_sa_value, _1, task_min, task_max));
 
-  TIMER_START("map approx local search sa");
-
   TaskMapping representative(tasks);
   double representative_value = value(representative);
 
@@ -250,8 +233,6 @@ TaskMapping ArchGraphSystem::min_elem_local_search_sa(TaskMapping const &tasks,
       representative_value = value(representative);
     }
   }
-
-  TIMER_STOP("map approx local search sa");
 
   return representative;
 }
@@ -296,8 +277,6 @@ TaskMapping ArchGraphSystem::min_elem_symmetric(TaskMapping const &tasks,
                                                 unsigned task_max,
                                                 ReprOptions const *)
 {
-  TIMER_START("map symmetric");
-
   TaskMapping representative(tasks);
 
   std::vector<unsigned> perm(task_max - task_min + 1u);
@@ -319,8 +298,6 @@ TaskMapping ArchGraphSystem::min_elem_symmetric(TaskMapping const &tasks,
 
     representative[i] = to;
   }
-
-  TIMER_STOP("map symmetric");
 
   return representative;
 }
