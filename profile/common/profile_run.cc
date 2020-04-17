@@ -104,15 +104,16 @@ std::string read_output(int from, bool echo)
 
       res += block;
 
-      if (echo && block.find("RESULT") == std::string::npos) {
+      if (block.find("RESULT") != std::string::npos)
+        break;
+
+      if (echo) {
         auto echo_block(block);
 
         echo_block.erase(std::remove(echo_block.begin(), echo_block.end(), ';'),
                          echo_block.end());
 
         std::cout << echo_block << std::flush;
-      } else {
-        break;
       }
     }
   }
