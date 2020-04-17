@@ -30,7 +30,6 @@ add_library("${MAIN_LIB}"
             "perm_group_disjoint_decomp.cc"
             "perm_group_wreath_decomp.cc"
             "perm_set.cc"
-            "perm_word.cc"
             "pr_randomizer.cc"
             "schreier_tree.cc"
             "timer.cc")
