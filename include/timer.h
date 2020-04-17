@@ -1,6 +1,7 @@
 #ifndef _GUARD_TIMER_H
 #define _GUARD_TIMER_H
 
+#include <algorithm>
 #include <chrono>
 #include <ctime>
 #include <iomanip>
@@ -22,6 +23,34 @@
 
 #else
 
+#define TIMER_ENABLE() do { timer::Timer::enabled = true; } while (0)
+
+#define TIMER_GET_OUT() timer::Timer::out
+#define TIMER_SET_OUT(os) do { timer::Timer::out = os; } while (0)
+
+#define TIMER_OP(op) do { if (timer::Timer::enabled) { op; } } while (0)
+
+#define TIMER_CREATE_WITH_PRECISION(name, precision) \
+  TIMER_OP(timer::Timer::create(name, precision))
+#define TIMER_START(name) \
+  TIMER_OP(timer::Timer::create(name); timer::Timer::get(name)->start())
+#define TIMER_STOP(name) \
+  TIMER_OP(timer::Timer::get(name)->stop())
+#define TIMER_EXISTS(name) \
+  timer::Timer::exists(name)
+#define TIMER_DUMP(name) \
+  TIMER_OP(*timer::Timer::out << *timer::Timer::get(name) << std::endl; \
+           timer::Timer::destroy(name))
+#define TIMER_DUMP_ALL() \
+  TIMER_OP(for (auto *t : timer::Timer::get_all()) { \
+             *timer::Timer::out << *t << std::endl; \
+             timer::Timer::destroy(t->name()); \
+           })
+
+#define TIMER_SECONDS timer::Timer::SECONDS
+#define TIMER_MILLISECONDS timer::Timer::MILLISECONDS
+#define TIMER_MICROSECONDS timer::Timer::MICROSECONDS
+
 namespace timer
 {
 
@@ -32,7 +61,7 @@ class Timer
 public:
   enum Precision { SECONDS, MILLISECONDS, MICROSECONDS };
 
-  enum { DECIMALS = 3 };
+  enum { DECIMALS = 3, RESOLUTION_TEST_TICKS = 1000 };
 
   static bool enabled;
   static std::ostream *out;
@@ -73,11 +102,11 @@ public:
 
   void stop()
   {
-    auto delta = time() - _start;
+    auto ns(time_delta(_start, time()));
 
-    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(delta);
+    count_type ns_count = ns.count();
 
-    _meas.push_back(ns.count());
+    _meas.push_back(ns_count);
   }
 
   char const *name() const
@@ -97,20 +126,46 @@ public:
     throw std::logic_error("unreachable");
   }
 
+  bool under_resolution() const
+  {
+    auto filter = [](count_type count){ return count > time_overhead(true); };
+
+    decltype(_meas.size()) meas_valid =
+      std::count_if(_meas.begin(), _meas.end(), filter);
+
+    return meas_valid < _meas.size() / 2u;
+  }
+
   std::vector<count_type>::size_type invoked() const
   { return _meas.size(); }
 
-  double last() const
-  { return scale(_meas.back()); }
-
-  double total() const
-  { return scale(std::accumulate(_meas.begin(), _meas.end(), 0ULL)); }
-
-  void mean_stddev(double *mean, double *stddev) const
+  double last(bool remove_overhead = true) const
   {
+    auto meas_(meas(remove_overhead));
+
+    if (meas_.empty())
+      throw std::logic_error("never invoked");
+
+    return scale(meas_.back());
+  }
+
+  double total(bool remove_overhead = true) const
+  {
+    auto meas_(meas(remove_overhead));
+
+    return scale(std::accumulate(meas_.begin(), meas_.end(), 0ULL));
+  }
+
+  void mean_stddev(double *mean, double *stddev, bool remove_overhead = true) const
+  {
+    auto meas_(meas(remove_overhead));
+
+    if (meas_.empty())
+      throw std::logic_error("never invoked");
+
     count_type mean_, stddev_;
 
-    util::mean_stddev(_meas, &mean_, &stddev_);
+    util::mean_stddev(meas_, &mean_, &stddev_);
 
     *mean = scale(mean_);
     *stddev = scale(stddev_);
@@ -129,6 +184,49 @@ private:
 
   static std::chrono::high_resolution_clock::time_point time()
   { return std::chrono::high_resolution_clock::now(); }
+
+  static std::chrono::nanoseconds time_delta(
+    std::chrono::high_resolution_clock::time_point start,
+    std::chrono::high_resolution_clock::time_point end)
+  { return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start); }
+
+  static count_type time_overhead(bool add_stddev)
+  {
+    if (!Timer::enabled)
+      throw std::logic_error("timer overhead only available in macro mode");
+
+    static count_type mean = 0ULL;
+    static count_type stddev = 0ULL;
+
+    if (mean == 0ULL) {
+      for (int i = 0; i < RESOLUTION_TEST_TICKS; ++i) {
+        TIMER_START("overhead test");
+        TIMER_STOP("overhead test");
+      }
+
+      auto *t = Timer::get("overhead test");
+      util::mean_stddev(t->_meas, &mean, &stddev);
+      Timer::destroy("overhead test");
+    }
+
+    return add_stddev ? mean + stddev : mean;
+  }
+
+  std::vector<count_type> meas(bool remove_overhead) const
+  {
+    if (!remove_overhead)
+      return _meas;
+
+    auto meas_overhead_removed(_meas);
+    for (auto &t : meas_overhead_removed) {
+      if (t <= time_overhead(false))
+        t = 0;
+      else
+        t -= time_overhead(false);
+    }
+
+    return meas_overhead_removed;
+  }
 
   double scale(count_type ns) const
   {
@@ -160,7 +258,9 @@ inline std::ostream &operator<<(std::ostream &s, Timer const &timer)
   s << "TIMER (" << timer.name() << "): ";
 
   if (timer.invoked() == 0) {
-    s << " never invoked";
+    s << "never invoked";
+  } else if (timer.under_resolution()) {
+    s << "under resolution";
   } else {
     s << std::setprecision(Timer::DECIMALS);
 
@@ -181,34 +281,6 @@ inline std::ostream &operator<<(std::ostream &s, Timer const &timer)
 }
 
 } // namespace timer
-
-#define TIMER_ENABLE() do { timer::Timer::enabled = true; } while (0)
-
-#define TIMER_GET_OUT() timer::Timer::out
-#define TIMER_SET_OUT(os) do { timer::Timer::out = os; } while (0)
-
-#define TIMER_OP(op) do { if (timer::Timer::enabled) { op; } } while (0)
-
-#define TIMER_CREATE_WITH_PRECISION(name, precision) \
-  TIMER_OP(timer::Timer::create(name, precision))
-#define TIMER_START(name) \
-  TIMER_OP(timer::Timer::create(name); timer::Timer::get(name)->start())
-#define TIMER_STOP(name) \
-  TIMER_OP(timer::Timer::get(name)->stop())
-#define TIMER_EXISTS(name) \
-  timer::Timer::exists(name)
-#define TIMER_DUMP(name) \
-  TIMER_OP(*timer::Timer::out << *timer::Timer::get(name) << std::endl; \
-           timer::Timer::destroy(name))
-#define TIMER_DUMP_ALL() \
-  TIMER_OP(for (auto *t : timer::Timer::get_all()) { \
-             *timer::Timer::out << *t << std::endl; \
-             timer::Timer::destroy(t->name()); \
-           })
-
-#define TIMER_SECONDS timer::Timer::SECONDS
-#define TIMER_MILLISECONDS timer::Timer::MILLISECONDS
-#define TIMER_MICROSECONDS timer::Timer::MICROSECONDS
 
 #endif
 
