@@ -42,7 +42,7 @@ void usage(std::ostream &s)
     "[-h|--help]",
     "-i|--implementation {gap|mpsym}",
     "-m|--repr-method {iterate|orbits|local_search}",
-    "---repr-variant {local_search_bfs|local_search_dfs|local_search_sa_linear}",
+    "--repr-variant {local_search_bfs|local_search_dfs|local_search_sa_linear}",
     "--repr-local-search-invert-generators",
     "--repr-local-search-append-generators",
     "--repr-local-search-iterations",
@@ -178,8 +178,8 @@ std::string map_tasks_gap(
 
   // display progress
   if (options.verbosity > 0) {
-    ss << "  Print(\"DEBUG: Mapping task \", n, \" of \", "
-          "        Length(task_mappings), \"\\r\\c\");\n";
+    ss << "    Print(\"DEBUG: Mapping task \", n, \" of \", "
+       << "          Length(task_mappings), \"\\r\\c\");\n";
   }
 
   // concrete code depending on chosen implementation
@@ -196,7 +196,7 @@ std::string map_tasks_gap(
   // display orbit representatives found
   if (options.check_accuracy_gap || options.verbosity > 0) {
     ss << "Print(\"\\n;DEBUG: => Found \", Length(orbit_representatives), "
-          "      \" orbit representatives;\\n\");\n";
+       << "      \" orbit representatives;\\n\");\n";
 
     if (options.check_accuracy_gap || options.verbosity > 1) {
       ss << "for orbit_repr in orbit_representatives do\n";
@@ -260,9 +260,6 @@ mpsym::TaskOrbits map_tasks_mpsym(
   if (options.repr_options.is_set("dont_optimize_symmetric"))
     repr_options.optimize_symmetric = false;
 
-  if (options.verbosity > 0)
-    debug("Initializing architecture graph");
-
   ags->init_repr();
 
   TaskOrbits task_orbits;
@@ -270,7 +267,7 @@ mpsym::TaskOrbits map_tasks_mpsym(
     if (options.verbosity > 0)
       debug_progress("Mapping task", i + 1u, "of", task_mappings.size());
 
-    auto tmp(ags->repr(task_mappings[i], &task_orbits, &repr_options));
+    ags->repr(task_mappings[i], &task_orbits, &repr_options);
   }
 
   return task_orbits;
@@ -461,7 +458,7 @@ void do_profile(Stream &automorphisms_stream,
   std::shared_ptr<ArchGraphSystem> ags, ags_check;
 
   auto task_mappings(read_file(task_mappings_stream.stream,
-                                  options.task_mapping_limit));
+                               options.task_mapping_limit));
 
   if (options.verbosity > 0)
     debug("Implementation:", options.library.get());
@@ -502,16 +499,6 @@ void do_profile(Stream &automorphisms_stream,
   double t = run(ags, ags_check, task_mappings, options);
 
   result("Runtime:", t, "s");
-
-  if (options.verbosity > 0) {
-    debug("Timer dumps:");
-    if (options.repr_method.is("iterate"))
-      debug_timer_dump("map bruteforce iterate");
-    else if (options.repr_method.is("local_search"))
-      debug_timer_dump("map approx local search");
-    else if (options.repr_method.is("orbits"))
-      debug_timer_dump("map bruteforce orbits");
-  }
 }
 
 } // namespace
