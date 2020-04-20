@@ -86,6 +86,9 @@ TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
                                              TaskOrbits *orbits,
                                              ReprOptions const *options)
 {
+  auto automs(automorphisms());
+  auto gens(automs.generators());
+
   TaskMapping representative(tasks);
 
   std::unordered_set<TaskMapping> processed;
@@ -102,14 +105,13 @@ TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
     if (current.less_than(representative))
       representative = current;
 
-    for (Perm const &generator : automorphisms().generators()) {
+    for (Perm const &generator : gens) {
       TaskMapping next(current.permuted(generator, options->offset));
 
-      if (is_repr(next, orbits, options)) {
+      if (is_repr(next, orbits, options))
         return next;
-      } else if (processed.find(next) == processed.end()) {
+      else if (processed.find(next) == processed.end())
         unprocessed.push(next);
-      }
     }
   }
 
