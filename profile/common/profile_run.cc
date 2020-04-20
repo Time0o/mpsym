@@ -15,6 +15,7 @@
 
 #include "profile_run.h"
 #include "profile_timer.h"
+#include "util.h"
 
 namespace
 {
@@ -64,6 +65,7 @@ std::string build_script(std::initializer_list<std::string> packages,
   ss << "  fi;\n";
   ss << "od;\n";
   ss << "Print(\"RESULT: \", _ts, \"\\n\");\n";
+  ss << "Print(\"END\\n\");\n";
 
   return ss.str();
 }
@@ -102,10 +104,15 @@ std::string read_output(int from, bool echo)
     } else {
       std::string block(buf, buf + count);
 
+      if (block.find("END") != std::string::npos) {
+        res += block.substr(0u, block.size() - std::strlen("END") - 1u);
+        break;
+      }
+
       res += block;
 
       if (block.find("RESULT") != std::string::npos)
-        break;
+        echo = false;
 
       if (echo) {
         auto echo_block(block);
@@ -230,6 +237,22 @@ std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
   close(fds[0]);
 
   return parse_output(output, num_runs, ts);
+}
+
+void dump_runs(std::vector<double> const &ts, bool summarize)
+{
+  if (summarize) {
+    double t_mean, t_stddev;
+    util::mean_stddev(ts, &t_mean, &t_stddev);
+
+    result("Mean:", t_mean, "s");
+    result("Stddev:", t_stddev, "s");
+
+  } else {
+    result("Runtimes:");
+    for (double t : ts)
+      result(t, "s");
+  }
 }
 
 } // namespace profile

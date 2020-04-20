@@ -39,7 +39,6 @@ typename std::result_of<FUNC()>::type run_cpp(FUNC &&f,
       timer_start();
 
 #ifdef PROFILE_CPU_TIMER
-    // run group creation in child process
     if constexpr (!returns_void)
       throw std::logic_error("non void functions require realtime timer");
 
@@ -60,7 +59,6 @@ typename std::result_of<FUNC()>::type run_cpp(FUNC &&f,
       ts->push_back(timer_stop(child));
   }
 #else
-    // run group creation in this process
     if constexpr (returns_void) {
       f();
 
@@ -82,6 +80,8 @@ typename std::result_of<FUNC()>::type run_cpp(FUNC &&f,
     throw std::logic_error("unreachable");
 #endif
 }
+
+void dump_runs(std::vector<double> const &ts, bool summarize);
 
 } // namespace profile
 
