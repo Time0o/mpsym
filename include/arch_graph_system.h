@@ -68,7 +68,10 @@ public:
   { return _automorphisms_valid; }
 
   void reset_automorphisms()
-  { _automorphisms_valid = false; }
+  {
+    _automorphisms_valid = false;
+    _automorphisms_is_shifted_symmetric_valid = false;
+  }
 
   BSGS::order_type num_automorphisms(AutomorphismOptions const *options = nullptr)
   { return num_automorphisms_(options); }
@@ -167,6 +170,12 @@ private:
 
   PermGroup _automorphisms;
   bool _automorphisms_valid = false;
+
+  bool _automorphisms_is_shifted_symmetric;
+  bool _automorphisms_is_shifted_symmetric_valid = false;
+
+  unsigned _automorphisms_smp;
+  unsigned _automorphisms_lmp;
 };
 
 // TODO: outstream operator

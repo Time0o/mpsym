@@ -32,9 +32,20 @@ TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
 
   TaskMapping representative;
 
-  if (options.optimize_symmetric && automs.is_shifted_symmetric()) {
-    unsigned task_min = gens.smallest_moved_point() + options.offset;
-    unsigned task_max = gens.largest_moved_point() + options.offset;
+  if (options.optimize_symmetric && !_automorphisms_is_shifted_symmetric_valid) {
+    _automorphisms_is_shifted_symmetric = automs.is_shifted_symmetric();
+
+    if (_automorphisms_is_shifted_symmetric) {
+      _automorphisms_smp = gens.smallest_moved_point();
+      _automorphisms_lmp = gens.largest_moved_point();
+    }
+
+    _automorphisms_is_shifted_symmetric_valid = true;
+  }
+
+  if (options.optimize_symmetric && _automorphisms_is_shifted_symmetric) {
+    unsigned task_min = _automorphisms_smp + options.offset;
+    unsigned task_max = _automorphisms_lmp + options.offset;
 
     representative = min_elem_symmetric(mapping, task_min, task_max, &options);
 
