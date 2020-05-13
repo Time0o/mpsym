@@ -279,6 +279,9 @@ PermGroup::const_iterator::const_iterator(PermGroup const &pg)
 {
   if (_trivial) {
     _current_result = Perm(pg.degree());
+
+    _current_result_valid = true;
+
   } else {
     for (unsigned i = 0u; i < pg.bsgs().base_size(); ++i) {
       _state.push_back(0u);
