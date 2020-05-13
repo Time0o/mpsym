@@ -15,7 +15,6 @@
 using mpsym::Perm;
 using mpsym::PermGroup;
 using mpsym::PermSet;
-using mpsym::PermWord;
 
 template <typename P>
 static testing::AssertionResult _perm_equal(
@@ -51,12 +50,6 @@ testing::AssertionResult perm_equal(std::vector<unsigned> const &expected,
   Perm const &perm)
 {
   return _perm_equal<Perm>(expected, perm);
-}
-
-testing::AssertionResult perm_word_equal(std::vector<unsigned> const &expected,
-  PermWord const &pw)
-{
-  return _perm_equal<PermWord>(expected, pw);
 }
 
 testing::AssertionResult perm_group_equal(PermGroup const &expected,

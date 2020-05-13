@@ -8,7 +8,6 @@
 
 #include "perm.h"
 #include "perm_group.h"
-#include "perm_word.h"
 #include "perm_set.h"
 
 enum VerifiedGroup {
@@ -21,9 +20,6 @@ enum VerifiedGroup {
 
 testing::AssertionResult perm_equal(std::vector<unsigned> const &expected,
   mpsym::Perm const &perm);
-
-testing::AssertionResult perm_word_equal(std::vector<unsigned> const &expected,
-  mpsym::PermWord const &pw);
 
 testing::AssertionResult perm_group_equal(mpsym::PermGroup const &expected,
                                           mpsym::PermGroup const &actual);

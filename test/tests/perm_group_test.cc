@@ -198,7 +198,7 @@ TEST(PermGroupTest, CanIterateTrivialGroup)
     << "Iterating trivial permutation group yields identity permutation (ranged for)..";
 
   std::vector<Perm> actual_members2;
-  for (PermGroup::const_iterator it = id.begin(); it != id.end(); it++)
+  for (PermGroup::const_iterator it = id.begin(); it != id.end(); ++it)
     actual_members2.push_back(*it);
 
   ASSERT_EQ(1u, actual_members2.size())
@@ -228,7 +228,7 @@ TEST(PermGroupTest, CanIterateSimplestNonTrivialGroup)
     << "Iterating simplest non-trivial permutation group yields correct permutation (ranged for)..";
 
   std::vector<Perm> actual_members2;
-  for (PermGroup::const_iterator it = pg.begin(); it != pg.end(); it++)
+  for (PermGroup::const_iterator it = pg.begin(); it != pg.end(); ++it)
     actual_members2.push_back(*it);
 
   ASSERT_EQ(expected_members.size(), actual_members2.size())
@@ -267,7 +267,7 @@ TEST(PermGroupTest, CanIterateElements)
 
   std::vector<Perm> actual_members2;
 
-  for (PermGroup::const_iterator it = a4.begin(); it != a4.end(); it++) {
+  for (PermGroup::const_iterator it = a4.begin(); it != a4.end(); ++it) {
     EXPECT_EQ(4u, it->degree())
       << "Iterator dereferencing works correctly.";
 
