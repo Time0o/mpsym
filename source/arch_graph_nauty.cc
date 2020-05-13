@@ -53,7 +53,7 @@ PermGroup ArchGraph::automorphisms_nauty(AutomorphismOptions const *options)
   int n = static_cast<int>(n_orig * (cts_log2 + 1u));
   int m = SETWORDSNEEDED(n);
 
-#ifndef NDBUG
+#ifndef NDEBUG
   nauty_check(WORDSIZE, m, n, NAUTYVERSIONID);
 #endif
 
