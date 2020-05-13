@@ -65,18 +65,6 @@ PermGroup ArchGraph::automorphisms_nauty(AutomorphismOptions const *options)
   // construct nauty graph
   EMPTYGRAPH(g, m, n);
 
-  std::vector<vertices_size_type> processor_type_offsets(
-    _processor_types.size());
-
-  std::vector<vertices_size_type> processor_type_counters(
-    _processor_types.size(), 0u);
-
-  vertices_size_type offs_accu = 0u;
-  for (processor_type_size_type i = 0u; i < _processor_types.size(); ++i) {
-    processor_type_offsets[i] = offs_accu;
-    offs_accu += _processor_type_instances[i];
-  }
-
   /* node numbering:
    *  ...     ...           ...
    *   |       |             |
@@ -102,19 +90,21 @@ PermGroup ArchGraph::automorphisms_nauty(AutomorphismOptions const *options)
     }
   }
 
+  std::vector<std::vector<int>> ptn_(_processor_types.size() * (cts_log2 + 1));
+
   for (int level = 0; level <= cts_log2; ++level) {
-    std::fill(processor_type_counters.begin(),
-              processor_type_counters.end(), 0u);
-
     for (int v = 0; v < n_orig; ++v) {
-      processor_type_size_type t = _adj[v].type;
-      vertices_size_type offs =
-        processor_type_offsets[t] + processor_type_counters[t];
+      int t = static_cast<int>(_adj[v].type + level * _processor_types.size());
+      ptn_[t].push_back(v + level * n_orig);
+    }
+  }
 
-      lab[offs + level * n_orig] = v + level * n_orig;
-
-      ptn[offs + level * n_orig] =
-        ++processor_type_counters[t] != _processor_type_instances[t];
+  int i = 0;
+  for (auto const &p : ptn_) {
+    for (auto j = 0u; j < p.size(); ++j) {
+      lab[i] = p[j];
+      ptn[i] = (j == p.size() - 1u) ? 0 : 1;
+      ++i;
     }
   }
 
