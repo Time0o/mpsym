@@ -98,95 +98,100 @@ struct ProfileOptions
 
 std::string map_tasks_gap_local_search(ProfileOptions const &options)
 {
-  std::stringstream ss;
+  return R"(
+orbit_repr:=task_mapping;
 
-  ss << "orbit_repr:=task_mapping;\n";
+generators:=GeneratorsOfGroup(automorphisms);
+possible_representatives:=EmptyPlist(Size(generators));
 
-  ss << "generators:=GeneratorsOfGroup(automorphisms);\n";
-  ss << "possible_representatives:=EmptyPlist(Size(generators));\n";
+for i in [1..Size(generators)] do
+  stationary:=true;
 
-  ss << "for i in [1..Size(generators)] do\n";
-  ss << "  stationary:=true;\n";
+  permuted:=OnTuples(orbit_repr, generators[i]);
 
-  ss << "  permuted:=OnTuples(orbit_repr, generators[i]);\n";
+  if permuted < orbit_repr then
+    possible_representatives[i]:=OnTuples(orbit_repr, generators[i]);
+    stationary:=false;
+  fi;
 
-  ss << "  if permuted < orbit_repr then\n";
-  ss << "    possible_representatives[i]:=OnTuples(orbit_repr, generators[i]);\n";
-  ss << "    stationary:=false;\n";
-  ss << "  fi;\n";
+  if stationary then
+    break;
+  fi;
 
-  ss << "  if stationary then\n";
-  ss << "    break;\n";
-  ss << "  fi;\n";
+  orbit_repr:=Minimum(possible_representatives);
+od;
 
-  ss << "  orbit_repr:=Minimum(possible_representatives);\n";
-  ss << "od;\n";
-
-  ss << "if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then\n";
-  ss << "  Append(orbit_representatives, [orbit_repr]);\n";
-  ss << "fi;\n";
-
-  return ss.str();
+if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then
+  Append(orbit_representatives, [orbit_repr]);
+fi;
+  )";
 }
 
 std::string map_tasks_gap_iterate(ProfileOptions const &options)
 {
-  std::stringstream ss;
+  std::string ret(R"(
+orbit_repr:=task_mapping;
+orbit_repr_new:=true;
 
-  ss << "orbit_repr:=task_mapping;\n";
-  ss << "orbit_repr_new:=true;\n";
-
-  ss << "for element in automorphisms do\n";
-  ss << "  permuted:=OnTuples(task_mapping, element);\n";
+for element in automorphisms do
+  permuted:=OnTuples(task_mapping, element);
+  )");
 
   if (options.repr_options.is_set("dont_match")) {
-    ss << "  if permuted < orbit_repr then\n";
-    ss << "    orbit_repr:=permuted;\n";
-    ss << "  fi;\n";
-    ss << "od;\n";
+    ret += R"(
+  if permuted < orbit_repr then
+    orbit_repr:=permuted;
+  fi;
+od;
 
-    ss << "if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then\n";
-    ss << "  Append(orbit_representatives, [orbit_repr]);\n";
-    ss << "fi;\n";
-
+if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then
+  Append(orbit_representatives, [orbit_repr]);
+fi;
+    )";
   } else {
-    ss << "  if HTValue(orbit_representatives_hash, permuted) <> fail then\n";
-    ss << "    orbit_repr_new:=false;\n";
-    ss << "    break;\n";
-    ss << "  elif permuted < orbit_repr then\n";
-    ss << "    orbit_repr:=permuted;\n";
-    ss << "  fi;\n";
-    ss << "od;\n";
+    ret += R"(
+  if HTValue(orbit_representatives_hash, permuted) <> fail then
+    orbit_repr_new:=false;
+    break;
+  elif permuted < orbit_repr then
+    orbit_repr:=permuted;
+  fi;
+od;
 
-    ss << "if orbit_repr_new then\n";
-    ss << "  HTAdd(orbit_representatives_hash, orbit_repr, true);\n";
-    ss << "  Append(orbit_representatives, [orbit_repr]);\n";
-    ss << "fi;\n";
-
+if orbit_repr_new then
+  HTAdd(orbit_representatives_hash, orbit_repr, true);
+  Append(orbit_representatives, [orbit_repr]);
+fi;
+    )";
   }
 
-  return ss.str();
+  return ret;
 }
 
 std::string map_tasks_gap_orbits(ProfileOptions const &options)
 {
-  std::stringstream ss;
+  std::string ret;
 
   if (options.repr_options.is_set("dont_match")) {
-    ss << "orbit:=Orb(automorphisms, task_mapping, OnTuples);\n";
-    ss << "orbit_repr:=Elements(Enumerate(orbit))[1];\n";
-
+    ret = R"(
+orbit:=Orb(automorphisms, task_mapping, OnTuples);
+orbit_repr:=Elements(Enumerate(orbit))[1];
+    )";
   } else {
-    ss << "orbit_options:=rec(lookingfor:=orbit_representatives_hash);\n";
-    ss << "orbit:=Orb(automorphisms, task_mapping, OnTuples, orbit_options);\n";
-    ss << "orbit_repr:=Elements(Enumerate(orbit))[1];\n";
+    ret = R"(
+orbit_options:=rec(lookingfor:=orbit_representatives_hash);
+orbit:=Orb(automorphisms, task_mapping, OnTuples, orbit_options);
+orbit_repr:=Elements(Enumerate(orbit))[1];
+    )";
   }
 
-  ss << "if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then\n";
-  ss << "  Append(orbit_representatives, [orbit_repr]);\n";
-  ss << "fi;\n";
+  ret += R"(
+if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then
+  Append(orbit_representatives, [orbit_repr]);
+fi;
+  )";
 
-  return ss.str();
+  return ret;
 }
 
 std::string map_tasks_gap(
