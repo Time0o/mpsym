@@ -96,6 +96,39 @@ struct ProfileOptions
   bool show_gap_errors = false;
 };
 
+std::string map_tasks_gap_local_search(ProfileOptions const &options)
+{
+  std::stringstream ss;
+
+  ss << "orbit_repr:=task_mapping;\n";
+
+  ss << "generators:=GeneratorsOfGroup(automorphisms);\n";
+  ss << "possible_representatives:=EmptyPlist(Size(generators));\n";
+
+  ss << "for i in [1..Size(generators)] do\n";
+  ss << "  stationary:=true;\n";
+
+  ss << "  permuted:=OnTuples(orbit_repr, generators[i]);\n";
+
+  ss << "  if permuted < orbit_repr then\n";
+  ss << "    possible_representatives[i]:=OnTuples(orbit_repr, generators[i]);\n";
+  ss << "    stationary:=false;\n";
+  ss << "  fi;\n";
+
+  ss << "  if stationary then\n";
+  ss << "    break;\n";
+  ss << "  fi;\n";
+
+  ss << "  orbit_repr:=Minimum(possible_representatives);\n";
+  ss << "od;\n";
+
+  ss << "if HTAdd(orbit_representatives_hash, orbit_repr, true) <> fail then\n";
+  ss << "  Append(orbit_representatives, [orbit_repr]);\n";
+  ss << "fi;\n";
+
+  return ss.str();
+}
+
 std::string map_tasks_gap_iterate(ProfileOptions const &options)
 {
   std::stringstream ss;
@@ -190,12 +223,15 @@ std::string map_tasks_gap(
   }
 
   // concrete code depending on chosen implementation
-  if (options.repr_method.is("iterate"))
+  if (options.repr_method.is("iterate")) {
     ss << map_tasks_gap_iterate(options);
-  else if (options.repr_method.is("orbits"))
+  } else if (options.repr_method.is("orbits")) {
     ss << map_tasks_gap_orbits(options);
-  else
+  } else if (options.repr_method.is("local_search")) {
+    ss << map_tasks_gap_local_search(options);
+  } else {
     throw std::logic_error("unreachable");
+  }
 
   ss << "  n:=n+1;\n";
   ss << "od;\n";
@@ -641,10 +677,6 @@ int main(int argc, char **argv)
   CHECK_OPTION(options.library.is_set(), "--implementation option is mandatory");
 
   CHECK_OPTION(options.repr_method.is_set(), "--repr-method is mandatory");
-
-  CHECK_OPTION(!options.library.is("gap") ||
-               !options.repr_method.is("local_search"),
-               "local_search only supported when using mpsym");
 
   CHECK_OPTION(task_mappings_stream.valid,
                "--task-mappings option is mandatory");
