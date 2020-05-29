@@ -47,7 +47,7 @@ void usage(std::ostream &s)
     "--repr-local-search-append-generators",
     "--repr-local-search-iterations",
     "--repr-local-search-sa-T-init",
-    "[--repr-options {dont_match,dont_optimize_symmetric}]",
+    "[--repr-options {dont_decompose,dont_match,dont_optimize_symmetric}]",
     "[-g|--groups GROUPS]",
     "[-a|--arch-graph ARCH_GRAPH]",
     "[--arch-graph-args ARCH_GRAPH_ARGS]",
@@ -74,7 +74,8 @@ struct ProfileOptions
   VariantOption repr_method{"iterate", "orbits", "local_search"};
   VariantOption repr_variant{
     "local_search_bfs", "local_search_dfs", "local_search_sa_linear"};
-  VariantOptionSet repr_options{"dont_match", "dont_optimize_symmetric"};
+  VariantOptionSet repr_options{
+    "dont_decompose", "dont_match", "dont_optimize_symmetric"};
 
   bool repr_local_search_invert_generators = false;
   unsigned repr_local_search_append_generators = 0u;
@@ -498,7 +499,9 @@ void do_profile(Stream &automorphisms_stream,
     ags = ArchGraphSystem::from_lua(arch_graph, options.arch_graph_args);
     ags_check = ags;
 
-    if (options.dont_decompose_arch_graph) {
+    if (options.dont_decompose_arch_graph ||
+        options.repr_options.is_set("dont_decompose")) {
+
       if (options.verbosity > 0)
         debug("Determining automorphisms");
 
