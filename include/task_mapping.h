@@ -26,6 +26,10 @@ public:
   : std::vector<unsigned>(tasks)
   {}
 
+  explicit TaskMapping(std::vector<unsigned> tasks)
+  : std::vector<unsigned>(tasks)
+  {}
+
   bool less_than(TaskMapping const other) const
   {
     assert(size() == other.size());

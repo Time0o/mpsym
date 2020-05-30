@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_set>
 
 #include "bsgs.h"
 #include "partial_perm_inverse_semigroup.h"
@@ -77,8 +78,19 @@ public:
     _automorphisms_is_shifted_symmetric_valid = false;
   }
 
-  BSGS::order_type num_automorphisms(AutomorphismOptions const *options = nullptr)
+  BSGS::order_type num_automorphisms(
+    AutomorphismOptions const *options = nullptr)
   { return num_automorphisms_(options); }
+
+  unsigned num_automorphism_orbits(
+    unsigned num_tasks,
+    bool unique_tasks,
+    AutomorphismOptions const *options = nullptr);
+
+  std::vector<unsigned> automorphism_orbit_sizes(
+    unsigned num_tasks,
+    bool unique_tasks,
+    AutomorphismOptions const *options = nullptr);
 
   PermGroup automorphisms(AutomorphismOptions const *options = nullptr)
   {
@@ -171,6 +183,9 @@ private:
                                  unsigned task_min,
                                  unsigned task_max,
                                  ReprOptions const *options);
+
+  TaskMapping random_task_mapping(unsigned num_tasks, bool unique_tasks);
+  std::unordered_set<TaskMapping> task_mapping_orbit(TaskMapping const &tasks);
 
   PermGroup _automorphisms;
   bool _automorphisms_valid = false;

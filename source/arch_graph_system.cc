@@ -1,7 +1,9 @@
 #include <algorithm>
 #include <functional>
+#include <limits>
 #include <numeric>
 #include <queue>
+#include <random>
 #include <stdexcept>
 #include <type_traits>
 #include <unordered_set>
@@ -18,8 +20,127 @@
 #include "task_orbits.h"
 #include "util.h"
 
+using boost::multiprecision::pow;
+
 namespace mpsym
 {
+
+unsigned ArchGraphSystem::num_automorphism_orbits(
+  unsigned num_tasks,
+  bool unique_tasks,
+  AutomorphismOptions const *options)
+{
+  auto automs(automorphisms(options));
+
+  BSGS::order_type ret = 0;
+
+  for (Perm const &perm : automs) {
+    unsigned pes_fixed = 0u;
+    for (unsigned pe = 1u; pe <= automs.degree(); ++pe) {
+      if (perm[pe] == pe)
+        ++pes_fixed;
+    }
+
+    if (unique_tasks) {
+      if (pes_fixed < num_tasks)
+        continue;
+
+      BSGS::order_type task_mappings_moved = 1;
+      for (unsigned n = pes_fixed; n > pes_fixed - num_tasks; --n)
+        task_mappings_moved *= n;
+
+      ret += task_mappings_moved;
+
+    } else {
+      ret += pow(static_cast<BSGS::order_type>(pes_fixed), num_tasks);
+    }
+  }
+
+  ret /= automs.order();
+
+  if (ret > std::numeric_limits<unsigned>::max())
+    throw std::runtime_error("orbit size limit reached");
+
+  return static_cast<unsigned>(ret);
+}
+
+std::vector<unsigned> ArchGraphSystem::automorphism_orbit_sizes(
+  unsigned num_tasks,
+  bool unique_tasks,
+  AutomorphismOptions const *options)
+{
+  auto automs(automorphisms(options));
+
+  // number of orbits
+  auto num_orbits(num_automorphism_orbits(num_tasks, unique_tasks, options));
+
+  // number of processing element indices stabilized by all automorphisms
+  std::vector<int> stabilized(automs.degree(), 1);
+  for (Perm const &perm : automs) {
+    for (unsigned p = 1u; p <= automs.degree(); ++p) {
+      if (stabilized[p - 1u] && perm[p] != p)
+        stabilized[p - 1u] = 0;
+    }
+  }
+
+  unsigned num_stabilized =
+    std::accumulate(stabilized.begin(), stabilized.end(), 0u);
+
+  // number of singular orbits
+  BSGS::order_type num_singular_orbits = 0;
+
+  if (unique_tasks) {
+    if (num_stabilized > num_tasks) {
+      num_singular_orbits = 1;
+      for (unsigned n = num_stabilized; n > num_stabilized - num_tasks; --n)
+        num_singular_orbits *= n;
+    }
+  } else {
+    num_singular_orbits = pow(static_cast<BSGS::order_type>(num_stabilized), num_tasks);
+  }
+
+  // find all non singular orbits
+  std::vector<std::unordered_set<TaskMapping>> non_singular_orbits;
+
+  try {
+    while (non_singular_orbits.size() < num_orbits - num_singular_orbits) {
+      TaskMapping next_representative;
+
+      for (;;) {
+        next_representative = random_task_mapping(num_tasks, unique_tasks);
+
+        bool new_orbit = true;
+        for (auto const &orbit : non_singular_orbits) {
+          if (orbit.find(next_representative) != orbit.end()) {
+            new_orbit = false;
+            break;
+          }
+        }
+
+        if (new_orbit)
+          break;
+      }
+
+      auto orbit(task_mapping_orbit(next_representative));
+
+      if (orbit.size() > 1u)
+        non_singular_orbits.emplace_back(std::move(orbit));
+    }
+  } catch (std::bad_alloc const &) {
+    non_singular_orbits.clear();
+    non_singular_orbits.shrink_to_fit();
+
+    return {};
+  }
+
+  std::vector<unsigned> ret(num_orbits, 1u);
+  for (auto i = 0u; i < non_singular_orbits.size(); ++i)
+    ret[i] = non_singular_orbits[i].size();
+
+  std::sort(ret.begin(), ret.end());
+
+  return ret;
+}
 
 TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
                                    TaskOrbits *orbits,
@@ -116,8 +237,8 @@ TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
     if (current.less_than(representative))
       representative = current;
 
-    for (Perm const &generator : gens) {
-      TaskMapping next(current.permuted(generator, options->offset));
+    for (Perm const &gen : gens) {
+      TaskMapping next(current.permuted(gen, options->offset));
 
       if (is_repr(next, orbits, options))
         return next;
@@ -143,13 +264,13 @@ TaskMapping ArchGraphSystem::min_elem_local_search(TaskMapping const &tasks,
   for (;;) {
     bool stationary = true;
 
-    for (Perm const &generator : gens) {
-      if (representative.less_than(representative, generator, options->offset)) {
+    for (Perm const &gen : gens) {
+      if (representative.less_than(representative, gen, options->offset)) {
         if (options->variant == ReprVariant::LOCAL_SEARCH_BFS) {
           possible_representatives.push_back(
-            representative.permuted(generator, options->offset));
+            representative.permuted(gen, options->offset));
         } else {
-          representative.permute(generator, options->offset);
+          representative.permute(gen, options->offset);
         }
 
         stationary = false;
@@ -313,6 +434,60 @@ TaskMapping ArchGraphSystem::min_elem_symmetric(TaskMapping const &tasks,
   }
 
   return representative;
+}
+
+TaskMapping ArchGraphSystem::random_task_mapping(unsigned num_tasks,
+                                                 bool unique_tasks)
+{
+  static auto re(util::random_engine());
+
+  auto automs(automorphisms());
+
+  std::uniform_int_distribution<unsigned> d(1u, automs.degree());
+
+  std::vector<unsigned> tasks(num_tasks);
+  std::vector<int> included(automs.degree(), 0);
+
+  for (unsigned &task : tasks) {
+    do {
+      task = d(re);
+    } while (unique_tasks && included[task - 1u]);
+
+    included[task - 1u] = 1;
+  }
+
+  return TaskMapping(tasks);
+}
+
+std::unordered_set<TaskMapping> ArchGraphSystem::task_mapping_orbit(
+  TaskMapping const &tasks)
+{
+  auto automs(automorphisms());
+  auto gens(automs.generators());
+
+  std::unordered_set<TaskMapping> unprocessed, orbit;
+
+  unprocessed.insert(tasks);
+
+  while (!unprocessed.empty()) {
+    auto it(unprocessed.begin());
+    TaskMapping current(*it);
+    unprocessed.erase(it);
+
+    if (orbit.size() == std::numeric_limits<unsigned>::max())
+      throw std::runtime_error("orbit size limit reached");
+
+    orbit.insert(current);
+
+    for (Perm const &generator : gens) {
+      TaskMapping next(current.permuted(generator));
+
+      if (orbit.find(next) == orbit.end())
+        unprocessed.insert(next);
+    }
+  }
+
+  return orbit;
 }
 
 } // namespace mpsym
