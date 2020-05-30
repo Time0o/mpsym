@@ -102,14 +102,14 @@ TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
 
   TaskMapping representative(tasks);
 
-  std::unordered_set<TaskMapping> processed;
-  std::queue<TaskMapping> unprocessed;
+  std::unordered_set<TaskMapping> unprocessed, processed;
 
-  unprocessed.push(tasks);
+  unprocessed.insert(tasks);
 
   while (!unprocessed.empty()) {
-    TaskMapping current(unprocessed.front());
-    unprocessed.pop();
+    auto it(unprocessed.begin());
+    TaskMapping current(*it);
+    unprocessed.erase(it);
 
     processed.insert(current);
 
@@ -122,7 +122,7 @@ TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
       if (is_repr(next, orbits, options))
         return next;
       else if (processed.find(next) == processed.end())
-        unprocessed.push(next);
+        unprocessed.insert(next);
     }
   }
 
