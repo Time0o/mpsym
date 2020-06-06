@@ -1,4 +1,5 @@
 #include <functional>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -330,6 +331,21 @@ std::shared_ptr<mpsym::ArchGraphSystem> lua_make_arch_graph_system(lua_State *L)
 
 namespace mpsym
 {
+
+std::shared_ptr<ArchGraphSystem> ArchGraphSystem::from_lua_file(
+  std::string const &lua_file,
+  std::vector<std::string> const &args)
+{
+  std::ifstream lua_stream(lua_file);
+
+  if (!lua_stream)
+    throw std::runtime_error("failed to read lua file");
+
+  std::string lua((std::istreambuf_iterator<char>(lua_stream)),
+                   std::istreambuf_iterator<char>());
+
+  return from_lua(lua, args);
+}
 
 std::shared_ptr<ArchGraphSystem> ArchGraphSystem::from_lua(
   std::string const &lua,

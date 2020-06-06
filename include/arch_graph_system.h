@@ -52,6 +52,10 @@ public:
     double local_search_sa_T_init = 1.0;
   };
 
+  static std::shared_ptr<ArchGraphSystem> from_lua_file(
+    std::string const &lua_file,
+    std::vector<std::string> const &args = {});
+
   static std::shared_ptr<ArchGraphSystem> from_lua(
     std::string const &lua,
     std::vector<std::string> const &args = {});
