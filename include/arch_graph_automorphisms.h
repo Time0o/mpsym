@@ -21,8 +21,13 @@ public:
   std::string to_gap() const override
   {
     std::stringstream ss;
-    ss << "Group(" << _automorphisms.generators() << ")";
-    return ss.str();
+    ss << _automorphisms.generators();
+
+    auto generators_str(ss.str());
+    generators_str.front() = '[';
+    generators_str.back() = ']';
+
+    return "Group(" + generators_str + ")";
   }
 
 private:
