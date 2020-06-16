@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cerrno>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -8,6 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -48,15 +50,20 @@ private:
   std::ofstream _f;
 };
 
-std::string build_script(std::initializer_list<std::string> packages,
-                         std::string const &script,
-                         unsigned num_discarded_runs,
-                         unsigned num_runs)
+std::string build_script(
+  std::initializer_list<std::string> packages,
+  std::initializer_list<std::tuple<std::string, std::string, bool>> preloads,
+  std::string const &script,
+  unsigned num_discarded_runs,
+  unsigned num_runs)
 {
   std::stringstream ss;
 
   for (auto const &package : packages)
     ss << "LoadPackage(\"" << package << "\");\n";
+
+  for (auto const &preload : preloads)
+    ss << "Read(\"" << std::get<0>(preload) << "\");\n";
 
   ss << "_ts:=[];\n";
   ss << "for _r in [1.." << num_discarded_runs + num_runs << "] do\n";
@@ -259,17 +266,27 @@ std::vector<std::string> parse_output(std::string const &output_,
 namespace profile
 {
 
-std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
-                                 std::string const &script,
-                                 unsigned num_discarded_runs,
-                                 unsigned num_runs,
-                                 bool hide_output,
-                                 bool hide_errors,
-                                 std::vector<double> *ts)
+std::vector<std::string> run_gap(
+  std::initializer_list<std::string> packages,
+  std::initializer_list<std::tuple<std::string, std::string, bool>> preloads,
+  std::string const &script,
+  unsigned num_discarded_runs,
+  unsigned num_runs,
+  bool hide_output,
+  bool hide_errors,
+  bool compile,
+  std::vector<double> *ts)
 {
+  // create preload files
+
+  for (auto const &preload : preloads)
+    std::ofstream(std::get<0>(preload)) << std::get<1>(preload);
+
   // create temporary gap script
 
-  TmpFile f(build_script(packages, script, num_discarded_runs, num_runs));
+  TmpFile f(build_script(packages, preloads, script, num_discarded_runs, num_runs));
+
+  (void) compile; // TODO
 
   // create pipe for capturing gaps output
 
@@ -286,7 +303,12 @@ std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
     hide_output,
     hide_errors));
 
-  // parse output
+  // delete preloads files
+
+  for (auto const &preload : preloads)
+    std::remove(std::get<0>(preload).c_str());
+
+  // parse and return output
 
   return parse_output(output, num_runs, ts);
 }

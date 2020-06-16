@@ -194,25 +194,14 @@ fi;
   return ret;
 }
 
-std::string map_tasks_gap(
-  gap::PermGroup const &automorphisms,
-  gap::TaskMappingVector const &task_mappings,
-  ProfileOptions const &options)
+std::string map_tasks_gap(ProfileOptions const &options)
 {
   std::stringstream ss;
-
-  // construct the automorphism group
-  ss << "automorphisms:=" << automorphisms << ";\n";
 
   if (options.verbosity > 0)
     ss << "Print(\"DEBUG: Constructing BSGS\\n\");\n";
 
   ss << "StabChain(automorphisms);\n";
-
-  // construct the vector of task mappings to be mapped
-  ss << "task_mappings:=[\n";
-  ss << task_mappings;
-  ss << "];\n";
 
   ss << "orbit_representatives:=[];\n";
   ss << "orbit_representatives_hash:=HTCreate([1,2,3]);\n";
@@ -340,16 +329,19 @@ void map_tasks_gap_wrapper(gap::PermGroup const &automorphisms,
 
   // run gap script
 
-  auto gap_script(map_tasks_gap(automorphisms,
-                                task_mappings,
-                                options));
+  auto gap_automorphisms("automorphisms:=" + automorphisms + ";");
+  auto gap_task_mappings("task_mappings:=[\n" + task_mappings + "\n];");
+  auto gap_script(map_tasks_gap(options));
 
   auto gap_output(run_gap({"orb", "grape"},
+                          {{"automorphisms.g", gap_automorphisms, false},
+                           {"task_mappings.g", gap_task_mappings, false}},
                           gap_script,
                           options.num_discarded_runs,
                           options.num_runs,
                           options.verbosity == 0,
                           !options.show_gap_errors,
+                          false, // TODO: command line option
                           ts));
 
   // parse output

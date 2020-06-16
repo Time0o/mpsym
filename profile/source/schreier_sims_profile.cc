@@ -212,11 +212,13 @@ std::vector<double> run_groups(unsigned degree,
     auto generators_gap(parse_generators_gap(degree, generators));
 
     run_gap({},
+            {},
             make_perm_group_gap(generators_gap, options),
             options.num_discarded_runs,
             options.num_runs,
             options.verbose,
             !options.show_gap_errors,
+            false, // TODO: command line option
             &ts);
 
   } else if (options.implementation.is("mpsym")) {
@@ -261,11 +263,13 @@ std::vector<double> run_arch_graph(std::string const &arch_graph,
                     "Print(GeneratorsOfGroup(G), \";\\n\");\n");
 
     auto gap_output(run_gap({"grape"},
+                            {},
                             gap_script,
                             options.num_discarded_runs,
                             options.num_runs,
                             true,
                             !options.show_gap_errors,
+                            false, // TODO: command line option
                             &ts));
 
     num_automorphisms = cpp_int(gap_output[0]);

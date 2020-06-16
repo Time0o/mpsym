@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 #include "profile_timer.h"
 #include "profile_util.h"
@@ -13,13 +14,16 @@
 namespace profile
 {
 
-std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
-                                 std::string const &script,
-                                 unsigned num_discarded_runs,
-                                 unsigned num_runs,
-                                 bool hide_output,
-                                 bool hide_errors,
-                                 std::vector<double> *ts = nullptr);
+std::vector<std::string> run_gap(
+  std::initializer_list<std::string> packages,
+  std::initializer_list<std::tuple<std::string, std::string, bool>> preloads,
+  std::string const &script,
+  unsigned num_discarded_runs,
+  unsigned num_runs,
+  bool hide_output = false,
+  bool hide_errors = false,
+  bool compile = false,
+  std::vector<double> *ts = nullptr);
 
 // TODO: use invoke_result instead
 template<typename FUNC>
