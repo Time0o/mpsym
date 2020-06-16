@@ -27,12 +27,18 @@ namespace
 class TmpFile
 {
 public:
-  TmpFile(std::string const &content)
+  TmpFile(std::string const &content, std::string const &fname = "")
+  : _fname(fname)
   {
-    if (mkstemp(name) == -1)
-      throw std::runtime_error("failed to create temporary file");
+    if (_fname.empty()) {
+      char tmpname[6] = {'X', 'X', 'X', 'X', 'X', 'X'};
+      if (mkstemp(tmpname) == -1)
+        throw std::runtime_error("failed to create temporary file");
 
-    _f = std::ofstream(name);
+      _fname = tmpname;
+    }
+
+    _f = std::ofstream(name());
 
     if (_f.fail())
       throw std::runtime_error("failed to create temporary file");
@@ -42,20 +48,35 @@ public:
   }
 
   ~TmpFile()
-  { std::remove(name); }
+  {
+    if (_valid)
+      std::remove(name());
+  }
 
-  char name[6] = {'X', 'X', 'X', 'X', 'X', 'X'};
+  TmpFile(TmpFile const &) = delete;
+  TmpFile & operator=(TmpFile const &) = delete;
+
+  TmpFile(TmpFile &&other)
+  : _f(std::move(other._f)),
+    _fname(std::move(other._fname))
+  { other._valid = false; }
+
+  TmpFile & operator=(TmpFile &&) = delete;
+
+  char const *name()
+  { return _fname.c_str(); }
 
 private:
   std::ofstream _f;
+  std::string _fname;
+  bool _valid = true;
 };
 
-std::string build_script(
+using Preload = std::tuple<std::string, std::string, bool>;
+
+std::string build_load_script(
   std::initializer_list<std::string> packages,
-  std::initializer_list<std::tuple<std::string, std::string, bool>> preloads,
-  std::string const &script,
-  unsigned num_discarded_runs,
-  unsigned num_runs)
+  std::initializer_list<Preload> preloads)
 {
   std::stringstream ss;
 
@@ -64,6 +85,20 @@ std::string build_script(
 
   for (auto const &preload : preloads)
     ss << "Read(\"" << std::get<0>(preload) << "\");\n";
+
+  return ss.str();
+}
+
+std::string build_script(
+  std::initializer_list<std::string> packages,
+  std::initializer_list<Preload> preloads,
+  std::string const &script,
+  unsigned num_discarded_runs,
+  unsigned num_runs)
+{
+  std::stringstream ss;
+
+  ss << build_load_script(packages, preloads);
 
   ss << "_ts:=[];\n";
   ss << "for _r in [1.." << num_discarded_runs + num_runs << "] do\n";
@@ -75,6 +110,20 @@ std::string build_script(
   ss << "od;\n";
   ss << "Print(\"RESULT: \", _ts, \"\\n\");\n";
   ss << "Print(\"END\\n\");\n";
+
+  return ss.str();
+}
+
+std::string build_wrapper_script(
+  std::initializer_list<std::string> packages,
+  std::initializer_list<Preload> preloads,
+  std::string lib)
+{
+  std::stringstream ss;
+
+  ss << build_load_script(packages, preloads);
+
+  ss << "LoadDynamicModule(\"" << lib << "\");";
 
   return ss.str();
 }
@@ -164,15 +213,18 @@ std::string run_in_child(FUNC &&f,
       if (output_pipe)
         connect_stream(STDOUT_FILENO, output_pipe);
 
-      // hide stderr
-      if (hide_stderr) {
-        int dev_null = open("/dev/null", O_WRONLY);
+      // hide stdout/stderr
+      int dev_null = open("/dev/null", O_WRONLY);
 
-        if (dev_null != -1)
+      if (dev_null != -1) {
+        if (!output_pipe && hide_stdout)
+          redirect_stream(STDOUT_FILENO, dev_null);
+
+        if (hide_stderr)
           redirect_stream(STDERR_FILENO, dev_null);
-
-        close(dev_null);
       }
+
+      close(dev_null);
 
       // run function in child process
       if (f() == -1)
@@ -268,7 +320,7 @@ namespace profile
 
 std::vector<std::string> run_gap(
   std::initializer_list<std::string> packages,
-  std::initializer_list<std::tuple<std::string, std::string, bool>> preloads,
+  std::initializer_list<Preload> preloads,
   std::string const &script,
   unsigned num_discarded_runs,
   unsigned num_runs,
@@ -278,38 +330,64 @@ std::vector<std::string> run_gap(
   std::vector<double> *ts)
 {
   // create preload files
-
+  std::vector<TmpFile> f_preloads;
   for (auto const &preload : preloads)
-    std::ofstream(std::get<0>(preload)) << std::get<1>(preload);
+    f_preloads.emplace_back(std::get<1>(preload), std::get<0>(preload));
 
-  // create temporary gap script
+  // create gap script
+  std::string script_main;
 
-  TmpFile f(build_script(packages, preloads, script, num_discarded_runs, num_runs));
+  if (compile) {
+    // TODO: compile preloads
 
-  (void) compile; // TODO
+    // compile script
+    auto script_compiled(build_script({},
+                                      {},
+                                      script,
+                                      num_discarded_runs,
+                                      num_runs));
+
+    TmpFile f_tmp(script_compiled, "compiled.g");
+
+    run_in_child([&]{
+        return execlp("gac", "gac", "-d", "compiled.g", nullptr);
+      },
+      nullptr,
+      true,
+      true);
+
+    // construct main script loading compiled shared object
+    script_main = build_wrapper_script(packages,
+                                       preloads,
+                                       "./compiled.la.so");
+  } else {
+    script_main = build_script(packages,
+                               preloads,
+                               script,
+                               num_discarded_runs,
+                               num_runs);
+  }
+
+  TmpFile f_script(script_main, "script.g");
 
   // create pipe for capturing gaps output
-
   int output_pipe[2];
   if (pipe(output_pipe) == -1)
     throw std::runtime_error("failed to create pipe");
 
   // run gap in a child process
-
   auto output(run_in_child([&]{
-      return execlp("gap", "gap", "--nointeract", "-q", f.name, nullptr);
+      return execlp("gap", "gap", "--nointeract", "-q", "script.g", nullptr);
     },
     output_pipe,
     hide_output,
     hide_errors));
 
-  // delete preloads files
-
-  for (auto const &preload : preloads)
-    std::remove(std::get<0>(preload).c_str());
+  // remove compiled shared object
+  if (compile)
+    std::remove("compiled.la.so");
 
   // parse and return output
-
   return parse_output(output, num_runs, ts);
 }
 

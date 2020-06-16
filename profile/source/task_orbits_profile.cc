@@ -60,6 +60,7 @@ void usage(std::ostream &s)
     "[-c|--check-accuracy-gap]",
     "[--check-accuracy-mpsym]",
     "[-v|--verbose]",
+    "[--compile-gap]",
     "[--show-gap-errors]"
   };
 
@@ -93,6 +94,7 @@ struct ProfileOptions
   bool check_accuracy_gap = false;
   bool check_accuracy_mpsym = false;
   int verbosity = 0;
+  bool compile_gap = false;
   bool show_gap_errors = false;
 };
 
@@ -341,7 +343,7 @@ void map_tasks_gap_wrapper(gap::PermGroup const &automorphisms,
                           options.num_runs,
                           options.verbosity == 0,
                           !options.show_gap_errors,
-                          false, // TODO: command line option
+                          options.compile_gap,
                           ts));
 
   // parse output
@@ -573,7 +575,8 @@ int main(int argc, char **argv)
     {"check-accuracy-gap",                  no_argument,       0,       'c'},
     {"check-accuracy-mpsym",                no_argument,       0,        11},
     {"verbose",                             no_argument,       0,       'v'},
-    {"show-gap-errors",                     no_argument,       0,        12},
+    {"compile-gap",                         no_argument,       0,        12},
+    {"show-gap-errors",                     no_argument,       0,        13},
     {nullptr,                               0,                 nullptr,  0 }
   };
 
@@ -660,6 +663,9 @@ int main(int argc, char **argv)
         TIMER_ENABLE();
         break;
       case 12:
+        options.compile_gap = true;
+        break;
+      case 13:
         options.show_gap_errors = true;
         break;
       default:
