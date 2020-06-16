@@ -11,6 +11,8 @@
 
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "profile_run.h"
@@ -84,6 +86,16 @@ void dup_fd(int from, int to)
   }
 }
 
+void connect_stream(int stream, int *pipe)
+{
+  dup_fd(pipe[1], stream);
+  close(pipe[1]);
+  close(pipe[0]);
+}
+
+void redirect_stream(int stream, int to)
+{ dup_fd(to, stream); }
+
 std::string read_output(int from, bool echo)
 {
   static char buf[256];
@@ -126,6 +138,66 @@ std::string read_output(int from, bool echo)
   }
 
   return res;
+}
+
+template<typename FUNC>
+std::string run_in_child(FUNC &&f,
+                         int *output_pipe = nullptr,
+                         bool hide_stdout = false,
+                         bool hide_stderr = false)
+{
+  // fork child process
+  pid_t child;
+  switch ((child = fork())) {
+  case -1:
+    throw std::runtime_error("failed to fork child process");
+  case 0:
+    {
+      // connect stdout/stderr pipes
+      if (output_pipe)
+        connect_stream(STDOUT_FILENO, output_pipe);
+
+      // hide stderr
+      if (hide_stderr) {
+        int dev_null = open("/dev/null", O_WRONLY);
+
+        if (dev_null != -1)
+          redirect_stream(STDERR_FILENO, dev_null);
+
+        close(dev_null);
+      }
+
+      // run function in child process
+      if (f() == -1)
+        _Exit(EXIT_FAILURE);
+    }
+  }
+
+  // read output
+  std::string output;
+
+  if (output_pipe) {
+    output = read_output(output_pipe[0], !hide_stdout);
+
+    if (!hide_stdout)
+      std::cout << std::endl;
+
+    close(output_pipe[1]);
+    close(output_pipe[0]);
+  } else {
+    output = "";
+  }
+
+  // check child process exit status
+  int status;
+  if (waitpid(child, &status, 0) == -1)
+    throw std::runtime_error("waitpid failed");
+
+  if (!WIFEXITED(status))
+    throw std::runtime_error("child process did not terminate normally");
+
+  // return output
+  return output;
 }
 
 std::string clean_output(std::string const &output)
@@ -201,40 +273,20 @@ std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
 
   // create pipe for capturing gaps output
 
-  int fds[2];
-  if (pipe(fds) == -1)
+  int output_pipe[2];
+  if (pipe(output_pipe) == -1)
     throw std::runtime_error("failed to create pipe");
 
   // run gap in a child process
 
-  pid_t child;
-  switch ((child = fork())) {
-  case -1:
-    throw std::runtime_error("failed to fork child process");
-  case 0:
-    {
-      dup_fd(fds[1], STDOUT_FILENO);
-
-      close(fds[1]);
-      close(fds[0]);
-
-      if (hide_errors) {
-        int dev_null = open("/dev/null", O_WRONLY);
-        if (dev_null != -1)
-          dup_fd(dev_null, STDERR_FILENO);
-      }
-
-      if (execlp("gap", "gap", "--nointeract", "-q", f.name, nullptr) == -1)
-        _Exit(EXIT_FAILURE);
-    }
-  }
+  auto output(run_in_child([&]{
+      return execlp("gap", "gap", "--nointeract", "-q", f.name, nullptr);
+    },
+    output_pipe,
+    hide_output,
+    hide_errors));
 
   // parse output
-
-  auto output(read_output(fds[0], !hide_output));
-
-  close(fds[1]);
-  close(fds[0]);
 
   return parse_output(output, num_runs, ts);
 }
