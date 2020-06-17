@@ -67,7 +67,7 @@ private:
 
 inline std::ostream &operator<<(std::ostream &os, Orbit const &o)
 {
-  os << DUMP(static_cast<std::vector<unsigned> const &>(o), "{}");
+  os << DUMP_CUSTOM(static_cast<std::vector<unsigned> const &>(o), "{}");
   return os;
 }
 
@@ -118,7 +118,7 @@ private:
 
 inline std::ostream &operator<<(std::ostream &os, OrbitPartition const &op)
 {
-  os << DUMP(op._partitions, "{}");
+  os << DUMP_CUSTOM(op._partitions, "{}");
   return os;
 }
 

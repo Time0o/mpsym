@@ -548,7 +548,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_from_representatives(
 
 std::ostream &operator<<(std::ostream &os, BlockSystem const &bs)
 {
-  os << DUMP(bs._blocks, "{}", "{}");
+  os << DUMP_CUSTOM(bs._blocks, "{}", "{}");
   return os;
 }
 

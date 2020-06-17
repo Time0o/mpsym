@@ -123,7 +123,8 @@ std::ostream &operator<<(std::ostream &os, Dumper<T> const &dumper)
 
 } // namespace dump
 
-#define DUMP(obj, ...) dump::make_dumper(obj, { __VA_ARGS__ })
+#define DUMP(obj) dump::make_dumper(obj)
+#define DUMP_CUSTOM(obj, ...) dump::make_dumper(obj, { __VA_ARGS__ })
 
 //template<typename T>
 
