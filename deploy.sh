@@ -1,7 +1,7 @@
 #!/bin/bash
 
 USER_NAME="Time0o"
-REPO_NAME="TUD_computational_group_theory"
+REPO_NAME="mpsym"
 REPO_URL="github.com/$USER_NAME/$REPO_NAME.git"
 
 if [ "${MATRIX_EVAL}" == "CC=gcc-7 && CXX=g++-7" ]; then
