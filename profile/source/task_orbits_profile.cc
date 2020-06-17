@@ -60,6 +60,7 @@ void usage(std::ostream &s)
     "[-c|--check-accuracy-gap]",
     "[--check-accuracy-mpsym]",
     "[-v|--verbose]",
+    "[--compile-gap]",
     "[--show-gap-errors]"
   };
 
@@ -93,6 +94,7 @@ struct ProfileOptions
   bool check_accuracy_gap = false;
   bool check_accuracy_mpsym = false;
   int verbosity = 0;
+  bool compile_gap = false;
   bool show_gap_errors = false;
 };
 
@@ -194,25 +196,14 @@ fi;
   return ret;
 }
 
-std::string map_tasks_gap(
-  gap::PermGroup const &automorphisms,
-  gap::TaskMappingVector const &task_mappings,
-  ProfileOptions const &options)
+std::string map_tasks_gap(ProfileOptions const &options)
 {
   std::stringstream ss;
-
-  // construct the automorphism group
-  ss << "automorphisms:=" << automorphisms << ";\n";
 
   if (options.verbosity > 0)
     ss << "Print(\"DEBUG: Constructing BSGS\\n\");\n";
 
   ss << "StabChain(automorphisms);\n";
-
-  // construct the vector of task mappings to be mapped
-  ss << "task_mappings:=[\n";
-  ss << task_mappings;
-  ss << "];\n";
 
   ss << "orbit_representatives:=[];\n";
   ss << "orbit_representatives_hash:=HTCreate([1,2,3]);\n";
@@ -340,16 +331,19 @@ void map_tasks_gap_wrapper(gap::PermGroup const &automorphisms,
 
   // run gap script
 
-  auto gap_script(map_tasks_gap(automorphisms,
-                                task_mappings,
-                                options));
+  auto gap_automorphisms("automorphisms:=" + automorphisms + ";");
+  auto gap_task_mappings("task_mappings:=[\n" + task_mappings + "\n];");
+  auto gap_script(map_tasks_gap(options));
 
   auto gap_output(run_gap({"orb", "grape"},
+                          {{"automorphisms", gap_automorphisms, options.compile_gap},
+                           {"task_mappings", gap_task_mappings, false}},
                           gap_script,
                           options.num_discarded_runs,
                           options.num_runs,
                           options.verbosity == 0,
                           !options.show_gap_errors,
+                          options.compile_gap,
                           ts));
 
   // parse output
@@ -581,7 +575,8 @@ int main(int argc, char **argv)
     {"check-accuracy-gap",                  no_argument,       0,       'c'},
     {"check-accuracy-mpsym",                no_argument,       0,        11},
     {"verbose",                             no_argument,       0,       'v'},
-    {"show-gap-errors",                     no_argument,       0,        12},
+    {"compile-gap",                         no_argument,       0,        12},
+    {"show-gap-errors",                     no_argument,       0,        13},
     {nullptr,                               0,                 nullptr,  0 }
   };
 
@@ -668,6 +663,9 @@ int main(int argc, char **argv)
         TIMER_ENABLE();
         break;
       case 12:
+        options.compile_gap = true;
+        break;
+      case 13:
         options.show_gap_errors = true;
         break;
       default:

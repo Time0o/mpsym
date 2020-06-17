@@ -56,6 +56,7 @@ void usage(std::ostream &s)
     "[--num-discarded-runs NUM_DISCARDED_RUNS]",
     "[--summarize-runs]",
     "[-v|--verbose]",
+    "[--compile-gap]",
     "[--show-gap-errors]"
   };
 
@@ -87,6 +88,7 @@ struct ProfileOptions
   unsigned num_discarded_runs = 0u;
   bool summarize_runs = false;
   bool verbose = false;
+  bool compile_gap = false;
   bool show_gap_errors = false;
 };
 
@@ -212,11 +214,13 @@ std::vector<double> run_groups(unsigned degree,
     auto generators_gap(parse_generators_gap(degree, generators));
 
     run_gap({},
+            {},
             make_perm_group_gap(generators_gap, options),
             options.num_discarded_runs,
             options.num_runs,
             options.verbose,
             !options.show_gap_errors,
+            options.compile_gap,
             &ts);
 
   } else if (options.implementation.is("mpsym")) {
@@ -261,11 +265,13 @@ std::vector<double> run_arch_graph(std::string const &arch_graph,
                     "Print(GeneratorsOfGroup(G), \";\\n\");\n");
 
     auto gap_output(run_gap({"grape"},
+                            {},
                             gap_script,
                             options.num_discarded_runs,
                             options.num_runs,
                             true,
                             !options.show_gap_errors,
+                            options.compile_gap,
                             &ts));
 
     num_automorphisms = cpp_int(gap_output[0]);
@@ -395,7 +401,8 @@ int main(int argc, char **argv)
     {"num-discarded-runs",  required_argument, 0,        3 },
     {"summarize-runs",      no_argument, 0,              4 },
     {"verbose",             no_argument,       0,       'v'},
-    {"show-gap-errors",     no_argument,       0,        5 },
+    {"compile-gap",         no_argument,       0,        5 },
+    {"show-gap-errors",     no_argument,       0,        6 },
     {nullptr,               0,                 nullptr,  0 }
   };
 
@@ -454,6 +461,9 @@ int main(int argc, char **argv)
         TIMER_ENABLE();
         break;
       case 5:
+        options.compile_gap = true;
+        break;
+      case 6:
         options.show_gap_errors = true;
         break;
       default:

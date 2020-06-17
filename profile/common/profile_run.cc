@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cerrno>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -8,9 +9,12 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "profile_run.h"
@@ -23,12 +27,20 @@ namespace
 class TmpFile
 {
 public:
-  TmpFile(std::string const &content)
+  TmpFile(std::string const &content, std::string const &fname = "")
+  : _fname(fname)
   {
-    if (mkstemp(name) == -1)
-      throw std::runtime_error("failed to create temporary file");
+    if (_fname.empty()) {
+      char tmpname[6] = {'X', 'X', 'X', 'X', 'X', 'X'};
+      if (mkstemp(tmpname) == -1)
+        throw std::runtime_error("failed to create temporary file");
 
-    _f = std::ofstream(name);
+      _fname = tmpname;
+    }
+
+    _fname += ".g";
+
+    _f = std::ofstream(name());
 
     if (_f.fail())
       throw std::runtime_error("failed to create temporary file");
@@ -38,23 +50,64 @@ public:
   }
 
   ~TmpFile()
-  { std::remove(name); }
+  {
+    if (_valid)
+      std::remove(name());
+  }
 
-  char name[6] = {'X', 'X', 'X', 'X', 'X', 'X'};
+  TmpFile(TmpFile const &) = delete;
+  TmpFile & operator=(TmpFile const &) = delete;
+
+  TmpFile(TmpFile &&other)
+  : _f(std::move(other._f)),
+    _fname(std::move(other._fname))
+  { other._valid = false; }
+
+  TmpFile & operator=(TmpFile &&) = delete;
+
+  char const *name()
+  { return _fname.c_str(); }
 
 private:
   std::ofstream _f;
+  std::string _fname;
+  bool _valid = true;
 };
 
-std::string build_script(std::initializer_list<std::string> packages,
-                         std::string const &script,
-                         unsigned num_discarded_runs,
-                         unsigned num_runs)
+using Preload = std::tuple<std::string, std::string, bool>;
+
+std::string build_load_script(
+  std::initializer_list<std::string> packages,
+  std::initializer_list<Preload> preloads)
 {
   std::stringstream ss;
 
   for (auto const &package : packages)
     ss << "LoadPackage(\"" << package << "\");\n";
+
+  for (auto const &preload : preloads) {
+    std::string preload_file(std::get<0>(preload));
+    bool preload_compile = std::get<2>(preload);
+
+    if (preload_compile)
+      ss << "LoadDynamicModule(\"./" << preload_file << ".la.so" << "\");\n";
+    else
+      ss << "Read(\"" << preload_file << ".g" << "\");\n";
+  }
+
+  return ss.str();
+}
+
+std::string build_script(
+  std::initializer_list<std::string> packages,
+  std::initializer_list<Preload> preloads,
+  std::string const &script,
+  unsigned num_discarded_runs,
+  unsigned num_runs)
+{
+  std::stringstream ss;
+
+  ss << build_load_script(packages, preloads);
 
   ss << "_ts:=[];\n";
   ss << "for _r in [1.." << num_discarded_runs + num_runs << "] do\n";
@@ -66,6 +119,20 @@ std::string build_script(std::initializer_list<std::string> packages,
   ss << "od;\n";
   ss << "Print(\"RESULT: \", _ts, \"\\n\");\n";
   ss << "Print(\"END\\n\");\n";
+
+  return ss.str();
+}
+
+std::string build_wrapper_script(
+  std::initializer_list<std::string> packages,
+  std::initializer_list<Preload> preloads,
+  std::string lib)
+{
+  std::stringstream ss;
+
+  ss << build_load_script(packages, preloads);
+
+  ss << "LoadDynamicModule(\"./" << lib << ".la.so" << "\");";
 
   return ss.str();
 }
@@ -83,6 +150,16 @@ void dup_fd(int from, int to)
     }
   }
 }
+
+void connect_stream(int stream, int *pipe)
+{
+  dup_fd(pipe[1], stream);
+  close(pipe[1]);
+  close(pipe[0]);
+}
+
+void redirect_stream(int stream, int to)
+{ dup_fd(to, stream); }
 
 std::string read_output(int from, bool echo)
 {
@@ -126,6 +203,89 @@ std::string read_output(int from, bool echo)
   }
 
   return res;
+}
+
+template<typename FUNC>
+std::string run_in_child(FUNC &&f,
+                         int *output_pipe = nullptr,
+                         bool hide_stdout = false,
+                         bool hide_stderr = false)
+{
+  // fork child process
+  pid_t child;
+  switch ((child = fork())) {
+  case -1:
+    throw std::runtime_error("failed to fork child process");
+  case 0:
+    {
+      // connect stdout/stderr pipes
+      if (output_pipe)
+        connect_stream(STDOUT_FILENO, output_pipe);
+
+      // hide stdout/stderr
+      int dev_null = open("/dev/null", O_WRONLY);
+
+      if (dev_null != -1) {
+        if (!output_pipe && hide_stdout)
+          redirect_stream(STDOUT_FILENO, dev_null);
+
+        if (hide_stderr)
+          redirect_stream(STDERR_FILENO, dev_null);
+      }
+
+      close(dev_null);
+
+      // run function in child process
+      if (f() == -1)
+        _Exit(EXIT_FAILURE);
+    }
+  }
+
+  // read output
+  std::string output;
+
+  if (output_pipe) {
+    output = read_output(output_pipe[0], !hide_stdout);
+
+    if (!hide_stdout)
+      std::cout << std::endl;
+
+    close(output_pipe[1]);
+    close(output_pipe[0]);
+  } else {
+    output = "";
+  }
+
+  // check child process exit status
+  int status;
+  if (waitpid(child, &status, 0) == -1)
+    throw std::runtime_error("waitpid failed");
+
+  if (!WIFEXITED(status))
+    throw std::runtime_error("child process did not terminate normally");
+
+  // return output
+  return output;
+}
+
+std::string compile_script(std::string script, std::string file)
+{
+  TmpFile f_tmp(script, file);
+
+  run_in_child([&]{
+      return execlp("gac", "gac", "-d", f_tmp.name(), nullptr);
+    },
+    nullptr,
+    true,
+    true);
+
+  return file + ".la.so";
+}
+
+void remove_libs(std::vector<std::string> const &libs)
+{
+  for (auto const &lib : libs)
+    std::remove(lib.c_str());
 }
 
 std::string clean_output(std::string const &output)
@@ -187,55 +347,78 @@ std::vector<std::string> parse_output(std::string const &output_,
 namespace profile
 {
 
-std::vector<std::string> run_gap(std::initializer_list<std::string> packages,
-                                 std::string const &script,
-                                 unsigned num_discarded_runs,
-                                 unsigned num_runs,
-                                 bool hide_output,
-                                 bool hide_errors,
-                                 std::vector<double> *ts)
+std::vector<std::string> run_gap(
+  std::initializer_list<std::string> packages,
+  std::initializer_list<Preload> preloads,
+  std::string const &script,
+  unsigned num_discarded_runs,
+  unsigned num_runs,
+  bool hide_output,
+  bool hide_errors,
+  bool compile,
+  std::vector<double> *ts)
 {
-  // create temporary gap script
+  // list of shared libs to be removed later
+  std::vector<std::string> libs;
 
-  TmpFile f(build_script(packages, script, num_discarded_runs, num_runs));
+  // create preload files
+  std::vector<TmpFile> f_preloads;
+
+  for (auto const &preload : preloads) {
+    std::string preload_file(std::get<0>(preload));
+    std::string preload_content(std::get<1>(preload));
+    bool preload_compile = std::get<2>(preload);
+
+    if (preload_compile)
+      libs.push_back(compile_script(preload_content, preload_file));
+    else
+      f_preloads.emplace_back(preload_content, preload_file);
+  }
+
+  // create gap script
+  std::string script_main;
+
+  if (compile) {
+    // compile script
+    auto script_compiled(build_script({},
+                                      {},
+                                      script,
+                                      num_discarded_runs,
+                                      num_runs));
+
+    libs.push_back(compile_script(script_compiled, "compiled"));
+
+    // construct main script loading compiled shared object
+    script_main = build_wrapper_script(packages, preloads, "compiled");
+
+  } else {
+    script_main = build_script(packages,
+                               preloads,
+                               script,
+                               num_discarded_runs,
+                               num_runs);
+  }
+
+  TmpFile f_script(script_main, "script");
 
   // create pipe for capturing gaps output
-
-  int fds[2];
-  if (pipe(fds) == -1)
+  int output_pipe[2];
+  if (pipe(output_pipe) == -1)
     throw std::runtime_error("failed to create pipe");
 
   // run gap in a child process
+  auto output(run_in_child([&]{
+      return execlp("gap", "gap", "--nointeract", "-q", f_script.name(), nullptr);
+    },
+    output_pipe,
+    hide_output,
+    hide_errors));
 
-  pid_t child;
-  switch ((child = fork())) {
-  case -1:
-    throw std::runtime_error("failed to fork child process");
-  case 0:
-    {
-      dup_fd(fds[1], STDOUT_FILENO);
+  // remove compiled shared objects
+  if (compile)
+    remove_libs(libs);
 
-      close(fds[1]);
-      close(fds[0]);
-
-      if (hide_errors) {
-        int dev_null = open("/dev/null", O_WRONLY);
-        if (dev_null != -1)
-          dup_fd(dev_null, STDERR_FILENO);
-      }
-
-      if (execlp("gap", "gap", "--nointeract", "-q", f.name, nullptr) == -1)
-        _Exit(EXIT_FAILURE);
-    }
-  }
-
-  // parse output
-
-  auto output(read_output(fds[0], !hide_output));
-
-  close(fds[1]);
-  close(fds[0]);
-
+  // parse and return output
   return parse_output(output, num_runs, ts);
 }
 
