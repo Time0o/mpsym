@@ -336,8 +336,8 @@ void map_tasks_gap_wrapper(gap::PermGroup const &automorphisms,
   auto gap_script(map_tasks_gap(options));
 
   auto gap_output(run_gap({"orb", "grape"},
-                          {{"automorphisms.g", gap_automorphisms, false},
-                           {"task_mappings.g", gap_task_mappings, false}},
+                          {{"automorphisms", gap_automorphisms, options.compile_gap},
+                           {"task_mappings", gap_task_mappings, false}},
                           gap_script,
                           options.num_discarded_runs,
                           options.num_runs,

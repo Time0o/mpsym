@@ -38,6 +38,8 @@ public:
       _fname = tmpname;
     }
 
+    _fname += ".g";
+
     _f = std::ofstream(name());
 
     if (_f.fail())
@@ -83,8 +85,15 @@ std::string build_load_script(
   for (auto const &package : packages)
     ss << "LoadPackage(\"" << package << "\");\n";
 
-  for (auto const &preload : preloads)
-    ss << "Read(\"" << std::get<0>(preload) << "\");\n";
+  for (auto const &preload : preloads) {
+    std::string preload_file(std::get<0>(preload));
+    bool preload_compile = std::get<2>(preload);
+
+    if (preload_compile)
+      ss << "LoadDynamicModule(\"./" << preload_file << ".la.so" << "\");\n";
+    else
+      ss << "Read(\"" << preload_file << ".g" << "\");\n";
+  }
 
   return ss.str();
 }
@@ -123,7 +132,7 @@ std::string build_wrapper_script(
 
   ss << build_load_script(packages, preloads);
 
-  ss << "LoadDynamicModule(\"" << lib << "\");";
+  ss << "LoadDynamicModule(\"./" << lib << ".la.so" << "\");";
 
   return ss.str();
 }
@@ -259,6 +268,26 @@ std::string run_in_child(FUNC &&f,
   return output;
 }
 
+std::string compile_script(std::string script, std::string file)
+{
+  TmpFile f_tmp(script, file);
+
+  run_in_child([&]{
+      return execlp("gac", "gac", "-d", f_tmp.name(), nullptr);
+    },
+    nullptr,
+    true,
+    true);
+
+  return file + ".la.so";
+}
+
+void remove_libs(std::vector<std::string> const &libs)
+{
+  for (auto const &lib : libs)
+    std::remove(lib.c_str());
+}
+
 std::string clean_output(std::string const &output)
 {
   std::size_t i = 0u, j = output.size() - 1u;
@@ -329,17 +358,27 @@ std::vector<std::string> run_gap(
   bool compile,
   std::vector<double> *ts)
 {
+  // list of shared libs to be removed later
+  std::vector<std::string> libs;
+
   // create preload files
   std::vector<TmpFile> f_preloads;
-  for (auto const &preload : preloads)
-    f_preloads.emplace_back(std::get<1>(preload), std::get<0>(preload));
+
+  for (auto const &preload : preloads) {
+    std::string preload_file(std::get<0>(preload));
+    std::string preload_content(std::get<1>(preload));
+    bool preload_compile = std::get<2>(preload);
+
+    if (preload_compile)
+      libs.push_back(compile_script(preload_content, preload_file));
+    else
+      f_preloads.emplace_back(preload_content, preload_file);
+  }
 
   // create gap script
   std::string script_main;
 
   if (compile) {
-    // TODO: compile preloads
-
     // compile script
     auto script_compiled(build_script({},
                                       {},
@@ -347,19 +386,11 @@ std::vector<std::string> run_gap(
                                       num_discarded_runs,
                                       num_runs));
 
-    TmpFile f_tmp(script_compiled, "compiled.g");
-
-    run_in_child([&]{
-        return execlp("gac", "gac", "-d", "compiled.g", nullptr);
-      },
-      nullptr,
-      true,
-      true);
+    libs.push_back(compile_script(script_compiled, "compiled"));
 
     // construct main script loading compiled shared object
-    script_main = build_wrapper_script(packages,
-                                       preloads,
-                                       "./compiled.la.so");
+    script_main = build_wrapper_script(packages, preloads, "compiled");
+
   } else {
     script_main = build_script(packages,
                                preloads,
@@ -368,7 +399,7 @@ std::vector<std::string> run_gap(
                                num_runs);
   }
 
-  TmpFile f_script(script_main, "script.g");
+  TmpFile f_script(script_main, "script");
 
   // create pipe for capturing gaps output
   int output_pipe[2];
@@ -377,15 +408,15 @@ std::vector<std::string> run_gap(
 
   // run gap in a child process
   auto output(run_in_child([&]{
-      return execlp("gap", "gap", "--nointeract", "-q", "script.g", nullptr);
+      return execlp("gap", "gap", "--nointeract", "-q", f_script.name(), nullptr);
     },
     output_pipe,
     hide_output,
     hide_errors));
 
-  // remove compiled shared object
+  // remove compiled shared objects
   if (compile)
-    std::remove("compiled.la.so");
+    remove_libs(libs);
 
   // parse and return output
   return parse_output(output, num_runs, ts);
