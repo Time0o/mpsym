@@ -1,0 +1,143 @@
+#!/bin/bash
+
+if [ $# -ne 2 ]; then
+  >&2 echo "usage: $0 TASK_MAPPING_DIR RESULT_DIR"
+  exit 1
+fi
+
+LUA_PATH="../resources/resources/?.lua"
+
+TASK_MAPPING_DIR="$1"
+RESULT_DIR="$2"
+
+first() {
+  local token=$1
+  local tmp=(${2//$token/ })
+  echo ${tmp[0]}
+}
+
+second() {
+  local token=$1
+  local tmp=(${2//$token/ })
+  echo ${tmp[1]}
+}
+
+run_task_orbits() {
+  local board="$1"
+  local num_tasks="$2"
+  local num_task_mappings="$3"
+  local repr_impl="$4"
+  local repr_method_="$5"
+  local num_runs="$6"
+
+  local outfile="$RESULT_DIR/${board}_${repr_impl}_${num_tasks}"
+
+  # parse repr options
+  local repr_method=""
+  local repr_options=""
+
+  if [[ $repr_method_ == *\?* ]]; then
+    repr_method="$(first "\?" "$repr_method_")"
+    repr_options="$(second "\?" "$repr_method_")"
+  else
+    repr_method="$repr_method_"
+  fi
+
+  outfile="${outfile}_${repr_method}"
+
+  if [ ! -z "$repr_options" ]; then
+    outfile="${outfile}_${repr_options}"
+  fi
+
+  repr_options="$repr_options,dont_match"
+
+  # clean output file name
+  outfile="$outfile.txt"
+
+  outfile="${outfile//-/_}"
+  outfile="${outfile//,/_}"
+
+  # check if output file already exists
+  if [ -e "$outfile" ]; then
+    echo "skipping $outfile..."
+    return
+  else
+    echo "creating $outfile..."
+  fi
+
+  local results=$(LUA_PATH="$LUA_PATH" \
+    ./profile/source/task_orbits \
+      -i "$repr_impl" \
+      -m "$repr_method" \
+      --repr-options "$repr_options" \
+      -a "../resources/resources/$board.lua" \
+      -t "$TASK_MAPPING_DIR/${board}_${num_tasks}.txt" \
+      -l "$num_task_mappings" \
+      --num-runs $num_runs)
+
+  # create output file
+  echo "runtime" > "$outfile"
+  echo "$results" | tail -n +2 |sed 's/RESULT: \(.*\) s/\1/' >> "$outfile"
+}
+
+run_task_orbits_board() {
+  local board_name="$1"
+  local -n board=$1
+
+  for num_tasks in ${board[num_tasks]}; do
+    for repr in ${board[reprs]}; do
+      repr_impl="$(first ":" "$repr")"
+      repr_method="$(second ":" "$repr")"
+
+      run_task_orbits "$board_name" \
+                      "$num_tasks" \
+                      "${board[num_task_mappings]}" \
+                      "$repr_impl" \
+                      "$repr_method" \
+                      "${board[num_runs]}"
+    done
+  done
+}
+
+declare -A parallella=(["num_tasks"]="4 8 12 16"
+                       ["num_task_mappings"]=10000
+                       ["reprs"]="gap:iterate
+                                  gap:orbits
+                                  gap:local_search
+                                  mpsym:iterate
+                                  mpsym:orbits
+                                  mpsym:local_search"
+                       ["num_runs"]=100)
+
+declare -A exynos=(["num_tasks"]="4 8 12 16"
+                   ["num_task_mappings"]=10000
+                   ["reprs"]="gap:iterate
+                              gap:orbits
+                              gap:local_search
+                              mpsym:iterate
+                              mpsym:orbits
+                              mpsym:local_search"
+                   ["num_runs"]=100)
+
+declare -A haec=(["num_tasks"]="4 8 12 16"
+                 ["num_task_mappings"]=10000
+                 ["reprs"]="mpsym:iterate
+                            mpsym:orbits
+                            mpsym:local_search
+                            mpsym:iterate?dont_decompose
+                            mpsym:orbits?dont_decompose
+                            mpsym:local_search?dont_decompose"
+                 ["num_runs"]=10)
+
+declare -A kalray=(["num_tasks"]="4 8 12 16"
+                   ["num_task_mappings"]=10000
+                   ["reprs"]="mpsym:iterate
+                              mpsym:orbits
+                              mpsym:local_search"
+                   ["num_runs"]=10)
+
+declare -a boards=("parallella" "exynos" "haec" "kalray")
+
+for board in "${boards[@]}"; do
+  run_task_orbits_board "$board"
+done

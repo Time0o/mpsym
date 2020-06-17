@@ -1,0 +1,128 @@
+#!/usr/bin/env Rscript
+
+suppressMessages(library(hash))
+
+source('modules/parse_data.R')
+source('modules/plot_data.R')
+source('modules/transform_columns.R')
+
+# parse arguments
+args <- parseArgs()
+
+# read data
+d <- readData(args$data_dir,
+              c('board', 'implementation', 'num_tasks', 'repr_method'))
+
+d$implementation = paste(d$implementation, d$repr_method)
+d$repr_method = NULL
+
+readAccuracy <- function(d, data_dir) {
+    d$accuracy_gap <- ''
+    d$accuracy_mpsym <- ''
+    d$accuracy_mpsym_no_decomp <- ''
+
+    d_files <- list.files(path=data_dir, pattern=".txt", full.names=TRUE)
+
+    invisible(lapply(d_files, function(d_file) {
+        m <- str_match(d_file, ".*/(.*).txt")
+        assert(length(m) == 2, "valid data file name")
+
+        board = m[2]
+
+        d_acc <- read.csv(d_file, sep=',')
+
+        for (i in 1:nrow(d_acc)) {
+          implementation = d_acc[i,]$implementation
+          num_tasks = as.numeric(d_acc[i,]$num_tasks)
+          accuracy = paste(d_acc[i,]$accuracy, '\\%', sep='')
+
+          cond = d$board == board &
+                 d$implementation == implementation &
+                 d$num_tasks == num_tasks
+
+          if (!is.na(str_match(implementation, 'gap.*')))
+            d[cond,]$accuracy_gap <<- accuracy
+          else if (!is.na(str_match(implementation, '.*_dont_decompose')))
+            d[cond,]$accuracy_mpsym_no_decomp <<- accuracy
+          else
+            d[cond,]$accuracy_mpsym <<- accuracy
+        }
+    }))
+
+    d
+}
+
+d <- readAccuracy(d, paste(args$data_dir, 'accuracy', sep='_'))
+
+# clean data
+d <- transform(d, num_tasks=as.numeric(num_tasks))
+
+d <- transformColumns(d, 'board',
+    translate(hash(c('exynos', 'parallella', 'haec', 'kalray'),
+                   c('Exynos', 'Parallella', 'HAEC', 'Kalray'))))
+
+d <- transformColumns(d, 'implementation',
+    translate(hash(c('mpsym iterate',
+                     'mpsym orbits',
+                     'mpsym local_search',
+                     'mpsym iterate_dont_decompose',
+                     'mpsym orbits_dont_decompose',
+                     'mpsym local_search_dont_decompose',
+                     'gap iterate',
+                     'gap orbits',
+                     'gap local_search'),
+                   c('Iterate (\\texttt{mpsym})',
+                     'Orbits (\\texttt{mpsym})',
+                     'Local search (\\texttt{mpsym})',
+                     'Iterate* (\\texttt{mpsym})',
+                     'Orbits* (\\texttt{mpsym})',
+                     'Local search* (\\texttt{mpsym})',
+                     'Iterate (GAP)',
+                     'Orbits (GAP)',
+                     'Local search (GAP)'))))
+
+# create plots
+cat("creating plots\n")
+
+for (board in unique(d$board)) {
+    d_ = d[d$board == board,]
+
+    by = list()
+    for (col in colnames(d_)) {
+      if (col != 'runtime')
+        by[[col]] = d_[[col]]
+    }
+
+    d_ = aggregate(d_$runtime, by=by, FUN=mean)
+
+    colnames(d_)[ncol(d_)] <- 'runtime'
+
+    createLinePlot(list(d_),
+                   x='num_tasks', xlabel='$k$',
+                   y='runtime', ylabel='$t/s$',
+                   z='implementation',
+                   annotate=function(plot, d) {
+                       annotate_ = function(plot, label, vjust) {
+                           plot = plot + geom_text(aes_string(label=label),
+                                                   vjust=vjust,
+                                                   size=3,
+                                                   fontface='bold',
+                                                   show.legend=FALSE)
+                       }
+
+                       if ('accuracy_gap' %in% colnames(d))
+                           plot = annotate_(plot,
+                                            'accuracy_gap',
+                                            if (board == 'Parallella') 2 else -1)
+
+                       if ('accuracy_mpsym' %in% colnames(d))
+                           plot = annotate_(plot, 'accuracy_mpsym', 2)
+
+                       if ('accuracy_mpsym_no_decomp' %in% colnames(d))
+                           plot = annotate_(plot, 'accuracy_mpsym_no_decomp', -1)
+
+                       plot
+                   },
+                   titles=list(paste(board, 'TMOR')),
+                   plot_dir=args$plot_dir, plot_name=board)
+}

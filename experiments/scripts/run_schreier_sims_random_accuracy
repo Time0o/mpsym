@@ -1,0 +1,32 @@
+#!/bin/bash
+
+if [ $# -ne 3 ]; then
+  >&2 echo "usage: $0 BOARD KNOWN_ORDER NUM_RUNS"
+  exit 1
+fi
+
+LUA_PATH="../resources/resources/?.lua"
+
+board=$1
+known_order=$2
+num_runs=$3
+
+correct=0
+for r in $(seq 1 $num_runs); do
+  echo -ne "Run $r/$num_runs"\\r
+
+  result=$(LUA_PATH="$LUA_PATH" \
+    ./profile/source/schreier_sims -i mpsym \
+                                   -s random-no-guarantee \
+                                   -t explicit \
+                                   -a "../resources/resources/$board.lua" \
+                                   --bsgs-options="dont_use_known_order" \
+                                   --check-order $known_order \
+    | head -n 1)
+
+  if [[ "$result" == *matches* ]]; then
+    correct=$((correct+1))
+  fi
+done
+
+echo "BSGS correct $correct/$num_runs times"
