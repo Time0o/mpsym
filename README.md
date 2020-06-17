@@ -1,7 +1,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://travis-ci.com/Time0o/TUD_computational_group_theory.svg?branch=master)](https://travis-ci.com/Time0o/TUD_computational_group_theory)
+[![Build Status](https://travis-ci.com/Time0o/mpsym.svg?branch=master)](https://travis-ci.com/Time0o/mpsym)
 [![Coverage
-status](https://codecov.io/gh/Time0o/TUD_computational_group_theory/branch/master/graph/badge.svg)](https://codecov.io/gh/Time0o/TUD_computational_group_theory?branch=master)
+status](https://codecov.io/gh/Time0o/mpsym/branch/master/graph/badge.svg)](https://codecov.io/gh/Time0o/mpsym?branch=master)
 
 # MPSoC Symmetry Reduction Package #
 
@@ -17,7 +17,7 @@ purpose.
 ## Documentation ##
 
 The documentation can be built from source as described below and is also
-hosted [here](https://time0o.github.io/TUD_computational_group_theory/).
+hosted [here](https://time0o.github.io/mpsym/).
 
 ## Installation ##
 
@@ -87,7 +87,7 @@ Run `./test/xxx_test --help` for more information.
 ### Building the Documentation ###
 
 (Note that the documentation can also be found
-[here](https://time0o.github.io/TUD_computational_group_theory/))
+[here](https://time0o.github.io/mpsym/))
 
 Change into the `release` directory and run `cmake -DCMAKE_BUILD_TYPE=Release
 ..`, followed by `make doxygen` or `make sphinx` (which automatically executes

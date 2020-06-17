@@ -165,7 +165,7 @@ inline std::ostream &operator<<(std::ostream &os, PermSet const &ps)
 {
   std::vector<Perm> perms(ps._perms);
   std::sort(perms.begin(), perms.end());
-  os << DUMP(perms, "{}");
+  os << DUMP_CUSTOM(perms, "{}");
   return os;
 }
 

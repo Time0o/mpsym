@@ -111,7 +111,7 @@ std::ostream &operator<<(std::ostream &os, const Perm &perm)
     os << "()";
   } else {
     for (auto const &cycle : perm.cycles())
-      os << DUMP(cycle, "()");
+      os << DUMP_CUSTOM(cycle, "()");
   }
 
   return os;

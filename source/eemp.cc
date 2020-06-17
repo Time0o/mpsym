@@ -479,7 +479,7 @@ std::ostream &operator<<(std::ostream &os, eemp::OrbitGraph const &orbit_graph)
   auto scc(expand_partition(tmp.second));
 
   os << "s.c.c." << std::string(pad - 1u, ' ') << " | "
-     << DUMP(scc, "{}", "{}");
+     << DUMP_CUSTOM(scc, "{}", "{}");
 
   return os;
 }
