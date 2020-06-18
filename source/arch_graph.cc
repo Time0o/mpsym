@@ -31,47 +31,7 @@ namespace mpsym
 {
 
 std::string ArchGraph::to_gap() const
-{
-  if (_channel_types.size() > 1u) {
-    throw std::logic_error(
-      "ArchGraph::to_gap only available for vertex colored ArchGraphs");
-  }
-
-  typename boost::graph_traits<adjacency_type>::edge_iterator ei, ei_end;
-
-  std::stringstream ss;
-
-  ss << "AutGroupGraph(EdgeOrbitsGraph(Group(()),[";
-
-  for (std::tie(ei, ei_end) = boost::edges(_adj); ei != ei_end; ++ei) {
-    auto source = boost::source(*ei, _adj) + 1;
-    auto target = boost::target(*ei, _adj) + 1;
-
-    ss << "[" << source << "," << target << "]";
-
-    if (source != target)
-      ss << ",[" << target << "," << source << "]";
-
-    if (std::next(ei) != ei_end)
-      ss << ",";
-  }
-
-  ss << "]," << boost::num_vertices(_adj) << ")";
-
-  if (_processor_types.size() > 1u) {
-    std::vector<std::vector<unsigned>>
-    processor_partition(_processor_types.size());
-
-    for (unsigned p = 0u; p < num_processors(); ++p)
-      processor_partition[_adj[p].type].push_back(p + 1u);
-
-    ss << "," << DUMP(processor_partition);
-  }
-
-  ss << ")";
-
-  return ss.str();
-}
+{ return graph_nauty().to_gap(num_processors()); }
 
 ArchGraph::ProcessorType ArchGraph::new_processor_type(ProcessorLabel pl)
 {

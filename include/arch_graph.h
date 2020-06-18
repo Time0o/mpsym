@@ -8,6 +8,7 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
+#include "arch_graph_nauty.h"
 #include "arch_graph_system.h"
 #include "bsgs.h"
 #include "partial_perm.h"
@@ -80,7 +81,8 @@ private:
   PermGroup automorphisms_(AutomorphismOptions const *options) override
   { return automorphisms_nauty(options); }
 
-  PermGroup automorphisms_nauty(AutomorphismOptions const *options);
+  NautyGraph graph_nauty() const;
+  PermGroup automorphisms_nauty(AutomorphismOptions const *options) const;
 
 #if 0
   bool is_partial_automorphism(PartialPerm const &pperm) const;

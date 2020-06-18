@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.6)
 
-include_directories("${INCLUDE_DIR}" "${PROFILE_INCLUDE_DIR}")
+include_directories("${INCLUDE_DIR}"
+                    "${PROFILE_INCLUDE_DIR}"
+                    "${NAUTY_WORKDIR}")
+
 include_directories(SYSTEM "${PERMLIB_INCLUDE_DIR}") # to ignore all warnings
 
 file(GLOB PROFILE_SOURCES "*_profile.cc")

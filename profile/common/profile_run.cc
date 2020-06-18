@@ -74,16 +74,33 @@ private:
   bool _valid = true;
 };
 
-using Preload = std::tuple<std::string, std::string, bool>;
+std::string common_functions()
+{
+  return R"(
+GraphAutoms:=function(edges, partition, n)
+  return AutGroupGraph(EdgeOrbitsGraph(Group(()), edges, n), partition);
+end;
+
+ReduceGroup:=function(G, n)
+  local gens_, gens;
+  gens_:=GeneratorsOfGroup(G);
+  gens:=ShallowCopy(gens_);
+  Apply(gens, function(g) return RestrictedPerm(g, [1..n]); end);
+  return Group(gens);
+end;
+)" + 1;
+}
 
 std::string build_load_script(
   std::initializer_list<std::string> packages,
-  std::initializer_list<Preload> preloads)
+  std::initializer_list<profile::Preload> preloads)
 {
   std::stringstream ss;
 
   for (auto const &package : packages)
     ss << "LoadPackage(\"" << package << "\");\n";
+
+  ss << '\n' << common_functions() << '\n';
 
   for (auto const &preload : preloads) {
     std::string preload_file(std::get<0>(preload));
@@ -100,14 +117,14 @@ std::string build_load_script(
 
 std::string build_script(
   std::initializer_list<std::string> packages,
-  std::initializer_list<Preload> preloads,
+  std::initializer_list<profile::Preload> preloads,
   std::string const &script,
   unsigned num_discarded_runs,
   unsigned num_runs)
 {
   std::stringstream ss;
 
-  ss << build_load_script(packages, preloads);
+  ss << build_load_script(packages, preloads) << '\n';
 
   ss << "_ts:=[];\n";
   ss << "for _r in [1.." << num_discarded_runs + num_runs << "] do\n";
@@ -125,12 +142,12 @@ std::string build_script(
 
 std::string build_wrapper_script(
   std::initializer_list<std::string> packages,
-  std::initializer_list<Preload> preloads,
+  std::initializer_list<profile::Preload> preloads,
   std::string lib)
 {
   std::stringstream ss;
 
-  ss << build_load_script(packages, preloads);
+  ss << build_load_script(packages, preloads) << '\n';
 
   ss << "LoadDynamicModule(\"./" << lib << ".la.so" << "\");";
 

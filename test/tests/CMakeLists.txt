@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.6)
 include_directories("${INCLUDE_DIR}"
                     "${TEST_INCLUDE_DIR}"
                     "${TEST_SRC_DIR}"
-                    "${RESOURCE_INCLUDE_DIR}")
+                    "${RESOURCE_INCLUDE_DIR}"
+                    "${NAUTY_WORKDIR}")
 
 file(GLOB TEST_SOURCES "*_test.cc")
 
