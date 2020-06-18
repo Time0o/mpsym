@@ -308,6 +308,9 @@ mpsym::TaskOrbits map_tasks_mpsym(
   using mpsym::PermGroup;
   using mpsym::TaskOrbits;
 
+  if (options.verbosity > 0)
+    debug("Constructing BSGS");
+
   ags->init_repr();
 
   TaskOrbits task_orbits;
@@ -381,6 +384,8 @@ void map_tasks_mpsym_wrapper(std::shared_ptr<mpsym::ArchGraphSystem> ags,
       for (auto const &repr : *task_orbits)
         debug(DUMP(repr));
     }
+
+    std::cout << std::endl;
   }
 }
 
