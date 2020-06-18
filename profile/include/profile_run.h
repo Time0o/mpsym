@@ -14,9 +14,11 @@
 namespace profile
 {
 
+using Preload = std::tuple<std::string, std::string, bool>;
+
 std::vector<std::string> run_gap(
   std::initializer_list<std::string> packages,
-  std::initializer_list<std::tuple<std::string, std::string, bool>> preloads,
+  std::initializer_list<Preload> preloads,
   std::string const &script,
   unsigned num_discarded_runs,
   unsigned num_runs,
