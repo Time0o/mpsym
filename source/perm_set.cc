@@ -1,4 +1,4 @@
-#include <unordered_set>
+#include <algorithm>
 #include <vector>
 #include <queue>
 
@@ -39,10 +39,7 @@ unsigned PermSet::largest_moved_point() const
 }
 
 void PermSet::make_unique()
-{
-  std::unordered_set<Perm> tmp(_perms.begin(), _perms.end());
-  _perms = std::vector<Perm>(tmp.begin(), tmp.end());
-}
+{ _perms.erase(std::unique(_perms.begin(), _perms.end()), _perms.end()); }
 
 void PermSet::minimize_degree()
 {
