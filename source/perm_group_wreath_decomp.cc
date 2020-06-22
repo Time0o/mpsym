@@ -90,8 +90,10 @@ std::vector<PermGroup> PermGroup::wreath_decomp_find_stabilizers(
     // restrict stabilizer subgroup generators to block
     PermSet stabilizer_generators_restricted;
     for (Perm const &gen : stabilizer_generators) {
-      stabilizer_generators_restricted.insert(
-        gen.restricted(block.begin(), block.end()));
+      auto gen_restricted(gen.restricted(block.begin(), block.end()));
+
+      if (!gen_restricted.id())
+        stabilizer_generators_restricted.insert(gen_restricted);
     }
 
     // construct stabilizer subgroup
