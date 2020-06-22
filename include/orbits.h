@@ -54,15 +54,13 @@ public:
               std::shared_ptr<SchreierStructure> ss = nullptr);
 
   bool contains(unsigned x) const
-  { return std::find(_orbit.begin(), _orbit.end(), x) != _orbit.end(); }
+  { return std::find(begin(), end(), x) != end(); }
 
 private:
   void extend(PermSet const &generators,
               std::vector<unsigned> stack,
               std::unordered_set<unsigned> done,
               std::shared_ptr<SchreierStructure> ss);
-
-  std::vector<unsigned> _orbit;
 };
 
 inline std::ostream &operator<<(std::ostream &os, Orbit const &o)
