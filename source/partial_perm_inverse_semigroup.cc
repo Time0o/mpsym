@@ -62,7 +62,7 @@ PartialPermInverseSemigroup::PartialPermInverseSemigroup(
 bool PartialPermInverseSemigroup::contains_element(
   PartialPerm const &pperm) const
 {
-  DBG(DEBUG) << "Testing membership of:";
+  DBG(DEBUG) << "Testing membership of";
   DBG(DEBUG) << pperm;
   DBG(DEBUG) << "in inverse semigroup with generators:";
   DBG(DEBUG) << _generators;
@@ -70,10 +70,10 @@ bool PartialPermInverseSemigroup::contains_element(
   if (_trivial) {
     DBG(TRACE) << "Inverse semigroup is empty";
     if (pperm.empty()) {
-      DBG(DEBUG) << "==> Not an element";
+      DBG(DEBUG) << "=> Not an element";
       return true;
     } else {
-      DBG(DEBUG) << "==> Not an element";
+      DBG(DEBUG) << "=> Not an element";
       return false;
     }
   }
@@ -84,7 +84,7 @@ bool PartialPermInverseSemigroup::contains_element(
   auto ac_im_it(_ac_im_ht.find(im));
   if (ac_im_it == _ac_im_ht.end()) {
     DBG(TRACE) << "Image not compatible";
-    DBG(DEBUG) << "==> Not an element";
+    DBG(DEBUG) << "=> Not an element";
     return false;
   }
 
@@ -94,7 +94,7 @@ bool PartialPermInverseSemigroup::contains_element(
   auto ac_dom_it(_ac_im_ht.find(dom));
   if (ac_dom_it == _ac_im_ht.end()) {
     DBG(TRACE) << "Domain not compatible";
-    DBG(DEBUG) << "==> Not an element";
+    DBG(DEBUG) << "=> Not an element";
     return false;
   }
 
@@ -109,39 +109,36 @@ bool PartialPermInverseSemigroup::contains_element(
 
   DBG(TRACE) << scc_repr << " * " << u << " = " << im;
 
-  DBG(TRACE) << "=== Iterating over R class representatives:";
+  DBG(TRACE) << "Iterating over R class representatives:";
   DBG(TRACE) << "SGS of Sx is: " << z_n.schreier_generators.generators();
 
   for (PartialPerm const &x : _r_class_repr) {
     DBG(TRACE) << x;
 
     if (x.im() != scc_repr) {
-      DBG(TRACE) << "=> Image not compatible";
+      DBG(TRACE) << "Image not compatible";
       continue;
     }
 
     PartialPerm tmp_pperm(~x * pperm * ~u);
     if (tmp_pperm.id()) {
-      DBG(TRACE) << "=> " << tmp_pperm << " is identity";
-      DBG(DEBUG) << "==> Element";
+      DBG(TRACE) << tmp_pperm << " is identity";
+      DBG(DEBUG) << "=> Element";
       return true;
     }
 
     Perm tmp_perm(tmp_pperm.to_perm(z_n.schreier_generators.degree()));
 
     if (z_n.schreier_generators.contains_element(tmp_perm)) {
-      DBG(TRACE) << "=> " << tmp_perm << " is contained in Sx";
-      DBG(DEBUG) << "==> Element";
+      DBG(TRACE) << tmp_perm << " is contained in Sx";
+      DBG(DEBUG) << "=> Element";
       return true;
     }
-#ifndef NDEBUG
-    else
-      DBG(TRACE) << "=> " << tmp_perm << " is not contained in Sx";
-#endif
   }
 
   DBG(TRACE) << "Exhausted R class representatives";
-  DBG(DEBUG) << "==> Not an element";
+  DBG(DEBUG) << "=> Not an element";
+
   return false;
 }
 
@@ -149,19 +146,20 @@ void PartialPermInverseSemigroup::adjoin_generators(
   std::vector<PartialPerm> const &generators,
   bool minimize)
 {
-  DBG(DEBUG) << "Adjoining generators: " << generators;
-  DBG(DEBUG) << "to inverse semigroups with generators: " << _generators;
+  DBG(DEBUG) << "Adjoining generators to inverse semigroup";
+  DBG(DEBUG) << "Old generators: " << _generators;
+  DBG(DEBUG) << "New generators: " << generators;
 
   if (generators.empty())
     return;
 
   if (_trivial) {
-    DBG(TRACE) << "==> Creating new inverse semigroup";
+    DBG(TRACE) << "=> Creating new inverse semigroup";
     *this = PartialPermInverseSemigroup(generators);
     return;
   }
 
-  DBG(TRACE) << "=== Adjoining new generators";
+  DBG(TRACE) << "Adjoining new generators";
 
   if (!minimize) {
     update_action_component(generators);
@@ -204,9 +202,14 @@ void PartialPermInverseSemigroup::adjoin_generators(
 void PartialPermInverseSemigroup::update_action_component(
   std::vector<PartialPerm> const &generators)
 {
-  DBG(TRACE) << "Initial action component:\n" << _ac_im;
-  DBG(TRACE) << "Initial orbit graph:\n" << _og_im;
-  DBG(TRACE) << "Initial Schreier tree:\n" << _st_im;
+  DBG(TRACE) << "Updating action component";
+
+  DBG(TRACE) << "Initial action component:";
+  DBG(TRACE) << _ac_im;
+  DBG(TRACE) << "Initial orbit graph:";
+  DBG(TRACE) << _og_im;
+  DBG(TRACE) << "Initial Schreier tree:";
+  DBG(TRACE) << _st_im;
 
   unsigned first_new_row = _og_im.data.size();
   unsigned first_new_node = _og_im.data[0].size();
@@ -220,13 +223,13 @@ void PartialPermInverseSemigroup::update_action_component(
 
   std::vector<int> visited(_og_im.data[0].size(), 0);
 
-  DBG(TRACE) << "=== Extending orbit graph";
+  DBG(TRACE) << "Extending orbit graph";
 
   while (!node_queue.empty()) {
     unsigned node = node_queue.front();
     node_queue.pop();
 
-    DBG(TRACE) << "== Considering node: " << _ac_im[node];
+    DBG(TRACE) << "Considering node: " << _ac_im[node];
 
     // add new column to orbit graph
     if (node >= _og_im.data[0].size()) {
@@ -265,21 +268,21 @@ void PartialPermInverseSemigroup::update_action_component(
       auto next_node(gen.image<std::vector>(_ac_im[node].begin(),
                                             _ac_im[node].end()));
 
-      DBG(TRACE) << "=> Next node is: " << next_node;
+      DBG(TRACE) << "Next node is: " << next_node;
 
       auto it(_ac_im_ht.find(next_node));
       if (it == _ac_im_ht.end()) {
-        DBG(TRACE) << "==> Adding new node/edge to orbit graph";
+        DBG(TRACE) << "Adding new node/edge to orbit graph";
         _og_im.data[row_idx][node] = next_new_node;
         _ac_im.push_back(next_node);
         _ac_im_ht[next_node] = next_new_node;
         node_queue.push(next_new_node++);
         visited.push_back(0);
 
-        DBG(TRACE) << "==> Updating Schreier tree";
+        DBG(TRACE) << "Updating Schreier tree";
         _st_im.data.push_back(std::make_pair(node, row_idx));
       } else {
-        DBG(TRACE) << "==> Adding new edge to orbit graph";
+        DBG(TRACE) << "Adding new edge to orbit graph";
         _og_im.data[row_idx][node] = (*it).second;
       }
     }
@@ -290,12 +293,14 @@ void PartialPermInverseSemigroup::update_action_component(
   DBG(TRACE) << "Updating s.c.c representatives";
 
   DBG(TRACE) << "Resulting action component:";
-#ifndef NDEBUG
+#ifndef NTRACE
   for (auto const &c : _ac_im)
     DBG(TRACE) << c;
 #endif
-  DBG(TRACE) << "Resulting orbit graph:\n" << _og_im;
-  DBG(TRACE) << "Resulting Schreier tree:\n" << _st_im;
+  DBG(TRACE) << "Resulting orbit graph:";
+  DBG(TRACE) << _og_im;
+  DBG(TRACE) << "Resulting Schreier tree:";
+  DBG(TRACE) << _st_im;
 }
 
 void PartialPermInverseSemigroup::update_scc_representatives()

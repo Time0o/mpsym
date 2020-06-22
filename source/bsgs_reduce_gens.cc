@@ -14,14 +14,7 @@ namespace mpsym
 
 void BSGS::reduce_gens()
 {
-  DBG(DEBUG) << "Removing redundant strong generators from BSGS:";
-  DBG(DEBUG) << *this;
-
-  DBG(TRACE) << "Stabilizers are:";
-#ifndef NDEBUG
-  for (auto i = 0u; i < base_size(); ++i)
-    DBG(TRACE) << "S(" << i + 1u << ") = " << stabilizers(i);
-#endif
+  DBG(DEBUG) << "Removing redundant strong generators";
 
   std::unordered_set<Perm> strong_generator_set(_strong_generators.begin(),
                                                 _strong_generators.end());
@@ -41,7 +34,7 @@ void BSGS::reduce_gens()
 
     stabilizer_set = stabilizer_set_next;
 
-    DBG(TRACE) << "=== Considering S(" << i + 1u << ")/S(" << i + 2u << ")"
+    DBG(TRACE) << "Considering S(" << i + 1u << ")/S(" << i + 2u << ")"
                << " = " << stabilizer_intersection;
 
     if (stabilizer_intersection.size() < 2u)
@@ -74,7 +67,7 @@ void BSGS::reduce_gens()
                    << " = " << orbit(i);
 #endif
 
-        DBG(TRACE) << "=> Removing strong generator " << *it;
+        DBG(TRACE) << "Removing strong generator " << *it;
 
         remove_stab = true;
       }

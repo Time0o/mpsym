@@ -40,7 +40,7 @@ std::vector<std::vector<unsigned>> action_component(
   SchreierTree &schreier_tree, OrbitGraph &orbit_graph)
 {
 #ifndef NDEBUG
-  DBG(TRACE) << "Computing component of action of generators:";
+  DBG(DEBUG) << "Computing component of action of generators:";
   for (PartialPerm const &gen : generators)
     DBG(TRACE) << gen;
 
@@ -109,11 +109,11 @@ std::vector<std::vector<unsigned>> action_component(
   unsigned i = 0u, n = 0u;
   while (i < component.size()) {
     std::vector<unsigned> beta = component[i];
-    DBG(TRACE) << "=== Looking at Component element " << beta
+    DBG(TRACE) << "Looking at Component element " << beta
                << " (i = " << i  << ')';
 
     for (auto j = 0u; j < generators.size(); ++j) {
-      DBG(TRACE) << "== Considering generator " << generators[j];
+      DBG(TRACE) << "Considering generator " << generators[j];
 
       auto beta_prime(generators[j].image<std::vector>(beta.begin(),
                                                        beta.end()));
@@ -126,17 +126,17 @@ std::vector<std::vector<unsigned>> action_component(
         ++n;
 
         schreier_tree_data.push_back(std::make_pair(i, j));
-        DBG(TRACE) << "=> v_" << n + 1u << " = " << i + 1u;
-        DBG(TRACE) << "=> w_" << n  + 1u<< " = " << j + 1u;
+        DBG(TRACE) << "v_" << n + 1u << " = " << i + 1u;
+        DBG(TRACE) << "w_" << n  + 1u<< " = " << j + 1u;
 
         orbit_graph_data[j].push_back(n);
-        DBG(TRACE) << "=> g_" << i + 1u << "," << j + 1u << " = " << n + 1u;
+        DBG(TRACE) << "g_" << i + 1u << "," << j + 1u << " = " << n + 1u;
 
       } else {
         DBG(TRACE) << beta_prime << " already processed";
 
         orbit_graph_data[j].push_back(id);
-        DBG(TRACE) << "=> g_" << i + 1u << "," << j + 1u << " = " << id + 1u;
+        DBG(TRACE) << "g_" << i + 1u << "," << j + 1u << " = " << id + 1u;
       }
     }
 
@@ -201,7 +201,7 @@ SchreierTree scc_spanning_tree(
   std::vector<unsigned> scc_i;
   std::vector<unsigned> vertex_map(scc.size(), 0u);
 
-  DBG(TRACE) << "== Constructing temporary subgraph";
+  DBG(TRACE) << "Constructing temporary subgraph";
 
   for (unsigned j = 0u; j < scc.size(); ++j) {
     if (scc[j] == scc[i]) {
@@ -295,7 +295,7 @@ PermGroup schreier_generators(unsigned i,
   DBG(TRACE) << "Finding schreier generators for Sx for: " << im;
 
   if (im.empty()) {
-    DBG(TRACE) << "==> Returning empty permutation group";
+    DBG(TRACE) << "=> Returning empty permutation group";
     return PermGroup();
   }
 
@@ -343,7 +343,7 @@ PermGroup schreier_generators(unsigned i,
       PartialPerm sg(ui * generators[k] * ~ul);
       sg = sg.restricted(im.begin(), im.end());
 
-      DBG(TRACE) << "=> Schreier generator is: " << sg;
+      DBG(TRACE) << "Schreier generator is: " << sg;
 
       if (!sg.id())
         sg_gens.emplace(sg.to_perm(im_max));
@@ -352,7 +352,7 @@ PermGroup schreier_generators(unsigned i,
 
   PermGroup res(im_max, sg_gens);
 
-  DBG(TRACE) << "==> Returning:";
+  DBG(TRACE) << "=> Returning:";
   DBG(TRACE) << res;
 
   return res;

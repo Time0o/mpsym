@@ -20,7 +20,7 @@ void BSGS::base_change(std::vector<unsigned> prefix)
     unsigned target = conj_inv[prefix[i]];
 
     if (i >= base_size()) {
-      DBG(TRACE) << "=== Prefix point: " << prefix[i];
+      DBG(TRACE) << "Prefix point: " << prefix[i];
 
       insert_redundant_base_point(target, i);
       DBG(TRACE) << "Appended " << target << " to base: " << _base;
@@ -28,7 +28,7 @@ void BSGS::base_change(std::vector<unsigned> prefix)
       continue;
     }
 
-    DBG(TRACE) << "=== Base/prefix points: "
+    DBG(TRACE) << "Base/prefix points: "
                << base_point(i) << "/" << prefix[i] << "(" << target << ")";
 
     if (base_point(i) == target)
@@ -45,7 +45,7 @@ void BSGS::base_change(std::vector<unsigned> prefix)
       conj = transv * conj;
       conj_inv = ~conj;
 
-      DBG(TRACE) << "=> Updated conjugating permutation: " << conj;
+      DBG(TRACE) << "Updated conjugating permutation: " << conj;
 
     } else {
       DBG(TRACE) << target << " not in O(" << i + 1u << ") = " << orbit(i);
@@ -54,11 +54,11 @@ void BSGS::base_change(std::vector<unsigned> prefix)
       DBG(TRACE) << "Inserted " << target << " into base: " << _base;
 
       transpose_base_point(j, i);
-      DBG(TRACE) << "=> Base after transposition: " << _base;
+      DBG(TRACE) << "Base after transposition: " << _base;
     }
   }
 
-  DBG(DEBUG) << "Final conjugating permutation: " << conj;
+  DBG(TRACE) << "Final conjugating permutation: " << conj;
 
   conjugate(conj);
 

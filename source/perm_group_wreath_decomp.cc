@@ -21,7 +21,7 @@ namespace mpsym
 
 std::vector<PermGroup> PermGroup::wreath_decomposition() const
 {
-  DBG(DEBUG) << "Finding wreath product decomposition for:";
+  DBG(DEBUG) << "Finding wreath product decomposition for";
   DBG(DEBUG) << *this;
 
   for (BlockSystem const &block_system : BlockSystem::non_trivial(*this)) {
@@ -59,7 +59,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
     for (unsigned i = 0u; i < block_system.size(); ++i)
       decomposition[i + 1u] = stabilizers[i];
 
-    DBG(DEBUG) << "==> Found wreath product decomposition:";
+    DBG(DEBUG) << "=> Found wreath product decomposition:";
 #ifndef NDEBUG
     for (PermGroup const &pg : decomposition)
       DBG(DEBUG) << pg;
@@ -68,7 +68,7 @@ std::vector<PermGroup> PermGroup::wreath_decomposition() const
     return decomposition;
   }
 
-  DBG(DEBUG) << "==> No wreath product decomposition found";
+  DBG(DEBUG) << "=> No wreath product decomposition found";
   return {};
 }
 

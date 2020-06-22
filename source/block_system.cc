@@ -89,10 +89,10 @@ BlockSystem BlockSystem::minimal(PermSet const &generators,
   std::vector<unsigned> cardinalities(generators.degree());
   std::vector<unsigned> queue;
 
-  DBG(DEBUG) << "=== Finding minimal block system for:";
+  DBG(DEBUG) << "Finding minimal block system for:";
   DBG(DEBUG) << generators;
 
-  DBG(DEBUG) << "Initial block: " << initial_block;
+  DBG(TRACE) << "Initial block: " << initial_block;
 
   for (auto i = 0u; i < generators.degree(); ++i) {
     classpath[i] = i;
@@ -117,10 +117,10 @@ BlockSystem BlockSystem::minimal(PermSet const &generators,
 
   while (i <= l) {
     unsigned gamma = queue[i++];
-    DBG(TRACE) << "== Gamma: " << gamma;
+    DBG(TRACE) << "Gamma: " << gamma;
 
     for (Perm const &gen : generators) {
-      DBG(TRACE) << "= Gen: " << gen;
+      DBG(TRACE) << "Gen: " << gen;
 
       unsigned c1 = gen[gamma + 1u] - 1u;
       unsigned c2 = gen[minimal_find_rep(gamma, classpath) + 1u] - 1u;
@@ -141,7 +141,8 @@ BlockSystem BlockSystem::minimal(PermSet const &generators,
 
   BlockSystem res(classpath);
 
-  DBG(TRACE) << "==> Resulting minimal block system: " << res;
+  DBG(DEBUG) << "=> Resulting minimal block system:";
+  DBG(DEBUG) << res;
 
   return res;
 }
@@ -152,21 +153,29 @@ std::vector<BlockSystem> BlockSystem::non_trivial(PermGroup const &pg,
   assert((!assume_transitivity || pg.is_transitive()) &&
     "transitivity assumption correct");
 
-  DBG(DEBUG) << "=== Finding all non-trivial block systems for:";
+  DBG(DEBUG) << "Finding all non-trivial block systems for:";
   DBG(DEBUG) << pg;
 
   bool transitive;
 
   if (assume_transitivity) {
     transitive = true;
-    DBG(DEBUG) << "Assuming transitivity";
+    DBG(TRACE) << "Assuming transitivity";
   } else {
     transitive = pg.is_transitive();
-    DBG(DEBUG) << "Group " << (transitive ? "is" : "is not") << " transitive";
+    DBG(TRACE) << "Group " << (transitive ? "is" : "is not") << " transitive";
   }
 
-  return transitive ? non_trivial_transitive(pg)
-                    : non_trivial_non_transitive(pg);
+  auto res(transitive ? non_trivial_transitive(pg)
+                      : non_trivial_non_transitive(pg));
+
+  DBG(DEBUG) << "=> Resulting non-trivial block systems:";
+#ifndef NDEBUG
+  for (BlockSystem const &bs : res)
+    DBG(DEBUG) << bs;
+#endif
+
+  return res;
 }
 
 BlockSystem::BlockSystem(BlockIndices const &block_indices)
@@ -323,7 +332,7 @@ bool BlockSystem::minimal_merge_classes(unsigned k1,
   if (cardinalities[r1] < cardinalities[r2])
     std::swap(r1, r2);
 
-  DBG(TRACE) << "=> Merging classes:";
+  DBG(TRACE) << "Merging classes:";
 
   classpath[r2] = r1;
   DBG(TRACE) << "Updated classpath: " << classpath;
@@ -369,7 +378,6 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
   DBG(TRACE) << "Generators stabilizing first base element:";
   DBG(TRACE) << stab;
 
-  // resulting vector of blocksystems
   std::vector<BlockSystem> res;
 
   // iterate over orbit partition of stabilizer subgroup
@@ -381,13 +389,11 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
     auto bs(BlockSystem::minimal(pg.generators(), {first_base_elem, orbit[0]}));
 
     if (!bs.trivial()) {
-      DBG(TRACE) << "Found blocksystem: " << bs;
+      DBG(TRACE) << "Found blocksystem:";
+      DBG(TRACE) << bs;
       res.push_back(bs);
     }
   }
-
-  DBG(TRACE) << "==> Resulting non-trivial block systems:";
-  DBG(TRACE) << res;
 
   return res;
 }
@@ -439,7 +445,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
     partial_blocksystems[i].push_back(bs);
   }
 
-  DBG(TRACE) << "=> Relevant block systems for all group restrictions:";
+  DBG(TRACE) << "Relevant block systems for all group restrictions:";
 #ifndef NDEBUG
   for (auto const &bs : partial_blocksystems)
     DBG(TRACE) << bs;
@@ -450,17 +456,8 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
                                      partial_blocksystems,
                                      domain_offsets));
 
-  auto blocksystems(
-    non_trivial_from_representatives(pg.generators(),
-                                     blocksystem_representatives));
-
-  DBG(TRACE) << "==> Resulting block systems:";
-#ifndef NDEBUG
-  for (BlockSystem const &bs : blocksystems)
-    DBG(TRACE) << bs;
-#endif
-
-  return blocksystems;
+  return non_trivial_from_representatives(pg.generators(),
+                                          blocksystem_representatives);
 }
 
 std::vector<BlockSystem::Block> BlockSystem::non_trivial_find_representatives(
@@ -468,7 +465,7 @@ std::vector<BlockSystem::Block> BlockSystem::non_trivial_find_representatives(
   std::vector<std::vector<BlockSystem>> const &partial_blocksystems,
   std::vector<unsigned> const &domain_offsets)
 {
-  DBG(TRACE) << "== Finding block system representatives";
+  DBG(TRACE) << "Finding block system representatives";
 
   std::vector<Block> res;
 
@@ -478,7 +475,7 @@ std::vector<BlockSystem::Block> BlockSystem::non_trivial_find_representatives(
                 bool one_trivial)
   {
     if (i == partial_blocksystems.size()) {
-      DBG(TRACE) << "= Considering block system combination:";
+      DBG(TRACE) << "Considering block system combination:";
 #ifndef NDEBUG
       for (auto j = 0u; j < current_blocksystems.size(); ++j) {
         DBG(TRACE) << *current_blocksystems[j]
@@ -508,7 +505,7 @@ std::vector<BlockSystem::Block> BlockSystem::non_trivial_find_representatives(
       }
 
       res.push_back(current_block);
-      DBG(TRACE) << "=> Found representative block: " << current_block;
+      DBG(TRACE) << "Found representative block: " << current_block;
 
       return;
     }
@@ -537,8 +534,6 @@ std::vector<BlockSystem> BlockSystem::non_trivial_from_representatives(
   PermSet const &generators,
   std::vector<Block> const &representatives)
 {
-  DBG(TRACE) << "== Finding block systems from representatives";
-
   std::vector<BlockSystem> res;
   for (auto const &repr : representatives)
     res.push_back(from_block(generators, repr));

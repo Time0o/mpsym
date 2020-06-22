@@ -21,7 +21,7 @@ namespace mpsym
 
 void BSGS::solve(PermSet const &generators)
 {
-  DBG(DEBUG) << "=== Attempting to solve BSGS";
+  DBG(DEBUG) << "Attempting to solve BSGS";
 
   unsigned iterations =
     static_cast<unsigned>(5.0 / 2.0 * std::log(degree()) / std::log(3.0));
@@ -29,16 +29,16 @@ void BSGS::solve(PermSet const &generators)
   DBG(TRACE) << "Maximum number of iterations: " << iterations;
 
   for (auto const &gen : generators) {
-    DBG(TRACE) << "====== Considering generator: " << gen;
+    DBG(TRACE) << "Considering generator: " << gen;
 
     while (!strips_completely(gen)) {
-      DBG(TRACE) << "=> Not in current BSGS";
+      DBG(TRACE) << "Not in current BSGS";
 
       Perm w(gen);
 
       bool success = false;
       for (unsigned i = 0u; i < iterations; ++i) {
-        DBG(TRACE) << "===== Iteration " << i;
+        DBG(TRACE) << "Iteration " << i;
 
         std::pair<Perm, Perm> conjugates;
         success = solve_s_normal_closure(generators, w, conjugates);
@@ -47,26 +47,26 @@ void BSGS::solve(PermSet const &generators)
 
         Perm const &u(conjugates.first);
         Perm const &v(conjugates.second);
-        DBG(TRACE) << "=> Conjugates are: " << u << " and " << v;
+        DBG(TRACE) << "Conjugates are: " << u << " and " << v;
 
         w = ~u * ~v * u * v;
       }
 
       if (!success) {
-        DBG(DEBUG) << "==> Failure";
+        DBG(DEBUG) << "=> Failure";
         throw SolveError();
       }
     }
   }
 
-  DBG(DEBUG) << "==> Success";
+  DBG(DEBUG) << "=> Success";
 }
 
 bool BSGS::solve_s_normal_closure(PermSet const &generators,
                                   Perm const &w,
                                   std::pair<Perm, Perm> &conjugates)
 {
-  DBG(TRACE) << "==== BEGIN Calculating S-Normal Closure";
+  DBG(TRACE) << "Begin calculating S-Normal Closure";
 
   BSGS const original_bsgs(*this);
 
@@ -78,7 +78,7 @@ bool BSGS::solve_s_normal_closure(PermSet const &generators,
     DBG(TRACE) << "Considering queue element: " << g;
 
     if (!strips_completely(g)) {
-      DBG(TRACE) << "=> Not in current BSGS";
+      DBG(TRACE) << "Not in current BSGS";
 
       for (auto const &h : queue2) {
         Perm tmp(~g * ~h * g * h);
@@ -86,8 +86,8 @@ bool BSGS::solve_s_normal_closure(PermSet const &generators,
           DBG(TRACE) << ~g << " * " << ~h << " * " << g << " * " << h
                      << " = " << tmp << " not in original BSGS";
 
-          DBG(TRACE) << "==> Failure";
-          DBG(TRACE) << "==== END Calculating S-Normal Closure";
+          DBG(TRACE) << "=> Failure";
+          DBG(TRACE) << "Finished calculating S-Normal Closure";
 
           conjugates.first = g;
           conjugates.second = h;
@@ -106,7 +106,7 @@ bool BSGS::solve_s_normal_closure(PermSet const &generators,
 
       queue2.insert(g);
 
-      DBG(TRACE) << "=> Updating queue:";
+      DBG(TRACE) << "Updating queue:";
       for (auto const &gen : generators) {
         DBG(TRACE)
           << "  Appending: " << ~gen << " * " << g << " * " << gen
@@ -117,18 +117,18 @@ bool BSGS::solve_s_normal_closure(PermSet const &generators,
     }
 #ifndef NDEBUG
     else
-      DBG(TRACE) << "=> Already in current BSGS";
+      DBG(TRACE) << "Already in current BSGS";
 #endif
   }
 
-  DBG(TRACE) << "==> Success";
-  DBG(TRACE) << "==== END Calculating S-Normal Closure";
+  DBG(TRACE) << "=> Success";
+  DBG(TRACE) << "Finished Calculating S-Normal Closure";
   return true;
 }
 
 void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
 {
-  DBG(TRACE) << "=== BEGIN Adjoining normalizing generator";
+  DBG(TRACE) << "Begin adjoining normalizing generator";
   DBG(TRACE) << "Generator is: " << gen;
 
   unsigned i = 0u;
@@ -136,7 +136,7 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
 
   while (!h.id()) {
     ++i;
-    DBG(TRACE) << "== Iteration " << i;
+    DBG(TRACE) << "Iteration " << i;
 
     if (i > base_size()) {
       for (unsigned j = 1u; j <= degree(); ++j) {
@@ -194,7 +194,7 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
     h = h_m * ~u;
   }
 
-  DBG(TRACE) << "=== END Adjoining normalizing generator";
+  DBG(TRACE) << "Finished adjoining normalizing generator";
 }
 
 } // namespace mpsym

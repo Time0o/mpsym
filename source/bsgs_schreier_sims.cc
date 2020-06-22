@@ -22,7 +22,8 @@ namespace mpsym
 
 void BSGS::schreier_sims(PermSet const &generators)
 {
-  DBG(TRACE) << "Executing schreier sims algorithm";
+  DBG(DEBUG) << "Executing Schreier Sims algorithm for:";
+  DBG(DEBUG) << generators;
 
   generators.assert_not_empty();
 
@@ -41,12 +42,12 @@ void BSGS::schreier_sims(std::vector<PermSet> &strong_generators,
 {
   std::vector<SchreierGeneratorQueue> schreier_generator_queues(base_size());
 
-  DBG(TRACE) << "=== Iterating over Schreier Generators";
+  DBG(TRACE) << "Iterating over Schreier Generators";
 
   // main loop
   unsigned i = base_size();
   while (i >= 1u) {
-    DBG(TRACE) << "== i = " << i;
+    DBG(TRACE) << "i = " << i;
 top:
     schreier_generator_queues[i - 1].update(strong_generators[i - 1],
                                             fundamental_orbits[i - 1],
@@ -132,7 +133,7 @@ top:
 void BSGS::schreier_sims_random(PermSet const &generators,
                                 Options const *options)
 {
-  DBG(TRACE) << "Executing (random) schreier sims algorithm";
+  DBG(TRACE) << "Executing (random) Schreier Sims algorithm";
 
   generators.assert_not_empty();
 
@@ -309,11 +310,10 @@ void BSGS::schreier_sims_init(PermSet const &generators,
       i, new_strong_generators, strong_generators, fundamental_orbits);
   }
 
-  DBG(TRACE) << "=== Initial values";
+  DBG(TRACE) << "Initial values:";
   DBG(TRACE) << "B = " << _base;
   for (unsigned i = 0u; i < base_size(); ++i) {
     DBG(TRACE) << "S(" << (i + 1u) << ") = " << strong_generators[i];
-    DBG(TRACE) << "O(" << (i + 1u) << ") = " << fundamental_orbits[i];
   }
 }
 
@@ -341,6 +341,10 @@ void BSGS::schreier_sims_finish()
   }
 
   _strong_generators.make_unique();
+
+  DBG(TRACE) << "=> Result:";
+  DBG(TRACE) << "B = " << _base;
+  DBG(TRACE) << "SGS = " << _strong_generators;
 }
 
 } // namespace mpsym

@@ -201,20 +201,20 @@ std::vector<PermGroup> PermGroup::disjoint_decomp_complete(
 
   OrbitPartition orbits(degree(), generators());
 
-  DBG(TRACE) << "=== Orbit decomposition:";
+  DBG(TRACE) << "Orbit decomposition:";
   DBG(TRACE) << orbits;
 
   if (disjoint_orbit_optimization) {
-    DBG(TRACE) << "=== Using dependent orbit optimization";
+    DBG(TRACE) << "Using dependent orbit optimization";
     disjoint_decomp_generate_dependency_classes(orbits);
 
-    DBG(TRACE) << "==> Grouped dependency class unions:";
+    DBG(TRACE) << "=> Grouped dependency class unions:";
     DBG(TRACE) << orbits;
   }
 
   auto decomp(disjoint_decomp_complete_recursive(orbits, *this));
 
-  DBG(DEBUG) << "=== Found disjoint subgroup decomposition:";
+  DBG(DEBUG) << "Found disjoint subgroup decomposition:";
   for (PermGroup const &pg : decomp)
     DBG(DEBUG) << pg;
 

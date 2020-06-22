@@ -69,7 +69,7 @@ BSGS::BSGS(unsigned degree, PermSet const &generators, Options const *options_)
       throw std::logic_error("TODO");
   }
 
-  DBG(DEBUG) << "=== Constructing BSGS";
+  DBG(DEBUG) << "Constructing BSGS";
   DBG(DEBUG) << "Generators: " << generators;
 
   if (options.check_altsym && degree > 8u) {
@@ -85,8 +85,8 @@ BSGS::BSGS(unsigned degree, PermSet const &generators, Options const *options_)
     construct_unknown(generators, &options);
   }
 
-  DBG(DEBUG) << "==> B = " << _base;
-  DBG(DEBUG) << "==> SGS = " << _strong_generators;
+  DBG(DEBUG) << "=> B = " << _base;
+  DBG(DEBUG) << "=> SGS = " << _strong_generators;
 
   assert(base_size() > 0u);
 }
