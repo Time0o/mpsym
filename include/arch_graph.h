@@ -73,25 +73,12 @@ public:
   unsigned num_processors() const override;
   unsigned num_channels() const override;
 
-#if 0
-  PartialPermInverseSemigroup partial_automorphisms() override;
-#endif
-
 private:
   PermGroup automorphisms_(AutomorphismOptions const *options) override
   { return automorphisms_nauty(options); }
 
   NautyGraph graph_nauty() const;
   PermGroup automorphisms_nauty(AutomorphismOptions const *options) const;
-
-#if 0
-  bool is_partial_automorphism(PartialPerm const &pperm) const;
-
-  void partial_automorphisms_backtrack(
-    std::vector<unsigned> dom,
-    std::vector<unsigned> im,
-    PartialPermInverseSemigroup &res) const;
-#endif
 
   void create_mesh(unsigned width,
                    unsigned height,

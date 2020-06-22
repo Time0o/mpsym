@@ -122,100 +122,6 @@ struct lua_Error : public std::runtime_error
   {}
 };
 
-#if 0
-template<typename RET>
-struct lua_void_Pcall
-{
-  lua_void_Pcall(std::function<RET(lua_State *)> &&f, int nargs, int nret)
-  : f(f),
-    nargs(nargs),
-    nret(nret)
-  {}
-
-  static int run(lua_State *L)
-  {
-    auto *p = lua_get<lua_void_Pcall *>(L, 1);
-
-    p->f(L);
-
-    for (int i = 0; i < p->nargs; ++i) {
-      lua_pushnil(L);
-      lua_insert(L, 2);
-    }
-
-    return LUA_OK;
-  }
-
-  std::function<RET(lua_State *)> f;
-  int nargs;
-  int nret;
-};
-
-template<typename RET>
-struct lua_Pcall : public lua_void_Pcall<RET>
-{
-  lua_Pcall(std::function<RET(lua_State *)> &&f, int nargs, int nret)
-  : lua_void_Pcall<RET>(
-      std::forward<std::function<RET(lua_State*)>>(f), nargs, nret)
-  {}
-
-  static int run(lua_State *L)
-  {
-    int ret = lua_void_Pcall<RET>::run(L);
-    if (ret != LUA_OK)
-      return ret;
-
-    auto *p = lua_get<lua_Pcall *>(L, 1);
-
-    p->ret = lua_get_and_pop<RET>(L);
-
-    return LUA_OK;
-  }
-
-  RET ret;
-};
-
-template<typename PCALL>
-void lua_safe_call_common(lua_State *L, PCALL *p)
-{
-  lua_pushcfunction(L, &PCALL::run);
-  lua_pushlightuserdata(L, p);
-
-  lua_insert(L, -(p->nargs + 2));
-  lua_insert(L, -(p->nargs + 2));
-
-  if (lua_pcall(L, p->nargs + 1, p->nret, 0) != LUA_OK)
-    throw lua_Error(lua_get_and_pop<std::string>(L));
-}
-
-template<typename RET>
-typename std::enable_if<std::is_void<RET>::value>::type
-lua_safe_call(lua_State *L,
-              std::function<RET(lua_State *)> f,
-              int nargs = 0,
-              int nret = 0)
-{
-  lua_void_Pcall<RET> p(std::move(f), nargs, nret);
-  lua_safe_call_common(L, &p);
-}
-
-template<typename RET>
-typename std::enable_if<!std::is_void<RET>::value, RET>::type
-lua_safe_call(lua_State *L,
-              std::function<RET(lua_State *)> f,
-              int nargs = 0,
-              int nret = 0)
-{
-  lua_Pcall<RET> p(std::move(f), nargs, nret);
-  lua_safe_call_common(L, &p);
-
-  return p.ret;
-}
-
-void lua_call_bindable(lua_State *L, int nargs, int nresults)
-{ lua_call(L, nargs, nresults); }
-#endif
-
 // ArchGraphSystem specific functions
 
 bool lua_is_arch_graph(lua_State *L, int index)
@@ -383,11 +289,7 @@ std::shared_ptr<ArchGraphSystem> ArchGraphSystem::from_lua(
   }
 
   // run chunk
-#if 0
-  lua_safe_call<void>(L, std::bind(lua_call_bindable, _1, 0, LUA_MULTRET), 1, 1);
-#else
   lua_call(L, 0, LUA_MULTRET);
-#endif
 
   if (lua_gettop(L) != 1)
     throw lua_Error("chunk did not return singular value");
