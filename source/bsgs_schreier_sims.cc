@@ -54,6 +54,9 @@ top:
                                             schreier_structure(i - 1));
 
     for (Perm const &schreier_generator : schreier_generator_queues[i - 1]) {
+      if (schreier_generator.id())
+        continue;
+
       DBG(TRACE) << "Schreier Generator: " << schreier_generator;
 
       // strip
