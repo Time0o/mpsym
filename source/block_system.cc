@@ -59,7 +59,9 @@ PermSet BlockSystem::block_stabilizers(PermSet const &generators,
   pg.bsgs().base_change({block[0]});
 
   auto stabilizer_generators(pg.bsgs().stabilizers(0));
-  auto stabilizer_orbit(Orbit::generate(block[0], stabilizer_generators));
+
+  auto stabilizer_orbit(Orbit::generate(block[0],
+                                        stabilizer_generators.with_inverses()));
 
   // extend block stabilizer generating set
   std::unordered_set<unsigned> block_elements(block.begin(), block.end());
@@ -74,7 +76,7 @@ PermSet BlockSystem::block_stabilizers(PermSet const &generators,
     Perm transv(pg.bsgs().transversal(0, beta));
 
     stabilizer_generators.insert(transv);
-    stabilizer_orbit.update(stabilizer_generators, {transv});
+    stabilizer_orbit.update(stabilizer_generators, {transv, ~transv});
   }
 
   return stabilizer_generators;

@@ -150,8 +150,32 @@ public:
   unsigned largest_moved_point() const;
 
   void make_unique();
-  void insert_inverses();
   void minimize_degree();
+
+  bool has_inverses() const
+  {
+    auto unique_perms(unique());
+
+    for (auto const &perm : _perms) {
+      if (unique_perms.find(~perm) == unique_perms.end())
+        return false;
+    }
+
+    return true;
+  }
+
+  void insert_inverses();
+
+  PermSet with_inverses() const
+  {
+    if (has_inverses())
+      return *this;
+
+    PermSet ret(*this);
+    ret.insert_inverses();
+
+    return ret;
+  }
 
   void assert_not_empty() const
   { assert(!empty() && "permutation set not empty"); }
@@ -166,14 +190,7 @@ public:
   }
 
   void assert_inverses() const
-  {
-    auto unique_perms(unique());
-
-    for (auto const &perm : _perms) {
-      assert(unique_perms.find(~perm) != unique_perms.end()
-             && "closed under inversion");
-    }
-  }
+  { assert(has_inverses() && "closed under inversion"); }
 
 private:
   std::unordered_set<Perm> unique() const

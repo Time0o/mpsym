@@ -108,7 +108,7 @@ bool PrRandomizer::test_altsym(double epsilon)
   }
 
   // check whether group is even transitive
-  auto orbit(Orbit::generate(1, _gens_orig));
+  auto orbit(Orbit::generate(1, _gens_orig.with_inverses()));
 
   if (orbit.size() != _gens_orig.degree())
     return false;

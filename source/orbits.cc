@@ -14,40 +14,25 @@ namespace mpsym
 {
 
 Orbit Orbit::generate(unsigned x,
-                      PermSet const &generators_,
+                      PermSet const &generators,
                       std::shared_ptr<SchreierStructure> ss)
 {
   Orbit orbit{x};
 
-  if (generators_.trivial())
+  if (generators.trivial())
     return orbit;
 
-  auto extend_ = [&](PermSet const &generators){
-    orbit.extend(generators, {x}, {x}, ss);
-  };
+  generators.assert_inverses();
 
-  if (ss) {
-    generators_.assert_inverses();
-
-    extend_(generators_);
-
-  } else {
-    PermSet generators(generators_);
-    generators.insert_inverses();
-
-    extend_(generators);
-  }
+  orbit.extend(generators, {x}, {x}, ss);
 
   return orbit;
 }
 
-bool Orbit::generated_by(unsigned x, PermSet const &generators_) const
+bool Orbit::generated_by(unsigned x, PermSet const &generators) const
 {
-  if (generators_.trivial())
+  if (generators.trivial())
     return size() == 1u && (*this)[0] == x;
-
-  PermSet generators(generators_);
-  generators.insert_inverses();
 
   std::vector<int> in_orbit_ref(generators.degree() + 1u, 0);
   std::vector<int> in_orbit(generators.degree() + 1u, 0);
@@ -68,7 +53,7 @@ bool Orbit::generated_by(unsigned x, PermSet const &generators_) const
     unsigned x = stack.back();
     stack.pop_back();
 
-    for (Perm const &gen : generators) {
+    for (Perm const &gen : generators.with_inverses()) {
       unsigned y = gen[x];
 
       if (!in_orbit_ref[y])
@@ -93,18 +78,17 @@ void Orbit::update(PermSet const &generators_old,
                    PermSet const &generators_new,
                    std::shared_ptr<SchreierStructure> ss)
 {
+  if (generators_new.trivial())
+    return;
+
+  generators_old.assert_inverses();
+  generators_new.assert_inverses();
+
   auto generators(generators_old);
   generators.insert(generators_new.begin(), generators_new.end());
 
-  if (ss) {
-    generators.assert_inverses();
-
-    for (Perm const &gen_new : generators_new)
-      ss->add_label(gen_new);
-
-  } else {
-    generators.insert_inverses();
-  }
+  for (Perm const &gen_new : generators_new)
+    ss->add_label(gen_new);
 
   std::vector<unsigned> stack;
   std::unordered_set<unsigned> done(begin(), end());
@@ -181,7 +165,7 @@ OrbitPartition::OrbitPartition(unsigned degree, PermSet const &generators)
   unsigned x = 1u;
 
   for (;;) {
-    auto orbit(Orbit::generate(x, generators));
+    auto orbit(Orbit::generate(x, generators.with_inverses()));
 
     _partitions.push_back(orbit);
 

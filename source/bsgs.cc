@@ -77,10 +77,11 @@ BSGS::BSGS(unsigned degree, PermSet const &generators, Options const *options_)
 
     if (pr.test_symmetric()) {
       construct_symmetric();
-    } else if (pr.test_alternating())
+    } else if (pr.test_alternating()) {
       construct_alternating();
-    else
+    } else {
       construct_unknown(generators, &options);
+    }
   } else {
     construct_unknown(generators, &options);
   }

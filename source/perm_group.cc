@@ -251,7 +251,11 @@ bool PermGroup::is_shifted_alternating() const
 }
 
 bool PermGroup::is_transitive() const
-{ return Orbit::generate(1u, generators()).size() == degree(); }
+{
+  auto orbit(Orbit::generate(1u, generators().with_inverses()));
+
+  return orbit.size() == degree();
+}
 
 bool PermGroup::contains_element(Perm const &perm) const
 {
