@@ -262,7 +262,7 @@ void BSGS::schreier_sims_init(PermSet const &generators,
   _base.clear();
   _transversals->clear();
   _strong_generators = generators;
-  _strong_generators.make_generating_set();
+  _strong_generators.insert_inverses();
 
   strong_generators.clear();
   fundamental_orbits.clear();

@@ -38,7 +38,7 @@ TYPED_TEST(SchreierStructureTest, CanConstructSchreierStructures)
     Perm(n, {{5, 6}, {7, 8}})
   };
 
-  generators.make_generating_set();
+  generators.insert_inverses();
 
   std::vector<unsigned> expected_orbits[] = {
     {1, 2, 3},

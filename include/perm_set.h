@@ -150,7 +150,7 @@ public:
   unsigned largest_moved_point() const;
 
   void make_unique();
-  void make_generating_set();
+  void insert_inverses();
   void minimize_degree();
 
   void assert_not_empty() const
@@ -165,7 +165,7 @@ public:
 #endif
   }
 
-  void assert_generating_set() const
+  void assert_inverses() const
   {
     auto unique_perms(unique());
 

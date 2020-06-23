@@ -27,13 +27,13 @@ Orbit Orbit::generate(unsigned x,
   };
 
   if (ss) {
-    generators_.assert_generating_set();
+    generators_.assert_inverses();
 
     extend_(generators_);
 
   } else {
     PermSet generators(generators_);
-    generators.make_generating_set();
+    generators.insert_inverses();
 
     extend_(generators);
   }
@@ -47,7 +47,7 @@ bool Orbit::generated_by(unsigned x, PermSet const &generators_) const
     return size() == 1u && (*this)[0] == x;
 
   PermSet generators(generators_);
-  generators.make_generating_set();
+  generators.insert_inverses();
 
   std::vector<int> in_orbit_ref(generators.degree() + 1u, 0);
   std::vector<int> in_orbit(generators.degree() + 1u, 0);
@@ -97,13 +97,13 @@ void Orbit::update(PermSet const &generators_old,
   generators.insert(generators_new.begin(), generators_new.end());
 
   if (ss) {
-    generators.assert_generating_set();
+    generators.assert_inverses();
 
     for (Perm const &gen_new : generators_new)
       ss->add_label(gen_new);
 
   } else {
-    generators.make_generating_set();
+    generators.insert_inverses();
   }
 
   std::vector<unsigned> stack;

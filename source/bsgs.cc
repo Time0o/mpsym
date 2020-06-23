@@ -179,7 +179,7 @@ void BSGS::construct_symmetric()
 
   for (unsigned i = 0u; i < _base.size(); ++i) {
     PermSet tmp(_strong_generators.subset(0, _degree - i - 1u));
-    tmp.make_generating_set();
+    tmp.insert_inverses();
 
     update_schreier_structure(i, tmp);
   }
@@ -200,11 +200,11 @@ void BSGS::construct_alternating()
   for (unsigned i = _degree - 2u; i > 0u; --i)
     _strong_generators.insert(Perm(_degree, {{i, _degree - 1u, _degree}}));
 
-  _strong_generators.make_generating_set();
+  _strong_generators.insert_inverses();
 
   for (unsigned i = 0u; i < _base.size(); ++i) {
     PermSet tmp(_strong_generators.subset(0, _degree - i - 2u));
-    tmp.make_generating_set();
+    tmp.insert_inverses();
 
     update_schreier_structure(i, tmp);
   }

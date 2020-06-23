@@ -41,7 +41,7 @@ unsigned PermSet::largest_moved_point() const
 void PermSet::make_unique()
 { _perms.erase(std::unique(_perms.begin(), _perms.end()), _perms.end()); }
 
-void PermSet::make_generating_set()
+void PermSet::insert_inverses()
 {
   auto perms_and_inverses(_perms);
 
