@@ -50,7 +50,7 @@ public:
                     PermSet const &generators) const;
 
   void update(PermSet const &generators_old,
-              Perm const &generator_new,
+              PermSet const &generators_new,
               std::shared_ptr<SchreierStructure> ss = nullptr);
 
   bool contains(unsigned x) const

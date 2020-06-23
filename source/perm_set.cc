@@ -12,7 +12,7 @@ namespace mpsym
 
 unsigned PermSet::smallest_moved_point() const
 {
-  assert(!all_id());
+  assert(!trivial());
 
   for (unsigned smp = 1u; smp <= degree(); ++smp) {
     for (auto const &perm : *this) {
@@ -26,7 +26,7 @@ unsigned PermSet::smallest_moved_point() const
 
 unsigned PermSet::largest_moved_point() const
 {
-  assert(!all_id());
+  assert(!trivial());
 
   for (unsigned lmp = degree(); lmp >= 1u; --lmp) {
     for (auto const &perm : *this) {
@@ -40,6 +40,18 @@ unsigned PermSet::largest_moved_point() const
 
 void PermSet::make_unique()
 { _perms.erase(std::unique(_perms.begin(), _perms.end()), _perms.end()); }
+
+void PermSet::make_generating_set()
+{
+  auto perms_and_inverses(_perms);
+
+  for (auto const &perm : *this)
+    perms_and_inverses.emplace_back(~perm);
+
+  _perms = perms_and_inverses;
+
+  make_unique();
+}
 
 void PermSet::minimize_degree()
 {

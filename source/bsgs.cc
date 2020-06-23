@@ -49,10 +49,10 @@ BSGS::BSGS(unsigned degree)
 BSGS::BSGS(unsigned degree, PermSet const &generators, Options const *options_)
 : _degree(degree)
 {
-  if (generators.empty() || (generators.size() == 1u && generators[0].id()))
-    return;
-
   assert(degree > 0);
+
+  if (generators.trivial())
+    return;
 
   generators.assert_degree(degree);
 
@@ -175,8 +175,14 @@ void BSGS::construct_symmetric()
   for (unsigned i = _degree - 1u; i > 0u; --i)
     _strong_generators.insert(Perm(_degree, {{i, _degree}}));
 
-  for (unsigned i = 0u; i < _base.size(); ++i)
-    update_schreier_structure(i, _strong_generators.subset(0, _degree - i - 1u));
+  _strong_generators.make_unique();
+
+  for (unsigned i = 0u; i < _base.size(); ++i) {
+    PermSet tmp(_strong_generators.subset(0, _degree - i - 1u));
+    tmp.make_generating_set();
+
+    update_schreier_structure(i, tmp);
+  }
 
   _is_symmetric = true;
 }
@@ -194,8 +200,14 @@ void BSGS::construct_alternating()
   for (unsigned i = _degree - 2u; i > 0u; --i)
     _strong_generators.insert(Perm(_degree, {{i, _degree - 1u, _degree}}));
 
-  for (unsigned i = 0u; i < _base.size(); ++i)
-    update_schreier_structure(i, _strong_generators.subset(0, _degree - i - 2u));
+  _strong_generators.make_generating_set();
+
+  for (unsigned i = 0u; i < _base.size(); ++i) {
+    PermSet tmp(_strong_generators.subset(0, _degree - i - 2u));
+    tmp.make_generating_set();
+
+    update_schreier_structure(i, tmp);
+  }
 
   _is_alternating = true;
 }

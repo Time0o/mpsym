@@ -262,6 +262,7 @@ void BSGS::schreier_sims_init(PermSet const &generators,
   _base.clear();
   _transversals->clear();
   _strong_generators = generators;
+  _strong_generators.make_generating_set();
 
   strong_generators.clear();
   fundamental_orbits.clear();
@@ -329,7 +330,14 @@ void BSGS::schreier_sims_update_strong_gens(
   for (Perm const &gen : new_strong_generators)
     strong_generators[i].insert(gen);
 
-  update_schreier_structure(i, strong_generators[i]);
+  for (Perm const &gen : new_strong_generators) {
+    Perm gen_inv(~gen);
+
+    if (!strong_generators[i].contains(gen_inv))
+      strong_generators[i].insert(gen_inv);
+  }
+
+  update_schreier_structure(i, strong_generators[i]); // TODO
 
   fundamental_orbits[i] = orbit(i);
 }
@@ -342,8 +350,6 @@ void BSGS::schreier_sims_finish()
     auto stabilizers(schreier_structure(i)->labels());
     _strong_generators.insert(stabilizers.begin(), stabilizers.end());
   }
-
-  _strong_generators.make_unique();
 
   DBG(TRACE) << "=> Result:";
   DBG(TRACE) << "B = " << _base;

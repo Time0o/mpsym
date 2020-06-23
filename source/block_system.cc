@@ -74,7 +74,7 @@ PermSet BlockSystem::block_stabilizers(PermSet const &generators,
     Perm transv(pg.bsgs().transversal(0, beta));
 
     stabilizer_generators.insert(transv);
-    stabilizer_orbit.update(stabilizer_generators, transv);
+    stabilizer_orbit.update(stabilizer_generators, {transv});
   }
 
   return stabilizer_generators;

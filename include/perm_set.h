@@ -6,6 +6,7 @@
 #include <initializer_list>
 #include <ostream>
 #include <sstream>
+#include <unordered_set>
 #include <vector>
 
 #include "dump.h"
@@ -129,10 +130,27 @@ public:
   void clear()
   { _perms.clear(); }
 
+  bool trivial() const
+  {
+    if (empty())
+      return true;
+
+    for (auto const &perm : *this) {
+      if (!perm.id())
+        return false;
+    }
+
+    return true;
+  }
+
+  bool contains(Perm const &perm) const
+  { return std::find(_perms.begin(), _perms.end(), perm) != _perms.end(); }
+
   unsigned smallest_moved_point() const;
   unsigned largest_moved_point() const;
 
   void make_unique();
+  void make_generating_set();
   void minimize_degree();
 
   void assert_not_empty() const
@@ -147,16 +165,19 @@ public:
 #endif
   }
 
-private:
-  bool all_id() const
+  void assert_generating_set() const
   {
-    for (auto const &perm : *this) {
-      if (!perm.id())
-        return false;
-    }
+    auto unique_perms(unique());
 
-    return true;
+    for (auto const &perm : _perms) {
+      assert(unique_perms.find(~perm) != unique_perms.end()
+             && "closed under inversion");
+    }
   }
+
+private:
+  std::unordered_set<Perm> unique() const
+  { return std::unordered_set<Perm>(_perms.begin(), _perms.end()); }
 
   std::vector<Perm> _perms;
 };

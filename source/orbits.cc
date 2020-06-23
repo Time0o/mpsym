@@ -14,21 +14,40 @@ namespace mpsym
 {
 
 Orbit Orbit::generate(unsigned x,
-                      PermSet const &generators,
+                      PermSet const &generators_,
                       std::shared_ptr<SchreierStructure> ss)
 {
   Orbit orbit{x};
 
-  if (!generators.empty())
+  if (generators_.trivial())
+    return orbit;
+
+  auto extend_ = [&](PermSet const &generators){
     orbit.extend(generators, {x}, {x}, ss);
+  };
+
+  if (ss) {
+    generators_.assert_generating_set();
+
+    extend_(generators_);
+
+  } else {
+    PermSet generators(generators_);
+    generators.make_generating_set();
+
+    extend_(generators);
+  }
 
   return orbit;
 }
 
-bool Orbit::generated_by(unsigned x, PermSet const &generators) const
+bool Orbit::generated_by(unsigned x, PermSet const &generators_) const
 {
-  if (generators.empty())
+  if (generators_.trivial())
     return size() == 1u && (*this)[0] == x;
+
+  PermSet generators(generators_);
+  generators.make_generating_set();
 
   std::vector<int> in_orbit_ref(generators.degree() + 1u, 0);
   std::vector<int> in_orbit(generators.degree() + 1u, 0);
@@ -49,7 +68,7 @@ bool Orbit::generated_by(unsigned x, PermSet const &generators) const
     unsigned x = stack.back();
     stack.pop_back();
 
-    for (auto const &gen : generators) {
+    for (Perm const &gen : generators) {
       unsigned y = gen[x];
 
       if (!in_orbit_ref[y])
@@ -71,22 +90,32 @@ bool Orbit::generated_by(unsigned x, PermSet const &generators) const
 }
 
 void Orbit::update(PermSet const &generators_old,
-                   Perm const &generator_new,
+                   PermSet const &generators_new,
                    std::shared_ptr<SchreierStructure> ss)
 {
   auto generators(generators_old);
-  generators.insert(generator_new);
+  generators.insert(generators_new.begin(), generators_new.end());
 
-  if (ss)
-    ss->add_label(generator_new);
+  if (ss) {
+    generators.assert_generating_set();
+
+    for (Perm const &gen_new : generators_new)
+      ss->add_label(gen_new);
+
+  } else {
+    generators.make_generating_set();
+  }
 
   std::vector<unsigned> stack;
   std::unordered_set<unsigned> done(begin(), end());
 
-  for (unsigned x : *this) {
-    unsigned x_prime = generator_new[x];
-    if (done.find(x_prime) != done.end())
-      stack.push_back(x_prime);
+  for (Perm const &gen_new : generators_new) {
+    for (unsigned x : *this) {
+      unsigned y = gen_new[x];
+
+      if (done.find(y) != done.end())
+        stack.push_back(y);
+    }
   }
 
   extend(generators, stack, done, ss);
@@ -102,16 +131,16 @@ void Orbit::extend(PermSet const &generators,
     stack.pop_back();
 
     for (auto i = 0u; i < generators.size(); ++i) {
-      unsigned x_prime = generators[i][x];
+      unsigned y = generators[i][x];
 
-      if (done.find(x_prime) == done.end()) {
-        done.insert(x_prime);
-        stack.push_back(x_prime);
+      if (done.find(y) == done.end()) {
+        done.insert(y);
+        stack.push_back(y);
 
-        push_back(x_prime);
+        push_back(y);
 
         if (ss)
-          ss->create_edge(x_prime, x, i);
+          ss->create_edge(y, x, i);
       }
     }
   }
@@ -143,7 +172,7 @@ OrbitPartition::OrbitPartition(unsigned degree,
 OrbitPartition::OrbitPartition(unsigned degree, PermSet const &generators)
 : _partition_indices(degree, -1)
 {
-  if (generators.empty())
+  if (generators.trivial())
     return;
 
   std::vector<int> processed(generators.degree() + 1u, 0);
