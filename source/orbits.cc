@@ -34,44 +34,50 @@ bool Orbit::generated_by(unsigned x, PermSet const &generators) const
   if (generators.trivial())
     return size() == 1u && (*this)[0] == x;
 
-  std::vector<int> in_orbit_ref(generators.degree() + 1u, 0);
-  std::vector<int> in_orbit(generators.degree() + 1u, 0);
+  // this orbit
+  std::unordered_set<unsigned> this_orbit;
+  this_orbit.insert(begin(), end());
 
-  for (unsigned y : *this)
-    in_orbit_ref[y] = 1;
-
-  if (!in_orbit_ref[x])
+  if (this_orbit.find(x) == this_orbit.end())
     return false;
 
-  in_orbit[x] = 1;
+  // orbit of x
+  std::unordered_set<unsigned> x_orbit{x};
+
+  // enumerate orbit of x
+  auto generators_with_inverses(generators.with_inverses());
 
   std::vector<unsigned> stack{x};
 
-  auto target = size() - 1u;
-
   while (!stack.empty()) {
-    unsigned x = stack.back();
+    unsigned y = stack.back();
     stack.pop_back();
 
-    for (Perm const &gen : generators.with_inverses()) {
-      unsigned y = gen[x];
+    for (Perm const &gen : generators_with_inverses) {
+      unsigned y_prime = gen[y];
 
-      if (!in_orbit_ref[y])
+      // check if the orbit of x contains an element not in this orbit
+      if (this_orbit.find(y_prime) == this_orbit.end())
         return false;
 
-      if (in_orbit[y] == 0) {
-        in_orbit[y] = 1;
+      if (x_orbit.find(y_prime) == x_orbit.end()) {
+        x_orbit.insert(y_prime);
 
-        stack.push_back(y);
+        // check if this orbit is a subset of the orbit of x
+        if (x_orbit.size() > this_orbit.size())
+          return false;
 
-        if (--target == 0u) {
-          return true;
-        }
+        stack.push_back(y_prime);
       }
     }
   }
 
-  return false;
+  // check if the orbit of x is a subset of this orbit
+  if (x_orbit.size() < this_orbit.size())
+    return false;
+
+  // the orbits match
+  return true;
 }
 
 void Orbit::update(PermSet const &generators_old,
