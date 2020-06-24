@@ -99,14 +99,21 @@ void Orbit::update(PermSet const &generators_old,
   std::vector<unsigned> stack;
   std::unordered_set<unsigned> done(begin(), end());
 
-  for (Perm const &gen_new : generators_new) {
+  for (unsigned i = 0u; i < generators_new.size(); ++i) {
     for (unsigned x : *this) {
-      unsigned y = gen_new[x];
+      unsigned y = generators_new[i][x];
 
-      if (done.find(y) != done.end())
+      if (done.find(y) == done.end()) {
+        done.insert(y);
         stack.push_back(y);
+
+        if (ss)
+          ss->create_edge(y, x, generators_old.size() + i);
+      }
     }
   }
+
+  insert(end(), stack.begin(), stack.end());
 
   extend(generators, stack, done, ss);
 }
