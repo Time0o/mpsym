@@ -6,8 +6,7 @@
 
 #include "test_main.cc"
 
-using util::pow;
-using util::factorial;
+using namespace mpsym::internal::util;
 
 class PowTest :
   public testing::TestWithParam<std::tuple<unsigned, unsigned, unsigned>> {};

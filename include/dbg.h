@@ -9,6 +9,14 @@
 
 #include "dump.h"
 
+#define DBG_NS ::mpsym::internal::dbg
+
+namespace mpsym
+{
+
+namespace internal
+{
+
 namespace dbg
 {
 
@@ -69,27 +77,29 @@ private:
 
 } // namespace dbg
 
+} // namespace internal
+
+} // namespace mpsym
+
 #ifdef NDEBUG
 
-#define DBG(level) if (0) dbg::Dbg()
+#define DBG(level) if (0) DBG_NS :: Dbg()
 
 #define DBG_SET_LOGLEVEL(loglevel)
-
-#define DBG_GET_OUT() dbg::Dbg::out
-#define DBG_SET_OUT(os) do { dbg::Dbg::out = os; } while (0)
 
 #else
 
 #define DBG(level) \
-  if (level < dbg::Dbg::loglevel) {} \
-  else dbg::Dbg(level)
+  if (level < DBG_NS :: Dbg::loglevel) {} \
+  else DBG_NS :: Dbg(level)
 
-#define TRACE dbg::Dbg::TRACE
-#define DEBUG dbg::Dbg::DEBUG
-#define INFO dbg::Dbg::INFO
-#define WARN dbg::Dbg::WARN
+#define TRACE DBG_NS :: Dbg::TRACE
+#define DEBUG DBG_NS :: Dbg::DEBUG
+#define INFO DBG_NS :: Dbg::INFO
+#define WARN DBG_NS :: Dbg::WARN
 
-#define DBG_SET_LOGLEVEL(level) do { dbg::Dbg::loglevel = level; } while (0)
+#define DBG_SET_LOGLEVEL(level) do { \
+  DBG_NS :: Dbg::loglevel = level; } while (0)
 
 #endif
 

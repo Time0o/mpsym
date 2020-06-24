@@ -351,6 +351,9 @@ namespace std
 
 std::size_t hash<mpsym::internal::PartialPerm>::operator()(
   mpsym::internal::PartialPerm const &pperm) const
-{ return util::container_hash(pperm._pperm.begin(), pperm._pperm.end()); }
+{
+  return mpsym::internal::util::container_hash(pperm._pperm.begin(),
+                                               pperm._pperm.end());
+}
 
 } // namespace std

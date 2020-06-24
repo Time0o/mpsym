@@ -322,18 +322,7 @@ void run(FUNC &&f,
 {
   auto ts(f(options));
 
-  if (options.summarize_runs) {
-    double t_mean, t_stddev;
-    util::mean_stddev(ts, &t_mean, &t_stddev);
-
-    result("Mean:", t_mean, "s");
-    result("Stddev:", t_stddev, "s");
-
-  } else {
-    result("Runtimes:");
-    for (double t : ts)
-      result(t, "s");
-  }
+  dump_runs(ts, options.summarize_runs);
 
   if (options.verbose && options.implementation.is("mpsym")) {
     debug("Timer dumps:");

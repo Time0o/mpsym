@@ -17,6 +17,12 @@
  * @author Timo Nicolai
  */
 
+namespace mpsym
+{
+
+namespace internal
+{
+
 namespace util
 {
 
@@ -119,6 +125,10 @@ struct ContainerHash
 
 inline std::mt19937 random_engine()
 { return std::mt19937{std::random_device{}()}; }
+
+} // namespace util
+
+} // namespace internal
 
 } // namespace mpsym
 

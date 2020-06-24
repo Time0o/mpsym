@@ -51,7 +51,7 @@ public:
   }
 
 private:
-  timer::Timer _timer;
+  mpsym::internal::timer::Timer _timer;
 
 } realtime_timer;
 

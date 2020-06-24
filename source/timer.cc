@@ -6,6 +6,12 @@
 
 #ifndef NTIMER
 
+namespace mpsym
+{
+
+namespace internal
+{
+
 namespace timer
 {
 
@@ -14,5 +20,9 @@ std::ostream *Timer::out = &std::cout;
 std::map<std::string, Timer> Timer::_timers;
 
 } // namespace timer
+
+} // namespace internal
+
+} // namespace mpsym
 
 #endif

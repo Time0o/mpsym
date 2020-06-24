@@ -443,7 +443,7 @@ void dump_runs(std::vector<double> const &ts, bool summarize)
 {
   if (summarize) {
     double t_mean, t_stddev;
-    util::mean_stddev(ts, &t_mean, &t_stddev);
+    mpsym::internal::util::mean_stddev(ts, &t_mean, &t_stddev);
 
     result("Mean:", t_mean, "s");
     result("Stddev:", t_stddev, "s");

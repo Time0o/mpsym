@@ -23,33 +23,11 @@
 
 #else
 
-#define TIMER_ENABLE() do { timer::Timer::enabled = true; } while (0)
+namespace mpsym
+{
 
-#define TIMER_GET_OUT() timer::Timer::out
-#define TIMER_SET_OUT(os) do { timer::Timer::out = os; } while (0)
-
-#define TIMER_OP(op) do { if (timer::Timer::enabled) { op; } } while (0)
-
-#define TIMER_CREATE_WITH_PRECISION(name, precision) \
-  TIMER_OP(timer::Timer::create(name, precision))
-#define TIMER_START(name) \
-  TIMER_OP(timer::Timer::create(name); timer::Timer::get(name)->start())
-#define TIMER_STOP(name) \
-  TIMER_OP(timer::Timer::get(name)->stop())
-#define TIMER_EXISTS(name) \
-  timer::Timer::exists(name)
-#define TIMER_DUMP(name) \
-  TIMER_OP(*timer::Timer::out << *timer::Timer::get(name) << std::endl; \
-           timer::Timer::destroy(name))
-#define TIMER_DUMP_ALL() \
-  TIMER_OP(for (auto *t : timer::Timer::get_all()) { \
-             *timer::Timer::out << *t << std::endl; \
-             timer::Timer::destroy(t->name()); \
-           })
-
-#define TIMER_SECONDS timer::Timer::SECONDS
-#define TIMER_MILLISECONDS timer::Timer::MILLISECONDS
-#define TIMER_MICROSECONDS timer::Timer::MICROSECONDS
+namespace internal
+{
 
 namespace timer
 {
@@ -192,7 +170,9 @@ private:
 
   static count_type time_overhead(bool add_stddev)
   {
-    if (!Timer::enabled)
+    char const *t_overhead = "overhead test";
+
+    if (!enabled)
       throw std::logic_error("timer overhead only available in macro mode");
 
     static count_type mean = 0ULL;
@@ -200,13 +180,14 @@ private:
 
     if (mean == 0ULL) {
       for (int i = 0; i < RESOLUTION_TEST_TICKS; ++i) {
-        TIMER_START("overhead test");
-        TIMER_STOP("overhead test");
+        create(t_overhead);
+        get(t_overhead)->start();
+        get(t_overhead)->stop();
       }
 
-      auto *t = Timer::get("overhead test");
+      auto *t = get(t_overhead);
       util::mean_stddev(t->_meas, &mean, &stddev);
-      Timer::destroy("overhead test");
+      destroy(t_overhead);
     }
 
     return add_stddev ? mean + stddev : mean;
@@ -281,6 +262,41 @@ inline std::ostream &operator<<(std::ostream &s, Timer const &timer)
 }
 
 } // namespace timer
+
+} // namespace internal
+
+} // namespace mpsym
+
+#define TIMER_NS ::mpsym::internal::timer
+
+#define TIMER_ENABLE() do { TIMER_NS :: Timer::enabled = true; } while (0)
+
+#define TIMER_GET_OUT() TIMER_NS :: Timer::out
+#define TIMER_SET_OUT(os) do { TIMER_NS :: Timer::out = os; } while (0)
+
+#define TIMER_OP(op) do { if (TIMER_NS :: Timer::enabled) { op; } } while (0)
+
+#define TIMER_CREATE_WITH_PRECISION(name, precision) \
+  TIMER_OP(TIMER_NS :: Timer::create(name, precision))
+#define TIMER_START(name) \
+  TIMER_OP(TIMER_NS :: Timer::create(name); \
+           TIMER_NS :: Timer::get(name)->start())
+#define TIMER_STOP(name) \
+  TIMER_OP(TIMER_NS :: Timer::get(name)->stop())
+#define TIMER_EXISTS(name) \
+  TIMER_NS :: Timer::exists(name)
+#define TIMER_DUMP(name) \
+  TIMER_OP(*TIMER_NS :: Timer::out << *TIMER_NS :: Timer::get(name) << std::endl; \
+           TIMER_NS :: Timer::destroy(name))
+#define TIMER_DUMP_ALL() \
+  TIMER_OP(for (auto *t : TIMER_NS :: Timer::get_all()) { \
+             *TIMER_NS :: Timer::out << *t << std::endl; \
+             TIMER_NS :: Timer::destroy(t->name()); \
+           })
+
+#define TIMER_SECONDS TIMER_NS :: Timer::SECONDS
+#define TIMER_MILLISECONDS TIMER_NS :: Timer::MILLISECONDS
+#define TIMER_MICROSECONDS TIMER_NS :: Timer::MICROSECONDS
 
 #endif
 

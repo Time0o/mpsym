@@ -11,6 +11,12 @@
 #include <unordered_set>
 #include <vector>
 
+namespace mpsym
+{
+
+namespace internal
+{
+
 namespace dump
 {
 
@@ -123,9 +129,12 @@ std::ostream &operator<<(std::ostream &os, Dumper<T> const &dumper)
 
 } // namespace dump
 
-#define DUMP(obj) dump::make_dumper(obj)
-#define DUMP_CUSTOM(obj, ...) dump::make_dumper(obj, { __VA_ARGS__ })
+} // namespace internal
 
-//template<typename T>
+} // namespace mpsym
+
+#define DUMP_NS ::mpsym::internal::dump
+#define DUMP(obj) DUMP_NS :: make_dumper(obj)
+#define DUMP_CUSTOM(obj, ...) DUMP_NS :: make_dumper(obj, { __VA_ARGS__ })
 
 #endif // _GUARD_DUMP_H
