@@ -21,6 +21,17 @@
 namespace mpsym
 {
 
+void BSGSTransversalsBase::reserve_schreier_structure(
+  unsigned i, unsigned root, unsigned degree)
+{
+  if (i < _schreier_structures.size())
+    return;
+
+  assert(i == _schreier_structures.size());
+
+  _schreier_structures.push_back(make_schreier_structure(root, degree, {}));
+}
+
 void BSGSTransversalsBase::update_schreier_structure(
   unsigned i, unsigned root, unsigned degree, PermSet const &generators)
 {
@@ -28,10 +39,12 @@ void BSGSTransversalsBase::update_schreier_structure(
 
   Orbit::generate(root, generators, ss);
 
-  if (i == _schreier_structures.size())
-    _schreier_structures.push_back(ss);
-  else
+  if (i < _schreier_structures.size())
     _schreier_structures[i].swap(ss);
+
+  assert(i == _schreier_structures.size());
+
+  _schreier_structures.push_back(ss);
 }
 
 void BSGSTransversalsBase::insert_schreier_structure(

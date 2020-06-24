@@ -96,9 +96,6 @@ top:
           DBG(TRACE) << "Adjoined new basepoint:";
           DBG(TRACE) << "B = " << _base;
 
-          strong_generators.emplace_back();
-          fundamental_orbits.emplace_back();
-
           TIMER_STOP("extend base");
         }
 
@@ -224,9 +221,6 @@ void BSGS::schreier_sims_random(std::vector<PermSet> &strong_generators,
         if (strip_perm[bp] != bp) {
           extend_base(bp);
 
-          strong_generators.emplace_back();
-          fundamental_orbits.emplace_back();
-
           DBG(TRACE) << "Adjoined new basepoint:";
           DBG(TRACE) << "B = " << _base;
 
@@ -298,9 +292,6 @@ void BSGS::schreier_sims_init(PermSet const &generators,
     }
   }
 
-  strong_generators.resize(base_size());
-  fundamental_orbits.resize(base_size());
-
   // calculate initial strong generator sets
   for (unsigned i = 0u; i < base_size(); ++i) {
     PermSet new_strong_generators;
@@ -323,23 +314,27 @@ void BSGS::schreier_sims_init(PermSet const &generators,
 
 void BSGS::schreier_sims_update_strong_gens(
   unsigned i,
-  PermSet const &new_strong_generators,
+  PermSet new_strong_generators,
   std::vector<PermSet> &strong_generators,
   std::vector<Orbit> &fundamental_orbits)
 {
-  for (Perm const &gen : new_strong_generators)
-    strong_generators[i].insert(gen);
+  new_strong_generators.insert_inverses();
 
-  for (Perm const &gen : new_strong_generators) {
-    Perm gen_inv(~gen);
+  if (i >= strong_generators.size()) {
+    for (unsigned j = strong_generators.size(); j <= i; ++j) {
+      fundamental_orbits.push_back({base_point(j)});
+      reserve_schreier_structure(j);
+    }
 
-    if (!strong_generators[i].contains(gen_inv))
-      strong_generators[i].insert(gen_inv);
+    strong_generators.resize(i + 1u);
   }
 
-  update_schreier_structure(i, strong_generators[i]); // TODO
+  fundamental_orbits[i].update(strong_generators[i],
+                               new_strong_generators,
+                               schreier_structure(i));
 
-  fundamental_orbits[i] = orbit(i);
+  strong_generators[i].insert(new_strong_generators.begin(),
+                              new_strong_generators.end());
 }
 
 void BSGS::schreier_sims_finish()

@@ -26,6 +26,9 @@ public:
   std::shared_ptr<SchreierStructure> schreier_structure(unsigned i) const
   { return _schreier_structures[i]; }
 
+  void reserve_schreier_structure(
+    unsigned i, unsigned root, unsigned degree);
+
   void update_schreier_structure(
     unsigned i, unsigned root, unsigned degree, PermSet const &generators);
 
@@ -150,7 +153,7 @@ private:
 
   void schreier_sims_update_strong_gens(
     unsigned i,
-    PermSet const &new_strong_generators,
+    PermSet new_strong_generators,
     std::vector<PermSet> &strong_generators,
     std::vector<Orbit> &fundamental_orbits);
 
@@ -185,6 +188,12 @@ private:
 
   std::shared_ptr<SchreierStructure> schreier_structure(unsigned i) const
   { return _transversals->schreier_structure(i); }
+
+  void reserve_schreier_structure(unsigned i)
+  {
+    _transversals->reserve_schreier_structure(
+      i, base_point(i), _degree);
+  }
 
   void update_schreier_structure(unsigned i, PermSet const &generators)
   {
