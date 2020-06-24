@@ -12,9 +12,8 @@
 #include "perm_set.h"
 #include "test_utility.h"
 
-using mpsym::Perm;
-using mpsym::PermGroup;
-using mpsym::PermSet;
+using namespace mpsym;
+using namespace mpsym::internal;
 
 template <typename P>
 static testing::AssertionResult _perm_equal(

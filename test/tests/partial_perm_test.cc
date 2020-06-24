@@ -12,8 +12,8 @@
 
 #include "test_main.cc"
 
-using mpsym::PartialPerm;
-using mpsym::Perm;
+using namespace mpsym;
+using namespace mpsym::internal;
 
 TEST(PartialPermTest, CanConstructPartialPerm)
 {

@@ -74,11 +74,14 @@ public:
   unsigned num_channels() const override;
 
 private:
-  PermGroup automorphisms_(AutomorphismOptions const *options) override
+  internal::PermGroup automorphisms_(
+    AutomorphismOptions const *options) override
   { return automorphisms_nauty(options); }
 
-  NautyGraph graph_nauty() const;
-  PermGroup automorphisms_nauty(AutomorphismOptions const *options) const;
+  internal::NautyGraph graph_nauty() const;
+
+  internal::PermGroup automorphisms_nauty(
+    AutomorphismOptions const *options) const;
 
   void create_mesh(unsigned width,
                    unsigned height,

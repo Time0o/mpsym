@@ -254,7 +254,8 @@ Perm Perm::shifted(unsigned shift) const
 namespace std
 {
 
-std::size_t hash<mpsym::Perm>::operator()(mpsym::Perm const &perm) const
+std::size_t hash<mpsym::internal::Perm>::operator()(
+  mpsym::internal::Perm const &perm) const
 { return util::container_hash(perm._perm.begin() + 1u, perm._perm.end()); }
 
 } // namespace std

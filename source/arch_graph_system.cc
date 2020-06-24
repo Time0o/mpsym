@@ -25,6 +25,8 @@ using boost::multiprecision::pow;
 namespace mpsym
 {
 
+using namespace internal;
+
 unsigned ArchGraphSystem::num_automorphism_orbits(
   unsigned num_tasks,
   bool unique_tasks,

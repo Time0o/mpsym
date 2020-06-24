@@ -13,6 +13,8 @@
 namespace mpsym
 {
 
+using namespace internal;
+
 std::string
 ArchGraphCluster::to_gap() const
 {

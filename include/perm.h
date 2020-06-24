@@ -31,9 +31,9 @@ namespace std
 {
 
 template<>
-struct hash<mpsym::Perm>
+struct hash<mpsym::internal::Perm>
 {
-  std::size_t operator()(mpsym::Perm const &perm) const;
+  std::size_t operator()(mpsym::internal::Perm const &perm) const;
 };
 
 } // namespace std

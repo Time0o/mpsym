@@ -17,6 +17,8 @@
 namespace mpsym
 {
 
+using namespace internal;
+
 ArchUniformSuperGraph::ArchUniformSuperGraph(
   std::shared_ptr<ArchGraphSystem> super_graph,
   std::shared_ptr<ArchGraphSystem> proto)

@@ -8,7 +8,8 @@
 
 #include "test_main.cc"
 
-using mpsym::Perm;
+using namespace mpsym;
+using namespace mpsym::internal;
 
 using testing::UnorderedElementsAreArray;
 

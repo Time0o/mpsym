@@ -238,6 +238,8 @@ std::shared_ptr<mpsym::ArchGraphSystem> lua_make_arch_graph_system(lua_State *L)
 namespace mpsym
 {
 
+using namespace internal;
+
 std::shared_ptr<ArchGraphSystem> ArchGraphSystem::from_lua_file(
   std::string const &lua_file,
   std::vector<std::string> const &args)

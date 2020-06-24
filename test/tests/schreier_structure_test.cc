@@ -11,11 +11,8 @@
 
 #include "test_main.cc"
 
-using mpsym::ExplicitTransversals;
-using mpsym::Orbit;
-using mpsym::Perm;
-using mpsym::PermSet;
-using mpsym::SchreierTree;
+using namespace mpsym;
+using namespace mpsym::internal;
 
 using testing::UnorderedElementsAreArray;
 

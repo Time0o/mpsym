@@ -33,9 +33,9 @@ namespace std
 /** A partial permutation hash functor.
  */
 template<>
-struct hash<mpsym::PartialPerm>
+struct hash<mpsym::internal::PartialPerm>
 {
-  std::size_t operator()(mpsym::PartialPerm const &pperm) const;
+  std::size_t operator()(mpsym::internal::PartialPerm const &pperm) const;
 };
 
 } // namespace std

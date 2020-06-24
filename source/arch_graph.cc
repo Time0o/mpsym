@@ -30,6 +30,8 @@
 namespace mpsym
 {
 
+using namespace internal;
+
 std::string ArchGraph::to_gap() const
 { return graph_nauty().to_gap(num_processors()); }
 

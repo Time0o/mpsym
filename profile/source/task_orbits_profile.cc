@@ -304,10 +304,10 @@ mpsym::TaskOrbits map_tasks_mpsym(
   mpsym::ReprOptions const &repr_options,
   ProfileOptions const &options)
 {
-  using mpsym::ArchGraphAutomorphisms;
   using mpsym::ArchGraphSystem;
-  using mpsym::PermGroup;
   using mpsym::TaskOrbits;
+  using mpsym::internal::ArchGraphAutomorphisms;
+  using mpsym::internal::PermGroup;
 
   if (options.verbosity > 0)
     debug("Constructing BSGS");
@@ -503,9 +503,9 @@ void do_profile(Stream &automorphisms_stream,
                 Stream &task_mappings_stream,
                 ProfileOptions const &options)
 {
-  using mpsym::ArchGraphAutomorphisms;
   using mpsym::ArchGraphSystem;
-  using mpsym::PermGroup;
+  using mpsym::internal::ArchGraphAutomorphisms;
+  using mpsym::internal::PermGroup;
 
   std::shared_ptr<ArchGraphSystem> ags, ags_check;
 

@@ -19,16 +19,8 @@
 
 #include "test_main.cc"
 
-using mpsym::ArchGraph;
-using mpsym::ArchGraphCluster;
-using mpsym::ArchGraphSystem;
-using mpsym::ArchUniformSuperGraph;
-using mpsym::AutomorphismOptions;
-using mpsym::PartialPerm;
-using mpsym::Perm;
-using mpsym::PermGroup;
-using mpsym::ReprOptions;
-using mpsym::TaskMapping;
+using namespace mpsym;
+using namespace mpsym::internal;
 
 using testing::UnorderedElementsAreArray;
 

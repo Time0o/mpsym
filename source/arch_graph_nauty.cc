@@ -8,6 +8,8 @@
 namespace mpsym
 {
 
+using namespace internal;
+
 PermSet NautyGraph::_gens;
 int NautyGraph::_gen_degree;
 

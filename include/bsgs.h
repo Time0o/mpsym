@@ -20,6 +20,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 class BSGSTransversalsBase
 {
 public:
@@ -220,6 +223,8 @@ struct BSGSOptions
   int schreier_sims_random_retries = -1;
   unsigned schreier_sims_random_w = 100u;
 };
+
+} // namespace internal
 
 } // namespace mpsym
 

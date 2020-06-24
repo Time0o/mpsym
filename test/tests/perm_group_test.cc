@@ -13,11 +13,8 @@
 
 #include "test_main.cc"
 
-using mpsym::BSGS;
-using mpsym::BSGSOptions;
-using mpsym::Perm;
-using mpsym::PermGroup;
-using mpsym::PermSet;
+using namespace mpsym;
+using namespace mpsym::internal;
 
 using testing::ElementsAre;
 using testing::UnorderedElementsAre;

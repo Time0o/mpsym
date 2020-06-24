@@ -17,6 +17,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 bool BlockSystem::trivial() const
 { return size() == 1u || (*this)[0].size() == 1u; }
 
@@ -548,5 +551,7 @@ std::ostream &operator<<(std::ostream &os, BlockSystem const &bs)
   os << DUMP_CUSTOM(bs._blocks, "{}", "{}");
   return os;
 }
+
+} // namespace internal
 
 } // namespace mpsym

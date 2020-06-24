@@ -11,10 +11,8 @@
 
 #include "test_main.cc"
 
-using mpsym::BlockSystem;
-using mpsym::Perm;
-using mpsym::PermGroup;
-using mpsym::PermSet;
+using namespace mpsym;
+using namespace mpsym::internal;
 
 static std::string block_to_string(BlockSystem::Block const &block)
 {

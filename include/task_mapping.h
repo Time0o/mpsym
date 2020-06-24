@@ -140,7 +140,7 @@ private:
   }
 
   template<typename PERM, typename FUNC>
-  typename std::enable_if<std::is_same<PERM, Perm>::value, bool>::type
+  typename std::enable_if<std::is_same<PERM, internal::Perm>::value, bool>::type
   foreach_permuted_task(PERM const &perm,
                         unsigned offset,
                         FUNC &&func) const
@@ -153,7 +153,7 @@ private:
   }
 
   template<typename PERM, typename FUNC>
-  typename std::enable_if<std::is_same<PERM, PermSet>::value, bool>::type
+  typename std::enable_if<std::is_same<PERM, internal::PermSet>::value, bool>::type
   foreach_permuted_task(PERM const &perm_word,
                         unsigned offset,
                         FUNC &&func) const

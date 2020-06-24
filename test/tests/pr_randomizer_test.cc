@@ -12,9 +12,8 @@
 #define RANDOMIZER_RUNS 10000
 #define RANDOMIZER_EPS_REL 5
 
-using mpsym::Perm;
-using mpsym::PermSet;
-using mpsym::PrRandomizer;
+using namespace mpsym;
+using namespace mpsym::internal;
 
 class PRRandomizerTest : public testing::Test
 {

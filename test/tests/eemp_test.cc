@@ -13,17 +13,9 @@
 
 #include "test_main.cc"
 
-using mpsym::PartialPerm;
-using mpsym::Perm;
-using mpsym::PermGroup;
-
-using mpsym::eemp::OrbitGraph;
-using mpsym::eemp::SchreierTree;
-using mpsym::eemp::action_component;
-using mpsym::eemp::expand_partition;
-using mpsym::eemp::r_class_representatives;
-using mpsym::eemp::scc_spanning_tree;
-using mpsym::eemp::strongly_connected_components;
+using namespace mpsym;
+using namespace mpsym::internal;
+using namespace mpsym::internal::eemp;
 
 using testing::ElementsAreArray;
 using testing::UnorderedElementsAreArray;
@@ -57,7 +49,7 @@ protected:
   };
 
   std::vector<std::vector<unsigned>> component;
-  SchreierTree schreier_tree;
+  eemp::SchreierTree schreier_tree;
   OrbitGraph orbit_graph;
   std::vector<unsigned> scc;
   std::vector<std::vector<unsigned>> scc_expanded;
@@ -104,7 +96,7 @@ TEST_F(EEMPTest, CanComputeLeftSchreierTree)
 
   PartialPerm const x(gens[0] * gens[2] * gens[3]);
 
-  SchreierTree left_schreier_tree;
+  eemp::SchreierTree left_schreier_tree;
   OrbitGraph dummy;
   auto left_action_component(action_component(
     x.dom(), inv_gens, dom.back(), left_schreier_tree, orbit_graph));
@@ -200,7 +192,7 @@ TEST_F(EEMPTest, CanComputeStabilizerSchreierGenerators)
   };
 
   for (auto i = 0u; i < sizeof(scc_repr) / sizeof(scc_repr[0]); ++i) {
-    SchreierTree st(scc_spanning_tree(scc_repr[i], orbit_graph, scc));
+    eemp::SchreierTree st(scc_spanning_tree(scc_repr[i], orbit_graph, scc));
 
     auto sg(schreier_generators(
       scc_repr[i], gens, dom.back(), component, st, orbit_graph, scc));

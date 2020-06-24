@@ -29,7 +29,8 @@ public:
   unsigned num_channels() const override;
 
 private:
-  BSGS::order_type num_automorphisms_(AutomorphismOptions const *options) override
+  internal::BSGS::order_type num_automorphisms_(
+    AutomorphismOptions const *options) override
   {
     using boost::multiprecision::pow;
 
@@ -42,7 +43,8 @@ private:
     return pow(order_proto, lmp_super_graph) * order_super_graph;
   }
 
-  PermGroup automorphisms_(AutomorphismOptions const *options) override;
+  internal::PermGroup automorphisms_(
+    AutomorphismOptions const *options) override;
 
   void init_repr_(AutomorphismOptions const *options) override
   {
@@ -69,17 +71,17 @@ private:
                     TaskOrbits *orbits,
                     ReprOptions const *options) override;
 
-  std::shared_ptr<ArchGraphAutomorphisms>
+  std::shared_ptr<internal::ArchGraphAutomorphisms>
   wreath_product_action_super_graph(AutomorphismOptions const *options) const;
 
-  std::vector<std::shared_ptr<ArchGraphAutomorphisms>>
+  std::vector<std::shared_ptr<internal::ArchGraphAutomorphisms>>
   wreath_product_action_proto(AutomorphismOptions const *options) const;
 
   std::shared_ptr<ArchGraphSystem> _subsystem_super_graph;
   std::shared_ptr<ArchGraphSystem> _subsystem_proto;
 
-  std::shared_ptr<ArchGraphAutomorphisms> _sigma_super_graph;
-  std::vector<std::shared_ptr<ArchGraphAutomorphisms>> _sigmas_proto;
+  std::shared_ptr<internal::ArchGraphAutomorphisms> _sigma_super_graph;
+  std::vector<std::shared_ptr<internal::ArchGraphAutomorphisms>> _sigmas_proto;
   bool _sigmas_valid = false;
 };
 

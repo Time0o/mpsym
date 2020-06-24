@@ -91,9 +91,10 @@ std::pair<gen_type, unsigned> parse_generators(
   return {gens, largest_moved_point};
 }
 
-mpsym::PermSet convert_generators_mpsym(unsigned degree, gen_type const &gens)
+mpsym::internal::PermSet convert_generators_mpsym(unsigned degree,
+                                                  gen_type const &gens)
 {
-  mpsym::PermSet gens_conv;
+  mpsym::internal::PermSet gens_conv;
 
   for (auto const &gen : gens)
     gens_conv.emplace(degree, gen);
@@ -198,8 +199,8 @@ namespace profile
 
 std::shared_ptr<mpsym::ArchGraphSystem> GenericGroup::to_arch_graph_system() const
 {
-  return std::make_shared<mpsym::ArchGraphAutomorphisms>(
-    mpsym::PermGroup(degree, parse_generators_mpsym(degree, generators)));
+  return std::make_shared<mpsym::internal::ArchGraphAutomorphisms>(
+    mpsym::internal::PermGroup(degree, parse_generators_mpsym(degree, generators)));
 }
 
 GenericGroup parse_group(std::string const &group_str)
@@ -233,7 +234,8 @@ GenericGroup parse_group(std::string const &group_str)
 gap::PermSet parse_generators_gap(unsigned degree, std::string const &gen_str)
 { return {degree, gen_str}; }
 
-mpsym::PermSet parse_generators_mpsym(unsigned degree, std::string const &gen_str)
+mpsym::internal::PermSet parse_generators_mpsym(unsigned degree,
+                                                std::string const &gen_str)
 {
    gen_type gen_vect;
    unsigned largest_moved_point;

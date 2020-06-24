@@ -34,16 +34,18 @@ public:
   unsigned num_subsystems() const;
 
 private:
-  internal::BSGS::order_type num_automorphisms_(AutomorphismOptions const *options) override
+  internal::BSGS::order_type num_automorphisms_(
+    AutomorphismOptions const *options) override
   {
-    BSGS::order_type ret = 1;
+    internal::BSGS::order_type ret = 1;
     for (auto const &subsystem : _subsystems)
       ret *= subsystem->num_automorphisms(options);
 
     return ret;
   }
 
-  PermGroup automorphisms_(AutomorphismOptions const *options) override;
+  internal::PermGroup automorphisms_(
+    AutomorphismOptions const *options) override;
 
   void init_repr_(AutomorphismOptions const *options) override
   {

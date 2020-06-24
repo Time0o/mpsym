@@ -349,8 +349,8 @@ Perm PartialPerm::to_perm(unsigned degree) const
 namespace std
 {
 
-std::size_t hash<mpsym::PartialPerm>::operator()(
-  mpsym::PartialPerm const &pperm) const
+std::size_t hash<mpsym::internal::PartialPerm>::operator()(
+  mpsym::internal::PartialPerm const &pperm) const
 { return util::container_hash(pperm._pperm.begin(), pperm._pperm.end()); }
 
 } // namespace std

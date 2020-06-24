@@ -54,9 +54,11 @@ GenericGroup parse_group(std::string const &group_str);
 
 gap::PermSet parse_generators_gap(unsigned degree, std::string const &gen_str);
 
-mpsym::PermSet parse_generators_mpsym(unsigned degree, std::string const &gen_str);
+mpsym::internal::PermSet parse_generators_mpsym(unsigned degree,
+                                                std::string const &gen_str);
 
-permlib::PermSet parse_generators_permlib(unsigned degree, std::string const &gen_str);
+permlib::PermSet parse_generators_permlib(unsigned degree,
+                                          std::string const &gen_str);
 
 gap::TaskMappingVector parse_task_mappings_gap(
   std::string const &task_mappings_str);

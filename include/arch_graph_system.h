@@ -14,7 +14,7 @@
 namespace mpsym
 {
 
-using AutomorphismOptions = BSGSOptions;
+using AutomorphismOptions = internal::BSGSOptions;
 
 struct ReprOptions
 {
@@ -79,7 +79,7 @@ public:
     _automorphisms_is_shifted_symmetric_valid = false;
   }
 
-  BSGS::order_type num_automorphisms(
+  internal::BSGS::order_type num_automorphisms(
     AutomorphismOptions const *options = nullptr)
   { return num_automorphisms_(options); }
 
@@ -93,7 +93,8 @@ public:
     bool unique_tasks,
     AutomorphismOptions const *options = nullptr);
 
-  PermGroup automorphisms(AutomorphismOptions const *options = nullptr)
+  internal::PermGroup automorphisms(
+    AutomorphismOptions const *options = nullptr)
   {
     if (!automorphisms_ready()) {
       _automorphisms = automorphisms_(options);
@@ -126,10 +127,12 @@ public:
   }
 
 private:
-  virtual BSGS::order_type num_automorphisms_(AutomorphismOptions const *options)
+  virtual internal::BSGS::order_type num_automorphisms_(
+    AutomorphismOptions const *options)
   { return automorphisms(options).order(); }
 
-  virtual PermGroup automorphisms_(AutomorphismOptions const *options) = 0;
+  virtual internal::PermGroup automorphisms_(
+    AutomorphismOptions const *options) = 0;
 
   virtual void init_repr_(AutomorphismOptions const *options)
   { automorphisms(options); }
@@ -165,8 +168,9 @@ private:
   TaskMapping min_elem_local_search(TaskMapping const &tasks,
                                     ReprOptions const *options);
 
-  static PermSet local_search_augment_gens(PermGroup const &automorphisms,
-                                           ReprOptions const *options);
+  static internal::PermSet local_search_augment_gens(
+    internal::PermGroup const &automorphisms,
+    ReprOptions const *options);
 
   TaskMapping min_elem_local_search_sa(TaskMapping const &tasks,
                                        unsigned task_min,
@@ -188,7 +192,7 @@ private:
   TaskMapping random_task_mapping(unsigned num_tasks, bool unique_tasks);
   std::unordered_set<TaskMapping> task_mapping_orbit(TaskMapping const &tasks);
 
-  PermGroup _automorphisms;
+  internal::PermGroup _automorphisms;
   bool _automorphisms_valid = false;
 
   bool _automorphisms_is_shifted_symmetric;
