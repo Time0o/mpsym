@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <unordered_set>
 #include <vector>
 #include <queue>
 
@@ -39,7 +40,20 @@ unsigned PermSet::largest_moved_point() const
 }
 
 void PermSet::make_unique()
-{ _perms.erase(std::unique(_perms.begin(), _perms.end()), _perms.end()); }
+{
+  std::vector<Perm> unique_perms;
+
+  std::unordered_set<Perm> seen;
+  for (Perm const &perm : _perms) {
+    if (seen.find(perm) != seen.end())
+      continue;
+
+    unique_perms.push_back(perm);
+    seen.insert(perm);
+  }
+
+  _perms = unique_perms;
+}
 
 void PermSet::insert_inverses()
 {
