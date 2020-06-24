@@ -98,7 +98,7 @@ struct ProfileOptions
   bool show_gap_errors = false;
 };
 
-std::string map_tasks_gap_local_search(ProfileOptions const &options)
+std::string map_tasks_gap_local_search(ProfileOptions const &)
 {
   return R"(
 orbit_repr:=task_mapping;
@@ -247,26 +247,27 @@ std::string map_tasks_gap(ProfileOptions const &options)
   return ss.str();
 }
 
-mpsym::ArchGraphSystem::ReprOptions map_tasks_mpsym_repr_options(
+mpsym::ReprOptions map_tasks_mpsym_repr_options(
   ProfileOptions const &options)
 {
   using mpsym::ArchGraphSystem;
+  using mpsym::ReprOptions;
 
-  ArchGraphSystem::ReprOptions repr_options;
+  ReprOptions repr_options;
 
   if (options.repr_method.is("iterate")) {
-    repr_options.method = ArchGraphSystem::ReprMethod::ITERATE;
+    repr_options.method = ReprOptions::Method::ITERATE;
   } else if (options.repr_method.is("orbits")) {
-    repr_options.method = ArchGraphSystem::ReprMethod::ORBITS;
+    repr_options.method = ReprOptions::Method::ORBITS;
   } else if (options.repr_method.is("local_search")) {
-    repr_options.method = ArchGraphSystem::ReprMethod::LOCAL_SEARCH;
+    repr_options.method = ReprOptions::Method::LOCAL_SEARCH;
 
     if (options.repr_variant.is("local_search_bfs"))
-      repr_options.variant = ArchGraphSystem::ReprVariant::LOCAL_SEARCH_BFS;
+      repr_options.variant = ReprOptions::Variant::LOCAL_SEARCH_BFS;
     else if (options.repr_variant.is("local_search_dfs"))
-      repr_options.variant = ArchGraphSystem::ReprVariant::LOCAL_SEARCH_DFS;
+      repr_options.variant = ReprOptions::Variant::LOCAL_SEARCH_DFS;
     else if (options.repr_variant.is("local_search_sa_linear"))
-      repr_options.variant = ArchGraphSystem::ReprVariant::LOCAL_SEARCH_SA_LINEAR;
+      repr_options.variant = ReprOptions::Variant::LOCAL_SEARCH_SA_LINEAR;
 
     repr_options.local_search_invert_generators =
       options.repr_local_search_invert_generators;
@@ -300,7 +301,7 @@ mpsym::ArchGraphSystem::ReprOptions map_tasks_mpsym_repr_options(
 mpsym::TaskOrbits map_tasks_mpsym(
   std::shared_ptr<mpsym::ArchGraphSystem> ags,
   mpsym::TaskMappingVector const &task_mappings,
-  mpsym::ArchGraphSystem::ReprOptions const &repr_options,
+  mpsym::ReprOptions const &repr_options,
   ProfileOptions const &options)
 {
   using mpsym::ArchGraphAutomorphisms;

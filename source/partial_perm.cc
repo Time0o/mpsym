@@ -20,6 +20,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 PartialPerm::PartialPerm(unsigned degree)
 : _pperm(degree),
   _id(true)
@@ -338,6 +341,8 @@ Perm PartialPerm::to_perm(unsigned degree) const
 
   return Perm(perm);
 }
+
+} // namespace internal
 
 } // namespace mpsym
 

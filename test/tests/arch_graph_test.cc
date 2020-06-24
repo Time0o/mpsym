@@ -23,9 +23,11 @@ using mpsym::ArchGraph;
 using mpsym::ArchGraphCluster;
 using mpsym::ArchGraphSystem;
 using mpsym::ArchUniformSuperGraph;
+using mpsym::AutomorphismOptions;
 using mpsym::PartialPerm;
 using mpsym::Perm;
 using mpsym::PermGroup;
+using mpsym::ReprOptions;
 using mpsym::TaskMapping;
 
 using testing::UnorderedElementsAreArray;
@@ -35,7 +37,7 @@ typedef std::vector<std::vector<unsigned>> orbit;
 static void expect_generates_orbits(
   std::shared_ptr<ArchGraphSystem> const &ag,
   std::vector<orbit> expected_orbits,
-  ArchGraphSystem::ReprMethod method)
+  ReprOptions::Method method)
 {
   std::unordered_map<TaskMapping, std::vector<TaskMapping>> orbits;
 
@@ -43,7 +45,7 @@ static void expect_generates_orbits(
     for (auto j = 1u; j <= ag->num_processors(); ++j) {
       TaskMapping mapping({i, j});
 
-      ArchGraphSystem::ReprOptions options;
+      ReprOptions options;
       options.method = method;
 
       TaskMapping repr(ag->repr(mapping, nullptr, &options));
@@ -344,7 +346,7 @@ TEST(SpecialArchGraphTest, CanConstructRegularMesh)
 }
 
 class ArchGraphReprVariantTest :
-  public ArchGraphTestBase<testing::TestWithParam<ArchGraphSystem::ReprMethod>>
+  public ArchGraphTestBase<testing::TestWithParam<ReprOptions::Method>>
 {};
 
 TEST_P(ArchGraphReprVariantTest, CanTestReprEquivalence)
@@ -395,9 +397,9 @@ TEST_P(ArchGraphReprVariantTest, CanTestReprEquivalence)
 INSTANTIATE_TEST_CASE_P(
   ArchGraphReprVariants,
   ArchGraphReprVariantTest,
-  testing::Values(ArchGraphSystem::ReprMethod::ITERATE,
-                  ArchGraphSystem::ReprMethod::LOCAL_SEARCH,
-                  ArchGraphSystem::ReprMethod::ORBITS));
+  testing::Values(ReprOptions::Method::ITERATE,
+                  ReprOptions::Method::LOCAL_SEARCH,
+                  ReprOptions::Method::ORBITS));
 
 template<typename T>
 class ArchGraphClusterTestBase : public T
@@ -466,7 +468,7 @@ TEST_F(ArchGraphClusterTest, CanObtainAutormorphisms)
 }
 
 class ArchGraphClusterReprVariantTest :
-  public ArchGraphClusterTestBase<testing::TestWithParam<ArchGraphSystem::ReprMethod>>
+  public ArchGraphClusterTestBase<testing::TestWithParam<ReprOptions::Method>>
 {};
 
 TEST_P(ArchGraphClusterReprVariantTest, CanTestReprEquivalence)
@@ -491,9 +493,9 @@ TEST_P(ArchGraphClusterReprVariantTest, CanTestReprEquivalence)
 INSTANTIATE_TEST_CASE_P(
   ArchGraphClusterReprVariants,
   ArchGraphClusterReprVariantTest,
-  testing::Values(ArchGraphSystem::ReprMethod::ITERATE,
-                  ArchGraphSystem::ReprMethod::LOCAL_SEARCH,
-                  ArchGraphSystem::ReprMethod::ORBITS));
+  testing::Values(ReprOptions::Method::ITERATE,
+                  ReprOptions::Method::LOCAL_SEARCH,
+                  ReprOptions::Method::ORBITS));
 
 template<typename T>
 class ArchUniformSuperGraphTestBase : public T

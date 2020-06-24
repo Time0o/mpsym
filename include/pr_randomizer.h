@@ -14,6 +14,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 /** A class encapsulation of the product replacement algorithm and
  *  \f$S_n\f$/\f$A_n\f$ testing.
  *
@@ -112,6 +115,8 @@ private:
   PermSet _gens_orig;
   PermSet _gens;
 };
+
+} // namespace internal
 
 } // namespace mpsym
 

@@ -11,6 +11,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 class ArchGraphAutomorphisms : public ArchGraphSystem
 {
 public:
@@ -36,6 +39,8 @@ private:
 
   PermGroup _automorphisms;
 };
+
+} // namespace internal
 
 } // namespace mpsym
 

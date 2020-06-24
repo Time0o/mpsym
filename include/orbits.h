@@ -22,6 +22,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 class Orbit : public std::vector<unsigned>
 {
   friend std::ostream &operator<<(std::ostream &os, Orbit const &o);
@@ -119,6 +122,8 @@ inline std::ostream &operator<<(std::ostream &os, OrbitPartition const &op)
   os << DUMP_CUSTOM(op._partitions, "{}");
   return os;
 }
+
+} // namespace internal
 
 } // namespace mpsym
 

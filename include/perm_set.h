@@ -15,6 +15,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 class PermSet
 {
   friend std::ostream &operator<<(std::ostream &os, PermSet const &ps);
@@ -207,6 +210,8 @@ inline std::ostream &operator<<(std::ostream &os, PermSet const &ps)
   return os;
 }
 
-}
+} // namespace internal
+
+} // namespace mpsym
 
 #endif // _GUARD_PERM_SET_H

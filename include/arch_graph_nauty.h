@@ -13,6 +13,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 class NautyGraph
 {
 public:
@@ -146,6 +149,8 @@ private:
   static PermSet _gens;
   static int _gen_degree;
 };
+
+} // namespace internal
 
 } // namespace mpsym
 

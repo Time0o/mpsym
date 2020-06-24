@@ -7,6 +7,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 void ExplicitTransversals::create_edge(
   unsigned origin, unsigned destination, unsigned label)
 {
@@ -61,5 +64,7 @@ void ExplicitTransversals::dump(std::ostream &os) const
   for (auto const &tr : _orbit)
     os << tr.first << ": " << tr.second << "\n";
 }
+
+} // namespace internal
 
 } // namespace mpsym

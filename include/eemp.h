@@ -22,6 +22,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 namespace eemp
 {
 
@@ -265,6 +268,8 @@ std::ostream &operator<<(std::ostream &os, SchreierTree const &schreier_tree);
 std::ostream &operator<<(std::ostream &os, OrbitGraph const &orbit_graph);
 
 } // namespace eemp
+
+} // namespace internal
 
 } // namespace mpsym
 

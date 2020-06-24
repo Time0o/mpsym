@@ -18,7 +18,12 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 class Perm;
+
+} // namespace internal
 
 } // namespace mpsym
 
@@ -34,6 +39,9 @@ struct hash<mpsym::Perm>
 } // namespace std
 
 namespace mpsym
+{
+
+namespace internal
 {
 
 /** A permutation representation.
@@ -273,6 +281,8 @@ private:
 };
 
 std::ostream &operator<<(std::ostream &os, Perm const &perm);
+
+} // namespace internal
 
 } // namespace mpsym
 

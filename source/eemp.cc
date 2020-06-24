@@ -31,6 +31,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 namespace eemp
 {
 
@@ -485,5 +488,7 @@ std::ostream &operator<<(std::ostream &os, eemp::OrbitGraph const &orbit_graph)
 }
 
 } // namespace eemp
+
+} // namespace internal
 
 } // namespace mpsym

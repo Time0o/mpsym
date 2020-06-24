@@ -14,6 +14,7 @@
 #include "test_main.cc"
 
 using mpsym::BSGS;
+using mpsym::BSGSOptions;
 using mpsym::Perm;
 using mpsym::PermGroup;
 using mpsym::PermSet;
@@ -282,11 +283,11 @@ TEST(PermGroupTest, CanIterateElements)
 }
 
 class PermGroupConstructionMethodTest : public testing::TestWithParam<
-  std::tuple<BSGS::Construction, BSGS::Transversals>> {};
+  std::tuple<BSGSOptions::Construction, BSGSOptions::Transversals>> {};
 
 TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
 {
-  BSGS::Options bsgs_options;
+  BSGSOptions bsgs_options;
 
   std::tie(bsgs_options.construction, bsgs_options.transversals) = GetParam();
 
@@ -373,10 +374,10 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
 
 INSTANTIATE_TEST_CASE_P(ConstructionMethods, PermGroupConstructionMethodTest,
   testing::Combine(
-    testing::Values(BSGS::Construction::SCHREIER_SIMS,
-                    BSGS::Construction::SCHREIER_SIMS_RANDOM),
-    testing::Values(BSGS::Transversals::EXPLICIT,
-                    BSGS::Transversals::SCHREIER_TREES)));
+    testing::Values(BSGSOptions::Construction::SCHREIER_SIMS,
+                    BSGSOptions::Construction::SCHREIER_SIMS_RANDOM),
+    testing::Values(BSGSOptions::Transversals::EXPLICIT,
+                    BSGSOptions::Transversals::SCHREIER_TREES)));
                     // TODO: SHALLOW_SCHREIER_TREES
 
 TEST(PermGroupCombinationTest, CanConstructDirectProduct)

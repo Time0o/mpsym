@@ -24,6 +24,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 class BlockSystem;
 
 /** A permutation group representation.
@@ -182,7 +185,7 @@ public:
   template<typename IT>
   static PermGroup direct_product(IT first,
                                   IT last,
-                                  BSGS::Options const *bsgs_options = nullptr)
+                                  BSGSOptions const *bsgs_options = nullptr)
   {
     assert(std::distance(first, last) > 0);
 
@@ -213,7 +216,7 @@ public:
    */
   static PermGroup wreath_product(PermGroup const &lhs,
                                   PermGroup const &rhs,
-                                  BSGS::Options const *bsgs_options = nullptr);
+                                  BSGSOptions const *bsgs_options = nullptr);
 
   /** Obtain a constant iterator iterating over this group's elements.
    *
@@ -507,6 +510,8 @@ private:
 };
 
 std::ostream &operator<<(std::ostream &os, PermGroup const &pg);
+
+} // namespace internal
 
 } // namespace mpsym
 

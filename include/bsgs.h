@@ -53,46 +53,14 @@ class BSGSTransversals : public BSGSTransversalsBase
   { return std::make_shared<T>(degree, root, generators); }
 };
 
+struct BSGSOptions;
+
 class BSGS
 {
   friend std::ostream &operator<<(std::ostream &os, BSGS const &bsgs);
 
 public:
   using order_type = boost::multiprecision::cpp_int;
-
-  enum class Construction {
-    AUTO,
-    SCHREIER_SIMS,
-    SCHREIER_SIMS_RANDOM,
-    SOLVE
-  };
-
-  enum class Transversals {
-    EXPLICIT,
-    SCHREIER_TREES,
-    SHALLOW_SCHREIER_TREES
-  };
-
-  struct Options
-  {
-    static Options fill_defaults(Options const *options)
-    {
-      static Options default_options;
-      return options ? *options : default_options;
-    }
-
-    Construction construction = Construction::AUTO;
-    Transversals transversals = Transversals::EXPLICIT;
-
-    bool check_altsym = true;
-    bool reduce_gens = true;
-
-    bool schreier_sims_random_guarantee = true;
-    bool schreier_sims_random_use_known_order = true;
-    order_type schreier_sims_random_known_order = 0;
-    int schreier_sims_random_retries = -1;
-    unsigned schreier_sims_random_w = 100u;
-  };
 
   struct SolveError : public std::runtime_error
   {
@@ -105,7 +73,7 @@ public:
 
   BSGS(unsigned degree,
        PermSet const &generators,
-       Options const *options = nullptr);
+       BSGSOptions const *options = nullptr);
 
   unsigned degree() const { return _degree; }
   order_type order() const;
@@ -132,7 +100,7 @@ public:
 private:
   void construct_symmetric();
   void construct_alternating();
-  void construct_unknown(PermSet const &generators, Options const *options);
+  void construct_unknown(PermSet const &generators, BSGSOptions const *options);
 
   // schreier sims initialization
   void schreier_sims(PermSet const &generators);
@@ -141,11 +109,11 @@ private:
                      std::vector<Orbit> &fundamental_orbits);
 
   void schreier_sims_random(PermSet const &generators,
-                            Options const *options);
+                            BSGSOptions const *options);
 
   void schreier_sims_random(std::vector<PermSet> &strong_generators,
                             std::vector<Orbit> &fundamental_orbits,
-                            Options const *options);
+                            BSGSOptions const *options);
 
   void schreier_sims_init(PermSet const &generators,
                           std::vector<PermSet> &strong_generators,
@@ -218,6 +186,40 @@ private:
 };
 
 std::ostream &operator<<(std::ostream &os, BSGS const &bsgs);
+
+struct BSGSOptions
+{
+  enum class Construction {
+    AUTO,
+    SCHREIER_SIMS,
+    SCHREIER_SIMS_RANDOM,
+    SOLVE
+  };
+
+  enum class Transversals {
+    EXPLICIT,
+    SCHREIER_TREES,
+    SHALLOW_SCHREIER_TREES
+  };
+
+  static BSGSOptions fill_defaults(BSGSOptions const *options)
+  {
+    static BSGSOptions default_options;
+    return options ? *options : default_options;
+  }
+
+  Construction construction = Construction::AUTO;
+  Transversals transversals = Transversals::EXPLICIT;
+
+  bool check_altsym = true;
+  bool reduce_gens = true;
+
+  bool schreier_sims_random_guarantee = true;
+  bool schreier_sims_random_use_known_order = true;
+  BSGS::order_type schreier_sims_random_known_order = 0;
+  int schreier_sims_random_retries = -1;
+  unsigned schreier_sims_random_w = 100u;
+};
 
 } // namespace mpsym
 

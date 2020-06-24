@@ -19,6 +19,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 void BSGS::solve(PermSet const &generators)
 {
   DBG(DEBUG) << "Attempting to solve BSGS";
@@ -196,5 +199,7 @@ void BSGS::solve_adjoin_normalizing_generator(Perm const &gen)
 
   DBG(TRACE) << "Finished adjoining normalizing generator";
 }
+
+} // namespace internal
 
 } // namespace mpsym

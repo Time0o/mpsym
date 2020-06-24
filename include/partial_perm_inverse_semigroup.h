@@ -23,6 +23,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 /** A representation of inverse semigroups of partial permutations.
  *
  * Compared to PermGroup this class only supports very limited operations,
@@ -145,6 +148,8 @@ private:
 
 std::ostream &operator<<(std::ostream &os,
                          PartialPermInverseSemigroup const &ppisg);
+
+} // namespace internal
 
 } // namespace mpsym
 

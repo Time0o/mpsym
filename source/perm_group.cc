@@ -33,6 +33,9 @@ using boost::multiprecision::pow;
 namespace mpsym
 {
 
+namespace internal
+{
+
 PermGroup::PermGroup(unsigned degree, PermSet const &generators)
 {
   _bsgs = BSGS(degree, generators);
@@ -146,7 +149,7 @@ PermGroup PermGroup::dihedral(unsigned degree)
 
 PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
                                     PermGroup const &rhs_,
-                                    BSGS::Options const *bsgs_options_)
+                                    BSGSOptions const *bsgs_options_)
 {
   if (lhs_.is_trivial())
     return rhs_;
@@ -207,7 +210,7 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
 
   cpp_int wreath_product_order(pow(lhs_order, rhs_lmp) * rhs_order);
 
-  auto bsgs_options(BSGS::Options::fill_defaults(bsgs_options_));
+  auto bsgs_options(BSGSOptions::fill_defaults(bsgs_options_));
   bsgs_options.schreier_sims_random_known_order = wreath_product_order;
 
   // construct wreath product
@@ -361,5 +364,7 @@ std::ostream &operator<<(std::ostream &os, PermGroup const &pg)
 
   return os;
 }
+
+} // namespace internal
 
 } // namespace mpsym

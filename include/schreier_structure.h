@@ -10,6 +10,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 struct SchreierStructure
 {
   friend std::ostream &operator<<(std::ostream &os, SchreierStructure const &ss);
@@ -37,6 +40,8 @@ inline std::ostream &operator<<(std::ostream &os, SchreierStructure const &ss)
   ss.dump(os);
   return os;
 }
+
+} // namespace internal
 
 } // namespace mpsym
 

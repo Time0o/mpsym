@@ -175,12 +175,12 @@ TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
     unsigned task_max = automs.degree() + options.offset;
 
     representative =
-      options.method == ReprMethod::ITERATE ?
+      options.method == ReprOptions::Method::ITERATE ?
         min_elem_iterate(mapping, orbits, &options) :
-      options.method == ReprMethod::ORBITS ?
+      options.method == ReprOptions::Method::ORBITS ?
         min_elem_orbits(mapping, orbits, &options) :
-      options.method == ReprMethod::LOCAL_SEARCH ?
-        options.variant == ReprVariant::LOCAL_SEARCH_SA_LINEAR ?
+      options.method == ReprOptions::Method::LOCAL_SEARCH ?
+        options.variant == ReprOptions::Variant::LOCAL_SEARCH_SA_LINEAR ?
           min_elem_local_search_sa(mapping, task_min, task_max, &options) :
           min_elem_local_search(mapping, &options) :
       throw std::logic_error("unreachable");
@@ -266,7 +266,7 @@ TaskMapping ArchGraphSystem::min_elem_local_search(TaskMapping const &tasks,
 
     for (Perm const &gen : gens) {
       if (representative.less_than(representative, gen, options->offset)) {
-        if (options->variant == ReprVariant::LOCAL_SEARCH_BFS) {
+        if (options->variant == ReprOptions::Variant::LOCAL_SEARCH_BFS) {
           possible_representatives.push_back(
             representative.permuted(gen, options->offset));
         } else {
@@ -280,7 +280,7 @@ TaskMapping ArchGraphSystem::min_elem_local_search(TaskMapping const &tasks,
     if (stationary)
       break;
 
-    if (options->variant == ReprVariant::LOCAL_SEARCH_BFS) {
+    if (options->variant == ReprOptions::Variant::LOCAL_SEARCH_BFS) {
       representative = *std::min_element(possible_representatives.begin(),
                                          possible_representatives.end(),
                                          [](TaskMapping const &lhs,

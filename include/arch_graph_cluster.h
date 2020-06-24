@@ -34,7 +34,7 @@ public:
   unsigned num_subsystems() const;
 
 private:
-  BSGS::order_type num_automorphisms_(AutomorphismOptions const *options) override
+  internal::BSGS::order_type num_automorphisms_(AutomorphismOptions const *options) override
   {
     BSGS::order_type ret = 1;
     for (auto const &subsystem : _subsystems)

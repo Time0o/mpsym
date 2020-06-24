@@ -9,6 +9,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 void BSGS::base_change(std::vector<unsigned> prefix)
 {
   DBG(DEBUG) << "Appending prefix " << prefix << " to base " << _base;
@@ -187,5 +190,7 @@ void BSGS::conjugate(Perm const &conj)
   for (unsigned i = 0u; i < base_size(); ++i)
     update_schreier_structure(i, strong_generators(i));
 }
+
+} // namespace internal
 
 } // namespace mpsym

@@ -21,6 +21,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 void BSGSTransversalsBase::reserve_schreier_structure(
   unsigned i, unsigned root, unsigned degree)
 {
@@ -59,7 +62,9 @@ BSGS::BSGS(unsigned degree)
 : _degree(degree)
 { assert(degree > 0); }
 
-BSGS::BSGS(unsigned degree, PermSet const &generators, Options const *options_)
+BSGS::BSGS(unsigned degree,
+           PermSet const &generators,
+           BSGSOptions const *options_)
 : _degree(degree)
 {
   assert(degree > 0);
@@ -69,16 +74,16 @@ BSGS::BSGS(unsigned degree, PermSet const &generators, Options const *options_)
 
   generators.assert_degree(degree);
 
-  auto options(Options::fill_defaults(options_));
+  auto options(BSGSOptions::fill_defaults(options_));
 
   switch (options.transversals) {
-    case Transversals::EXPLICIT:
+    case BSGSOptions::Transversals::EXPLICIT:
       _transversals = std::make_shared<BSGSTransversals<ExplicitTransversals>>();
       break;
-    case Transversals::SCHREIER_TREES:
+    case BSGSOptions::Transversals::SCHREIER_TREES:
       _transversals = std::make_shared<BSGSTransversals<SchreierTree>>();
       break;
-    case Transversals::SHALLOW_SCHREIER_TREES:
+    case BSGSOptions::Transversals::SHALLOW_SCHREIER_TREES:
       throw std::logic_error("TODO");
   }
 
@@ -226,10 +231,11 @@ void BSGS::construct_alternating()
   _is_alternating = true;
 }
 
-void BSGS::construct_unknown(PermSet const &generators, Options const *options)
+void BSGS::construct_unknown(PermSet const &generators,
+                             BSGSOptions const *options)
 {
   switch (options->construction) {
-    case Construction::AUTO:
+    case BSGSOptions::Construction::AUTO:
       if (options->schreier_sims_random_use_known_order &&
           options->schreier_sims_random_known_order > 0) {
         schreier_sims_random(generators, options);
@@ -237,13 +243,13 @@ void BSGS::construct_unknown(PermSet const &generators, Options const *options)
         schreier_sims(generators);
       }
       break;
-    case Construction::SCHREIER_SIMS:
+    case BSGSOptions::Construction::SCHREIER_SIMS:
       schreier_sims(generators);
       break;
-    case Construction::SCHREIER_SIMS_RANDOM:
+    case BSGSOptions::Construction::SCHREIER_SIMS_RANDOM:
       schreier_sims_random(generators, options);
       break;
-    case Construction::SOLVE:
+    case BSGSOptions::Construction::SOLVE:
       solve(generators);
       break;
   }
@@ -259,5 +265,7 @@ std::ostream &operator<<(std::ostream &os, BSGS const &bsgs)
 
   return os;
 }
+
+} // namespace internal
 
 } // namespace mpsym

@@ -19,6 +19,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 std::vector<PermGroup> PermGroup::disjoint_decomposition(
   bool complete,
   bool disjoint_orbit_optimization) const
@@ -371,5 +374,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomp_incomplete() const
 
   return decomp;
 }
+
+} // namespace internal
 
 } // namespace mpsym

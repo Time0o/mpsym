@@ -19,6 +19,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 std::vector<PermGroup> PermGroup::wreath_decomposition() const
 {
   DBG(DEBUG) << "Finding wreath product decomposition for";
@@ -187,5 +190,7 @@ bool PermGroup::wreath_decomp_reconstruct_block_permuter(
 
   return found_monomorphism;
 }
+
+} // namespace internal
 
 } // namespace mpsym

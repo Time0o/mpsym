@@ -14,6 +14,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 class SchreierGeneratorQueue
 {
   using sg_type = PermSet;
@@ -145,6 +148,8 @@ private:
   Perm _u_beta;
   Perm _schreier_generator;
 };
+
+} // namespace internal
 
 } // namespace mpsym
 

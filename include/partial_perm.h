@@ -18,7 +18,12 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 class PartialPerm;
+
+} // namespace internal
 
 } // namespace mpsym
 
@@ -36,6 +41,9 @@ struct hash<mpsym::PartialPerm>
 } // namespace std
 
 namespace mpsym
+{
+
+namespace internal
 {
 
 class PartialPerm
@@ -254,6 +262,8 @@ std::ostream &operator<<(std::ostream &os, PartialPerm const &pperm);
  *         im(g|_{im(f)})\f$ for \f$x \in dom(f)\f$
  */
 PartialPerm operator*(PartialPerm const &lhs, PartialPerm const &rhs);
+
+} // namespace internal
 
 } // namespace mpsym
 

@@ -14,45 +14,46 @@
 namespace mpsym
 {
 
-class ArchGraphSystem
-{
-public:
-  using AutomorphismOptions = BSGS::Options;
+using AutomorphismOptions = BSGSOptions;
 
-  enum class ReprMethod {
+struct ReprOptions
+{
+  enum class Method {
     ITERATE,
     LOCAL_SEARCH,
     ORBITS,
     AUTO = ITERATE
   };
 
-  enum class ReprVariant {
+  enum class Variant {
     LOCAL_SEARCH_BFS,
     LOCAL_SEARCH_DFS,
     LOCAL_SEARCH_SA_LINEAR
   };
 
-  struct ReprOptions {
-    static ReprOptions fill_defaults(ReprOptions const *options)
-    {
-      static ReprOptions default_options;
-      return options ? *options : default_options;
-    }
+  static ReprOptions fill_defaults(ReprOptions const *options)
+  {
+    static ReprOptions default_options;
+    return options ? *options : default_options;
+  }
 
-    ReprMethod method = ReprMethod::AUTO;
-    ReprVariant variant = ReprVariant::LOCAL_SEARCH_BFS;
+  Method method = Method::AUTO;
+  Variant variant = Variant::LOCAL_SEARCH_BFS;
 
-    unsigned offset = 0u;
+  unsigned offset = 0u;
 
-    bool match = true;
-    bool optimize_symmetric = true;
+  bool match = true;
+  bool optimize_symmetric = true;
 
-    bool local_search_invert_generators = false;
-    unsigned local_search_append_generators = 0u;
-    unsigned local_search_sa_iterations = 100u;
-    double local_search_sa_T_init = 1.0;
-  };
+  bool local_search_invert_generators = false;
+  unsigned local_search_append_generators = 0u;
+  unsigned local_search_sa_iterations = 100u;
+  double local_search_sa_T_init = 1.0;
+};
 
+class ArchGraphSystem
+{
+public:
   static std::shared_ptr<ArchGraphSystem> from_lua_file(
     std::string const &lua_file,
     std::vector<std::string> const &args = {});

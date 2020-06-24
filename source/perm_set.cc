@@ -11,6 +11,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 unsigned PermSet::smallest_moved_point() const
 {
   assert(!trivial());
@@ -123,5 +126,7 @@ void PermSet::minimize_degree()
     _perms[i] = Perm(gen);
   }
 }
+
+} // namespace internal
 
 } // namespace mpsym

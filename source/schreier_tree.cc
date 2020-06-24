@@ -8,6 +8,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 void SchreierTree::create_edge(
   unsigned origin, unsigned destination, unsigned label)
 {
@@ -95,5 +98,7 @@ void SchreierTree::dump(std::ostream &os) const
 
   os << "]\n";
 }
+
+} // namespace internal
 
 } // namespace mpsym

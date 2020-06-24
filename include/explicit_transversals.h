@@ -12,6 +12,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 struct ExplicitTransversals : public SchreierStructure
 {
   ExplicitTransversals(unsigned degree, unsigned root, PermSet const &labels)
@@ -43,6 +46,8 @@ private:
   PermSet _labels;
   std::map<unsigned, Perm> _orbit;
 };
+
+} // namespace internal
 
 } // namespace mpsym
 

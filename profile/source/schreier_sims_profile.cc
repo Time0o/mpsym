@@ -92,29 +92,30 @@ struct ProfileOptions
   bool show_gap_errors = false;
 };
 
-mpsym::BSGS::Options bsgs_options_mpsym(ProfileOptions const &options)
+mpsym::BSGSOptions bsgs_options_mpsym(ProfileOptions const &options)
 {
   using mpsym::BSGS;
+  using mpsym::BSGSOptions;
 
-  BSGS::Options bsgs_options;
+  BSGSOptions bsgs_options;
 
   if (options.schreier_sims.is("deterministic")) {
-    bsgs_options.construction = BSGS::Construction::SCHREIER_SIMS;
+    bsgs_options.construction = BSGSOptions::Construction::SCHREIER_SIMS;
   } else if (options.schreier_sims.is("random")) {
-    bsgs_options.construction = BSGS::Construction::SCHREIER_SIMS_RANDOM;
+    bsgs_options.construction = BSGSOptions::Construction::SCHREIER_SIMS_RANDOM;
   } else if (options.schreier_sims.is("random-no-guarantee")) {
-    bsgs_options.construction = BSGS::Construction::SCHREIER_SIMS_RANDOM;
+    bsgs_options.construction = BSGSOptions::Construction::SCHREIER_SIMS_RANDOM;
     bsgs_options.schreier_sims_random_guarantee = false;
   } else {
     throw std::logic_error("unreachable");
   }
 
   if (options.transversals.is("explicit"))
-    bsgs_options.transversals = BSGS::Transversals::EXPLICIT;
+    bsgs_options.transversals = BSGSOptions::Transversals::EXPLICIT;
   else if (options.transversals.is("schreier-trees"))
-    bsgs_options.transversals = BSGS::Transversals::SCHREIER_TREES;
+    bsgs_options.transversals = BSGSOptions::Transversals::SCHREIER_TREES;
   else if (options.transversals.is("shallow-schreier-trees"))
-    bsgs_options.transversals = BSGS::Transversals::SHALLOW_SCHREIER_TREES;
+    bsgs_options.transversals = BSGSOptions::Transversals::SHALLOW_SCHREIER_TREES;
   else
     throw std::logic_error("unreachable");
 

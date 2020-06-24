@@ -24,6 +24,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 PrRandomizer::PrRandomizer(PermSet const &generators,
                            unsigned n_generators,
                            unsigned iterations)
@@ -159,5 +162,7 @@ bool PrRandomizer::generators_even()
 
   return true;
 }
+
+} // namespace internal
 
 } // namespace mpsym

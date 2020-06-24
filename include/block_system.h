@@ -12,6 +12,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 class BlockSystem
 {
   friend std::ostream &operator<<(std::ostream &os, BlockSystem const &bs);
@@ -145,6 +148,8 @@ private:
 };
 
 std::ostream &operator<<(std::ostream &os, BlockSystem const &bs);
+
+} // namespace internal
 
 } // namespace mpsym
 

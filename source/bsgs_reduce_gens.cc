@@ -12,6 +12,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 void BSGS::reduce_gens()
 {
   DBG(DEBUG) << "Removing redundant strong generators";
@@ -113,5 +116,6 @@ std::unordered_set<Perm> BSGS::reduce_gens_set_difference(
   return res;
 }
 
+} // namespace internal
 
 } // namespace mpsym

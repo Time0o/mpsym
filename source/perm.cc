@@ -19,6 +19,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 Perm::Perm(unsigned deg)
 : _degree(deg),
   _perm(deg + 1u)
@@ -243,6 +246,8 @@ Perm Perm::shifted(unsigned shift) const
 
   return Perm(perm_shifted);
 }
+
+} // namespace internal
 
 } // namespace mpsym
 

@@ -12,14 +12,15 @@
 #include "test_main.cc"
 
 using mpsym::BSGS;
+using mpsym::BSGSOptions;
 using mpsym::Perm;
 using mpsym::PermGroup;
 using mpsym::PermSet;
 
 TEST(DISABLED_BSGSSolveTest, CanSolveBSGS)
 {
-  BSGS::Options bsgs_options;
-  bsgs_options.construction = BSGS::Construction::SOLVE;
+  BSGSOptions bsgs_options;
+  bsgs_options.construction = BSGSOptions::Construction::SOLVE;
 
   PermSet generators_solvable {
     Perm(4, {{2, 4}}),

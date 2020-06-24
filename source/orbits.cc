@@ -13,6 +13,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 Orbit Orbit::generate(unsigned x,
                       PermSet const &generators,
                       std::shared_ptr<SchreierStructure> ss)
@@ -289,5 +292,7 @@ void OrbitPartition::update_partition_indices()
       _partition_indices[x - 1u] = i;
   }
 }
+
+} // namespace internal
 
 } // namespace mpsym

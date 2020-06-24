@@ -12,6 +12,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 struct SchreierTree : public SchreierStructure
 {
   SchreierTree(unsigned degree, unsigned root, PermSet const &labels)
@@ -44,6 +47,8 @@ private:
   PermSet _labels;
   std::map<unsigned, unsigned> _edge_labels;
 };
+
+} // namespace internal
 
 } // namespace mpsym
 

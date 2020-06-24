@@ -27,6 +27,9 @@
 namespace mpsym
 {
 
+namespace internal
+{
+
 PartialPermInverseSemigroup::PartialPermInverseSemigroup() : _trivial(true) {}
 
 PartialPermInverseSemigroup::PartialPermInverseSemigroup(
@@ -333,5 +336,7 @@ std::ostream &operator<<(std::ostream &os,
   os << "GENERATORS: " << DUMP(ppisg.generators());
   return os;
 }
+
+} // namespace internal
 
 } // namespace mpsym
