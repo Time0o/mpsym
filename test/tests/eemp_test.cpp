@@ -185,7 +185,7 @@ TEST_F(EEMPTest, CanComputeStabilizerSchreierGenerators)
     ),
     PermGroup(1,
       {
-        Perm({1})
+        Perm{1}
       }
     ),
     PermGroup()

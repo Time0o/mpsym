@@ -22,7 +22,7 @@ class SchreierStructureTest : public testing::Test {};
 using SchreierStructureTypes = ::testing::Types<ExplicitTransversals,
                                                 SchreierTree>;
 
-TYPED_TEST_SUITE(SchreierStructureTest, SchreierStructureTypes);
+TYPED_TEST_SUITE(SchreierStructureTest, SchreierStructureTypes,);
 
 TYPED_TEST(SchreierStructureTest, CanConstructSchreierStructures)
 {

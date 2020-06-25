@@ -246,7 +246,7 @@ TEST(PartialPermTest, CanCheckIfPartialPermEmpty)
 
   std::vector<PartialPerm> non_empty_pperms {
     PartialPerm(1),
-    PartialPerm({1}),
+    PartialPerm{1},
     PartialPerm({1}, {1})
   };
 
@@ -263,7 +263,7 @@ TEST(PartialPermTest, CanCheckIfPartialPermIsId)
     PartialPerm({}),
     PartialPerm({}, {}),
     PartialPerm(1),
-    PartialPerm({1}),
+    PartialPerm{1},
     PartialPerm({1}, {1}),
     PartialPerm(7),
     PartialPerm({0, 2, 0, 4, 5, 0, 7}),
