@@ -5,9 +5,6 @@
 #include <utility>
 #include <vector>
 
-#include "partial_perm.hpp"
-#include "perm_group.hpp"
-
 /**
  * @file eemp.hpp
  * @brief Definitions related to inverse semigroups of partial permutations.
@@ -24,6 +21,9 @@ namespace mpsym
 
 namespace internal
 {
+
+class PartialPerm;
+class PermGroup;
 
 namespace eemp
 {

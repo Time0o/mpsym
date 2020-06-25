@@ -5,7 +5,6 @@
 #include <string>
 
 #include "arch_graph_system.hpp"
-#include "bsgs.hpp"
 #include "perm_group.hpp"
 
 namespace mpsym

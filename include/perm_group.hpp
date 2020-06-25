@@ -27,6 +27,9 @@ namespace mpsym
 namespace internal
 {
 
+class Orbit;
+class OrbitPartition;
+
 class BlockSystem;
 
 /** A permutation group representation.

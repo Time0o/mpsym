@@ -6,14 +6,15 @@
 #include <vector>
 
 #include "perm.hpp"
-#include "perm_group.hpp"
-#include "perm_set.hpp"
 
 namespace mpsym
 {
 
 namespace internal
 {
+
+class PermGroup;
+class PermSet;
 
 class BlockSystem
 {

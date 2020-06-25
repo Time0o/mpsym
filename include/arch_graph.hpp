@@ -8,15 +8,13 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
-#include "arch_graph_nauty.hpp"
 #include "arch_graph_system.hpp"
-#include "bsgs.hpp"
-#include "partial_perm.hpp"
-#include "partial_perm_inverse_semigroup.hpp"
 #include "perm_group.hpp"
 
 namespace mpsym
 {
+
+namespace internal { class NautyGraph; }
 
 using ProcessorLabel = std::string const &;
 using ChannelLabel = std::string const &;

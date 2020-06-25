@@ -4,14 +4,15 @@
 #include <ostream>
 #include <vector>
 
-#include "perm.hpp"
-#include "perm_set.hpp"
-
 namespace mpsym
 {
 
 namespace internal
 {
+
+class Perm;
+class PermSet;
+class SchreierStructure;
 
 struct SchreierStructure
 {

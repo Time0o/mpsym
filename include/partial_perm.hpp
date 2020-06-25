@@ -6,8 +6,6 @@
 #include <set>
 #include <vector>
 
-#include "perm.hpp"
-
 /**
  * @file partial_perm.hpp
  * @author Timo Nicolai
@@ -22,6 +20,7 @@ namespace internal
 {
 
 class PartialPerm;
+class Perm;
 
 } // namespace internal
 

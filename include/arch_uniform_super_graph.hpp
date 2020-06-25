@@ -6,16 +6,16 @@
 #include <string>
 #include <vector>
 
-#include "arch_graph_automorphisms.hpp"
-#include "arch_graph.hpp"
 #include "arch_graph_system.hpp"
 #include "bsgs.hpp"
-#include "partial_perm_inverse_semigroup.hpp"
-#include "task_mapping.hpp"
-#include "task_orbits.hpp"
 
 namespace mpsym
 {
+
+class TaskMapping;
+class TaskOrbits;
+
+namespace internal { class ArchGraphAutomorphisms; }
 
 class ArchUniformSuperGraph : public ArchGraphSystem
 {

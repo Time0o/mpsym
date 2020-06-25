@@ -9,13 +9,14 @@
 
 #include "arch_graph_system.hpp"
 #include "bsgs.hpp"
-#include "partial_perm_inverse_semigroup.hpp"
-#include "perm_group.hpp"
-#include "task_mapping.hpp"
-#include "task_orbits.hpp"
 
 namespace mpsym
 {
+
+class TaskMapping;
+class TaskMapping;
+
+namespace internal { class PermGroup; }
 
 class ArchGraphCluster : public ArchGraphSystem
 {

@@ -9,8 +9,6 @@
 #include <vector>
 
 #include "dump.hpp"
-#include "perm_set.hpp"
-#include "schreier_structure.hpp"
 
 /**
  * @file orbits.hpp
@@ -24,6 +22,9 @@ namespace mpsym
 
 namespace internal
 {
+
+class PermSet;
+class SchreierStructure;
 
 class Orbit : public std::vector<unsigned>
 {

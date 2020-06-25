@@ -1,7 +1,6 @@
 #ifndef GUARD_PR_RANDOMIZER_H
 #define GUARD_PR_RANDOMIZER_H
 
-#include "perm.hpp"
 #include "perm_set.hpp"
 
 /**
@@ -16,6 +15,8 @@ namespace mpsym
 
 namespace internal
 {
+
+class Perm;
 
 /** A class encapsulation of the product replacement algorithm and
  *  \f$S_n\f$/\f$A_n\f$ testing.

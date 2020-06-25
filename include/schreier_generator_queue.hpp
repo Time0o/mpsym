@@ -6,9 +6,7 @@
 #include <memory>
 #include <vector>
 
-#include "orbits.hpp"
 #include "perm.hpp"
-#include "perm_set.hpp"
 #include "schreier_structure.hpp"
 
 namespace mpsym

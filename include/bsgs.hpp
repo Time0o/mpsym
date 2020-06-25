@@ -11,11 +11,7 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
-#include "orbits.hpp"
-#include "perm.hpp"
 #include "perm_set.hpp"
-#include "schreier_generator_queue.hpp"
-#include "schreier_structure.hpp"
 
 namespace mpsym
 {
@@ -23,9 +19,15 @@ namespace mpsym
 namespace internal
 {
 
+class Orbit;
+class Perm;
+class SchreierStructure;
+
 class BSGSTransversalsBase
 {
 public:
+  virtual ~BSGSTransversalsBase() = default;
+
   std::shared_ptr<SchreierStructure> schreier_structure(unsigned i) const
   { return _schreier_structures[i]; }
 
