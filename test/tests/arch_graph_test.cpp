@@ -386,7 +386,7 @@ TEST_P(ArchGraphReprVariantTest, CanTestReprEquivalence)
     expect_generates_orbits(arch_graphs[i], expected_orbits[i], GetParam());
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
   ArchGraphReprVariants,
   ArchGraphReprVariantTest,
   testing::Values(ReprOptions::Method::ITERATE,
@@ -482,7 +482,7 @@ TEST_P(ArchGraphClusterReprVariantTest, CanTestReprEquivalence)
     expect_generates_orbits(clusters[i], expected_orbits[i], GetParam());
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
   ArchGraphClusterReprVariants,
   ArchGraphClusterReprVariantTest,
   testing::Values(ReprOptions::Method::ITERATE,

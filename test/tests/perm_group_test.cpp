@@ -369,7 +369,7 @@ TEST_P(PermGroupConstructionMethodTest, CanGenerateCorrectGroupElements)
   }
 }
 
-INSTANTIATE_TEST_CASE_P(ConstructionMethods, PermGroupConstructionMethodTest,
+INSTANTIATE_TEST_SUITE_P(ConstructionMethods, PermGroupConstructionMethodTest,
   testing::Combine(
     testing::Values(BSGSOptions::Construction::SCHREIER_SIMS,
                     BSGSOptions::Construction::SCHREIER_SIMS_RANDOM),
@@ -641,7 +641,7 @@ TEST_P(DisjointSubgroupProductTest, CanFindDisjointSubgroupProduct)
   }
 }
 
-INSTANTIATE_TEST_CASE_P(DisjointSubgroupProductVariants,
+INSTANTIATE_TEST_SUITE_P(DisjointSubgroupProductVariants,
   DisjointSubgroupProductTest, testing::Values(std::make_pair(false, false),
                                                std::make_pair(true, false),
                                                std::make_pair(true, true)));

@@ -22,7 +22,7 @@ TEST_P(PowTest, CanObtainIntegerPower)
     << "Integer power calculated correctly.";
 }
 
-INSTANTIATE_TEST_CASE_P(PowTestInstances, PowTest,
+INSTANTIATE_TEST_SUITE_P(PowTestInstances, PowTest,
   testing::Values(std::make_tuple(10u, 0u, 1u),
                   std::make_tuple(7u, 1u, 7u),
                   std::make_tuple(2u, 3u, 8u),
@@ -43,7 +43,7 @@ TEST_P(FactorialTest, CanObtainIntegerFactorial)
     << "Integer power calculated correctly.";
 }
 
-INSTANTIATE_TEST_CASE_P(FactorialTestInstances, FactorialTest,
+INSTANTIATE_TEST_SUITE_P(FactorialTestInstances, FactorialTest,
   testing::Values(std::make_pair(0u, 1u),
                   std::make_pair(1u, 1u),
                   std::make_pair(5u, 120u),
