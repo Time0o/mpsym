@@ -23,7 +23,9 @@ struct ExplicitTransversals : public SchreierStructure
     _labels(labels)
   { _orbit[root] = Perm(_degree); }
 
-  void add_label(Perm const &label)
+  virtual ~ExplicitTransversals() = default;
+
+  void add_label(Perm const &label) override
   { _labels.insert(label); }
 
   void create_edge(unsigned origin,

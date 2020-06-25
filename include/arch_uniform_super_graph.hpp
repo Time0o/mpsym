@@ -20,6 +20,8 @@ namespace mpsym
 class ArchUniformSuperGraph : public ArchGraphSystem
 {
 public:
+  virtual ~ArchUniformSuperGraph() = default;
+
   ArchUniformSuperGraph(std::shared_ptr<ArchGraphSystem> super_graph,
                         std::shared_ptr<ArchGraphSystem> proto);
 

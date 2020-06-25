@@ -48,6 +48,8 @@ public:
   typedef processor_type_size_type ProcessorType;
   typedef channel_type_size_type ChannelType;
 
+  virtual ~ArchGraph() = default;
+
   static ArchGraph fully_connected(unsigned n,
                                    ProcessorLabel pl = DEFAULT_PROCESSOR_LABEL,
                                    ChannelLabel cl = DEFAULT_CHANNEL_LABEL);

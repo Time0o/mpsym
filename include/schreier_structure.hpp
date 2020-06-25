@@ -17,6 +17,8 @@ struct SchreierStructure
 {
   friend std::ostream &operator<<(std::ostream &os, SchreierStructure const &ss);
 
+  virtual ~SchreierStructure() = default;
+
   virtual void add_label(Perm const &label) = 0;
 
   virtual void create_edge(unsigned origin,

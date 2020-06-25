@@ -51,6 +51,10 @@ private:
 template<typename T>
 class BSGSTransversals : public BSGSTransversalsBase
 {
+public:
+  virtual ~BSGSTransversals() = default;
+
+private:
   std::shared_ptr<SchreierStructure> make_schreier_structure(
     unsigned root, unsigned degree, PermSet const &generators) override
   { return std::make_shared<T>(degree, root, generators); }

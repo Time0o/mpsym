@@ -23,7 +23,9 @@ struct SchreierTree : public SchreierStructure
     _labels(labels)
   {}
 
-  void add_label(Perm const &label)
+  virtual ~SchreierTree() = default;
+
+  void add_label(Perm const &label) override
   { _labels.insert(label); }
 
   void create_edge(unsigned origin,

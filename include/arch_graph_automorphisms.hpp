@@ -21,6 +21,8 @@ public:
   : _automorphisms(automorphisms)
   {}
 
+  virtual ~ArchGraphAutomorphisms() = default;
+
   std::string to_gap() const override
   {
     std::stringstream ss;

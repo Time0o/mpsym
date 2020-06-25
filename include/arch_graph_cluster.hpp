@@ -20,6 +20,8 @@ namespace mpsym
 class ArchGraphCluster : public ArchGraphSystem
 {
 public:
+  virtual ~ArchGraphCluster() = default;
+
   std::string to_gap() const override;
 
   // TODO: detect equivalent subsystems?
