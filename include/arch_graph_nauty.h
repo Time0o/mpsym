@@ -55,10 +55,10 @@ public:
 
   void set_partition(std::vector<std::vector<int>> const &ptn)
   {
-    __ptn = ptn;
+    _ptn_expl = ptn;
 
     int i = 0;
-    for (auto const &p : __ptn) {
+    for (auto const &p : _ptn_expl) {
       for (auto j = 0u; j < p.size(); ++j) {
         _lab[i] = p[j];
         _ptn[i] = (j == p.size() - 1u) ? 0 : 1;
@@ -102,7 +102,7 @@ public:
     ss << "],";
 
     // partition
-    auto ptn_inc(__ptn);
+    auto ptn_inc(_ptn_expl);
     for (auto &p : ptn_inc) {
       for (auto &v : p)
         ++v;
@@ -144,7 +144,7 @@ private:
   int *_lab, *_ptn, *_orbits;
 
   std::vector<std::pair<int, int>> _edges;
-  std::vector<std::vector<int>> __ptn;
+  std::vector<std::vector<int>> _ptn_expl;
 
   static PermSet _gens;
   static int _gen_degree;
