@@ -1,3 +1,5 @@
+#include <vector>
+
 #include "partial_perm.hpp"
 #include "partial_perm_inverse_semigroup.hpp"
 

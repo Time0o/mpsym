@@ -7,7 +7,6 @@
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"
-#include "schreier_structure.hpp"
 
 #include "test_main.cpp"
 

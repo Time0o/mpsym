@@ -1,13 +1,10 @@
 #include <algorithm>
+#include <memory>
+#include <ostream>
 #include <cassert>
-#include <functional>
 #include <queue>
-#include <unordered_set>
 #include <utility>
 #include <vector>
-
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/random_spanning_tree.hpp>
 
 #include "dbg.hpp"
 #include "dump.hpp"
@@ -15,6 +12,8 @@
 #include "partial_perm.hpp"
 #include "partial_perm_inverse_semigroup.hpp"
 #include "perm.hpp"
+#include "perm_group.hpp"
+#include "perm_set.hpp"
 #include "util.hpp"
 
 /**

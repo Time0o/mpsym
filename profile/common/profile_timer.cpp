@@ -1,15 +1,11 @@
-#include <chrono>
-#include <cstdlib>
-#include <stdexcept>
-
 #include <sys/times.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "profile_timer.hpp"
-#include "profile_util.hpp"
 #include "timer.hpp"
+
+#include "profile_timer.hpp"
 
 namespace
 {

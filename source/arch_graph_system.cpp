@@ -1,19 +1,19 @@
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <limits>
+#include <memory>
+#include <new>
 #include <numeric>
-#include <queue>
 #include <random>
 #include <stdexcept>
-#include <type_traits>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
-#include <boost/graph/adjacency_list.hpp>
-
+#include "bsgs.hpp"
+#include "perm_group.hpp"
 #include "arch_graph_system.hpp"
-#include "dbg.hpp"
 #include "perm.hpp"
 #include "perm_set.hpp"
 #include "task_mapping.hpp"

@@ -1,10 +1,14 @@
+#include <algorithm>
 #include <cassert>
 #include <memory>
+#include <tuple>
 #include <vector>
 
 #include "bsgs.hpp"
 #include "dbg.hpp"
+#include "orbits.hpp"
 #include "perm.hpp"
+#include "perm_set.hpp"
 #include "pr_randomizer.hpp"
 #include "schreier_generator_queue.hpp"
 #include "schreier_structure.hpp"

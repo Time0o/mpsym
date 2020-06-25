@@ -6,8 +6,9 @@
 
 #include "arch_graph_cluster.hpp"
 #include "arch_graph_system.hpp"
-#include "bsgs.hpp"
-#include "dbg.hpp"
+#include "perm_group.hpp"
+#include "perm_set.hpp"
+#include "task_mapping.hpp"
 #include "task_orbits.hpp"
 
 namespace mpsym

@@ -1,8 +1,13 @@
+#include <algorithm>
+#include <cassert>
+#include <map>
+#include <memory>
 #include <ostream>
 #include <utility>
 #include <vector>
 
 #include "perm.hpp"
+#include "perm_set.hpp"
 #include "schreier_tree.hpp"
 
 namespace mpsym

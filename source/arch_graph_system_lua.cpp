@@ -1,11 +1,15 @@
-#include <functional>
+#include <cassert>
+#include <cmath>
 #include <fstream>
-#include <iostream>
+#include <functional>
+#include <iterator>
+#include <limits>
+#include <map>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
-#include <utility>
+#include <vector>
 
 extern "C" {
   #include "lua.h"

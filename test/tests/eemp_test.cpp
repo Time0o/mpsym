@@ -9,7 +9,6 @@
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "test_utility.hpp"
-#include "util.hpp"
 
 #include "test_main.cpp"
 

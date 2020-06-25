@@ -1,24 +1,19 @@
 #include <algorithm>
 #include <cassert>
-#include <climits>
-#include <ctime>
 #include <limits>
+#include <memory>
+#include <ostream>
 #include <random>
-#include <set>
 #include <stdexcept>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include "bsgs.hpp"
-#include "dbg.hpp"
 #include "orbits.hpp"
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"
-#include "schreier_structure.hpp"
 #include "util.hpp"
 
 /**

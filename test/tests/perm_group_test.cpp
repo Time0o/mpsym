@@ -1,10 +1,12 @@
-#include <sstream>
+#include <algorithm>
+#include <memory>
 #include <tuple>
 #include <utility>
 #include <vector>
 
 #include "gmock/gmock.h"
 
+#include "bsgs.hpp"
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"

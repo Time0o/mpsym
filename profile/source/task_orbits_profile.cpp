@@ -1,12 +1,9 @@
 #include <algorithm>
 #include <cstdlib>
-#include <cstring>
 #include <functional>
-#include <fstream>
 #include <iostream>
-#include <numeric>
+#include <memory>
 #include <set>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -17,7 +14,6 @@
 #include "arch_graph_automorphisms.hpp"
 #include "arch_graph_system.hpp"
 #include "dump.hpp"
-#include "perm_set.hpp"
 #include "task_mapping.hpp"
 #include "task_orbits.hpp"
 #include "timer.hpp"
@@ -26,7 +22,6 @@
 #include "profile_parse.hpp"
 #include "profile_read.hpp"
 #include "profile_run.hpp"
-#include "profile_timer.hpp"
 #include "profile_util.hpp"
 
 using namespace profile;
@@ -307,7 +302,6 @@ mpsym::TaskOrbits map_tasks_mpsym(
   using mpsym::ArchGraphSystem;
   using mpsym::TaskOrbits;
   using mpsym::internal::ArchGraphAutomorphisms;
-  using mpsym::internal::PermGroup;
 
   if (options.verbosity > 0)
     debug("Constructing BSGS");
@@ -505,7 +499,6 @@ void do_profile(Stream &automorphisms_stream,
 {
   using mpsym::ArchGraphSystem;
   using mpsym::internal::ArchGraphAutomorphisms;
-  using mpsym::internal::PermGroup;
 
   std::shared_ptr<ArchGraphSystem> ags, ags_check;
 

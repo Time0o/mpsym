@@ -5,11 +5,14 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <initializer_list>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <utility>
+#include <vector>
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -17,9 +20,11 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "util.hpp"
+
 #include "profile_run.hpp"
 #include "profile_timer.hpp"
-#include "util.hpp"
+#include "profile_util.hpp"
 
 namespace
 {

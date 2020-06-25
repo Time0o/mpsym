@@ -1,11 +1,12 @@
 #include <algorithm>
+#include <cassert>
 #include <climits>
-#include <cstddef>
 #include <functional>
 #include <iomanip>
-#include <ostream>
+#include <memory>
 #include <random>
 #include <sstream>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -17,8 +18,8 @@
 #include "dump.hpp"
 #include "eemp.hpp"
 #include "partial_perm.hpp"
-#include "perm.hpp"
 #include "perm_group.hpp"
+#include "perm_set.hpp"
 #include "util.hpp"
 
 /**

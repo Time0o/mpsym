@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <sstream>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -8,7 +9,6 @@
 
 #include "partial_perm.hpp"
 #include "perm.hpp"
-#include "test_utility.hpp"
 
 #include "test_main.cpp"
 

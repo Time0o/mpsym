@@ -3,8 +3,8 @@
 
 #include <cstring>
 #include <string>
-#include <iostream>
 #include <sstream>
+#include <ostream>
 #include <vector>
 
 #include "dump.hpp"
@@ -72,7 +72,7 @@ private:
   int _level;
   std::vector<char const *> _headers {
     "", "TRACE: ", "DEBUG: ", "INFO: ", "WARNING: "};
-  std::ostringstream _buf;
+  std::stringstream _buf;
 };
 
 } // namespace dbg

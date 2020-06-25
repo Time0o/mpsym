@@ -1,13 +1,14 @@
+#include <memory>
 #include <vector>
 
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include "block_system.hpp"
+#include "bsgs.hpp"
 #include "dbg.hpp"
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"
-#include "util.hpp"
 
 /**
  * @file perm_group_wreath_decomp.hpp

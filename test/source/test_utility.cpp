@@ -1,7 +1,9 @@
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <fstream>
-#include <sstream>
+#include <map>
+#include <string>
 #include <vector>
 
 #include "gmock/gmock.h"

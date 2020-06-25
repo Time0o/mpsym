@@ -1,14 +1,9 @@
 #include <algorithm>
 #include <cassert>
-#include <cstdint>
 #include <fstream>
-#include <functional>
-#include <iterator>
-#include <ostream>
+#include <memory>
 #include <set>
-#include <stdexcept>
 #include <string>
-#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -16,16 +11,11 @@
 #include <boost/range/iterator_range_core.hpp>
 
 #include "arch_graph.hpp"
-#include "arch_graph_system.hpp"
-#include "bsgs.hpp"
-#include "dbg.hpp"
+#include "arch_graph_nauty.hpp"
 #include "dump.hpp"
-#include "partial_perm.hpp"
-#include "partial_perm_inverse_semigroup.hpp"
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"
-#include "timer.hpp"
 
 namespace mpsym
 {

@@ -1,5 +1,9 @@
 #include <algorithm>
-#include <tuple>
+#include <cassert>
+#include <iterator>
+#include <memory>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "dbg.hpp"

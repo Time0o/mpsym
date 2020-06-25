@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <cassert>
-#include <limits>
 #include <memory>
 #include <numeric>
 #include <ostream>
@@ -16,6 +15,7 @@
 #include "perm_set.hpp"
 #include "pr_randomizer.hpp"
 #include "explicit_transversals.hpp"
+#include "schreier_structure.hpp"
 #include "schreier_tree.hpp"
 
 namespace mpsym

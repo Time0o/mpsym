@@ -1,9 +1,10 @@
 #include <algorithm>
+#include <cassert>
+#include <memory>
+#include <queue>
+#include <stdexcept>
 #include <unordered_set>
 #include <vector>
-#include <queue>
-
-#include <boost/multiprecision/cpp_int.hpp>
 
 #include "perm.hpp"
 #include "perm_set.hpp"

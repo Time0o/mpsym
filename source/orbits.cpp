@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
-#include <numeric>
 #include <unordered_set>
 #include <vector>
 

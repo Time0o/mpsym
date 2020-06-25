@@ -1,13 +1,11 @@
-#include <cassert>
 #include <memory>
 #include <numeric>
 #include <string>
+#include <vector>
 
 #include "arch_graph_automorphisms.hpp"
 #include "arch_graph_system.hpp"
 #include "arch_uniform_super_graph.hpp"
-#include "block_system.hpp"
-#include "bsgs.hpp"
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"

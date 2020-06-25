@@ -1,8 +1,12 @@
 #include <algorithm>
 #include <cassert>
 #include <functional>
+#include <memory>
 #include <numeric>
+#include <ostream>
+#include <stdexcept>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 

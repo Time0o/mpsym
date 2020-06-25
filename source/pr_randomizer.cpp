@@ -1,7 +1,6 @@
 #include <cassert>
 #include <climits>
 #include <cmath>
-#include <ctime>
 #include <random>
 #include <unordered_set>
 #include <vector>
@@ -11,6 +10,7 @@
 
 #include "orbits.hpp"
 #include "perm.hpp"
+#include "perm_set.hpp"
 #include "pr_randomizer.hpp"
 #include "util.hpp"
 

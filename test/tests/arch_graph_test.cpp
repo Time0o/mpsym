@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <fstream>
 #include <memory>
-#include <sstream>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "gmock/gmock.h"
@@ -11,7 +11,6 @@
 #include "arch_graph_cluster.hpp"
 #include "arch_graph_system.hpp"
 #include "arch_uniform_super_graph.hpp"
-#include "partial_perm.hpp"
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "task_mapping.hpp"

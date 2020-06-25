@@ -1,8 +1,9 @@
 #include <algorithm>
-#include <iterator>
+#include <climits>
 #include <memory>
 #include <regex>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -12,11 +13,9 @@
 #include <boost/property_tree/json_parser.hpp>
 
 #include "arch_graph_automorphisms.hpp"
-#include "arch_graph_cluster.hpp"
 #include "arch_graph_system.hpp"
-#include "arch_uniform_super_graph.hpp"
 #include "dump.hpp"
-#include "perm.hpp"
+#include "perm_group.hpp"
 #include "perm_set.hpp"
 #include "permlib.hpp"
 #include "profile_parse.hpp"

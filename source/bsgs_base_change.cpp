@@ -1,10 +1,16 @@
 #include <algorithm>
 #include <cassert>
+#include <memory>
+#include <utility>
 #include <vector>
 
 #include "bsgs.hpp"
 #include "dbg.hpp"
+#include "orbits.hpp"
 #include "perm.hpp"
+#include "perm_set.hpp"
+#include "schreier_generator_queue.hpp"
+#include "schreier_structure.hpp"
 
 namespace mpsym
 {

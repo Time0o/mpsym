@@ -22,6 +22,7 @@ ForwardIt next(
 
 #include <permlib/construct/random_schreier_sims_construction.h>
 #include <permlib/generator/bsgs_random_generator.h>
+#include <permlib/permutation.h>
 #include <permlib/transversal/explicit_transversal.h>
 #include <permlib/transversal/shallow_schreier_tree_transversal.h>
 
