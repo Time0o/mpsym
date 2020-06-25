@@ -1,5 +1,5 @@
-#ifndef _GUARD_EEMP_H
-#define _GUARD_EEMP_H
+#ifndef GUARD_EEMP_H
+#define GUARD_EEMP_H
 
 #include <ostream>
 #include <utility>
@@ -273,4 +273,4 @@ std::ostream &operator<<(std::ostream &os, OrbitGraph const &orbit_graph);
 
 } // namespace mpsym
 
-#endif // _GUARD_EEMP_H
+#endif // GUARD_EEMP_H

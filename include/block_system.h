@@ -1,5 +1,5 @@
-#ifndef _GUARD_BLOCK_SYSTEM_H
-#define _GUARD_BLOCK_SYSTEM_H
+#ifndef GUARD_BLOCK_SYSTEM_H
+#define GUARD_BLOCK_SYSTEM_H
 
 #include <initializer_list>
 #include <ostream>
@@ -153,4 +153,4 @@ std::ostream &operator<<(std::ostream &os, BlockSystem const &bs);
 
 } // namespace mpsym
 
-#endif // _GUARD_BLOCK_SYSTEM_H
+#endif // GUARD_BLOCK_SYSTEM_H

@@ -1,5 +1,5 @@
-#ifndef _GUARD_PERM_SET_H
-#define _GUARD_PERM_SET_H
+#ifndef GUARD_PERM_SET_H
+#define GUARD_PERM_SET_H
 
 #include <algorithm>
 #include <cassert>
@@ -214,4 +214,4 @@ inline std::ostream &operator<<(std::ostream &os, PermSet const &ps)
 
 } // namespace mpsym
 
-#endif // _GUARD_PERM_SET_H
+#endif // GUARD_PERM_SET_H

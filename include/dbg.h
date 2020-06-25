@@ -1,5 +1,5 @@
-#ifndef _GUARD_DBG_H
-#define _GUARD_DBG_H
+#ifndef GUARD_DBG_H
+#define GUARD_DBG_H
 
 #include <cstring>
 #include <string>
@@ -103,4 +103,4 @@ private:
 
 #endif
 
-#endif // _GUARD_DBG_H
+#endif // GUARD_DBG_H

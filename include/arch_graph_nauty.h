@@ -1,5 +1,5 @@
-#ifndef _GUARD_ARCH_GRAPH_NAUTY_H
-#define _GUARD_ARCH_GRAPH_NAUTY_H
+#ifndef GUARD_ARCH_GRAPH_NAUTY_H
+#define GUARD_ARCH_GRAPH_NAUTY_H
 
 #include <sstream>
 #include <utility>
@@ -154,4 +154,4 @@ private:
 
 } // namespace mpsym
 
-#endif // _GUARD_ARCH_GRAPH_NAUTY_H
+#endif // GUARD_ARCH_GRAPH_NAUTY_H

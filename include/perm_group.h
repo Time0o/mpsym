@@ -1,5 +1,5 @@
-#ifndef _GUARD_PERM_GROUP_H
-#define _GUARD_PERM_GROUP_H
+#ifndef GUARD_PERM_GROUP_H
+#define GUARD_PERM_GROUP_H
 
 #include <cassert>
 #include <iterator>
@@ -515,4 +515,4 @@ std::ostream &operator<<(std::ostream &os, PermGroup const &pg);
 
 } // namespace mpsym
 
-#endif // _GUARD_PERM_GROUP_H
+#endif // GUARD_PERM_GROUP_H

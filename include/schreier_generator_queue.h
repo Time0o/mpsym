@@ -1,5 +1,5 @@
-#ifndef _GUARD_SCHREIER_GENERATOR_QUEUE_H
-#define _GUARD_SCHREIER_GENERATOR_QUEUE_H
+#ifndef GUARD_SCHREIER_GENERATOR_QUEUE_H
+#define GUARD_SCHREIER_GENERATOR_QUEUE_H
 
 #include <cassert>
 #include <iterator>
@@ -153,4 +153,4 @@ private:
 
 } // namespace mpsym
 
-#endif // _GUARD_SCHREIER_GENERATOR_QUEUE_H
+#endif // GUARD_SCHREIER_GENERATOR_QUEUE_H

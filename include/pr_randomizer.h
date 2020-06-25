@@ -1,5 +1,5 @@
-#ifndef _GUARD_PR_RANDOMIZER_H
-#define _GUARD_PR_RANDOMIZER_H
+#ifndef GUARD_PR_RANDOMIZER_H
+#define GUARD_PR_RANDOMIZER_H
 
 #include "perm.h"
 #include "perm_set.h"
@@ -120,4 +120,4 @@ private:
 
 } // namespace mpsym
 
-#endif // _GUARD_PR_RANDOMIZER_H
+#endif // GUARD_PR_RANDOMIZER_H

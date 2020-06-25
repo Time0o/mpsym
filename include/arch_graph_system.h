@@ -1,5 +1,5 @@
-#ifndef _GUARD_ARCH_GRAPH_SYSTEM_H
-#define _GUARD_ARCH_GRAPH_SYSTEM_H
+#ifndef GUARD_ARCH_GRAPH_SYSTEM_H
+#define GUARD_ARCH_GRAPH_SYSTEM_H
 
 #include <memory>
 #include <string>
@@ -206,4 +206,4 @@ private:
 
 } // namespace mpsym
 
-#endif // _GUARD_ARCH_GRAPH_SYSTEM_H
+#endif // GUARD_ARCH_GRAPH_SYSTEM_H

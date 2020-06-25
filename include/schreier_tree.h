@@ -1,5 +1,5 @@
-#ifndef _GUARD_SCHREIER_TREE_H
-#define _GUARD_SCHREIER_TREE_H
+#ifndef GUARD_SCHREIER_TREE_H
+#define GUARD_SCHREIER_TREE_H
 
 #include <map>
 #include <ostream>
@@ -52,4 +52,4 @@ private:
 
 } // namespace mpsym
 
-#endif // _GUARD_SCHREIER_TREE_H
+#endif // GUARD_SCHREIER_TREE_H

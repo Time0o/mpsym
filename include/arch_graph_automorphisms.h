@@ -1,5 +1,5 @@
-#ifndef _GUARD_ARCH_GRAPH_AUTOMORPHISMS_H
-#define _GUARD_ARCH_GRAPH_AUTOMORPHISMS_H
+#ifndef GUARD_ARCH_GRAPH_AUTOMORPHISMS_H
+#define GUARD_ARCH_GRAPH_AUTOMORPHISMS_H
 
 #include <sstream>
 #include <string>
@@ -44,4 +44,4 @@ private:
 
 } // namespace mpsym
 
-#endif // _GUARD_ARCH_GRAPH_AUTOMORPHISMS_H
+#endif // GUARD_ARCH_GRAPH_AUTOMORPHISMS_H

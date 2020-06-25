@@ -1,5 +1,5 @@
-#ifndef _GUARD_ARCH_GRAPH_CLUSTER_H
-#define _GUARD_ARCH_GRAPH_CLUSTER_H
+#ifndef GUARD_ARCH_GRAPH_CLUSTER_H
+#define GUARD_ARCH_GRAPH_CLUSTER_H
 
 #include <memory>
 #include <stdexcept>
@@ -78,4 +78,4 @@ private:
 
 } // namespace mpsym
 
-#endif // _GUARD_ARCH_GRAPH_CLUSTER_H
+#endif // GUARD_ARCH_GRAPH_CLUSTER_H

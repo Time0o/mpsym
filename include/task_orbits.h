@@ -1,5 +1,5 @@
-#ifndef _GUARD_TASK_ORBITS_H
-#define _GUARD_TASK_ORBITS_H
+#ifndef GUARD_TASK_ORBITS_H
+#define GUARD_TASK_ORBITS_H
 
 #include <algorithm>
 #include <cassert>
@@ -135,4 +135,4 @@ private:
 
 } // namespace mpsym
 
-#endif // _GUARD_TASK_ORBITS_H
+#endif // GUARD_TASK_ORBITS_H

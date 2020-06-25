@@ -1,5 +1,5 @@
-#ifndef _GUARD_TIMER_H
-#define _GUARD_TIMER_H
+#ifndef GUARD_TIMER_H
+#define GUARD_TIMER_H
 
 #include <algorithm>
 #include <chrono>
@@ -300,4 +300,4 @@ inline std::ostream &operator<<(std::ostream &s, Timer const &timer)
 
 #endif
 
-#endif // _GUARD_TIMER_H
+#endif // GUARD_TIMER_H

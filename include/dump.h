@@ -1,5 +1,5 @@
-#ifndef _GUARD_DUMP_H
-#define _GUARD_DUMP_H
+#ifndef GUARD_DUMP_H
+#define GUARD_DUMP_H
 
 #include <cassert>
 #include <cstdint>
@@ -137,4 +137,4 @@ std::ostream &operator<<(std::ostream &os, Dumper<T> const &dumper)
 #define DUMP(obj) DUMP_NS :: make_dumper(obj)
 #define DUMP_CUSTOM(obj, ...) DUMP_NS :: make_dumper(obj, { __VA_ARGS__ })
 
-#endif // _GUARD_DUMP_H
+#endif // GUARD_DUMP_H

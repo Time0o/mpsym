@@ -1,5 +1,5 @@
-#ifndef _GUARD_UTIL_H
-#define _GUARD_UTIL_H
+#ifndef GUARD_UTIL_H
+#define GUARD_UTIL_H
 
 #include <algorithm>
 #include <cassert>
@@ -132,4 +132,4 @@ inline std::mt19937 random_engine()
 
 } // namespace mpsym
 
-#endif // _GUARD_UTIL_H
+#endif // GUARD_UTIL_H

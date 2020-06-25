@@ -1,5 +1,5 @@
-#ifndef _GUARD_PARTIAL_PERM_H
-#define _GUARD_PARTIAL_PERM_H
+#ifndef GUARD_PARTIAL_PERM_H
+#define GUARD_PARTIAL_PERM_H
 
 #include <cstddef>
 #include <ostream>
@@ -267,4 +267,4 @@ PartialPerm operator*(PartialPerm const &lhs, PartialPerm const &rhs);
 
 } // namespace mpsym
 
-#endif // _GUARD_PARTIAL_PERM_H
+#endif // GUARD_PARTIAL_PERM_H

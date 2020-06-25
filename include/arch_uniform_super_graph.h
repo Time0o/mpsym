@@ -1,5 +1,5 @@
-#ifndef _GUARD_ARCH_UNIFORM_SUPER_GRAPH_H
-#define _GUARD_ARCH_UNIFORM_SUPER_GRAPH_H
+#ifndef GUARD_ARCH_UNIFORM_SUPER_GRAPH_H
+#define GUARD_ARCH_UNIFORM_SUPER_GRAPH_H
 
 #include <memory>
 #include <stdexcept>
@@ -87,4 +87,4 @@ private:
 
 } // namespace mpsym
 
-#endif // _GUARD_ARCH_GRAPH_H
+#endif // GUARD_ARCH_GRAPH_H

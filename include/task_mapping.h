@@ -1,5 +1,5 @@
-#ifndef _GUARD_TASK_MAPPING_H
-#define _GUARD_TASK_MAPPING_H
+#ifndef GUARD_TASK_MAPPING_H
+#define GUARD_TASK_MAPPING_H
 
 #include <cassert>
 #include <initializer_list>
@@ -190,4 +190,4 @@ struct hash<mpsym::TaskMapping>
 
 } // namespace std
 
-#endif // _GUARD_TASK_MAPPING_H
+#endif // GUARD_TASK_MAPPING_H

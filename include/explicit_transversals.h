@@ -1,5 +1,5 @@
-#ifndef _GUARD_EXPLICIT_TRANSVERSALS_H
-#define _GUARD_EXPLICIT_TRANSVERSALS_H
+#ifndef GUARD_EXPLICIT_TRANSVERSALS_H
+#define GUARD_EXPLICIT_TRANSVERSALS_H
 
 #include <map>
 #include <ostream>
@@ -51,4 +51,4 @@ private:
 
 } // namespace mpsym
 
-#endif // _GUARD_EXPLICIT_TRANSVERSALS_H
+#endif // GUARD_EXPLICIT_TRANSVERSALS_H

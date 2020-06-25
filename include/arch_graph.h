@@ -1,5 +1,5 @@
-#ifndef _GUARD_ARCH_GRAPH_H
-#define _GUARD_ARCH_GRAPH_H
+#ifndef GUARD_ARCH_GRAPH_H
+#define GUARD_ARCH_GRAPH_H
 
 #include <memory>
 #include <ostream>
@@ -105,4 +105,4 @@ std::ostream &operator<<(std::ostream &os, ArchGraph &ag);
 
 }
 
-#endif // _GUARD_ARCH_GRAPH_H
+#endif // GUARD_ARCH_GRAPH_H

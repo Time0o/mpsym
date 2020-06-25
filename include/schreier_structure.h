@@ -1,5 +1,5 @@
-#ifndef _GUARD_SCHREIER_STRUCTURE_H
-#define _GUARD_SCHREIER_STRUCTURE_H
+#ifndef GUARD_SCHREIER_STRUCTURE_H
+#define GUARD_SCHREIER_STRUCTURE_H
 
 #include <ostream>
 #include <vector>
@@ -45,4 +45,4 @@ inline std::ostream &operator<<(std::ostream &os, SchreierStructure const &ss)
 
 } // namespace mpsym
 
-#endif // _GUARD_SCHREIER_SIMS_H
+#endif // GUARD_SCHREIER_SIMS_H

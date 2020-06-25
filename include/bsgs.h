@@ -1,5 +1,5 @@
-#ifndef _GUARD_BSGS_H
-#define _GUARD_BSGS_H
+#ifndef GUARD_BSGS_H
+#define GUARD_BSGS_H
 
 #include <cassert>
 #include <memory>
@@ -228,4 +228,4 @@ struct BSGSOptions
 
 } // namespace mpsym
 
-#endif // _GUARD_BSGS_H
+#endif // GUARD_BSGS_H
