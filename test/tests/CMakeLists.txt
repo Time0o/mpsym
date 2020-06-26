@@ -6,13 +6,13 @@ include_directories("${INCLUDE_DIR}"
                     "${RESOURCE_INCLUDE_DIR}"
                     "${NAUTY_WORKDIR}")
 
-file(GLOB TEST_SOURCES "*_test.cc")
+file(GLOB TEST_SOURCES "*_test.cpp")
 
-set(TEST_UTILITY "../source/test_utility.cc")
+set(TEST_UTILITY "../source/test_utility.cpp")
 
 foreach(TEST_SOURCE ${TEST_SOURCES})
   get_filename_component(TEST_PROG "${TEST_SOURCE}" NAME)
-  string(REPLACE "_test.cc" "" TEST_PROG "${TEST_PROG}")
+  string(REPLACE "_test.cpp" "" TEST_PROG "${TEST_PROG}")
 
   add_test(NAME "${TEST_PROG}"
            COMMAND "${TEST_PROG}"
