@@ -44,11 +44,12 @@ run_schreier_sims() {
                                    --num-discarded-runs $NUM_DISCARDED_RUNS \
                                    --num-runs $NUM_RUNS)
 
-  echo "$results" | tail -n +2 | sed 's/RESULT: \(.*\) s/\1/' > "$outfile"
+  echo "runtime" > "$outfile"
+  echo "$results" | tail -n +2 | sed 's/RESULT: \(.*\) s/\1/' >> "$outfile"
 }
 
 declare -a boards=(
-"parallella" "exynos" "haec_naive")
+"parallella" "exynos" "haec")
 
 declare -a implementations=(
 "gap" "mpsym")
