@@ -2,9 +2,9 @@
 
 suppressMessages(library(hash))
 
-source('modules/parse_data.R')
-source('modules/plot_data.R')
-source('modules/transform_columns.R')
+source('../modules/parse_data.R')
+source('../modules/plot_data.R')
+source('../modules/transform_columns.R')
 
 # parse arguments
 args <- parseArgs()
