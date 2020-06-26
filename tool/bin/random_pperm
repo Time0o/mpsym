@@ -5,7 +5,10 @@ import sys
 
 from argparse import ArgumentParser
 from random import randrange
+from os.path import dirname, join, realpath
 from typing import List, Optional, Tuple
+
+sys.path.insert(1, join(dirname(realpath(__file__)), '..'))
 
 from modules.util import error
 

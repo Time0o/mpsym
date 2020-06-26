@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 import operator as op
-import os
 import sys
 
 from functools import partial, reduce
 from itertools import permutations, product
+from os.path import dirname, join, realpath
 from random import choices, sample, shuffle
+
+sys.path.insert(1, join(dirname(realpath(__file__)), '..'))
 
 from modules.args import NiceArgumentParser
 from modules.util import error, progress, progress_done, usage
