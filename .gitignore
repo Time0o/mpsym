@@ -2,10 +2,6 @@ tool/bin/modules/__pycache__
 cmake/CodeCoverage.cmake
 sphinx/conf.py
 sphinx/api
-debug/*
-!debug/.gitkeep
-release/*
-!release/.gitkeep
 experiments/scripts/.schreier_sim.Rda
 experiments/data
 experiments/plots
