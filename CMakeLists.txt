@@ -26,8 +26,10 @@ set(CMAKE_MODULE_PATH "${CMAKE_SCRIPT_DIR}")
 set(NAUTY_CONFIG "${CMAKE_SCRIPT_DIR}/GetNauty.cmake")
 set(GTEST_CONFIG "${CMAKE_SCRIPT_DIR}/GetGTest.cmake")
 set(PERMLIB_CONFIG "${CMAKE_SCRIPT_DIR}/GetPermLib.cmake")
+set(PYBIND11_CONFIG "${CMAKE_SCRIPT_DIR}/GetPybind11.cmake")
 
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/source")
+set(PYTHON_SRC_DIR "${PROJECT_SOURCE_DIR}/python")
 set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
 
 set(TEST_SRC_DIR "${PROJECT_SOURCE_DIR}/test/source")
@@ -61,6 +63,11 @@ set(PERMLIB_DIR "${CMAKE_BINARY_DIR}/permlib")
 set(PERMLIB_DOWNLOAD_DIR "${PERMLIB_DIR}/download")
 set(PERMLIB_WORKDIR "${PERMLIB_DIR}/workdir")
 set(PERMLIB_INCLUDE_DIR "${PERMLIB_WORKDIR}/include")
+
+set(PYBIND11_DIR "${CMAKE_BINARY_DIR}/pybind11")
+set(PYBIND11_DOWNLOAD_DIR "${PYBIND11_DIR}/download")
+set(PYBIND11_SRC_DIR "${PYBIND11_DIR}/source")
+set(PYBIND11_BIN_DIR "${PYBIND11_DIR}/build")
 
 set(DOC_DOXYGEN_IN_DIR "${PROJECT_SOURCE_DIR}/doxygen")
 set(DOC_DOXYGEN_OUT_DIR "${CMAKE_BINARY_DIR}/doxygen")
@@ -334,6 +341,23 @@ if(CMAKE_BUILD_TYPE STREQUAL "Profile")
   # Build profiling programs
   add_subdirectory("${PROFILE_SRC_DIR}")
 endif()
+
+
+################################################################################
+# Bindings
+################################################################################
+
+if(PYTHON_BINDINGS STREQUAL "Yes")
+  # pybind11
+  add_external_project(NAME "pybind11"
+                       CONFIGFILE "${PYBIND11_CONFIG}"
+                       WORKDIR "${PYBIND11_DOWNLOAD_DIR}")
+
+  add_subdirectory("${PYBIND11_SRC_DIR}" "${PYBIND11_BIN_DIR}" EXCLUDE_FROM_ALL)
+
+  add_subdirectory("${PYTHON_SRC_DIR}")
+endif()
+
 
 ################################################################################
 # Common Sources
