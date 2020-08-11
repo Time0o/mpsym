@@ -20,7 +20,7 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
 
   add_executable("${TEST_PROG}" "${TEST_SOURCE}" "${TEST_UTILITY}")
 
-  target_link_libraries("${TEST_PROG}" "${MAIN_LIB}" gmock_main)
+  target_link_libraries("${TEST_PROG}" "${MPSYM_LIB}" gmock_main)
 
   set_default_target_properties(TARGET "${TEST_PROG}")
 endforeach()

@@ -18,7 +18,8 @@ set(PROJECT_COPYRIGHT "2018")
 # Project Structure
 ################################################################################
 
-set(MAIN_LIB "mpsym")
+set(MPSYM_LIB "mpsym")
+set(MPSYM_PYTHON "mpsym")
 
 set(CMAKE_SCRIPT_DIR "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CMAKE_SCRIPT_DIR}")
