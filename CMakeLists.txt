@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.6)
 
 project("MPSoC Symmetry Reduction Library"
         VERSION 0.1
-        LANGUAGES "CXX")
+        LANGUAGES "CXX" "C")
 
 set (CMAKE_CXX_STANDARD 11)
 
@@ -30,6 +30,7 @@ set(PERMLIB_CONFIG "${CMAKE_SCRIPT_DIR}/GetPermLib.cmake")
 set(PYBIND11_CONFIG "${CMAKE_SCRIPT_DIR}/GetPybind11.cmake")
 
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/source")
+set(NAUTY_SRC_DIR "${PROJECT_SOURCE_DIR}/nauty")
 set(PYTHON_SRC_DIR "${PROJECT_SOURCE_DIR}/python")
 set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
 
@@ -54,6 +55,7 @@ endforeach()
 set(NAUTY_DIR "${CMAKE_BINARY_DIR}/nauty")
 set(NAUTY_DOWNLOAD_DIR "${NAUTY_DIR}/download")
 set(NAUTY_WORKDIR "${NAUTY_DIR}/workdir")
+set(NAUTY_LIB "nauty")
 
 set(GTEST_DIR "${CMAKE_BINARY_DIR}/gtest")
 set(GTEST_DOWNLOAD_DIR "${GTEST_DIR}/download")
@@ -138,9 +140,11 @@ find_package(Boost 1.40 REQUIRED COMPONENTS graph)
 find_package(Lua 5.2 REQUIRED)
 
 # Nauty
-add_external_project(NAME "nauty/traces"
+add_external_project(NAME "nauty_traces"
                      CONFIGFILE "${NAUTY_CONFIG}"
                      WORKDIR "${NAUTY_DOWNLOAD_DIR}")
+
+add_subdirectory("${NAUTY_SRC_DIR}")
 
 
 ################################################################################

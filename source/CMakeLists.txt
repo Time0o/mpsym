@@ -5,7 +5,7 @@ include_directories("${INCLUDE_DIR}"
                     "${LUA_INCLUDE_DIR}"
                     "${NAUTY_WORKDIR}")
 
-add_library("${MPSYM_LIB}"
+add_library("${MPSYM_LIB}" SHARED
             "arch_graph.cpp"
             "arch_graph_nauty.cpp"
             "arch_graph_cluster.cpp"
@@ -36,7 +36,7 @@ add_library("${MPSYM_LIB}"
 target_link_libraries("${MPSYM_LIB}"
                       "${Boost_LIBRARIES}"
                       "${LUA_LIBRARIES}"
-                      "${NAUTY_WORKDIR}/nauty.a")
+                      "${NAUTY_LIB}")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND DO_COVERAGE)
   target_link_libraries("${MPSYM_LIB}" gcov)
