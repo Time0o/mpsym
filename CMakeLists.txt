@@ -8,9 +8,17 @@ set(PROJECT_AUTHOR "Timo Nicolai")
 set(PROJECT_COPYRIGHT "2020")
 set(PROJECT_LICENSE "MIT")
 
-project("mpsym"
-        DESCRIPTION "MPSoC Symmetry Reduction"
-        VERSION 0.1
+set(MPSYM "mpsym")
+set(PYMPSYM "pympsym")
+set(DESCRIPTION "MPSoC Symmetry Reduction")
+set(VERSION "1.0")
+
+add_definitions(-DMPSYM="${MPSYM}" -DPYMPSYM=${PYMPSYM}
+                -DDESCRIPTION="${DESCRIPTION}" -DVERSION="${VERSION}")
+
+project("${MPSYM}"
+        DESCRIPTION "${DESCRIPTION}"
+        VERSION "${VERSION}"
         LANGUAGES "CXX")
 
 set (CMAKE_CXX_STANDARD 11)
@@ -26,10 +34,11 @@ set(CMAKE_MODULE_PATH "${CMAKE_SCRIPT_DIR}")
 set(NAUTY_CONFIG "${CMAKE_SCRIPT_DIR}/GetNauty.cmake")
 set(GTEST_CONFIG "${CMAKE_SCRIPT_DIR}/GetGTest.cmake")
 set(PERMLIB_CONFIG "${CMAKE_SCRIPT_DIR}/GetPermLib.cmake")
+set(PYBIND11_CONFIG "${CMAKE_SCRIPT_DIR}/GetPybind11.cmake")
 
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/source")
 set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
-set(MPSYM_LIB "${CMAKE_PROJECT_NAME}")
+set(MPSYM_LIB "${MPSYM}")
 
 set(TEST_SRC_DIR "${PROJECT_SOURCE_DIR}/test/source")
 set(TEST_TESTS_DIR "${PROJECT_SOURCE_DIR}/test/tests")
@@ -53,6 +62,17 @@ set(PERMLIB_DIR "${CMAKE_BINARY_DIR}/permlib")
 set(PERMLIB_DOWNLOAD_DIR "${PERMLIB_DIR}/download")
 set(PERMLIB_WORKDIR "${PERMLIB_DIR}/workdir")
 set(PERMLIB_INCLUDE_DIR "${PERMLIB_WORKDIR}/include")
+
+set(PYBIND11_DIR "${CMAKE_BINARY_DIR}/pybind11")
+set(PYBIND11_DOWNLOAD_DIR "${PYBIND11_DIR}/download")
+set(PYBIND11_SRC_DIR "${PYBIND11_DIR}/source")
+set(PYBIND11_BIN_DIR "${PYBIND11_DIR}/build")
+
+set(PYTHON_SRC_DIR "${PROJECT_SOURCE_DIR}/python")
+set(PYTHON_MODULE "${PYMPSYM}")
+
+set(INSTALL_LIB_DIR "lib")
+set(INSTALL_INCLUDE_DIR "include/${MPSYM}")
 
 set(DOC_DOXYGEN_IN_DIR "${PROJECT_SOURCE_DIR}/doxygen")
 set(DOC_DOXYGEN_OUT_DIR "${CMAKE_BINARY_DIR}/doxygen")
@@ -218,11 +238,28 @@ if(CMAKE_BUILD_TYPE STREQUAL "Profile")
   add_subdirectory("${PROFILE_SRC_DIR}")
 endif()
 
+
 ################################################################################
 # Common Sources
 ################################################################################
 
 add_subdirectory("${SRC_DIR}")
+
+
+################################################################################
+# Bindings
+################################################################################
+
+if(PYTHON_BINDINGS STREQUAL "Yes")
+  # pybind11
+  add_external_project(NAME "pybind11"
+                       CONFIGFILE "${PYBIND11_CONFIG}"
+                       WORKDIR "${PYBIND11_DOWNLOAD_DIR}")
+
+  add_subdirectory("${PYBIND11_SRC_DIR}" "${PYBIND11_BIN_DIR}" EXCLUDE_FROM_ALL)
+
+  add_subdirectory("${PYTHON_SRC_DIR}")
+endif()
 
 
 ################################################################################
@@ -242,12 +279,12 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
   )
 
   install(FILES "${NAUTY_LIB}"
-    DESTINATION lib
+    DESTINATION "${INSTALL_LIB_DIR}"
   )
 
   install(TARGETS "${MPSYM_LIB}"
-    LIBRARY DESTINATION lib
-    PUBLIC_HEADER DESTINATION include/mpsym
+    LIBRARY DESTINATION "${INSTALL_LIB_DIR}"
+    PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}"
   )
 
   # Documentation
