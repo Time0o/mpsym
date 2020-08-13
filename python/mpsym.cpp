@@ -48,20 +48,6 @@ PYBIND11_MODULE(mpsym, m) {
              ArchGraphSystem,
              std::shared_ptr<ArchGraph>>(m, "ArchGraph")
     .def(py::init<>())
-    .def_static("fully_connected", &ArchGraph::fully_connected,
-                "n"_a,
-                "pl"_a = "",
-                "cl"_a = "")
-    .def_static("regular_mesh", &ArchGraph::regular_mesh,
-                "width"_a,
-                "height"_a,
-                "pl"_a = "",
-                "cl"_a = "")
-    .def_static("hyper_mesh", &ArchGraph::hyper_mesh,
-                "width"_a,
-                "height"_a,
-                "pl"_a = "",
-                "cl"_a = "")
     .def("new_processor_type", &ArchGraph::new_processor_type, "pl"_a = "")
     .def("new_channel_type", &ArchGraph::new_channel_type, "cl"_a = "")
     .def("add_processor", &ArchGraph::add_processor, "pe"_a)
