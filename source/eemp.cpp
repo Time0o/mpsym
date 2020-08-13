@@ -22,13 +22,6 @@
 #include "perm_set.hpp"
 #include "util.hpp"
 
-/**
- * @file eemp.cc
- * @brief Implements data structures and functions defined in eemp.hpp
- *
- * @author Timo Nicolai
- */
-
 namespace mpsym
 {
 

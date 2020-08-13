@@ -10,13 +10,6 @@
 #include "perm_group.hpp"
 #include "perm_set.hpp"
 
-/**
- * @file perm_group_wreath_decomp.hpp
- * @brief Implements `PermGroup::wreath_decomposition`.
- *
- * @author Timo Nicolai
- */
-
 namespace mpsym
 {
 

@@ -10,13 +10,6 @@
 #include <random>
 #include <vector>
 
-/**
- * @file util.hpp
- * @brief Defines several utility functions used throughout this project.
- *
- * @author Timo Nicolai
- */
-
 namespace mpsym
 {
 
@@ -26,19 +19,6 @@ namespace internal
 namespace util
 {
 
-/** Calculate integer powers.
- *
- * `T` must be a signed or unsigned integer type, otherwise this function's
- * behaviour is undefined.
- *
- * \param base base, for negative bases this function's behaviour is undefined
- *
- * \param exp
- *     exponent, for negative exponents or when `base^exp` is not representable
- *     by `T` this function's behaviour is undefined
- *
- * \return base^exp
- */
 template<typename T>
 T pow(T base, T exp)
 {
@@ -59,17 +39,6 @@ T pow(T base, T exp)
   return res;
 }
 
-/** Calculate the factorial of a non-negative integer.
- *
- * `T` must be a signed or unsigned integer type, otherwise this function's
- * behaviour is undefined.
- *
- * \param x
- *     the non-negative input number \f$x\f$, if \f$x < 0\f$ or \f$x!\f$ is not
- *     representable by `T`, $this function's behaviour is undefined
- *
- * \return \f$x!\f$
- */
 template<typename T>
 T factorial(T x)
 {
@@ -99,13 +68,6 @@ void mean_stddev(std::vector<T> const &vals, U *mean, U *stddev) {
     std::inner_product(d.begin(), d.end(), d.begin(), zero) / size);
 }
 
-/** Compute a hash value for a container of (hashable) elements.
- *
- * \param first iterator pointing to first element
- * \param last iterator pointing to last element
- *
- * \return a sufficiently good hash value
- */
 template<typename IT>
 std::size_t container_hash(IT first, IT last) {
   // see: https://stackoverflow.com/questions/20511347/a-good-hash-function-for-a-vector

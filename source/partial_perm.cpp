@@ -9,13 +9,6 @@
 #include "perm.hpp"
 #include "util.hpp"
 
-/**
- * @file partial_perm.cc
- * @author Timo Nicolai
- *
- * @brief Implements `PartialPerm`.
- */
-
 namespace mpsym
 {
 

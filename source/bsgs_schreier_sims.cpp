@@ -14,13 +14,6 @@
 #include "schreier_structure.hpp"
 #include "timer.hpp"
 
-/**
- * @file bsgs_schreier_sims.cc
- * @brief Implements schreier sims algorithm variants.
- *
- * @author Timo Nicolai
- */
-
 namespace mpsym
 {
 

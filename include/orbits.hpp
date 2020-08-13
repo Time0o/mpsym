@@ -10,13 +10,6 @@
 
 #include "dump.hpp"
 
-/**
- * @file orbits.hpp
- * @brief Free standing orbit calculation function(s).
- *
- * @author Timo Nicolai
- */
-
 namespace mpsym
 {
 
