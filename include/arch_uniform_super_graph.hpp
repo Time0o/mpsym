@@ -31,7 +31,7 @@ public:
   unsigned num_channels() const override;
 
 private:
-  internal::BSGS::order_type num_automorphisms_(
+  AutomorphismOrderType num_automorphisms_(
     AutomorphismOptions const *options) override
   {
     using boost::multiprecision::pow;

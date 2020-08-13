@@ -2,6 +2,7 @@
 #define GUARD_ARCH_GRAPH_SYSTEM_H
 
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <unordered_set>
 
@@ -14,6 +15,7 @@ namespace mpsym
 {
 
 using AutomorphismOptions = internal::BSGSOptions;
+using AutomorphismOrderType = internal::BSGS::order_type;
 
 struct ReprOptions
 {
@@ -80,7 +82,7 @@ public:
     _automorphisms_is_shifted_symmetric_valid = false;
   }
 
-  internal::BSGS::order_type num_automorphisms(
+  AutomorphismOrderType num_automorphisms(
     AutomorphismOptions const *options = nullptr)
   { return num_automorphisms_(options); }
 
@@ -121,6 +123,9 @@ public:
                    TaskOrbits *orbits = nullptr,
                    ReprOptions const *options = nullptr)
   {
+    if (mapping.task_min() == 0)
+      throw std::logic_error("task indices must be positive");
+
     if (!repr_ready_())
       init_repr();
 
@@ -128,14 +133,15 @@ public:
   }
 
 private:
-  virtual internal::BSGS::order_type num_automorphisms_(
+  virtual AutomorphismOrderType num_automorphisms_(
     AutomorphismOptions const *options)
   { return automorphisms(options).order(); }
 
   virtual internal::PermGroup automorphisms_(
     AutomorphismOptions const *options) = 0;
 
-  virtual void init_repr_(AutomorphismOptions const *options)
+  virtual void init_repr_(
+    AutomorphismOptions const *options)
   { automorphisms(options); }
 
   virtual bool repr_ready_() const

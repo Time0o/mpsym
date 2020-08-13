@@ -1,6 +1,6 @@
-#include <cassert>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -60,7 +60,8 @@ ArchGraphCluster::num_subsystems() const
 PermGroup
 ArchGraphCluster::automorphisms_(AutomorphismOptions const *options)
 {
-  assert(!_subsystems.empty());
+  if (_subsystems.empty())
+    throw std::logic_error("cluster contains no subsystems");
 
   std::vector<PermGroup> automorphisms(_subsystems.size());
   for (auto i = 0u; i < _subsystems.size(); ++i)
@@ -76,7 +77,8 @@ ArchGraphCluster::repr_(TaskMapping const &mapping_,
                         TaskOrbits *orbits,
                         ReprOptions const *options_)
 {
-  assert(_subsystems.size() > 0u);
+  if (_subsystems.empty())
+    throw std::logic_error("cluster contains no subsystems");
 
   TaskMapping mapping(mapping_);
 

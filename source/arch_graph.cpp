@@ -1,8 +1,8 @@
 #include <algorithm>
-#include <cassert>
 #include <fstream>
 #include <memory>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -74,7 +74,8 @@ ArchGraph ArchGraph::fully_connected(unsigned n,
                                      ProcessorLabel pl,
                                      ChannelLabel cl)
 {
-  assert(n > 0u);
+  if (n == 0U)
+    throw std::logic_error("number of processing elements must be positive");
 
   ArchGraph ag;
 
@@ -102,8 +103,6 @@ ArchGraph ArchGraph::regular_mesh(unsigned width,
                                   ProcessorLabel pl,
                                   ChannelLabel cl)
 {
-  assert(width > 0u && height > 0u);
-
   ArchGraph ag;
 
   auto pe(ag.new_processor_type(pl));
@@ -119,8 +118,6 @@ ArchGraph ArchGraph::hyper_mesh(unsigned width,
                                 ProcessorLabel pl,
                                 ChannelLabel cl)
 {
-  assert(width > 0u && height > 0u);
-
   ArchGraph ag;
 
   auto pe(ag.new_processor_type(pl));
@@ -150,7 +147,8 @@ void ArchGraph::create_mesh(unsigned width,
                             ProcessorType pe,
                             ChannelType ch)
 {
-  assert(width > 0u && height > 0u);
+  if (width == 0u || height == 0u)
+    throw std::logic_error("number of processing elements must be positive");
 
   std::vector<std::vector<ArchGraph::ProcessorType>> processors(height);
 

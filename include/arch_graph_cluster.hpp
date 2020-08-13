@@ -37,10 +37,10 @@ public:
   unsigned num_subsystems() const;
 
 private:
-  internal::BSGS::order_type num_automorphisms_(
+  AutomorphismOrderType num_automorphisms_(
     AutomorphismOptions const *options) override
   {
-    internal::BSGS::order_type ret = 1;
+    AutomorphismOrderType ret = 1;
     for (auto const &subsystem : _subsystems)
       ret *= subsystem->num_automorphisms(options);
 

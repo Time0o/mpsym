@@ -1,4 +1,5 @@
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
@@ -74,6 +75,10 @@ NautyGraph ArchGraph::graph_nauty() const
 PermGroup ArchGraph::automorphisms_nauty(AutomorphismOptions const *options) const
 {
   auto g(graph_nauty());
+  unsigned g_degree = num_processors();
+
+  if (g_degree == 0u)
+    throw std::logic_error("architecture graph has no processing elements");
 
   return PermGroup(BSGS(num_processors(),
                         g.automorphisms(num_processors()),

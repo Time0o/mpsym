@@ -1,6 +1,7 @@
 #ifndef GUARD_TASK_MAPPING_H
 #define GUARD_TASK_MAPPING_H
 
+#include <algorithm>
 #include <cassert>
 #include <initializer_list>
 #include <ostream>
@@ -29,6 +30,12 @@ public:
   explicit TaskMapping(std::vector<unsigned> tasks)
   : std::vector<unsigned>(tasks)
   {}
+
+  unsigned task_min() const
+  { return *std::min_element(begin(), end()); }
+
+  unsigned task_max() const
+  { return *std::max_element(begin(), end()); }
 
   bool less_than(TaskMapping const other) const
   {
