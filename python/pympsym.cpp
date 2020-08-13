@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
 #include "arch_graph.hpp"
@@ -10,6 +11,7 @@
 #include "arch_graph_system.hpp"
 #include "arch_uniform_super_graph.hpp"
 #include "task_mapping.hpp"
+#include "task_orbits.hpp"
 
 #define PYBIND11_MODULE_(name, m) PYBIND11_MODULE(name, m)
 
@@ -24,6 +26,7 @@ PYBIND11_MODULE_(PYMPSYM, m) {
   using mpsym::ArchGraphSystem;
   using mpsym::ArchUniformSuperGraph;
   using mpsym::TaskMapping;
+  using mpsym::TaskOrbits;
 
   m.doc() = DESCRIPTION;
   m.attr("__version__") = VERSION;
@@ -38,12 +41,28 @@ PYBIND11_MODULE_(PYMPSYM, m) {
     .def("num_processors", &ArchGraphSystem::num_processors)
     .def("num_channels", &ArchGraphSystem::num_channels)
     .def("representative",
-         [](ArchGraphSystem &self, std::vector<unsigned> const &mapping)
+         [](ArchGraphSystem &self,
+            std::vector<unsigned> const &mapping)
          {
             auto repr(self.repr(mapping));
+
             return std::vector<unsigned>(repr.begin(), repr.end());
          },
-         "mapping"_a);
+         "mapping"_a)
+    .def("representative",
+         [](ArchGraphSystem &self,
+            std::vector<unsigned> const &mapping,
+            TaskOrbits *representatives)
+         {
+            auto num_orbits_old = representatives->num_orbits();
+            auto repr(self.repr(mapping, representatives));
+            bool repr_is_new = representatives->num_orbits() > num_orbits_old;
+
+            return std::pair<std::vector<unsigned>, bool>(
+              std::vector<unsigned>(repr.begin(), repr.end()),
+              repr_is_new);
+         },
+         "mapping"_a, "representatives"_a);
 
   // ArchGraph
   py::class_<ArchGraph,
@@ -70,4 +89,18 @@ PYBIND11_MODULE_(PYMPSYM, m) {
     .def(py::init<std::shared_ptr<ArchGraphSystem>,
                   std::shared_ptr<ArchGraphSystem>>(),
          "super_graph"_a, "proto"_a);
+
+  // TaskOrbits
+  py::class_<TaskOrbits>(m, "Representatives")
+    .def(py::init<>())
+    .def(py::self == py::self)
+    .def(py::self != py::self)
+    .def("__len__", &TaskOrbits::num_orbits)
+    .def("__iter__",
+         [](TaskOrbits const &orbits)
+         { return py::make_iterator(orbits.begin(), orbits.end()); })
+    .def("__contains__",
+         [](TaskOrbits const &orbits, std::vector<unsigned> const &mapping)
+         { return orbits.is_repr(mapping); },
+         "mapping"_a);
 }
