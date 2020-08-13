@@ -38,16 +38,6 @@ set(PROFILE_SRC_DIR "${PROJECT_SOURCE_DIR}/profile/source")
 set(PROFILE_COMMON_DIR "${PROJECT_SOURCE_DIR}/profile/common")
 set(PROFILE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/profile/include")
 
-set(RESOURCE_DIR "${PROJECT_SOURCE_DIR}/resources")
-set(RESOURCE_RESOURCE_DIR "${PROJECT_SOURCE_DIR}/resources/resources")
-set(RESOURCE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/resources/include")
-set(BIN_RESOURCE_DIR "${CMAKE_BINARY_DIR}/resources")
-
-file(GLOB RESOURCES "${RESOURCE_RESOURCE_DIR}/*")
-foreach(RESOURCE ${RESOURCES})
-  file(COPY "${RESOURCE}" DESTINATION "${BIN_RESOURCE_DIR}/")
-endforeach()
-
 set(NAUTY_DIR "${CMAKE_BINARY_DIR}/nauty")
 set(NAUTY_DOWNLOAD_DIR "${NAUTY_DIR}/download")
 set(NAUTY_WORKDIR "${NAUTY_DIR}/workdir")
