@@ -76,8 +76,6 @@ set(INSTALL_INCLUDE_DIR "include/${MPSYM}")
 
 set(DOC_DOXYGEN_IN_DIR "${PROJECT_SOURCE_DIR}/doxygen")
 set(DOC_DOXYGEN_OUT_DIR "${CMAKE_BINARY_DIR}/doxygen")
-set(DOC_SPHINX_IN_DIR "${PROJECT_SOURCE_DIR}/sphinx")
-set(DOC_SPHINX_OUT_DIR "${CMAKE_BINARY_DIR}/sphinx")
 
 
 ################################################################################
@@ -313,30 +311,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
       COMMAND "${DOXYGEN_EXECUTABLE}" "${DOXYFILE_OUT}"
       VERBATIM
     )
-
-    # Sphinx
-    message(WARNING "Sphinx build currently broken")
-
-#    set(SPHINX_CONF_IN "${DOC_SPHINX_IN_DIR}/conf.py.in")
-#    set(SPHINX_CONF_OUT "${DOC_SPHINX_IN_DIR}/conf.py")
-#
-#    configure_file("${SPHINX_CONF_IN}" "${SPHINX_CONF_OUT}")
-#
-#    find_program(SPHINX_EXECUTABLE "sphinx-build")
-#    if(NOT SPHINX_EXECUTABLE)
-#      message(WARNING "Failed to find Sphinx")
-#    else()
-#      message(STATUS "Found Sphinx")
-#    endif()
-#
-#    if(SPHINX_EXECUTABLE)
-#      add_custom_target(sphinx
-#        COMMAND "${SPHINX_EXECUTABLE}" -b html
-#                "${DOC_SPHINX_IN_DIR}" "${DOC_SPHINX_OUT_DIR}"
-#        VERBATIM
-#        DEPENDS doxygen
-#      )
-#    endif
 
     add_custom_target(doc DEPENDS doxygen)
   endif()
