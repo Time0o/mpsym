@@ -13,13 +13,6 @@
 #include "perm_set.hpp"
 #include "timer.hpp"
 
-/**
- * @file perm_group_disjoint_decomp.cc
- * @brief Implements `PermGroup::disjoint_decomposition`.
- *
- * @author Timo Nicolai
- */
-
 namespace mpsym
 {
 

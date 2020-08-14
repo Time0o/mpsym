@@ -16,12 +16,6 @@
 #include "perm_set.hpp"
 #include "util.hpp"
 
-/**
- * @file perm_group.cc
- * @brief Implements `PermGroup`.
- *
- * @author Timo Nicolai
- */
 using boost::multiprecision::cpp_int;
 using boost::multiprecision::pow;
 

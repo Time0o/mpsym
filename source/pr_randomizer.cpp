@@ -14,13 +14,6 @@
 #include "pr_randomizer.hpp"
 #include "util.hpp"
 
-/**
- * @file pr_randomizer.cc
- * @brief Implements `PrRandomizer`.
- *
- * @author Timo Nicolai
- */
-
 namespace mpsym
 {
 

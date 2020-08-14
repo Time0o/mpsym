@@ -9,13 +9,6 @@
 #include "perm.hpp"
 #include "util.hpp"
 
-/**
- * @file perm.cc
- * @brief Implements `Perm`.
- *
- * @author Timo Nicolai
- */
-
 namespace mpsym
 {
 

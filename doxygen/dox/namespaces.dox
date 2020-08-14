@@ -1,16 +1,35 @@
 /**
- * @namespace cgtl
+ * @namespace mpsym
  * The project's main namespace.
  */
 
 /**
- * @namespace eemp
- * A sub-namespace containing auxiliary functions for dealing with inverse
- * semigroups of partial permutations.
+ * @namespace mpsym::internal
+ * Implementation details.
  */
 
 /**
- * @namespace schreier_sims
- * A sub-namespace containing functions related to the implementation of the
- * *Schreier Sims* algorithm.
+ * @namespace mpsym::internal::eemp
+ * Auxiliary functions for dealing with inverse semigroups of partial
+ * permutations.
+ */
+
+/**
+ * @namespace mpsym::internal::dbg
+ * Debugging convenience macros.
+ */
+
+/**
+ * @namespace mpsym::internal::dump
+ * Container dumping convenience macros.
+ */
+
+/**
+ * @namespace mpsym::internal::timer
+ * Profiling timers.
+ */
+
+/**
+ * @namespace mpsym::internal::util
+ * Various utility functions.
  */

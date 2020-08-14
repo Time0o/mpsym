@@ -16,13 +16,6 @@
 #include "perm_set.hpp"
 #include "util.hpp"
 
-/**
- * @file partial_perm_inverse_semigroup.cc
- * @author Timo Nicolai
- *
- * @brief Implements `PartialPermInverseSemigroup`.
- */
-
 namespace mpsym
 {
 

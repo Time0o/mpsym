@@ -10,13 +10,6 @@
 #include "perm_set.hpp"
 #include "schreier_structure.hpp"
 
-/**
- * @file bsgs_solve.cc
- * @brief Implements the solvable BSGS algorithm.
- *
- * @author Timo Nicolai
- */
-
 namespace mpsym
 {
 
