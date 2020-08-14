@@ -212,33 +212,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Profile")
                        CONFIGFILE "${PERMLIB_CONFIG}"
                        WORKDIR "${PERMLIB_DOWNLOAD_DIR}")
 
-  # Perf
-  find_program(PERF_PATH perf)
-
-  if(NOT PERF_PATH)
-    message(FATAL_ERROR "Failed to find perf")
-  endif()
-
   set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O2 -DNDEBUG")
-
-  set(PROFILE_TARGET "profile")
-  set(PROFILE_OUTDIR "${CMAKE_BINARY_DIR}/perf")
-
-  file(MAKE_DIRECTORY "${PROFILE_OUTDIR}")
-
-  file(GLOB PROFILE_SOURCES "${PROFILE_SRC_DIR}/*_profile.cc")
-  foreach(PROFILE_SOURCE ${PROFILE_SOURCES})
-    get_filename_component(PROFILE_PROG "${PROFILE_SOURCE}" NAME)
-    string(REPLACE "_profile.cc" "" PROFILE_PROG "${PROFILE_PROG}")
-
-    add_custom_target("${PROFILE_TARGET}_${PROFILE_PROG}"
-      COMMAND ${PERF_PATH} record
-              -e cpu-clock,page-faults "${PROFILE_BIN_DIR}/${PROFILE_PROG}"
-      COMMAND ${PERF_PATH} annotate "--dsos=${PROFILE_PROG}"
-              --stdio > "${PROFILE_OUTDIR}/${PROFILE_PROG}.annotate"
-      COMMAND ${CMAKE_COMMAND} -E remove "perf.data"
-    )
-  endforeach()
 
   # Build profiling programs
   add_subdirectory("${PROFILE_SRC_DIR}")
