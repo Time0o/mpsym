@@ -20,8 +20,6 @@ set (CMAKE_CXX_STANDARD 11)
 # Project Structure
 ################################################################################
 
-set(MAIN_LIB "${CMAKE_PROJECT_NAME}")
-
 set(CMAKE_SCRIPT_DIR "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CMAKE_SCRIPT_DIR}")
 
@@ -31,6 +29,7 @@ set(PERMLIB_CONFIG "${CMAKE_SCRIPT_DIR}/GetPermLib.cmake")
 
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/source")
 set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
+set(MPSYM_LIB "${CMAKE_PROJECT_NAME}")
 
 set(TEST_SRC_DIR "${PROJECT_SOURCE_DIR}/test/source")
 set(TEST_TESTS_DIR "${PROJECT_SOURCE_DIR}/test/tests")
@@ -43,6 +42,7 @@ set(PROFILE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/profile/include")
 set(NAUTY_DIR "${CMAKE_BINARY_DIR}/nauty")
 set(NAUTY_DOWNLOAD_DIR "${NAUTY_DIR}/download")
 set(NAUTY_WORKDIR "${NAUTY_DIR}/workdir")
+set(NAUTY_LIB "${NAUTY_WORKDIR}/libnauty.a")
 
 set(GTEST_DIR "${CMAKE_BINARY_DIR}/gtest")
 set(GTEST_DOWNLOAD_DIR "${GTEST_DIR}/download")
@@ -122,70 +122,9 @@ find_package(Boost 1.40 REQUIRED COMPONENTS graph)
 find_package(Lua 5.2 REQUIRED)
 
 # Nauty
-add_external_project(NAME "nauty/traces"
+add_external_project(NAME "nauty_traces"
                      CONFIGFILE "${NAUTY_CONFIG}"
                      WORKDIR "${NAUTY_DOWNLOAD_DIR}")
-
-
-################################################################################
-# Release Build
-################################################################################
-
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  # Documentation
-  message(STATUS "Configuring documentation build")
-
-  set(BUILD_DOC TRUE)
-
-  find_package(Doxygen)
-  if(NOT DOXYGEN_FOUND)
-    set(BUILD_DOC FALSE)
-    message(WARNING "Failed to find Doxygen")
-  else()
-    message(STATUS "Found Doxygen")
-  endif()
-
-  if (NOT BUILD_DOC)
-    message(WARNING "Documentation will not be buildable")
-  else()
-    # Doxygen
-    set(DOXYFILE_IN "${DOC_DOXYGEN_IN_DIR}/Doxyfile.in")
-    set(DOXYFILE_OUT "${DOC_DOXYGEN_OUT_DIR}/Doxyfile")
-
-    configure_file("${DOXYFILE_IN}" "${DOXYFILE_OUT}" @ONLY)
-
-    add_custom_target(doxygen
-      COMMAND "${DOXYGEN_EXECUTABLE}" "${DOXYFILE_OUT}"
-      VERBATIM
-    )
-
-    # Sphinx
-    message(WARNING "Sphinx build currently broken")
-
-#    set(SPHINX_CONF_IN "${DOC_SPHINX_IN_DIR}/conf.py.in")
-#    set(SPHINX_CONF_OUT "${DOC_SPHINX_IN_DIR}/conf.py")
-#
-#    configure_file("${SPHINX_CONF_IN}" "${SPHINX_CONF_OUT}")
-#
-#    find_program(SPHINX_EXECUTABLE "sphinx-build")
-#    if(NOT SPHINX_EXECUTABLE)
-#      message(WARNING "Failed to find Sphinx")
-#    else()
-#      message(STATUS "Found Sphinx")
-#    endif()
-#
-#    if(SPHINX_EXECUTABLE)
-#      add_custom_target(sphinx
-#        COMMAND "${SPHINX_EXECUTABLE}" -b html
-#                "${DOC_SPHINX_IN_DIR}" "${DOC_SPHINX_OUT_DIR}"
-#        VERBATIM
-#        DEPENDS doxygen
-#      )
-#    endif
-
-    add_custom_target(doc DEPENDS doxygen)
-  endif()
-endif()
 
 
 ################################################################################
@@ -309,5 +248,85 @@ endif()
 # Common Sources
 ################################################################################
 
-# MpSym
 add_subdirectory("${SRC_DIR}")
+
+
+################################################################################
+# Release Build
+################################################################################
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  # Installation
+  if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    message(FATAL_ERROR "CMAKE_INSTALL_PREFIX must be specified explicitly")
+  endif()
+
+  file(GLOB PUBLIC_HEADERS "${INCLUDE_DIR}/*.hpp")
+
+  set_target_properties("${MPSYM_LIB}" PROPERTIES
+    PUBLIC_HEADER "${PUBLIC_HEADERS}"
+  )
+
+  install(FILES "${NAUTY_LIB}"
+    DESTINATION lib
+  )
+
+  install(TARGETS "${MPSYM_LIB}"
+    LIBRARY DESTINATION lib
+    PUBLIC_HEADER DESTINATION include/mpsym
+  )
+
+  # Documentation
+  message(STATUS "Configuring documentation build")
+
+  set(BUILD_DOC TRUE)
+
+  find_package(Doxygen)
+  if(NOT DOXYGEN_FOUND)
+    set(BUILD_DOC FALSE)
+    message(WARNING "Failed to find Doxygen")
+  else()
+    message(STATUS "Found Doxygen")
+  endif()
+
+  if (NOT BUILD_DOC)
+    message(WARNING "Documentation will not be buildable")
+  else()
+    # Doxygen
+    set(DOXYFILE_IN "${DOC_DOXYGEN_IN_DIR}/Doxyfile.in")
+    set(DOXYFILE_OUT "${DOC_DOXYGEN_OUT_DIR}/Doxyfile")
+
+    configure_file("${DOXYFILE_IN}" "${DOXYFILE_OUT}" @ONLY)
+
+    add_custom_target(doxygen
+      COMMAND "${DOXYGEN_EXECUTABLE}" "${DOXYFILE_OUT}"
+      VERBATIM
+    )
+
+    # Sphinx
+    message(WARNING "Sphinx build currently broken")
+
+#    set(SPHINX_CONF_IN "${DOC_SPHINX_IN_DIR}/conf.py.in")
+#    set(SPHINX_CONF_OUT "${DOC_SPHINX_IN_DIR}/conf.py")
+#
+#    configure_file("${SPHINX_CONF_IN}" "${SPHINX_CONF_OUT}")
+#
+#    find_program(SPHINX_EXECUTABLE "sphinx-build")
+#    if(NOT SPHINX_EXECUTABLE)
+#      message(WARNING "Failed to find Sphinx")
+#    else()
+#      message(STATUS "Found Sphinx")
+#    endif()
+#
+#    if(SPHINX_EXECUTABLE)
+#      add_custom_target(sphinx
+#        COMMAND "${SPHINX_EXECUTABLE}" -b html
+#                "${DOC_SPHINX_IN_DIR}" "${DOC_SPHINX_OUT_DIR}"
+#        VERBATIM
+#        DEPENDS doxygen
+#      )
+#    endif
+
+    add_custom_target(doc DEPENDS doxygen)
+  endif()
+endif()

@@ -5,7 +5,7 @@ include_directories("${INCLUDE_DIR}"
                     "${LUA_INCLUDE_DIR}"
                     "${NAUTY_WORKDIR}")
 
-add_library("${MAIN_LIB}"
+add_library("${MPSYM_LIB}"
             "arch_graph.cpp"
             "arch_graph_nauty.cpp"
             "arch_graph_cluster.cpp"
@@ -33,13 +33,13 @@ add_library("${MAIN_LIB}"
             "schreier_tree.cpp"
             "timer.cpp")
 
-target_link_libraries("${MAIN_LIB}"
+target_link_libraries("${MPSYM_LIB}"
                       "${Boost_LIBRARIES}"
                       "${LUA_LIBRARIES}"
                       "${NAUTY_WORKDIR}/nauty.a")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND DO_COVERAGE)
-  target_link_libraries("${MAIN_LIB}" gcov)
+  target_link_libraries("${MPSYM_LIB}" gcov)
 endif()
 
-set_default_target_properties(TARGET "${MAIN_LIB}")
+set_default_target_properties(TARGET "${MPSYM_LIB}")

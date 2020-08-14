@@ -16,7 +16,7 @@ foreach(PROFILE_SOURCE ${PROFILE_SOURCES})
 
   add_executable("${PROFILE_PROG}" "${PROFILE_SOURCE}" "${PROFILE_UTIL}")
 
-  target_link_libraries("${PROFILE_PROG}" "${MAIN_LIB}")
+  target_link_libraries("${PROFILE_PROG}" "${MPSYM_LIB}")
 
   set_default_target_properties(TARGET "${PROFILE_PROG}")
 
