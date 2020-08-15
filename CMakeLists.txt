@@ -174,43 +174,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   if(DO_COVERAGE)
     set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O0 --coverage")
     set(MAIN_LINK_FLAGS "${MAIN_LINK_FLAGS} --coverage")
-
-    find_program(LCOV_PATH lcov)
-    find_program(GENHTML_PATH genhtml)
-
-    if(NOT LCOV_PATH)
-      set(LCOV_COVERAGE FALSE)
-      message(WARNING "Failed to find lcov")
-    endif()
-
-    if(NOT GENHTML_PATH)
-      set(LCOV_COVERAGE FALSE)
-      message(WARNING "Failed to find genhtml")
-    endif()
-
-    if(LCOV_COVERAGE)
-      set(Coverage_TARGET "lcov")
-      set(Coverage_OUTDIR "lcov")
-
-      add_custom_target(${Coverage_TARGET}
-        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-
-        # Cleanup lcov
-        COMMAND ${LCOV_PATH} -z -d . --include "'${PROJECT_SOURCE_DIR}/*'"
-
-        # Run tests
-        COMMAND ${CMAKE_CTEST_COMMAND}
-
-        # Capturing lcov counters and generating report
-        COMMAND ${LCOV_PATH} -c -d . -o "lcov.info" --include "'${PROJECT_SOURCE_DIR}/*'"
-
-        # generate html output
-        COMMAND ${GENHTML_PATH} "lcov.info" -o "${Coverage_OUTDIR}"
-
-        # remove temporary files
-        COMMAND ${CMAKE_COMMAND} -E remove "lcov.base" "lcov.info" "lcov.total"
-      )
-    endif()
   endif()
 
   # Enable and build tests
