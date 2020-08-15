@@ -5,7 +5,7 @@ include_directories("${MPSYM_INCLUDE_DIR}"
                     "${LUA_INCLUDE_DIR}"
                     "${NAUTY_WORK_DIR}")
 
-add_library("${MPSYM_LIB}"
+add_library("${MPSYM_LIB}" SHARED
             "arch_graph.cpp"
             "arch_graph_nauty.cpp"
             "arch_graph_cluster.cpp"

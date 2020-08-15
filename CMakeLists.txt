@@ -18,7 +18,7 @@ project(
   VERSION "0.1"
   DESCRIPTION "MPSoC Symmetry Reduction"
   HOMEPAGE_URL "https://github.com/Time0o/mpsym"
-  LANGUAGES "CXX"
+  LANGUAGES "CXX" "C"
 )
 
 add_definitions(
@@ -70,10 +70,11 @@ set(MPSYM_PROFILE_COMMON_DIR "${PROJECT_SOURCE_DIR}/profile/common")
 set(MPSYM_PROFILE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/profile/include")
 
 # nauty
+set(NAUTY_SRC_DIR "${PROJECT_SOURCE_DIR}/nauty")
 set(NAUTY_BIN_DIR "${CMAKE_BINARY_DIR}/nauty")
 set(NAUTY_DOWNLOAD_DIR "${NAUTY_BIN_DIR}/download")
 set(NAUTY_WORK_DIR "${NAUTY_BIN_DIR}/workdir")
-set(NAUTY_LIB "${NAUTY_WORK_DIR}/libnauty.a")
+set(NAUTY_LIB "nauty")
 set(NAUTY_INSTALL_LIB_DIR "lib")
 
 # googletest
@@ -133,11 +134,7 @@ add_external_project(NAME "nauty_traces"
                      CONFIG_FILE "${CMAKE_NAUTY_CONFIG}"
                      WORK_DIR "${NAUTY_DOWNLOAD_DIR}")
 
-if (CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
-  install(FILES "${NAUTY_LIB}"
-    DESTINATION "${NAUTY_INSTALL_LIB_DIR}"
-  )
-endif()
+add_subdirectory("${NAUTY_SRC_DIR}")
 
 # googletest
 if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}")
