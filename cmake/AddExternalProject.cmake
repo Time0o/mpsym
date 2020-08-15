@@ -41,7 +41,7 @@ function(add_external_project)
     message(FATAL_ERROR "Build step for ${Arg_NAME} failed")
   endif()
 
-  if (DEFINED Arg_SRC_DIR AND DEFINED Arg_BIN_DIR) # TODO
+  if (DEFINED Arg_SRC_DIR AND DEFINED Arg_BIN_DIR)
     add_subdirectory("${Arg_SRC_DIR}" "${Arg_BIN_DIR}" EXCLUDE_FROM_ALL)
   endif()
 

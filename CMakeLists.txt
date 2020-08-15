@@ -101,6 +101,8 @@ set(PYBIND11_BIN_DIR "${PYBIND11_BIN_DIR}/build")
 
 set(PYTHON_SRC_DIR "${PROJECT_SOURCE_DIR}/python")
 set(PYTHON_BIN_DIR "${CMAKE_BINARY_DIR}/python")
+set(PYTHON_SETUP_PY_IN "${PYTHON_SRC_DIR}/setup.py.in")
+set(PYTHON_SETUP_PY_OUT "${PYTHON_BIN_DIR}/setup.py")
 set(PYTHON_MODULE "${PYMPSYM}")
 
 # Doxygen
