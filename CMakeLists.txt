@@ -4,22 +4,29 @@
 
 cmake_minimum_required(VERSION 3.6)
 
-set(PROJECT_AUTHOR "Timo Nicolai")
-set(PROJECT_COPYRIGHT "2020")
-set(PROJECT_LICENSE "MIT")
+set(CMAKE_PROJECT_AUTHOR "Timo Nicolai")
+set(CMAKE_PROJECT_COPYRIGHT "2020")
+set(CMAKE_PROJECT_URL "https://github.com/Time0o/mpsym")
+set(CMAKE_PROJECT_DOC_URL "https://time0o.github.io/mpsym/")
+set(CMAKE_PROJECT_LICENSE "MIT")
 
 set(MPSYM "mpsym")
 set(PYMPSYM "pympsym")
-set(DESCRIPTION "MPSoC Symmetry Reduction")
-set(VERSION "1.0")
 
-add_definitions(-DMPSYM="${MPSYM}" -DPYMPSYM=${PYMPSYM}
-                -DDESCRIPTION="${DESCRIPTION}" -DVERSION="${VERSION}")
+project(
+  "${MPSYM}"
+  VERSION "0.1"
+  DESCRIPTION "MPSoC Symmetry Reduction"
+  HOMEPAGE_URL "https://github.com/Time0o/mpsym"
+  LANGUAGES "CXX"
+)
 
-project("${MPSYM}"
-        DESCRIPTION "${DESCRIPTION}"
-        VERSION "${VERSION}"
-        LANGUAGES "CXX")
+add_definitions(
+  -DMPSYM="${MPSYM}"
+  -DPYMPSYM=${PYMPSYM}
+  -DDESCRIPTION="${CMAKE_PROJECT_DESCRIPTION}"
+  -DVERSION="${CMAKE_PROJECT_VERSION}"
+)
 
 set (CMAKE_CXX_STANDARD 11)
 
@@ -28,158 +35,174 @@ set (CMAKE_CXX_STANDARD 11)
 # Project Structure
 ################################################################################
 
+# CMake build types
+set(CMAKE_BUILD_TYPE_DEBUG "Debug")
+set(CMAKE_BUILD_TYPE_PROFILE "Profile")
+set(CMAKE_BUILD_TYPE_RELEASE "Release")
+
+# CMake scripts
 set(CMAKE_SCRIPT_DIR "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CMAKE_SCRIPT_DIR}")
 
-set(NAUTY_CONFIG "${CMAKE_SCRIPT_DIR}/GetNauty.cmake")
-set(GTEST_CONFIG "${CMAKE_SCRIPT_DIR}/GetGTest.cmake")
-set(PERMLIB_CONFIG "${CMAKE_SCRIPT_DIR}/GetPermLib.cmake")
-set(PYBIND11_CONFIG "${CMAKE_SCRIPT_DIR}/GetPybind11.cmake")
+set(CMAKE_ADD_EXTERNAL_PROJECT "${CMAKE_SCRIPT_DIR}/AddExternalProject.cmake")
+set(CMAKE_RUN_DOXYGEN "${CMAKE_SCRIPT_DIR}/RunDoxygen.cmake")
 
-set(SRC_DIR "${PROJECT_SOURCE_DIR}/source")
-set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
+set(CMAKE_NAUTY_CONFIG "${CMAKE_SCRIPT_DIR}/GetNauty.cmake")
+set(CMAKE_GTEST_CONFIG "${CMAKE_SCRIPT_DIR}/GetGTest.cmake")
+set(CMAKE_PERMLIB_CONFIG "${CMAKE_SCRIPT_DIR}/GetPermLib.cmake")
+set(CMAKE_PYBIND11_CONFIG "${CMAKE_SCRIPT_DIR}/GetPybind11.cmake")
+
+# mpsym
+set(MPSYM_SRC_DIR "${PROJECT_SOURCE_DIR}/source")
+set(MPSYM_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
 set(MPSYM_LIB "${MPSYM}")
+set(MPSYM_INSTALL_LIB_DIR "lib")
+set(MPSYM_INSTALL_INCLUDE_DIR "include/${MPSYM}")
 
-set(TEST_SRC_DIR "${PROJECT_SOURCE_DIR}/test/source")
-set(TEST_TESTS_DIR "${PROJECT_SOURCE_DIR}/test/tests")
-set(TEST_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/test/include")
+# mpsym tests
+set(MPSYM_TEST_SRC_DIR "${PROJECT_SOURCE_DIR}/test/source")
+set(MPSYM_TEST_TESTS_DIR "${PROJECT_SOURCE_DIR}/test/tests")
+set(MPSYM_TEST_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/test/include")
 
-set(PROFILE_SRC_DIR "${PROJECT_SOURCE_DIR}/profile/source")
-set(PROFILE_COMMON_DIR "${PROJECT_SOURCE_DIR}/profile/common")
-set(PROFILE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/profile/include")
+# mpsym profiling
+set(MPSYM_PROFILE_SRC_DIR "${PROJECT_SOURCE_DIR}/profile/source")
+set(MPSYM_PROFILE_COMMON_DIR "${PROJECT_SOURCE_DIR}/profile/common")
+set(MPSYM_PROFILE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/profile/include")
 
-set(NAUTY_DIR "${CMAKE_BINARY_DIR}/nauty")
-set(NAUTY_DOWNLOAD_DIR "${NAUTY_DIR}/download")
-set(NAUTY_WORKDIR "${NAUTY_DIR}/workdir")
-set(NAUTY_LIB "${NAUTY_WORKDIR}/libnauty.a")
+# nauty
+set(NAUTY_BIN_DIR "${CMAKE_BINARY_DIR}/nauty")
+set(NAUTY_DOWNLOAD_DIR "${NAUTY_BIN_DIR}/download")
+set(NAUTY_WORK_DIR "${NAUTY_BIN_DIR}/workdir")
+set(NAUTY_LIB "${NAUTY_WORK_DIR}/libnauty.a")
+set(NAUTY_INSTALL_LIB_DIR "lib")
 
-set(GTEST_DIR "${CMAKE_BINARY_DIR}/gtest")
-set(GTEST_DOWNLOAD_DIR "${GTEST_DIR}/download")
-set(GTEST_SRC_DIR "${GTEST_DIR}/source")
-set(GTEST_BIN_DIR "${GTEST_DIR}/build")
+# googletest
+set(GTEST_BIN_DIR "${CMAKE_BINARY_DIR}/gtest")
+set(GTEST_DOWNLOAD_DIR "${GTEST_BIN_DIR}/download")
+set(GTEST_SRC_DIR "${GTEST_BIN_DIR}/source")
+set(GTEST_BIN_DIR "${GTEST_BIN_DIR}/build")
+set(GTEST_GMOCK_MAIN "gmock_main")
 
-set(PERMLIB_DIR "${CMAKE_BINARY_DIR}/permlib")
-set(PERMLIB_DOWNLOAD_DIR "${PERMLIB_DIR}/download")
-set(PERMLIB_WORKDIR "${PERMLIB_DIR}/workdir")
-set(PERMLIB_INCLUDE_DIR "${PERMLIB_WORKDIR}/include")
+# gcov
+set(GCOV_LIB "gcov")
 
-set(PYBIND11_DIR "${CMAKE_BINARY_DIR}/pybind11")
-set(PYBIND11_DOWNLOAD_DIR "${PYBIND11_DIR}/download")
-set(PYBIND11_SRC_DIR "${PYBIND11_DIR}/source")
-set(PYBIND11_BIN_DIR "${PYBIND11_DIR}/build")
+# permlib
+set(PERMLIB_BIN_DIR "${CMAKE_BINARY_DIR}/permlib")
+set(PERMLIB_DOWNLOAD_DIR "${PERMLIB_BIN_DIR}/download")
+set(PERMLIB_WORK_DIR "${PERMLIB_BIN_DIR}/workdir")
+set(PERMLIB_INCLUDE_DIR "${PERMLIB_WORK_DIR}/include")
+
+# pybind11
+set(PYBIND11_BIN_DIR "${CMAKE_BINARY_DIR}/pybind11")
+set(PYBIND11_DOWNLOAD_DIR "${PYBIND11_BIN_DIR}/download")
+set(PYBIND11_SRC_DIR "${PYBIND11_BIN_DIR}/source")
+set(PYBIND11_BIN_DIR "${PYBIND11_BIN_DIR}/build")
 
 set(PYTHON_SRC_DIR "${PROJECT_SOURCE_DIR}/python")
+set(PYTHON_BIN_DIR "${CMAKE_BINARY_DIR}/python")
 set(PYTHON_MODULE "${PYMPSYM}")
 
-set(INSTALL_LIB_DIR "lib")
-set(INSTALL_INCLUDE_DIR "include/${MPSYM}")
-
+# Doxygen
 set(DOC_DOXYGEN_IN_DIR "${PROJECT_SOURCE_DIR}/doxygen")
 set(DOC_DOXYGEN_OUT_DIR "${CMAKE_BINARY_DIR}/doxygen")
+set(DOC_DOXYGEN_INDEX_HTML "${DOC_DOXYGEN_OUT_DIR}/html/index.html")
 
 
 ################################################################################
-# Common Compilation Settings
+# CMake Functions
 ################################################################################
 
-set(MAIN_COMPILER_FLAGS "-Wall -Wextra -pedantic")
-set(MAIN_LINK_FLAGS "")
-
-function(set_default_target_properties)
-  set(options NONE)
-  set(args TARGET)
-  cmake_parse_arguments(Arg "${options}" "${args}" "" "${ARGN}")
-
-  set_target_properties("${Arg_TARGET}" PROPERTIES
-    LINKER_LANGUAGE CXX
-    CXX_STANDARD 11
-    CXX_STANDARD_REQUIRED ON
-    COMPILE_FLAGS "${MAIN_COMPILER_FLAGS}"
-    LINK_FLAGS "${MAIN_LINK_FLAGS}"
-  )
-endfunction()
+include("${CMAKE_ADD_EXTERNAL_PROJECT}")
 
 
 ################################################################################
-# Convencience Function for Adding External Dependencies
-################################################################################
-
-function(add_external_project)
-  set(options NONE)
-  set(args NAME CONFIGFILE WORKDIR)
-  cmake_parse_arguments(Arg "${options}" "${args}" "" "${ARGN}")
-
-  configure_file("${Arg_CONFIGFILE}" "${Arg_WORKDIR}/CMakeLists.txt")
-
-  execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-    RESULT_VARIABLE result
-    WORKING_DIRECTORY "${Arg_WORKDIR}")
-
-  if(result)
-    message(FATAL_ERROR "CMake step for ${Arg_NAME} failed: ${result}")
-  endif()
-
-  execute_process(COMMAND "${CMAKE_COMMAND}" --build .
-    RESULT_VARIABLE result
-    WORKING_DIRECTORY "${Arg_WORKDIR}")
-
-  if(result)
-    message(FATAL_ERROR "Build step for ${Arg_NAME} failed: ${result}")
-  endif()
-endfunction()
-
-
-################################################################################
-# Common Dependencies
+# External Dependencies
 ################################################################################
 
 # Boost
+message(STATUS "Finding boost...")
 find_package(Boost 1.40 REQUIRED COMPONENTS graph)
 
 # Lua
+message(STATUS "Finding Lua...")
 find_package(Lua 5.2 REQUIRED)
 
 # Nauty
+message(STATUS "Acquiring Nauty...")
 add_external_project(NAME "nauty_traces"
-                     CONFIGFILE "${NAUTY_CONFIG}"
-                     WORKDIR "${NAUTY_DOWNLOAD_DIR}")
+                     CONFIG_FILE "${CMAKE_NAUTY_CONFIG}"
+                     WORK_DIR "${NAUTY_DOWNLOAD_DIR}")
+
+if (CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
+  install(FILES "${NAUTY_LIB}"
+    DESTINATION "${NAUTY_INSTALL_LIB_DIR}"
+  )
+endif()
+
+# googletest
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}")
+  message(STATUS "Acquiring googletest...")
+  add_external_project(NAME "googletest"
+                       CONFIG_FILE "${CMAKE_GTEST_CONFIG}"
+                       WORK_DIR "${GTEST_DOWNLOAD_DIR}"
+                       SRC_DIR "${GTEST_SRC_DIR}"
+                       BIN_DIR "${GTEST_BIN_DIR}")
+endif()
+
+
+# Permlib
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_PROFILE}")
+  message(STATUS "Acquiring PermLib...")
+  add_external_project(NAME "permlib"
+                       CONFIG_FILE "${CMAKE_PERMLIB_CONFIG}"
+                       WORK_DIR "${PERMLIB_DOWNLOAD_DIR}")
+endif()
+
+# pybind11
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}" AND GENERATE_PYTHON_BINDINGS)
+  message(STATUS "Acquiring pybind11...")
+  add_external_project(NAME "pybind11"
+                       CONFIG_FILE "${CMAKE_PYBIND11_CONFIG}"
+                       WORK_DIR "${PYBIND11_DOWNLOAD_DIR}"
+                       SRC_DIR "${PYBIND11_SRC_DIR}"
+                       BIN_DIR "${PYBIND11_BIN_DIR}")
+endif()
 
 
 ################################################################################
 # Debug Build
 ################################################################################
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  # Google Test
-  add_external_project(NAME "googletest"
-                       CONFIGFILE "${GTEST_CONFIG}"
-                       WORKDIR "${GTEST_DOWNLOAD_DIR}")
-
-  add_subdirectory("${GTEST_SRC_DIR}" "${GTEST_BIN_DIR}" EXCLUDE_FROM_ALL)
-
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}")
   # Coverage
+  message(STATUS "Configuring coverage data generation...")
+
   set(DO_COVERAGE TRUE)
 
-  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    find_program(GCOV_PATH gcov)
+    if(NOT GCOV_PATH)
+      set(DO_COVERAGE FALSE)
+      message(STATUS "Failed to find gcov")
+    endif()
+  else()
     set(DO_COVERAGE FALSE)
-    message(WARNING "Coverage generation currently only available with g++")
-  endif()
-
-  find_program(GCOV_PATH gcov)
-  if(NOT GCOV_PATH)
-    set(DO_COVERAGE FALSE)
-    message(WARNING "Failed to find gcov")
+    message(STATUS "Coverage data generation currently only available with g++")
   endif()
 
   if(DO_COVERAGE)
+    message(STATUS "Coverage data will be generated")
+
     set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O0 --coverage")
     set(MAIN_LINK_FLAGS "${MAIN_LINK_FLAGS} --coverage")
+  else()
+    message(STATUS "Coverage data will be generated")
   endif()
 
   # Enable and build tests
   enable_testing()
 
-  add_subdirectory("${TEST_TESTS_DIR}")
+  add_subdirectory("${MPSYM_TEST_TESTS_DIR}")
 endif()
 
 
@@ -187,39 +210,8 @@ endif()
 # Profile Build
 ################################################################################
 
-if(CMAKE_BUILD_TYPE STREQUAL "Profile")
-  # Permlib
-  add_external_project(NAME "permlib"
-                       CONFIGFILE "${PERMLIB_CONFIG}"
-                       WORKDIR "${PERMLIB_DOWNLOAD_DIR}")
-
-  set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O2 -DNDEBUG")
-
-  # Build profiling programs
-  add_subdirectory("${PROFILE_SRC_DIR}")
-endif()
-
-
-################################################################################
-# Common Sources
-################################################################################
-
-add_subdirectory("${SRC_DIR}")
-
-
-################################################################################
-# Bindings
-################################################################################
-
-if(PYTHON_BINDINGS STREQUAL "Yes")
-  # pybind11
-  add_external_project(NAME "pybind11"
-                       CONFIGFILE "${PYBIND11_CONFIG}"
-                       WORKDIR "${PYBIND11_DOWNLOAD_DIR}")
-
-  add_subdirectory("${PYBIND11_SRC_DIR}" "${PYBIND11_BIN_DIR}" EXCLUDE_FROM_ALL)
-
-  add_subdirectory("${PYTHON_SRC_DIR}")
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_PROFILE}")
+  add_subdirectory("${MPSYM_PROFILE_SRC_DIR}")
 endif()
 
 
@@ -227,54 +219,56 @@ endif()
 # Release Build
 ################################################################################
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  # Installation
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
+  # Prefix check
+  message(STATUS "Checking install prefix...")
+
   if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     message(FATAL_ERROR "CMAKE_INSTALL_PREFIX must be specified explicitly")
   endif()
 
-  file(GLOB PUBLIC_HEADERS "${INCLUDE_DIR}/*.hpp")
-
-  set_target_properties("${MPSYM_LIB}" PROPERTIES
-    PUBLIC_HEADER "${PUBLIC_HEADERS}"
-  )
-
-  install(FILES "${NAUTY_LIB}"
-    DESTINATION "${INSTALL_LIB_DIR}"
-  )
-
-  install(TARGETS "${MPSYM_LIB}"
-    LIBRARY DESTINATION "${INSTALL_LIB_DIR}"
-    PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}"
-  )
+  # Python Bindings
+  if(GENERATE_PYTHON_BINDINGS)
+    add_subdirectory("${PYTHON_SRC_DIR}")
+  endif()
 
   # Documentation
-  message(STATUS "Configuring documentation build")
+  message(STATUS "Configuring documentation...")
 
   set(BUILD_DOC TRUE)
 
   find_package(Doxygen)
   if(NOT DOXYGEN_FOUND)
     set(BUILD_DOC FALSE)
-    message(WARNING "Failed to find Doxygen")
+    message(STATUS "Failed to find Doxygen")
   else()
     message(STATUS "Found Doxygen")
   endif()
 
-  if (NOT BUILD_DOC)
-    message(WARNING "Documentation will not be buildable")
-  else()
+  if(BUILD_DOC)
+    message(STATUS "Documentation will be generated")
+
     # Doxygen
     set(DOXYFILE_IN "${DOC_DOXYGEN_IN_DIR}/Doxyfile.in")
     set(DOXYFILE_OUT "${DOC_DOXYGEN_OUT_DIR}/Doxyfile")
 
     configure_file("${DOXYFILE_IN}" "${DOXYFILE_OUT}" @ONLY)
 
-    add_custom_target(doxygen
+    add_custom_command(
+      OUTPUT "${DOC_DOXYGEN_INDEX_HTML}"
       COMMAND "${DOXYGEN_EXECUTABLE}" "${DOXYFILE_OUT}"
-      VERBATIM
+      DEPENDS "${MPSYM_LIB}"
     )
 
-    add_custom_target(doc DEPENDS doxygen)
+    add_custom_target(doc DEPENDS "${DOC_DOXYGEN_INDEX_HTML}")
+  else()
+    message(STATUS "Documentation will not be generated")
   endif()
 endif()
+
+
+################################################################################
+# Source
+################################################################################
+
+add_subdirectory("${MPSYM_SRC_DIR}")

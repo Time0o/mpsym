@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.6)
 
-include_directories("${INCLUDE_DIR}"
+include_directories("${MPSYM_INCLUDE_DIR}"
                     "${Boost_INCLUDE_DIR}"
                     "${LUA_INCLUDE_DIR}"
-                    "${NAUTY_WORKDIR}")
+                    "${NAUTY_WORK_DIR}")
 
 add_library("${MPSYM_LIB}"
             "arch_graph.cpp"
@@ -38,8 +38,24 @@ target_link_libraries("${MPSYM_LIB}"
                       "${LUA_LIBRARIES}"
                       "${NAUTY_LIB}")
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND DO_COVERAGE)
-  target_link_libraries("${MPSYM_LIB}" gcov)
+# Coverage
+if(DO_COVERAGE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+
+  target_link_libraries("${MPSYM_LIB}" "${GCOV_LIB}")
 endif()
 
-set_default_target_properties(TARGET "${MPSYM_LIB}")
+# Installation
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
+  file(GLOB PUBLIC_HEADERS "${MPSYM_INCLUDE_DIR}/*.hpp")
+
+  set_target_properties("${MPSYM_LIB}" PROPERTIES
+    PUBLIC_HEADER "${PUBLIC_HEADERS}"
+  )
+
+  install(TARGETS "${MPSYM_LIB}"
+    LIBRARY DESTINATION "${MPSYM_INSTALL_LIB_DIR}"
+    PUBLIC_HEADER DESTINATION "${MPSYM_INSTALL_INCLUDE_DIR}"
+  )
+endif()

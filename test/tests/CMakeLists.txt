@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.6)
 
-include_directories("${INCLUDE_DIR}"
-                    "${TEST_INCLUDE_DIR}"
-                    "${TEST_SRC_DIR}"
-                    "${NAUTY_WORKDIR}")
+include_directories("${MPSYM_INCLUDE_DIR}"
+                    "${MPSYM_TEST_INCLUDE_DIR}"
+                    "${MPSYM_TEST_SRC_DIR}"
+                    "${NAUTY_WORK_DIR}")
 
 file(GLOB TEST_SOURCES "*_test.cpp")
 
-set(TEST_UTILITY "../source/test_utility.cpp")
+set(TEST_UTILITY "${MPSYM_TEST_SRC_DIR}/test_utility.cpp")
 
 foreach(TEST_SOURCE ${TEST_SOURCES})
   get_filename_component(TEST_PROG "${TEST_SOURCE}" NAME)
@@ -19,7 +19,5 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
 
   add_executable("${TEST_PROG}" "${TEST_SOURCE}" "${TEST_UTILITY}")
 
-  target_link_libraries("${TEST_PROG}" "${MPSYM_LIB}" gmock_main)
-
-  set_default_target_properties(TARGET "${TEST_PROG}")
+  target_link_libraries("${TEST_PROG}" "${MPSYM_LIB}" "${GTEST_GMOCK_MAIN}")
 endforeach()
