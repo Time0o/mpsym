@@ -36,7 +36,7 @@ add_library("${MPSYM_LIB}"
 target_link_libraries("${MPSYM_LIB}"
                       "${Boost_LIBRARIES}"
                       "${LUA_LIBRARIES}"
-                      "${NAUTY_WORKDIR}/nauty.a")
+                      "${NAUTY_LIB}")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND DO_COVERAGE)
   target_link_libraries("${MPSYM_LIB}" gcov)
