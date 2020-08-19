@@ -28,6 +28,11 @@ PYBIND11_MODULE_(PYMPSYM, m) {
   using mpsym::TaskMapping;
   using mpsym::TaskOrbits;
 
+  using Tasks = std::vector<unsigned>;
+
+  auto tasks = [](TaskMapping const &repr)
+  { return Tasks(repr.begin(), repr.end()); };
+
   m.doc() = DESCRIPTION;
   m.attr("__version__") = VERSION;
 
@@ -41,28 +46,32 @@ PYBIND11_MODULE_(PYMPSYM, m) {
     .def("num_processors", &ArchGraphSystem::num_processors)
     .def("num_channels", &ArchGraphSystem::num_channels)
     .def("representative",
-         [](ArchGraphSystem &self,
-            std::vector<unsigned> const &mapping)
-         {
-            auto repr(self.repr(mapping));
-
-            return std::vector<unsigned>(repr.begin(), repr.end());
-         },
+         [&](ArchGraphSystem &self, Tasks const &mapping)
+         { return tasks(self.repr(mapping)); },
          "mapping"_a)
     .def("representative",
-         [](ArchGraphSystem &self,
-            std::vector<unsigned> const &mapping,
-            TaskOrbits *representatives)
+         [&](ArchGraphSystem &self,
+             Tasks const &mapping,
+             TaskOrbits *representatives)
          {
-            auto num_orbits_old = representatives->num_orbits();
-            auto repr(self.repr(mapping, representatives));
-            bool repr_is_new = representatives->num_orbits() > num_orbits_old;
+           auto num_orbits_old = representatives->num_orbits();
+           auto repr(self.repr(mapping, representatives));
+           bool repr_is_new = representatives->num_orbits() > num_orbits_old;
 
-            return std::pair<std::vector<unsigned>, bool>(
-              std::vector<unsigned>(repr.begin(), repr.end()),
-              repr_is_new);
+           return std::pair<Tasks, bool>(tasks(repr), repr_is_new);
          },
-         "mapping"_a, "representatives"_a);
+         "mapping"_a, "representatives"_a)
+    .def("orbit",
+         [&](ArchGraphSystem &self, Tasks const &mapping)
+         {
+           std::vector<Tasks> orbit;
+           for (auto const &mapping : self.orbit(mapping)) {
+             orbit.emplace_back(tasks(std::move(mapping)));
+           }
+
+           return orbit;
+         },
+         "mapping"_a);
 
   // ArchGraph
   py::class_<ArchGraph,
