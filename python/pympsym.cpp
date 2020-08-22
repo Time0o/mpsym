@@ -1,38 +1,95 @@
+#include <algorithm>
 #include <memory>
+#include <set>
+#include <sstream>
+#include <stdexcept>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
-#include <pybind11/pybind11.h>
+#include <boost/multiprecision/cpp_int.hpp>
 #include <pybind11/operators.h>
+#include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 #include "arch_graph.hpp"
 #include "arch_graph_cluster.hpp"
 #include "arch_graph_system.hpp"
 #include "arch_uniform_super_graph.hpp"
+#include "perm.hpp"
+#include "perm_group.hpp"
+#include "perm_set.hpp"
 #include "task_mapping.hpp"
 #include "task_orbits.hpp"
 
+namespace py = pybind11;
+namespace mp = boost::multiprecision;
+
+using namespace py::literals;
+
+using mpsym::ArchGraph;
+using mpsym::ArchGraphCluster;
+using mpsym::ArchGraphSystem;
+using mpsym::ArchUniformSuperGraph;
+using mpsym::TaskMapping;
+using mpsym::TaskOrbits;
+
+using mpsym::internal::BSGS;
+using mpsym::internal::Perm;
+using mpsym::internal::PermGroup;
+using mpsym::internal::PermSet;
+
+template<typename T = unsigned>
+using Sequence = std::vector<T>;
+
+template<typename T = unsigned>
+using Set = std::set<T>;
+
+namespace
+{
+
+template<typename T>
+std::string stream(T const &obj)
+{
+  std::stringstream ss;
+  ss << obj;
+  return ss.str();
+}
+
+template<typename T>
+using contained_type =
+  typename std::remove_reference<decltype(*std::declval<T>().begin())>::type;
+
+template<typename T>
+Sequence<contained_type<T>> to_sequence(T const &obj)
+{ return Sequence<contained_type<T>>(obj.begin(), obj.end()); }
+
+} // anonymous namespace
+
+namespace pybind11
+{
+
+namespace detail
+{
+
+template <>
+struct type_caster<mp::cpp_int> {
+
+  PYBIND11_TYPE_CASTER(mp::cpp_int, _("cpp_int"));
+
+  static handle cast(mp::cpp_int const &src, return_value_policy, handle)
+  { return PyLong_FromString(stream(src).c_str(), nullptr, 10); }
+};
+
+} // namespace detail
+
+} // namespace pybind11
+
 #define PYBIND11_MODULE_(name, m) PYBIND11_MODULE(name, m)
 
-PYBIND11_MODULE_(PYMPSYM, m) {
-  namespace py = pybind11;
-
-  using namespace py::literals;
-  using namespace std::placeholders;
-
-  using mpsym::ArchGraph;
-  using mpsym::ArchGraphCluster;
-  using mpsym::ArchGraphSystem;
-  using mpsym::ArchUniformSuperGraph;
-  using mpsym::TaskMapping;
-  using mpsym::TaskOrbits;
-
-  using Tasks = std::vector<unsigned>;
-
-  auto tasks = [](TaskMapping const &repr)
-  { return Tasks(repr.begin(), repr.end()); };
-
+PYBIND11_MODULE_(PYMPSYM, m)
+{
   m.doc() = DESCRIPTION;
   m.attr("__version__") = VERSION;
 
@@ -45,28 +102,32 @@ PYBIND11_MODULE_(PYMPSYM, m) {
                 "lua"_a, "args"_a = std::vector<std::string>())
     .def("num_processors", &ArchGraphSystem::num_processors)
     .def("num_channels", &ArchGraphSystem::num_channels)
+    .def("automorphisms",
+         [](ArchGraphSystem &self)
+         { return self.automorphisms(); })
     .def("representative",
-         [&](ArchGraphSystem &self, Tasks const &mapping)
-         { return tasks(self.repr(mapping)); },
+         [&](ArchGraphSystem &self, Sequence<> const &mapping)
+         { return to_sequence(self.repr(mapping)); },
          "mapping"_a)
     .def("representative",
          [&](ArchGraphSystem &self,
-             Tasks const &mapping,
+             Sequence<> const &mapping,
              TaskOrbits *representatives)
          {
            auto num_orbits_old = representatives->num_orbits();
            auto repr(self.repr(mapping, representatives));
            bool repr_is_new = representatives->num_orbits() > num_orbits_old;
 
-           return std::pair<Tasks, bool>(tasks(repr), repr_is_new);
+           return std::pair<Sequence<>, bool>(to_sequence(repr),
+                                              repr_is_new);
          },
          "mapping"_a, "representatives"_a)
     .def("orbit",
-         [&](ArchGraphSystem &self, Tasks const &mapping)
+         [&](ArchGraphSystem &self, Sequence<> const &mapping)
          {
-           std::vector<Tasks> orbit;
+           Sequence<Sequence<>> orbit;
            for (auto const &mapping : self.orbit(mapping)) {
-             orbit.emplace_back(tasks(std::move(mapping)));
+             orbit.emplace_back(to_sequence(mapping));
            }
 
            return orbit;
@@ -109,7 +170,137 @@ PYBIND11_MODULE_(PYMPSYM, m) {
          [](TaskOrbits const &orbits)
          { return py::make_iterator(orbits.begin(), orbits.end()); })
     .def("__contains__",
-         [](TaskOrbits const &orbits, std::vector<unsigned> const &mapping)
+         [](TaskOrbits const &orbits, Sequence<> const &mapping)
          { return orbits.is_repr(mapping); },
          "mapping"_a);
+
+  // Perm
+  py::class_<Perm>(m, "Perm")
+    .def(py::init<unsigned>(), "degree"_a = 1)
+    .def(py::init(
+           [](Sequence<> const &v)
+           {
+             if (v.empty())
+                throw std::logic_error("invalid permutation");
+
+             auto max = *std::max_element(v.begin(), v.end());
+             if (v.size() != max + 1)
+               throw std::logic_error("invalid permutation");
+
+             Set<> s(v.begin(), v.end());
+             if (s.size() != max + 1 || *s.begin() != 0)
+               throw std::logic_error("invalid permutation");
+
+             auto v_(v);
+             std::transform(v.begin(), v.end(), v_.begin(),
+                            [](unsigned x){ return x + 1; });
+
+             return Perm(v_);
+           }),
+         "perm"_a)
+    .def(py::self == py::self)
+    .def(py::self != py::self)
+    .def("__getitem__",
+         [](Perm const &self, unsigned x)
+         {
+           if (x > self.degree() - 1)
+             throw std::out_of_range("not in domain");
+
+           return self[x + 1] - 1;
+         },
+         "x"_a)
+    .def("__invert__", &Perm::operator~)
+    .def("__mul__",
+         [](Perm const &self, Perm const &other)
+         {
+           if (self.degree() != other.degree())
+             throw std::logic_error("permutation degrees do not match");
+
+           return self * other;
+         },
+         "other"_a)
+    .def("__rmul__",
+         [](Perm const &self, Perm const &other)
+         {
+           if (self.degree() != other.degree())
+             throw std::logic_error("permutation degrees do not match");
+
+           return other * self;
+         },
+         "other"_a)
+    .def("__bool__",
+         [](Perm const &self)
+         { return !self.id(); })
+    .def("__repr__",
+         [](Perm const &self)
+         { return stream(self); })
+    .def("degree", &Perm::degree);
+
+  py::implicitly_convertible<Sequence<>, Perm>();
+
+  // PermGroup
+  py::class_<PermGroup>(m, "PermGroup")
+    .def(py::init<unsigned>(), "degree"_a = 1)
+    .def(py::init(
+           [](Sequence<Perm> const &generators_)
+           {
+             if (generators_.empty())
+               throw std::logic_error("generating set must not be empty");
+
+             unsigned degree = generators_[0].degree();
+             for (std::size_t i = 1; i < generators_.size(); ++i) {
+                if (generators_[i].degree() != degree)
+                  throw std::logic_error("mismatched generator degrees");
+             }
+
+             PermSet generators(generators_.begin(), generators_.end());
+
+             return PermGroup(degree, generators);
+           }),
+         "generators"_a)
+    .def(py::self == py::self)
+    .def(py::self != py::self)
+    .def("__len__", &PermGroup::order)
+    .def("__iter__",
+         [](PermGroup const &self)
+         { return py::make_iterator(self.begin(), self.end()); },
+         py::keep_alive<0, 1>())
+    .def("__contains__",
+         [](PermGroup const &self, Perm const &p)
+         {
+           if (p.degree() != self.degree())
+             throw std::logic_error("mismatched degrees");
+
+           return self.contains_element(p);
+         },
+         "perm"_a)
+    .def("__bool__",
+         [](PermGroup const &self)
+         { return !self.is_trivial(); })
+    .def("__repr__",
+         [](PermGroup const &self)
+         { return stream(self.generators()); })
+    .def("degree", &PermGroup::degree)
+    .def("bsgs",
+         [&](PermGroup const &self)
+         {
+           auto bsgs(self.bsgs());
+
+           return std::make_pair<BSGS::Base, Sequence<Perm>>(
+             bsgs.base(),
+             to_sequence(bsgs.strong_generators()));
+         })
+    .def("generators",
+         [&](PermGroup const &self)
+         {
+           auto generators(self.generators());
+           std::sort(generators.begin(), generators.end());
+
+           return to_sequence(generators);
+         })
+    .def("is_symmetric", &PermGroup::is_symmetric)
+    .def("is_alternating", &PermGroup::is_alternating)
+    .def("is_transitive", &PermGroup::is_transitive);
+
+  py::implicitly_convertible<Sequence<Perm>, PermGroup>();
 }
