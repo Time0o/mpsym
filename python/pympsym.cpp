@@ -200,6 +200,7 @@ PYBIND11_MODULE_(PYMPSYM, m)
          "perm"_a)
     .def(py::self == py::self)
     .def(py::self != py::self)
+    .def(hash(py::self))
     .def("__getitem__",
          [](Perm const &self, unsigned x)
          {
