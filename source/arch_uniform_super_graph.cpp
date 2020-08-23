@@ -41,9 +41,14 @@ ArchUniformSuperGraph::num_processors() const
 unsigned
 ArchUniformSuperGraph::num_channels() const
 {
-  return _subsystem_super_graph->num_channels() +
-         (_subsystem_super_graph->num_processors() *
-          _subsystem_proto->num_channels());
+  auto inter_channels =
+    (_subsystem_proto->num_processors() * _subsystem_proto->num_processors()) *
+     _subsystem_super_graph->num_channels();
+
+  auto intra_channels = _subsystem_super_graph->num_processors() *
+                        _subsystem_proto->num_channels();
+
+  return inter_channels + intra_channels;
 }
 
 std::vector<std::shared_ptr<ArchGraphAutomorphisms>>

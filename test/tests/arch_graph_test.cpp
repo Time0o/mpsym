@@ -526,7 +526,7 @@ TEST_F(ArchUniformSuperGraphTest, CanDetermineNumberOfProcessors)
 
 TEST_F(ArchUniformSuperGraphTest, CanDetermineNumberOfChannels)
 {
-  EXPECT_EQ(16u, super_graph_minimal->num_channels())
+  EXPECT_EQ(48u, super_graph_minimal->num_channels())
     << "Number of channels in uniform architecture super_graph determined correctly.";
 }
 
