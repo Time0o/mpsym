@@ -163,13 +163,19 @@ PYBIND11_MODULE_(PYMPSYM, m)
          },
          "mapping"_a, "representatives"_a)
     .def("orbit",
-         [&](ArchGraphSystem &self, Sequence<> const &mapping)
+         [&](ArchGraphSystem &self, Sequence<> const &mapping, bool sorted)
          {
-           return sequence_multiplex_apply(mapping,
-                                           [&](Sequence<> const &mapping)
-                                           { return self.orbit(mapping); });
+           auto orbit(sequence_multiplex_apply(
+             mapping,
+             [&](Sequence<> const &mapping)
+             { return self.orbit(mapping); }));
+
+           if (sorted)
+             std::sort(orbit.begin(), orbit.end());
+
+           return orbit;
          },
-         "mapping"_a);
+         "mapping"_a, "sorted"_a = true);
 
   // ArchGraph
   py::class_<ArchGraph,
@@ -325,13 +331,16 @@ PYBIND11_MODULE_(PYMPSYM, m)
              to_sequence(bsgs.strong_generators()));
          })
     .def("generators",
-         [&](PermGroup const &self)
+         [&](PermGroup const &self, bool sorted)
          {
            auto generators(self.generators());
-           std::sort(generators.begin(), generators.end());
+
+           if (sorted)
+             std::sort(generators.begin(), generators.end());
 
            return to_sequence(generators);
-         })
+         },
+         "sorted"_a = true)
     .def("is_symmetric", &PermGroup::is_symmetric)
     .def("is_alternating", &PermGroup::is_alternating)
     .def("is_transitive", &PermGroup::is_transitive);
