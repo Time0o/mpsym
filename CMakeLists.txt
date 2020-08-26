@@ -158,7 +158,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_PROFILE}")
 endif()
 
 # pybind11
-if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}" AND GENERATE_PYTHON_BINDINGS)
+if(GENERATE_PYTHON_BINDINGS)
   message(STATUS "Acquiring pybind11...")
   add_external_project(NAME "pybind11"
                        CONFIG_FILE "${CMAKE_PYBIND11_CONFIG}"
@@ -226,11 +226,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
     message(FATAL_ERROR "CMAKE_INSTALL_PREFIX must be specified explicitly")
   endif()
 
-  # Python Bindings
-  if(GENERATE_PYTHON_BINDINGS)
-    add_subdirectory("${PYTHON_SRC_DIR}")
-  endif()
-
   # Documentation
   message(STATUS "Configuring documentation...")
 
@@ -263,6 +258,16 @@ if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
   else()
     message(STATUS "Documentation will not be generated")
   endif()
+endif()
+
+
+################################################################################
+# Bindings
+################################################################################
+
+# Python
+if(GENERATE_PYTHON_BINDINGS)
+  add_subdirectory("${PYTHON_SRC_DIR}")
 endif()
 
 

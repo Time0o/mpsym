@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 
+# C++
 include_directories("${MPSYM_INCLUDE_DIR}"
                     "${MPSYM_TEST_INCLUDE_DIR}"
                     "${MPSYM_TEST_SRC_DIR}"
@@ -21,3 +22,23 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
 
   target_link_libraries("${TEST_PROG}" "${MPSYM_LIB}" "${GTEST_GMOCK_MAIN}")
 endforeach()
+
+# Python
+if(GENERATE_PYTHON_BINDINGS)
+  find_program(PYTEST_PATH pytest)
+  if(NOT PYTEST_PATH)
+    message("Failed to find pytest")
+    message("Python tests will not be run")
+  else()
+    add_test(
+      NAME python
+      COMMAND "${PYTEST_PATH}" python_test.py
+      WORKING_DIRECTORY "${MPSYM_TEST_TESTS_DIR}"
+    )
+
+    set_tests_properties(
+      python
+      PROPERTIES ENVIRONMENT "PYTHONPATH=${PYTHON_BIN_DIR}:$ENV{PYTHONPATH}"
+    )
+  endif()
+endif()
