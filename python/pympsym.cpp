@@ -23,8 +23,8 @@
 #include "task_mapping.hpp"
 #include "task_orbits.hpp"
 
-namespace py = pybind11;
 namespace mp = boost::multiprecision;
+namespace py = pybind11;
 
 using namespace py::literals;
 
@@ -40,22 +40,11 @@ using mpsym::internal::Perm;
 using mpsym::internal::PermGroup;
 using mpsym::internal::PermSet;
 
-template<typename T = unsigned>
-using Sequence = std::vector<T>;
-
-template<typename T = unsigned>
-using Set = std::set<T>;
-
 namespace
 {
 
-template<typename T>
-std::string stream(T const &obj)
-{
-  std::stringstream ss;
-  ss << obj;
-  return ss.str();
-}
+template<typename T = unsigned>
+using Sequence = std::vector<T>;
 
 template<typename T>
 using contained_type =
@@ -64,6 +53,49 @@ using contained_type =
 template<typename T>
 Sequence<contained_type<T>> to_sequence(T const &obj)
 { return Sequence<contained_type<T>>(obj.begin(), obj.end()); }
+
+template<typename T = unsigned>
+Sequence<T> inc_sequence(Sequence<T> seq)
+{
+  std::transform(seq.begin(), seq.end(), seq.begin(),
+                 [](T x){ return x + 1; });
+
+  return seq;
+}
+
+template<typename T = unsigned>
+Sequence<T> dec_sequence(Sequence<T> seq)
+{
+  std::transform(seq.begin(), seq.end(), seq.begin(),
+                 [](T x){ return x - 1; });
+
+  return seq;
+}
+
+template<typename T, typename FUNC>
+Sequence<T> sequence_apply(Sequence<T> const &seq, FUNC &&f)
+{ return dec_sequence(to_sequence(f(inc_sequence(seq)))); }
+
+template<typename T, typename FUNC>
+Sequence<Sequence<T>> sequence_multiplex_apply(Sequence<T> const &seq, FUNC &&f)
+{
+  Sequence<Sequence<T>> seqs;
+  for (auto const &seq_ : f(inc_sequence(seq)))
+    seqs.push_back(dec_sequence(to_sequence(seq_)));
+
+  return seqs;
+}
+
+template<typename T = unsigned>
+using Set = std::set<T>;
+
+template<typename T>
+std::string stream(T const &obj)
+{
+  std::stringstream ss;
+  ss << obj;
+  return ss.str();
+}
 
 } // anonymous namespace
 
@@ -107,7 +139,11 @@ PYBIND11_MODULE_(PYMPSYM, m)
          { return self.automorphisms(); })
     .def("representative",
          [&](ArchGraphSystem &self, Sequence<> const &mapping)
-         { return to_sequence(self.repr(mapping)); },
+         {
+           return sequence_apply(mapping,
+                                 [&](Sequence<> const &mapping)
+                                 { return self.repr(mapping); });
+         },
          "mapping"_a)
     .def("representative",
          [&](ArchGraphSystem &self,
@@ -115,22 +151,23 @@ PYBIND11_MODULE_(PYMPSYM, m)
              TaskOrbits *representatives)
          {
            auto num_orbits_old = representatives->num_orbits();
-           auto repr(self.repr(mapping, representatives));
+
+           auto repr(sequence_apply(
+             mapping,
+             [&](Sequence<> const &mapping)
+             { return self.repr(mapping, representatives); }));
+
            bool repr_is_new = representatives->num_orbits() > num_orbits_old;
 
-           return std::pair<Sequence<>, bool>(to_sequence(repr),
-                                              repr_is_new);
+           return std::pair<Sequence<>, bool>(repr, repr_is_new);
          },
          "mapping"_a, "representatives"_a)
     .def("orbit",
          [&](ArchGraphSystem &self, Sequence<> const &mapping)
          {
-           Sequence<Sequence<>> orbit;
-           for (auto const &mapping : self.orbit(mapping)) {
-             orbit.emplace_back(to_sequence(mapping));
-           }
-
-           return orbit;
+           return sequence_multiplex_apply(mapping,
+                                           [&](Sequence<> const &mapping)
+                                           { return self.orbit(mapping); });
          },
          "mapping"_a);
 
@@ -171,7 +208,7 @@ PYBIND11_MODULE_(PYMPSYM, m)
          { return py::make_iterator(orbits.begin(), orbits.end()); })
     .def("__contains__",
          [](TaskOrbits const &orbits, Sequence<> const &mapping)
-         { return orbits.is_repr(mapping); },
+         { return orbits.is_repr(inc_sequence(mapping)); },
          "mapping"_a);
 
   // Perm
@@ -191,11 +228,7 @@ PYBIND11_MODULE_(PYMPSYM, m)
              if (s.size() != max + 1 || *s.begin() != 0)
                throw std::logic_error("invalid permutation");
 
-             auto v_(v);
-             std::transform(v.begin(), v.end(), v_.begin(),
-                            [](unsigned x){ return x + 1; });
-
-             return Perm(v_);
+             return Perm(inc_sequence(v));
            }),
          "perm"_a)
     .def(py::self == py::self)
