@@ -150,26 +150,26 @@ std::vector<TaskMapping> ArchGraphSystem::orbit(TaskMapping const &mapping)
   auto automs(automorphisms());
   auto gens(automs.generators());
 
-  std::queue<TaskMapping> queue;
-  queue.push(mapping);
+  std::unordered_set<TaskMapping> unprocessed, processed;
 
-  std::unordered_set<TaskMapping> orbit;
+  unprocessed.insert(mapping);
 
-  while (!queue.empty()) {
-    auto mapping(queue.front());
-    queue.pop();
+  while (!unprocessed.empty()) {
+    auto it(unprocessed.begin());
+    TaskMapping current(*it);
+    unprocessed.erase(it);
 
-    orbit.insert(mapping);
+    processed.insert(current);
 
     for (Perm const &gen : gens) {
-      auto next_mapping(mapping.permuted(gen));
+      TaskMapping next(current.permuted(gen));
 
-      if (orbit.find(next_mapping) == orbit.end())
-        queue.push(next_mapping);
+      if (processed.find(next) == processed.end())
+        unprocessed.insert(next);
     }
   }
 
-  return std::vector<TaskMapping>(orbit.begin(), orbit.end());
+  return std::vector<TaskMapping>(processed.begin(), processed.end());
 }
 
 TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
