@@ -159,8 +159,17 @@ if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_PROFILE}")
                        WORK_DIR "${PERMLIB_DOWNLOAD_DIR}")
 endif()
 
-# pybind11
 if(PYTHON_BINDINGS)
+  # Python
+  message(STATUS "Finding Python...")
+  if(NOT PYTHON_EXECUTABLE)
+    find_program(PYTHON_EXECUTABLE python3)
+    if(NOT PYTHON_EXECUTABLE)
+      message(FATAL_ERROR "Python not found")
+    endif()
+  endif()
+
+  # pybind11
   message(STATUS "Acquiring pybind11...")
   add_external_project(NAME "pybind11"
                        CONFIG_FILE "${CMAKE_PYBIND11_CONFIG}"

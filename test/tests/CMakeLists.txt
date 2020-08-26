@@ -25,20 +25,14 @@ endforeach()
 
 # Python
 if(PYTHON_BINDINGS)
-  find_program(PYTEST_PATH pytest)
-  if(NOT PYTEST_PATH)
-    message("Failed to find pytest")
-    message("Python tests will not be run")
-  else()
-    add_test(
-      NAME python
-      COMMAND ${CMAKE_COMMAND} -E env "LUA_PATH=${LUA_SRC_DIR}/?.lua;$ENV{LUA_PATH}" "${PYTEST_PATH}" python_test.py
-      WORKING_DIRECTORY "${MPSYM_TEST_TESTS_DIR}"
-    )
+  add_test(
+    NAME python
+    COMMAND ${CMAKE_COMMAND} -E env "LUA_PATH=${LUA_SRC_DIR}/?.lua;$ENV{LUA_PATH}" "${PYTHON_EXECUTABLE}" -m pytest python_test.py
+    WORKING_DIRECTORY "${MPSYM_TEST_TESTS_DIR}"
+  )
 
-    set_tests_properties(
-      python
-      PROPERTIES ENVIRONMENT "PYTHONPATH=${PYTHON_BIN_DIR}:$ENV{PYTHONPATH}"
-    )
-  endif()
+  set_tests_properties(
+    python
+    PROPERTIES ENVIRONMENT "PYTHONPATH=${PYTHON_BIN_DIR}:$ENV{PYTHONPATH}"
+  )
 endif()
