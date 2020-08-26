@@ -1,34 +1,4 @@
-################################################################################
-# Project Settings
-################################################################################
-
 cmake_minimum_required(VERSION 3.6)
-
-set(CMAKE_PROJECT_AUTHOR "Timo Nicolai")
-set(CMAKE_PROJECT_COPYRIGHT "2020")
-set(CMAKE_PROJECT_URL "https://github.com/Time0o/mpsym")
-set(CMAKE_PROJECT_DOC_URL "https://time0o.github.io/mpsym/")
-set(CMAKE_PROJECT_LICENSE "MIT")
-
-set(MPSYM "mpsym")
-set(PYMPSYM "pympsym")
-
-project(
-  "${MPSYM}"
-  VERSION "0.1"
-  DESCRIPTION "MPSoC Symmetry Reduction"
-  HOMEPAGE_URL "https://github.com/Time0o/mpsym"
-  LANGUAGES "CXX" "C"
-)
-
-add_definitions(
-  -DMPSYM="${MPSYM}"
-  -DPYMPSYM=${PYMPSYM}
-  -DDESCRIPTION="${CMAKE_PROJECT_DESCRIPTION}"
-  -DVERSION="${CMAKE_PROJECT_VERSION}"
-)
-
-set (CMAKE_CXX_STANDARD 11)
 
 
 ################################################################################
@@ -41,11 +11,15 @@ set(CMAKE_BUILD_TYPE_PROFILE "Profile")
 set(CMAKE_BUILD_TYPE_RELEASE "Release")
 
 # CMake scripts
-set(CMAKE_SCRIPT_DIR "${PROJECT_SOURCE_DIR}/cmake")
+set(CMAKE_SCRIPT_DIR "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CMAKE_SCRIPT_DIR}")
 
+set(CMAKE_PROJECT_SETTINGS "${CMAKE_SCRIPT_DIR}/ProjectSettings.cmake")
 set(CMAKE_ADD_EXTERNAL_PROJECT "${CMAKE_SCRIPT_DIR}/AddExternalProject.cmake")
 set(CMAKE_RUN_DOXYGEN "${CMAKE_SCRIPT_DIR}/RunDoxygen.cmake")
+
+include("${CMAKE_PROJECT_SETTINGS}")
+include("${CMAKE_ADD_EXTERNAL_PROJECT}")
 
 set(CMAKE_NAUTY_CONFIG "${CMAKE_SCRIPT_DIR}/GetNauty.cmake")
 set(CMAKE_GTEST_CONFIG "${CMAKE_SCRIPT_DIR}/GetGTest.cmake")
@@ -53,24 +27,24 @@ set(CMAKE_PERMLIB_CONFIG "${CMAKE_SCRIPT_DIR}/GetPermLib.cmake")
 set(CMAKE_PYBIND11_CONFIG "${CMAKE_SCRIPT_DIR}/GetPybind11.cmake")
 
 # mpsym
-set(MPSYM_SRC_DIR "${PROJECT_SOURCE_DIR}/source")
-set(MPSYM_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
-set(MPSYM_LIB "${MPSYM}")
+set(MPSYM_SRC_DIR "${CMAKE_SOURCE_DIR}/source")
+set(MPSYM_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
+set(MPSYM_LIB "${CMAKE_PROJECT_NAME}")
 set(MPSYM_INSTALL_LIB_DIR "lib")
 set(MPSYM_INSTALL_INCLUDE_DIR "include/${MPSYM}")
 
 # mpsym tests
-set(MPSYM_TEST_SRC_DIR "${PROJECT_SOURCE_DIR}/test/source")
-set(MPSYM_TEST_TESTS_DIR "${PROJECT_SOURCE_DIR}/test/tests")
-set(MPSYM_TEST_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/test/include")
+set(MPSYM_TEST_SRC_DIR "${CMAKE_SOURCE_DIR}/test/source")
+set(MPSYM_TEST_TESTS_DIR "${CMAKE_SOURCE_DIR}/test/tests")
+set(MPSYM_TEST_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/test/include")
 
 # mpsym profiling
-set(MPSYM_PROFILE_SRC_DIR "${PROJECT_SOURCE_DIR}/profile/source")
-set(MPSYM_PROFILE_COMMON_DIR "${PROJECT_SOURCE_DIR}/profile/common")
-set(MPSYM_PROFILE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/profile/include")
+set(MPSYM_PROFILE_SRC_DIR "${CMAKE_SOURCE_DIR}/profile/source")
+set(MPSYM_PROFILE_COMMON_DIR "${CMAKE_SOURCE_DIR}/profile/common")
+set(MPSYM_PROFILE_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/profile/include")
 
 # nauty
-set(NAUTY_SRC_DIR "${PROJECT_SOURCE_DIR}/nauty")
+set(NAUTY_SRC_DIR "${CMAKE_SOURCE_DIR}/nauty")
 set(NAUTY_BIN_DIR "${CMAKE_BINARY_DIR}/nauty")
 set(NAUTY_DOWNLOAD_DIR "${NAUTY_BIN_DIR}/download")
 set(NAUTY_WORK_DIR "${NAUTY_BIN_DIR}/workdir")
@@ -99,23 +73,34 @@ set(PYBIND11_DOWNLOAD_DIR "${PYBIND11_BIN_DIR}/download")
 set(PYBIND11_SRC_DIR "${PYBIND11_BIN_DIR}/source")
 set(PYBIND11_BIN_DIR "${PYBIND11_BIN_DIR}/build")
 
-set(PYTHON_SRC_DIR "${PROJECT_SOURCE_DIR}/python")
+set(PYTHON_SRC_DIR "${CMAKE_SOURCE_DIR}/python")
 set(PYTHON_BIN_DIR "${CMAKE_BINARY_DIR}/python")
-set(PYTHON_SETUP_PY_IN "${PYTHON_SRC_DIR}/setup.py.in")
-set(PYTHON_SETUP_PY_OUT "${PYTHON_BIN_DIR}/setup.py")
-set(PYTHON_MODULE "${PYMPSYM}")
 
 # Doxygen
-set(DOC_DOXYGEN_IN_DIR "${PROJECT_SOURCE_DIR}/doxygen")
+set(DOC_DOXYGEN_IN_DIR "${CMAKE_SOURCE_DIR}/doxygen")
 set(DOC_DOXYGEN_OUT_DIR "${CMAKE_BINARY_DIR}/doxygen")
 set(DOC_DOXYGEN_INDEX_HTML "${DOC_DOXYGEN_OUT_DIR}/html/index.html")
 
 
 ################################################################################
-# CMake Functions
+# Project Settings
 ################################################################################
 
-include("${CMAKE_ADD_EXTERNAL_PROJECT}")
+project(
+  "${CMAKE_PROJECT_NAME}"
+  VERSION "${CMAKE_PROJECT_VERSION}"
+  DESCRIPTION "${CMAKE_PROJECT_DESCRIPTION}"
+  HOMEPAGE_URL "${CMAKE_PROJECT_HOMEPAGE_URL}"
+  LANGUAGES "CXX" "C"
+)
+
+add_definitions(
+  -DPROJECT_NAME=${CMAKE_PROJECT_NAME}
+  -DDESCRIPTION="${CMAKE_PROJECT_DESCRIPTION}"
+  -DVERSION="${CMAKE_PROJECT_VERSION}"
+)
+
+set(CMAKE_CXX_STANDARD 11)
 
 
 ################################################################################
@@ -221,10 +206,6 @@ endif()
 if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
   # Prefix check
   message(STATUS "Checking install prefix...")
-
-  if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    message(FATAL_ERROR "CMAKE_INSTALL_PREFIX must be specified explicitly")
-  endif()
 
   # Documentation
   message(STATUS "Configuring documentation...")
