@@ -24,7 +24,7 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
 endforeach()
 
 # Python
-if(GENERATE_PYTHON_BINDINGS)
+if(PYTHON_BINDINGS)
   find_program(PYTEST_PATH pytest)
   if(NOT PYTEST_PATH)
     message("Failed to find pytest")
