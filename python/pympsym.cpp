@@ -120,7 +120,7 @@ struct type_caster<mp::cpp_int> {
 
 #define PYBIND11_MODULE_(name, m) PYBIND11_MODULE(name, m)
 
-PYBIND11_MODULE_(PROJECT_NAME, m)
+PYBIND11_MODULE_(PYTHON_MODULE, m)
 {
   m.doc() = DESCRIPTION;
   m.attr("__version__") = VERSION;
