@@ -1,0 +1,14 @@
+from setuptools import setup
+
+setup(
+    name='py${CMAKE_PROJECT_NAME}',
+    version='${CMAKE_PROJECT_VERSION}',
+    description='${CMAKE_PROJECT_DESCRIPTION}',
+    url='${CMAKE_PROJECT_HOMEPAGE_URL}',
+    author='${CMAKE_PROJECT_AUTHOR}',
+    license='${CMAKE_PROJECT_LICENSE}',
+    packages=[''],
+    package_dir={'': '.'},
+    package_data={'': ['${PYTHON_MODULE_PREFIX}py${CMAKE_PROJECT_NAME}${PYTHON_MODULE_EXTENSION}']},
+    zip_safe=False
+)

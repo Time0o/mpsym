@@ -86,7 +86,7 @@ with open(CMAKE_PROJECT_SETTINGS, 'r') as f:
 
 # setup
 setup(
-    name=project_settings['NAME'],
+    name='py' + project_settings['NAME'],
     version=project_settings['VERSION'],
     description=project_settings['DESCRIPTION'],
     url=project_settings['HOMEPAGE_URL'],

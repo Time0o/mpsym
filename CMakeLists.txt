@@ -83,6 +83,8 @@ set(LUA_ROCKSPEC_OUT "${LUA_BIN_DIR}/${LUA_MODULE}-${CMAKE_PROJECT_VERSION}-1.ro
 # Python
 set(PYTHON_SRC_DIR "${CMAKE_SOURCE_DIR}/python")
 set(PYTHON_BIN_DIR "${CMAKE_BINARY_DIR}/python")
+set(PYTHON_SETUP_PY_IN "${PYTHON_SRC_DIR}/setup.py.in")
+set(PYTHON_SETUP_PY_OUT "${PYTHON_BIN_DIR}/setup.py")
 set(PYTHON_MODULE "py${CMAKE_PROJECT_NAME}")
 
 # Doxygen
@@ -176,6 +178,14 @@ if(PYTHON_BINDINGS)
                        WORK_DIR "${PYBIND11_DOWNLOAD_DIR}"
                        SRC_DIR "${PYBIND11_SRC_DIR}"
                        BIN_DIR "${PYBIND11_BIN_DIR}")
+
+  # pip
+  if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
+    find_program(PIP pip3)
+    if(NOT PIP)
+      message(FATAL_ERROR "pip not found")
+    endif()
+  endif()
 endif()
 
 
