@@ -73,6 +73,14 @@ set(PYBIND11_DOWNLOAD_DIR "${PYBIND11_BIN_DIR}/download")
 set(PYBIND11_SRC_DIR "${PYBIND11_BIN_DIR}/source")
 set(PYBIND11_BIN_DIR "${PYBIND11_BIN_DIR}/build")
 
+# Lua
+set(LUA_SRC_DIR "${CMAKE_SOURCE_DIR}/lua")
+set(LUA_BIN_DIR "${CMAKE_BINARY_DIR}/lua")
+set(LUA_MODULE "${CMAKE_PROJECT_NAME}")
+set(LUA_ROCKSPEC_IN "${LUA_SRC_DIR}/${LUA_MODULE}.rockspec.in")
+set(LUA_ROCKSPEC_OUT "${LUA_BIN_DIR}/${LUA_MODULE}-${CMAKE_PROJECT_VERSION}-1.rockspec")
+
+# Python
 set(PYTHON_SRC_DIR "${CMAKE_SOURCE_DIR}/python")
 set(PYTHON_BIN_DIR "${CMAKE_BINARY_DIR}/python")
 set(PYTHON_MODULE "py${CMAKE_PROJECT_NAME}")
@@ -116,6 +124,15 @@ find_package(Boost 1.40 REQUIRED COMPONENTS graph)
 message(STATUS "Finding Lua...")
 find_package(Lua 5.2 REQUIRED)
 
+# LuaRocks
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
+  message(STATUS "Finding LuaRocks...")
+  find_program(LUAROCKS luarocks)
+  if(NOT LUAROCKS)
+    message(FATAL_ERROR "LuaRocks not found")
+  endif()
+endif()
+
 # Nauty
 message(STATUS "Acquiring Nauty...")
 add_external_project(NAME "nauty_traces"
@@ -133,7 +150,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}")
                        SRC_DIR "${GTEST_SRC_DIR}"
                        BIN_DIR "${GTEST_BIN_DIR}")
 endif()
-
 
 # Permlib
 if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_PROFILE}")
@@ -246,6 +262,9 @@ endif()
 ################################################################################
 # Bindings
 ################################################################################
+
+# Lua
+add_subdirectory("${LUA_SRC_DIR}")
 
 # Python
 if(PYTHON_BINDINGS)

@@ -1,0 +1,23 @@
+package = '${CMAKE_PROJECT_NAME}'
+version = '${CMAKE_PROJECT_VERSION}-1'
+
+source = {
+   url = '${CMAKE_PROJECT_HOMEPAGE_URL}',
+   file = '${LUA_SRC_DIR}/${LUA_MODULE}.lua'
+}
+
+description = {
+   summary = '${CMAKE_PROJECT_DESCRIPTION}',
+   license = '${CMAKE_PROJECT_LICENSE}'
+}
+
+dependencies = {
+   "lua >= 5.2"
+}
+
+build = {
+   type='builtin',
+   modules = {
+      ${LUA_MODULE} = source.file
+   }
+}

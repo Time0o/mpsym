@@ -32,7 +32,7 @@ if(PYTHON_BINDINGS)
   else()
     add_test(
       NAME python
-      COMMAND "${PYTEST_PATH}" python_test.py
+      COMMAND ${CMAKE_COMMAND} -E env "LUA_PATH=${LUA_SRC_DIR}/?.lua;$ENV{LUA_PATH}" "${PYTEST_PATH}" python_test.py
       WORKING_DIRECTORY "${MPSYM_TEST_TESTS_DIR}"
     )
 
