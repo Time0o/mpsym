@@ -48,20 +48,6 @@ public:
 
   virtual ~ArchGraph() = default;
 
-  static ArchGraph fully_connected(unsigned n,
-                                   ProcessorLabel pl = DEFAULT_PROCESSOR_LABEL,
-                                   ChannelLabel cl = DEFAULT_CHANNEL_LABEL);
-
-  static ArchGraph regular_mesh(unsigned width,
-                                unsigned height,
-                                ProcessorLabel pl = DEFAULT_PROCESSOR_LABEL,
-                                ChannelLabel cl = DEFAULT_CHANNEL_LABEL);
-
-  static ArchGraph hyper_mesh(unsigned width,
-                              unsigned height,
-                              ProcessorLabel pl = DEFAULT_PROCESSOR_LABEL,
-                              ChannelLabel cl = DEFAULT_CHANNEL_LABEL);
-
   std::string to_gap() const override;
 
   ProcessorType new_processor_type(ProcessorLabel pl = DEFAULT_PROCESSOR_LABEL);

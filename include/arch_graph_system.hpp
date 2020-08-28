@@ -127,6 +127,8 @@ public:
     return repr_(mapping, orbits, options);
   }
 
+  std::vector<TaskMapping> orbit(TaskMapping const &mapping);
+
 private:
   virtual internal::BSGS::order_type num_automorphisms_(
     AutomorphismOptions const *options)

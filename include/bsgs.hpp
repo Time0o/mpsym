@@ -69,6 +69,7 @@ class BSGS
   friend std::ostream &operator<<(std::ostream &os, BSGS const &bsgs);
 
 public:
+  using Base = std::vector<unsigned>;
   using order_type = boost::multiprecision::cpp_int;
 
   struct SolveError : public std::runtime_error
@@ -90,6 +91,7 @@ public:
   bool is_symmetric() const { return _is_symmetric; }
   bool is_alternating() const { return _is_alternating; }
 
+  Base base() const { return _base; }
   bool base_empty() const { return _base.empty(); }
   unsigned base_size() const { return _base.size(); }
   unsigned base_point(unsigned i) const { return _base[i]; }

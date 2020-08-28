@@ -5,6 +5,7 @@
 #include <memory>
 #include <new>
 #include <numeric>
+#include <queue>
 #include <random>
 #include <stdexcept>
 #include <unordered_set>
@@ -142,6 +143,33 @@ std::vector<unsigned> ArchGraphSystem::automorphism_orbit_sizes(
   std::sort(ret.begin(), ret.end());
 
   return ret;
+}
+
+std::vector<TaskMapping> ArchGraphSystem::orbit(TaskMapping const &mapping)
+{
+  auto automs(automorphisms());
+  auto gens(automs.generators());
+
+  std::unordered_set<TaskMapping> unprocessed, processed;
+
+  unprocessed.insert(mapping);
+
+  while (!unprocessed.empty()) {
+    auto it(unprocessed.begin());
+    TaskMapping current(*it);
+    unprocessed.erase(it);
+
+    processed.insert(current);
+
+    for (Perm const &gen : gens) {
+      TaskMapping next(current.permuted(gen));
+
+      if (processed.find(next) == processed.end())
+        unprocessed.insert(next);
+    }
+  }
+
+  return std::vector<TaskMapping>(processed.begin(), processed.end());
 }
 
 TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,

@@ -26,7 +26,7 @@ public:
   : std::vector<unsigned>(tasks)
   {}
 
-  explicit TaskMapping(std::vector<unsigned> tasks)
+  TaskMapping(std::vector<unsigned> tasks)
   : std::vector<unsigned>(tasks)
   {}
 

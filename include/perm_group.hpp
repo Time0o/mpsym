@@ -36,13 +36,13 @@ public:
     const_iterator() : _end(true) {};
     const_iterator(PermGroup const &pg);
 
-    const_iterator & operator++()
+    const_iterator const & operator++()
     {
       next_state();
       return *this;
     }
 
-    Perm const & operator*()
+    Perm const operator*()
     {
       update_current_result();
       return _current_result;

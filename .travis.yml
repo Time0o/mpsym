@@ -9,6 +9,7 @@ matrix:
         apt:
           packages:
             - liblua5.2-dev
+            - python3-pytest
 
     - os: linux
       compiler:
@@ -20,6 +21,7 @@ matrix:
           packages:
             - g++-5
             - liblua5.2-dev
+            - python3-pytest
       env:
          - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
 
@@ -33,6 +35,7 @@ matrix:
           packages:
             - g++-6
             - liblua5.2-dev
+            - python3-pytest
       env:
          - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 
@@ -46,6 +49,7 @@ matrix:
           packages:
             - g++-7
             - liblua5.2-dev
+            - python3-pytest
             - doxygen
       env:
          - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
@@ -59,7 +63,7 @@ before_install:
 script:
   - mkdir debug
   - cd debug
-  - cmake -DCMAKE_BUILD_TYPE=Debug ..
+  - cmake -DCMAKE_BUILD_TYPE=Debug -DPYTHON_BINDINGS=ON -DPYTHON_EXECUTABLE=$(which python3) ..
   - make all
   - make test
 

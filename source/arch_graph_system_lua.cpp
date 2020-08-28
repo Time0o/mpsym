@@ -17,10 +17,16 @@ extern "C" {
   #include "lauxlib.h"
 }
 
+#ifdef EMBED_LUA
+  extern char const EMBED_LUA_MODULE [];
+  extern std::size_t EMBED_LUA_MODULE_LEN;
+#endif
+
 #include "arch_graph.hpp"
 #include "arch_graph_cluster.hpp"
 #include "arch_graph_system.hpp"
 #include "arch_uniform_super_graph.hpp"
+
 
 namespace
 {
@@ -40,15 +46,19 @@ template<typename T,
          typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
 T lua_get(lua_State *L, int index = -1)
 {
-  assert(lua_isnumber(L, index));
+  assert(lua_isnumber(L, index) || lua_isboolean(L, index));
 
-  lua_Number ret(lua_tonumber(L, index));
+  if (lua_isnumber(L, index)) {
+    lua_Number ret(lua_tonumber(L, index));
 
-  assert(std::floor(ret) == ret
-         && ret >= static_cast<lua_Number>(std::numeric_limits<T>::min())
-         && ret <= static_cast<lua_Number>(std::numeric_limits<T>::max()));
+    assert(std::floor(ret) == ret
+           && ret >= static_cast<lua_Number>(std::numeric_limits<T>::min())
+           && ret <= static_cast<lua_Number>(std::numeric_limits<T>::max()));
 
-  return ret;
+    return ret;
+  } else {
+    return lua_toboolean(L, index);
+  }
 }
 
 template<typename T,
@@ -121,8 +131,15 @@ std::string lua_metaname(lua_State *L, int index)
 
 struct lua_Error : public std::runtime_error
 {
-  explicit lua_Error(std::string const &what)
+  lua_Error(lua_State *L, std::string const &what)
   : std::runtime_error("lua: " + what)
+  { lua_close(L); }
+};
+
+struct lua_pcall_Error : public lua_Error
+{
+  lua_pcall_Error(lua_State *L, std::string const &what)
+  : lua_Error(L, what + ": " + lua_tostring(L, -1))
   {}
 };
 
@@ -269,6 +286,38 @@ std::shared_ptr<ArchGraphSystem> ArchGraphSystem::from_lua(
   lua_State *L = luaL_newstate();
   luaL_openlibs(L);
 
+#ifdef EMBED_LUA
+  static std::string load_lua_module;
+
+  if (load_lua_module.empty()) {
+    std::string lua_module(EMBED_LUA_MODULE, EMBED_LUA_MODULE_LEN);
+
+    load_lua_module =
+      "package.loaded['mpsym'] = load([=[\n" + lua_module + "\n]=])()";
+  }
+
+  if (luaL_dostring(L, load_lua_module.c_str()) != LUA_OK)
+    throw lua_pcall_Error(L, "failed to load mpsym module");
+#else
+  // check if mpsym module is available
+  char const *search_mpsym =
+    R"(local searcher
+       local loader
+       for _, searcher in ipairs(package.searchers) do
+         loader = searcher('mpsym')
+         if type(loader ) == 'function' then
+           return true
+         end
+       end
+       return false)";
+
+  if (luaL_dostring(L, search_mpsym) != LUA_OK)
+    throw lua_pcall_Error(L, "failed to check mpsym availability");
+
+  if (!lua_get_and_pop<bool>(L))
+    throw lua_Error(L, "mpsym module not available");
+#endif
+
   // populate args table
   if (args.size() > 0u) {
     lua_createtable(L, args.size(), 0);
@@ -287,24 +336,29 @@ std::shared_ptr<ArchGraphSystem> ArchGraphSystem::from_lua(
     case LUA_OK:
       break;
     case LUA_ERRSYNTAX:
-      throw lua_Error("syntax error while loading chunk");
+      throw lua_Error(L, "syntax error while loading chunk");
     case LUA_ERRMEM:
-      throw lua_Error("memory error while loading chunk");
+      throw lua_Error(L, "memory error while loading chunk");
     case LUA_ERRGCMM:
-      throw lua_Error("garbage collector error while loading chunk");
+      throw lua_Error(L, "garbage collector error while loading chunk");
   }
 
   // run chunk
-  lua_call(L, 0, LUA_MULTRET);
+  if (lua_pcall(L, 0, LUA_MULTRET, 0) != LUA_OK)
+    throw lua_pcall_Error(L, "failed to run chunk");
 
   if (lua_gettop(L) != 1)
-    throw lua_Error("chunk did not return singular value");
+    throw lua_Error(L, "chunk did not return singular value");
 
   // construct ArchGraphSystem
   if (!lua_is_arch_graph_system(L, -1))
-    throw lua_Error("invalid ArchGraphSystem descriptor");
+    throw lua_Error(L, "invalid ArchGraphSystem descriptor");
 
-  return lua_make_arch_graph_system(L);
+  auto ags(lua_make_arch_graph_system(L));
+
+  lua_close(L);
+
+  return ags;
 }
 
 } // namespace mpsym

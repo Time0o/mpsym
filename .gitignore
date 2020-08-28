@@ -1,7 +1,4 @@
-cmake/CodeCoverage.cmake
-sphinx/conf.py
-sphinx/api
-experiments/scripts/.schreier_sim.Rda
-experiments/data
-experiments/plots
-tmp
+build
+lint/*
+!lint/.gitkeep
+test/tests/__pycache__

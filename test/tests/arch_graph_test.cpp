@@ -316,26 +316,6 @@ TEST_F(ArchGraphTest, CanObtainAutomorphisms)
     << "Automorphisms of minimal triangular architecture graph correct.";
 }
 
-TEST(SpecialArchGraphTest, CanConstructFullyConnected)
-{
-  for (unsigned i = 1u; i < 5u; ++i) {
-    EXPECT_EQ(PermGroup::symmetric(i),
-              ArchGraph::fully_connected(i).automorphisms())
-      << "Fully connected architecture graph with " << i
-      << " processing elements has correct automorphism group.";
-  }
-}
-
-TEST(SpecialArchGraphTest, CanConstructRegularMesh)
-{
-  // TODO: test non-quadratic meshes
-  for (unsigned i = 2u; i < 5u; ++i) {
-    EXPECT_EQ(8u, ArchGraph::regular_mesh(i, i).automorphisms().order())
-      << "Regular mesh architecture graph with " << i * i
-      << " processing elements has correct automorphism group.";
-  }
-}
-
 class ArchGraphReprVariantTest :
   public ArchGraphTestBase<testing::TestWithParam<ReprOptions::Method>>
 {};
@@ -546,7 +526,7 @@ TEST_F(ArchUniformSuperGraphTest, CanDetermineNumberOfProcessors)
 
 TEST_F(ArchUniformSuperGraphTest, CanDetermineNumberOfChannels)
 {
-  EXPECT_EQ(16u, super_graph_minimal->num_channels())
+  EXPECT_EQ(48u, super_graph_minimal->num_channels())
     << "Number of channels in uniform architecture super_graph determined correctly.";
 }
 
