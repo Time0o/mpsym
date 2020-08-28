@@ -17,10 +17,16 @@ extern "C" {
   #include "lauxlib.h"
 }
 
+#ifdef EMBED_LUA
+  extern char const EMBED_LUA_MODULE [];
+  extern std::size_t EMBED_LUA_MODULE_LEN;
+#endif
+
 #include "arch_graph.hpp"
 #include "arch_graph_cluster.hpp"
 #include "arch_graph_system.hpp"
 #include "arch_uniform_super_graph.hpp"
+
 
 namespace
 {
@@ -280,6 +286,19 @@ std::shared_ptr<ArchGraphSystem> ArchGraphSystem::from_lua(
   lua_State *L = luaL_newstate();
   luaL_openlibs(L);
 
+#ifdef EMBED_LUA
+  static std::string load_lua_module;
+
+  if (load_lua_module.empty()) {
+    std::string lua_module(EMBED_LUA_MODULE, EMBED_LUA_MODULE_LEN);
+
+    load_lua_module =
+      "package.loaded['mpsym'] = load([=[\n" + lua_module + "\n]=])()";
+  }
+
+  if (luaL_dostring(L, load_lua_module.c_str()) != LUA_OK)
+    throw lua_pcall_Error(L, "failed to load mpsym module");
+#else
   // check if mpsym module is available
   char const *search_mpsym =
     R"(local searcher
@@ -297,6 +316,7 @@ std::shared_ptr<ArchGraphSystem> ArchGraphSystem::from_lua(
 
   if (!lua_get_and_pop<bool>(L))
     throw lua_Error(L, "mpsym module not available");
+#endif
 
   // populate args table
   if (args.size() > 0u) {

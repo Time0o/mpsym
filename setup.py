@@ -44,7 +44,8 @@ class CMakeBuild(build_ext):
             '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(extdir),
             '-DCMAKE_BUILD_TYPE=Release',
             '-DPYTHON_BINDINGS=ON',
-            '-DPYTHON_EXECUTABLE=' + sys.executable
+            '-DPYTHON_EXECUTABLE=' + sys.executable,
+            '-DEMBED_LUA=ON'
         ]
 
         subprocess.check_call(cmake_cmd, cwd=self.build_temp)
