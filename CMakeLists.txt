@@ -28,7 +28,7 @@ set(CMAKE_PERMLIB_CONFIG "${CMAKE_SCRIPT_DIR}/GetPermLib.cmake")
 set(CMAKE_PYBIND11_CONFIG "${CMAKE_SCRIPT_DIR}/GetPybind11.cmake")
 
 # Other scripts
-set(EMBED_FILE "${CMAKE_SOURCE_DIR}/embed_file.py")
+set(EMBED_FILE "${CMAKE_SOURCE_DIR}/embedfile.sh")
 
 # mpsym
 set(MPSYM_SRC_DIR "${CMAKE_SOURCE_DIR}/source")
