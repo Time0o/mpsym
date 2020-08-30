@@ -27,6 +27,11 @@ class CMakeBuild(build_ext):
         build_ext.finalize_options(self)
 
     def run(self):
+        try:
+            subprocess.check_output(['cmake', '--version'])
+        except OSError:
+            raise RuntimeError("cmake command must be available")
+
         for ext in self.extensions:
             self.build_extension(ext)
 
@@ -49,6 +54,7 @@ class CMakeBuild(build_ext):
             '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(extdir),
             '-DCMAKE_BUILD_TYPE=Release',
             '-DPYTHON_BINDINGS=ON',
+            '-DPYTHON_NO_SETUP_PY=ON',
             '-DPYTHON_EXECUTABLE=' + sys.executable,
             '-DLUA_EMBED=ON'
         ]
@@ -68,20 +74,12 @@ class CMakeBuild(build_ext):
 
         subprocess.check_call(cmake_build_cmd, cwd=self.build_temp)
 
-
-# check if CMake is available
-try:
-    subprocess.check_output(['cmake', '--version'])
-except OSError:
-    raise RuntimeError("cmake command must be available")
-
-
 # setup
 setup(
     name='pympsym',
-    version="0.1",
+    version="0.2",
     description="MPSoC Symmetry Reduction",
-    long_description="mpsym is a C++/Lua/Python library that makes it possible to determine whether mappings of computational tasks to multiprocessor systems are equivalent by symmetry. It can also potentially be used to solve more general graph symmetry problems. To this end, mpsym makes use of a variety of algorithms from the field of computational group theory which are implemented from scratch.",
+    long_description="mpsym is a C++/Lua/Python library that makes it possible to determine whether mappings of computational tasks to multiprocessor systems are equivalent by symmetry. It can also potentially be used to solve more general graph symmetry problems.",
     url="https://github.com/Time0o/mpsym",
     author="Timo Nicolai",
     author_email="timonicolai@arcor.de",
