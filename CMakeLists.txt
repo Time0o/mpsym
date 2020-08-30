@@ -137,7 +137,7 @@ message(STATUS "Finding Lua...")
 find_package(Lua 5.2 REQUIRED)
 
 # LuaRocks
-if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
+if(NOT EMBED_LUA AND CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
   message(STATUS "Finding LuaRocks...")
   find_program(LUAROCKS luarocks)
   if(NOT LUAROCKS)
