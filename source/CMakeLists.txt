@@ -5,6 +5,8 @@ include_directories("${MPSYM_INCLUDE_DIR}"
                     "${LUA_INCLUDE_DIR}"
                     "${NAUTY_WORK_DIR}")
 
+link_directories("${BOOST_LIBRARY_DIRS}")
+
 set(SOURCE_FILES
     "arch_graph.cpp"
     "arch_graph_nauty.cpp"
