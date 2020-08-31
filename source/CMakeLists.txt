@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 
 include_directories("${MPSYM_INCLUDE_DIR}"
-                    "${Boost_INCLUDE_DIR}"
+                    "${Boost_INCLUDE_DIRS}"
                     "${LUA_INCLUDE_DIR}"
                     "${NAUTY_WORK_DIR}")
 
