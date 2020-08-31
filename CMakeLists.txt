@@ -260,7 +260,7 @@ endif()
 # Release Build
 ################################################################################
 
-if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
+if(BUILD_DOC AND CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
   # Prefix check
   message(STATUS "Checking install prefix...")
 

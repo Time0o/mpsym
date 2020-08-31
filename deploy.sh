@@ -15,7 +15,7 @@ if [ "${MATRIX_EVAL}" == "CC=gcc-7 && CXX=g++-7" ]; then
 
   # deploy documentation
   echo "Deploying documentation..."
-  cmake -DCMAKE_BUILD_TYPE=Release ..
+  cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_DOC=ON ..
   make doxygen
 
   echo "Cloning gh-pages branch..."
