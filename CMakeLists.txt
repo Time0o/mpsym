@@ -2,6 +2,31 @@ cmake_minimum_required(VERSION 3.6)
 
 
 ################################################################################
+# Project Settings
+################################################################################
+
+set(CMAKE_PROJECT_NAME "mpsym")
+set(CMAKE_PROJECT_VERSION "0.1")
+set(CMAKE_PROJECT_DESCRIPTION "MPSoC Symmetry Reduction")
+set(CMAKE_PROJECT_HOMEPAGE_URL "https://github.com/Time0o/mpsym")
+set(CMAKE_PROJECT_DOC_URL "https://time0o.github.io/mpsym/")
+set(CMAKE_PROJECT_AUTHOR "Timo Nicolai")
+set(CMAKE_PROJECT_AUTHOR_EMAIL "timonicolai@arcor.de")
+set(CMAKE_PROJECT_COPYRIGHT "2020")
+set(CMAKE_PROJECT_LICENSE "MIT")
+
+project(
+  "${CMAKE_PROJECT_NAME}"
+  VERSION "${CMAKE_PROJECT_VERSION}"
+  DESCRIPTION "${CMAKE_PROJECT_DESCRIPTION}"
+  HOMEPAGE_URL "${CMAKE_PROJECT_HOMEPAGE_URL}"
+  LANGUAGES "CXX" "C"
+)
+
+set(CMAKE_CXX_STANDARD 11)
+
+
+################################################################################
 # Project Structure
 ################################################################################
 
@@ -14,12 +39,8 @@ set(CMAKE_BUILD_TYPE_RELEASE "Release")
 set(CMAKE_SCRIPT_DIR "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CMAKE_SCRIPT_DIR}")
 
-set(CMAKE_PROJECT_SETTINGS "${CMAKE_SCRIPT_DIR}/ProjectSettings.cmake")
 set(CMAKE_ADD_EXTERNAL_PROJECT "${CMAKE_SCRIPT_DIR}/AddExternalProject.cmake")
 set(CMAKE_RUN_DOXYGEN "${CMAKE_SCRIPT_DIR}/RunDoxygen.cmake")
-
-include("${CMAKE_PROJECT_SETTINGS}")
-include("${CMAKE_ADD_EXTERNAL_PROJECT}")
 
 set(CMAKE_NAUTY_CONFIG "${CMAKE_SCRIPT_DIR}/GetNauty.cmake")
 set(CMAKE_NLOHMANN_JSON_CONFIG "${CMAKE_SCRIPT_DIR}/GetNlohmannJson.cmake")
@@ -104,16 +125,8 @@ set(DOC_DOXYGEN_INDEX_HTML "${DOC_DOXYGEN_OUT_DIR}/html/index.html")
 
 
 ################################################################################
-# Project Settings
+# Definitions
 ################################################################################
-
-project(
-  "${CMAKE_PROJECT_NAME}"
-  VERSION "${CMAKE_PROJECT_VERSION}"
-  DESCRIPTION "${CMAKE_PROJECT_DESCRIPTION}"
-  HOMEPAGE_URL "${CMAKE_PROJECT_HOMEPAGE_URL}"
-  LANGUAGES "CXX" "C"
-)
 
 add_definitions(
   -DPYTHON_MODULE=${PYTHON_MODULE}
@@ -121,12 +134,12 @@ add_definitions(
   -DVERSION="${CMAKE_PROJECT_VERSION}"
 )
 
-set(CMAKE_CXX_STANDARD 11)
-
 
 ################################################################################
 # External Dependencies
 ################################################################################
+
+include("${CMAKE_ADD_EXTERNAL_PROJECT}")
 
 # Boost
 message(STATUS "Finding boost...")
@@ -201,7 +214,7 @@ if(PYTHON_BINDINGS)
                        BIN_DIR "${PYBIND11_BIN_DIR}")
 
   # pip
-  if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
+  if(NOT PYTHON_PYPI_BUILD AND CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
     find_program(PIP pip3)
     if(NOT PIP)
       message(FATAL_ERROR "pip not found")
