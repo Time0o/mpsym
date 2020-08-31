@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 
-include_directories("${MPSYM_INCLUDE_DIR}")
+include_directories("${MPSYM_INCLUDE_DIR}"
+                    "${Boost_INCLUDE_DIRS}")
 
 pybind11_add_module("${PYTHON_MODULE}" "pympsym.cpp")
 
