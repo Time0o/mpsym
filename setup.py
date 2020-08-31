@@ -21,6 +21,17 @@ class CMakeExtension(Extension):
 
 
 class CMakeBuild(build_ext):
+    user_options = build_ext.user_options + [
+        ('cmake-extra-opts=', None, "Additional options passed to CMake"),
+    ]
+
+    def initialize_options(self):
+        build_ext.initialize_options(self)
+        self.cmake_extra_opts = None
+
+    def finalize_options(self):
+        build_ext.finalize_options(self)
+
     def run(self):
         for ext in self.extensions:
             self.build_extension(ext)
@@ -47,6 +58,9 @@ class CMakeBuild(build_ext):
             '-DPYTHON_EXECUTABLE=' + sys.executable,
             '-DEMBED_LUA=ON'
         ]
+
+        if self.cmake_extra_opts is not None:
+            cmake_cmd += self.cmake_extra_opts.split()
 
         subprocess.check_call(cmake_cmd, cwd=self.build_temp)
 
