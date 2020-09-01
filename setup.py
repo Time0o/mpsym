@@ -49,9 +49,8 @@ class CMakeBuild(build_ext):
             '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(extdir),
             '-DCMAKE_BUILD_TYPE=Release',
             '-DPYTHON_BINDINGS=ON',
-            '-DPYTHON_PYPI_BUILD=ON',
             '-DPYTHON_EXECUTABLE=' + sys.executable,
-            '-DEMBED_LUA=ON'
+            '-DLUA_EMBED=ON'
         ]
 
         if self.cmake_extra_opts is not None:

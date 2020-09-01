@@ -36,7 +36,7 @@ set(SOURCE_FILES
     "schreier_tree.cpp"
     "timer.cpp")
 
-if(EMBED_LUA)
+if(LUA_EMBED)
   message(STATUS "Embedding ${LUA_MODULE_PATH} into ${LUA_MODULE_EMBED}")
 
   add_custom_command(
