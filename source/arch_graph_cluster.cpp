@@ -6,6 +6,7 @@
 
 #include "arch_graph_cluster.hpp"
 #include "arch_graph_system.hpp"
+#include "dump.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"
 #include "task_mapping.hpp"
@@ -28,6 +29,21 @@ ArchGraphCluster::to_gap() const
   for (auto i = 1u; i < _subsystems.size(); ++i)
     ss << "," << _subsystems[i];
   ss << ")";
+
+  return ss.str();
+}
+
+std::string
+ArchGraphCluster::to_json()
+{
+  std::stringstream ss;
+  ss << "{\"cluster\": ";
+
+  ss << TRANSFORM_AND_DUMP(
+    _subsystems,
+    [](std::shared_ptr<ArchGraphSystem> const &ags){ return ags->to_json(); });
+
+  ss << "}";
 
   return ss.str();
 }

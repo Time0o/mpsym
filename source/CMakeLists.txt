@@ -10,6 +10,7 @@ set(SOURCE_FILES
     "arch_graph_nauty.cpp"
     "arch_graph_cluster.cpp"
     "arch_graph_system.cpp"
+    "arch_graph_system_json.cpp"
     "arch_graph_system_lua.cpp"
     "arch_uniform_super_graph.cpp"
     "block_system.cpp"
@@ -54,16 +55,17 @@ endif()
 add_library("${MPSYM_LIB}" SHARED ${SOURCE_FILES})
 
 target_link_libraries("${MPSYM_LIB}"
-                      "${Boost_LIBRARIES}"
-                      "${LUA_LIBRARIES}"
-                      "${NAUTY_LIB}")
+                      PRIVATE "${Boost_LIBRARIES}"
+                      PRIVATE "${LUA_LIBRARIES}"
+                      PRIVATE "${NAUTY_LIB}"
+                      PRIVATE nlohmann_json::nlohmann_json)
 
 # Coverage
 if(DO_COVERAGE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 
-  target_link_libraries("${MPSYM_LIB}" "${GCOV_LIB}")
+  target_link_libraries("${MPSYM_LIB}" PRIVATE "${GCOV_LIB}")
 endif()
 
 # Installation

@@ -25,6 +25,8 @@ public:
 
   std::string to_gap() const override;
 
+  std::string to_json() override;
+
   // TODO: detect equivalent subsystems?
   void add_subsystem(std::shared_ptr<ArchGraphSystem> subsystem)
   {

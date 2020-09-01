@@ -58,6 +58,9 @@ public:
   bool id() const;
   bool even() const;
 
+  bool stabilizes(unsigned x) const
+  { return (*this)[x] == x; }
+
   template<typename IT>
   bool stabilizes(IT first, IT last) const
   {

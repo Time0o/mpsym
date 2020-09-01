@@ -3,6 +3,7 @@
 #include <memory>
 #include <numeric>
 #include <ostream>
+#include <sstream>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -76,16 +77,7 @@ BSGS::BSGS(unsigned degree,
 
   auto options(BSGSOptions::fill_defaults(options_));
 
-  switch (options.transversals) {
-    case BSGSOptions::Transversals::EXPLICIT:
-      _transversals = std::make_shared<BSGSTransversals<ExplicitTransversals>>();
-      break;
-    case BSGSOptions::Transversals::SCHREIER_TREES:
-      _transversals = std::make_shared<BSGSTransversals<SchreierTree>>();
-      break;
-    case BSGSOptions::Transversals::SHALLOW_SCHREIER_TREES:
-      throw std::logic_error("TODO");
-  }
+  transversals_init(&options);
 
   DBG(DEBUG) << "Constructing BSGS";
   DBG(DEBUG) << "Generators: " << generators;
@@ -108,6 +100,38 @@ BSGS::BSGS(unsigned degree,
   DBG(DEBUG) << "=> SGS = " << _strong_generators;
 
   assert(base_size() > 0u);
+}
+
+BSGS::BSGS(unsigned degree,
+           Base const &base,
+           PermSet const &strong_generators,
+           BSGSOptions const *options_)
+: _degree(degree),
+  _base(base),
+  _strong_generators(strong_generators)
+{
+  assert(degree > 0);
+
+  strong_generators.assert_degree(degree);
+
+  auto options(BSGSOptions::fill_defaults(options_));
+
+  transversals_init(&options);
+
+  auto sgs(strong_generators);
+  for (unsigned i = 0; i < base_size(); ++i) {
+    update_schreier_structure(i, sgs);
+
+    for (auto it = sgs.begin(); it != sgs.end();) {
+      if (!it->stabilizes(base_point(i))) {
+        it = sgs.erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
+
+  assert(sgs.empty());
 }
 
 BSGS::order_type BSGS::order() const
@@ -180,6 +204,20 @@ void BSGS::extend_base(unsigned bp)
 
 void BSGS::extend_base(unsigned bp, unsigned i)
 { _base.insert(_base.begin() + i, bp); }
+
+void BSGS::transversals_init(BSGSOptions const *options)
+{
+  switch (options->transversals) {
+    case BSGSOptions::Transversals::EXPLICIT:
+      _transversals = std::make_shared<BSGSTransversals<ExplicitTransversals>>();
+      break;
+    case BSGSOptions::Transversals::SCHREIER_TREES:
+      _transversals = std::make_shared<BSGSTransversals<SchreierTree>>();
+      break;
+    case BSGSOptions::Transversals::SHALLOW_SCHREIER_TREES:
+      throw std::logic_error("TODO");
+  }
+}
 
 void BSGS::construct_symmetric()
 {
