@@ -133,6 +133,8 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
     .def_static("from_lua", &ArchGraphSystem::from_lua,
                 "lua"_a, "args"_a = std::vector<std::string>())
     .def("to_json", &ArchGraphSystem::to_json)
+    .def_static("from_json", &ArchGraphSystem::from_json,
+                "json"_a)
     .def("num_processors", &ArchGraphSystem::num_processors)
     .def("num_channels", &ArchGraphSystem::num_channels)
     .def("automorphisms",

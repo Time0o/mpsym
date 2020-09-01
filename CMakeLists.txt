@@ -22,6 +22,7 @@ include("${CMAKE_PROJECT_SETTINGS}")
 include("${CMAKE_ADD_EXTERNAL_PROJECT}")
 
 set(CMAKE_NAUTY_CONFIG "${CMAKE_SCRIPT_DIR}/GetNauty.cmake")
+set(CMAKE_NLOHMANN_JSON_CONFIG "${CMAKE_SCRIPT_DIR}/GetNlohmannJson.cmake")
 set(CMAKE_GTEST_CONFIG "${CMAKE_SCRIPT_DIR}/GetGTest.cmake")
 set(CMAKE_PERMLIB_CONFIG "${CMAKE_SCRIPT_DIR}/GetPermLib.cmake")
 set(CMAKE_PYBIND11_CONFIG "${CMAKE_SCRIPT_DIR}/GetPybind11.cmake")
@@ -45,6 +46,11 @@ set(MPSYM_TEST_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/test/include")
 set(MPSYM_PROFILE_SRC_DIR "${CMAKE_SOURCE_DIR}/profile/source")
 set(MPSYM_PROFILE_COMMON_DIR "${CMAKE_SOURCE_DIR}/profile/common")
 set(MPSYM_PROFILE_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/profile/include")
+
+# nlohmann_json
+set(NLOHMANN_JSON_BIN_DIR "${CMAKE_BINARY_DIR}/nlohmann_json")
+set(NLOHMANN_JSON_DOWNLOAD_DIR "${NLOHMANN_JSON_BIN_DIR}/download")
+set(NLOHMANN_JSON_SRC_DIR "${NLOHMANN_JSON_BIN_DIR}/source")
 
 # nauty
 set(NAUTY_SRC_DIR "${CMAKE_SOURCE_DIR}/nauty")
@@ -146,6 +152,17 @@ add_external_project(NAME "nauty_traces"
                      WORK_DIR "${NAUTY_DOWNLOAD_DIR}")
 
 add_subdirectory("${NAUTY_SRC_DIR}")
+
+# nlohmann_json
+message(STATUS "Acquiring nlohmann_json...")
+add_external_project(NAME "nlohmann_json"
+                     CONFIG_FILE "${CMAKE_NLOHMANN_JSON_CONFIG}"
+                     WORK_DIR "${NLOHMANN_JSON_DOWNLOAD_DIR}"
+                     SRC_DIR "${NLOHMANN_JSON_SRC_DIR}")
+
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+
+add_subdirectory("${NLOHMANN_JSON_SRC_DIR}")
 
 # googletest
 if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}")

@@ -55,9 +55,10 @@ endif()
 add_library("${MPSYM_LIB}" SHARED ${SOURCE_FILES})
 
 target_link_libraries("${MPSYM_LIB}"
-                      "${Boost_LIBRARIES}"
-                      "${LUA_LIBRARIES}"
-                      "${NAUTY_LIB}")
+                      PRIVATE "${Boost_LIBRARIES}"
+                      PRIVATE "${LUA_LIBRARIES}"
+                      PRIVATE "${NAUTY_LIB}"
+                      PRIVATE nlohmann_json::nlohmann_json)
 
 # Coverage
 if(DO_COVERAGE)

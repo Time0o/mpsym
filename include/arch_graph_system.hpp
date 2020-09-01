@@ -66,6 +66,7 @@ public:
   virtual std::string to_gap() const = 0;
 
   virtual std::string to_json();
+  static std::shared_ptr<ArchGraphSystem> from_json(std::string const &json);
 
   virtual unsigned num_processors() const
   { throw std::logic_error("not implemented"); }
