@@ -65,7 +65,7 @@ if(DO_COVERAGE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 
-  target_link_libraries("${MPSYM_LIB}" "${GCOV_LIB}")
+  target_link_libraries("${MPSYM_LIB}" PRIVATE "${GCOV_LIB}")
 endif()
 
 # Installation
