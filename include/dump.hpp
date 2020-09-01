@@ -139,7 +139,7 @@ transform_and_make_dumper(
   FUNC &&trans,
   std::initializer_list<char const *> brackets = {})
 {
-  static_assert(is_iterable<T>::value);
+  static_assert(is_iterable<T>::value, "is iterable");
 
   transformed_container<T, FUNC> cont;
   std::transform(obj.begin(), obj.end(), std::back_inserter(cont), trans);
