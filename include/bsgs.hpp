@@ -86,6 +86,11 @@ public:
        PermSet const &generators,
        BSGSOptions const *options = nullptr);
 
+  BSGS(unsigned degree,
+       Base const &base,
+       PermSet const &strong_generators,
+       BSGSOptions const *options = nullptr);
+
   unsigned degree() const { return _degree; }
   order_type order() const;
 
@@ -110,6 +115,10 @@ public:
   bool strips_completely(Perm const &perm) const;
 
 private:
+  // transversal initialization
+  void transversals_init(BSGSOptions const *options);
+
+  // construction
   void construct_symmetric();
   void construct_alternating();
   void construct_unknown(PermSet const &generators, BSGSOptions const *options);
