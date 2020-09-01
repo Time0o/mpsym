@@ -31,6 +31,15 @@ ArchUniformSuperGraph::to_gap() const
     + _subsystem_proto->to_gap() + "," + _subsystem_super_graph->to_gap() + ")";
 }
 
+std::string
+ArchUniformSuperGraph::to_json()
+{
+  return "{\"super_graph\": [" +
+           _subsystem_proto->to_json() + ", " +
+           _subsystem_super_graph->to_json() +
+         "]}";
+}
+
 unsigned
 ArchUniformSuperGraph::num_processors() const
 {

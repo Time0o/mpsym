@@ -5,6 +5,7 @@
 #include <memory>
 #include <ostream>
 #include <stdexcept>
+#include <string>
 #include <unordered_set>
 #include <utility>
 #include <vector>

@@ -27,6 +27,8 @@ public:
 
   std::string to_gap() const override;
 
+  std::string to_json() override;
+
   unsigned num_processors() const override;
   unsigned num_channels() const override;
 

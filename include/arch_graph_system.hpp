@@ -65,6 +65,8 @@ public:
 
   virtual std::string to_gap() const = 0;
 
+  virtual std::string to_json();
+
   virtual unsigned num_processors() const
   { throw std::logic_error("not implemented"); }
 

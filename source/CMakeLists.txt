@@ -10,6 +10,7 @@ set(SOURCE_FILES
     "arch_graph_nauty.cpp"
     "arch_graph_cluster.cpp"
     "arch_graph_system.cpp"
+    "arch_graph_system_json.cpp"
     "arch_graph_system_lua.cpp"
     "arch_uniform_super_graph.cpp"
     "block_system.cpp"
