@@ -58,7 +58,6 @@ set(NAUTY_INSTALL_LIB_DIR "lib")
 set(GTEST_BIN_DIR "${CMAKE_BINARY_DIR}/gtest")
 set(GTEST_DOWNLOAD_DIR "${GTEST_BIN_DIR}/download")
 set(GTEST_SRC_DIR "${GTEST_BIN_DIR}/source")
-set(GTEST_BIN_DIR "${GTEST_BIN_DIR}/build")
 set(GTEST_GMOCK_MAIN "gmock_main")
 
 # gcov
