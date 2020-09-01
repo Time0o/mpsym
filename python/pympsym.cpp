@@ -137,6 +137,9 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
     .def("automorphisms",
          [](ArchGraphSystem &self)
          { return self.automorphisms(); })
+    .def("num_automorphisms",
+         [](ArchGraphSystem &self)
+         { return self.num_automorphisms(); })
     .def("representative",
          [&](ArchGraphSystem &self, Sequence<> const &mapping)
          {
