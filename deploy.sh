@@ -33,7 +33,7 @@ cmake -DCMAKE_BUILD_TYPE=Release -DLUA_NO_ROCK=ON -DBUILD_DOC=ON ..
 
 # deploy documentation
 echo "Deploying documentation..."
-make doxygen
+make doc
 
 echo "Cloning gh-pages branch..."
 git clone -b gh-pages "https://$REPO_URL"
