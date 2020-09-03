@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.6)
 
 include_directories("${MPSYM_INCLUDE_DIR}"
-                    "${Boost_INCLUDE_DIR}"
+                    "${Boost_INCLUDE_DIRS}"
                     "${LUA_INCLUDE_DIR}"
                     "${NAUTY_WORK_DIR}")
+
+link_directories("${BOOST_LIBRARY_DIRS}")
 
 set(SOURCE_FILES
     "arch_graph.cpp"
@@ -34,7 +36,7 @@ set(SOURCE_FILES
     "schreier_tree.cpp"
     "timer.cpp")
 
-if(EMBED_LUA)
+if(LUA_EMBED)
   message(STATUS "Embedding ${LUA_MODULE_PATH} into ${LUA_MODULE_EMBED}")
 
   add_custom_command(

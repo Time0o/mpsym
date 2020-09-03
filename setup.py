@@ -1,17 +1,11 @@
 #!/usr/bin/env python3
 
 import os
-import platform
-import re
 import subprocess
 import sys
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
-
-
-SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-CMAKE_PROJECT_SETTINGS = os.path.join(SCRIPT_DIR, 'cmake', 'ProjectSettings.cmake')
 
 
 class CMakeExtension(Extension):
@@ -21,7 +15,23 @@ class CMakeExtension(Extension):
 
 
 class CMakeBuild(build_ext):
+    user_options = build_ext.user_options + [
+        ('cmake-extra-opts=', None, "Additional options passed to CMake"),
+    ]
+
+    def initialize_options(self):
+        build_ext.initialize_options(self)
+        self.cmake_extra_opts = None
+
+    def finalize_options(self):
+        build_ext.finalize_options(self)
+
     def run(self):
+        try:
+            subprocess.check_output(['cmake', '--version'])
+        except OSError:
+            raise RuntimeError("cmake command must be available")
+
         for ext in self.extensions:
             self.build_extension(ext)
 
@@ -44,9 +54,13 @@ class CMakeBuild(build_ext):
             '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(extdir),
             '-DCMAKE_BUILD_TYPE=Release',
             '-DPYTHON_BINDINGS=ON',
+            '-DPYTHON_NO_SETUP_PY=ON',
             '-DPYTHON_EXECUTABLE=' + sys.executable,
-            '-DEMBED_LUA=ON'
+            '-DLUA_EMBED=ON'
         ]
+
+        if self.cmake_extra_opts is not None:
+            cmake_cmd += self.cmake_extra_opts.split()
 
         subprocess.check_call(cmake_cmd, cwd=self.build_temp)
 
@@ -60,40 +74,17 @@ class CMakeBuild(build_ext):
 
         subprocess.check_call(cmake_build_cmd, cwd=self.build_temp)
 
-
-# check if CMake is available
-try:
-    subprocess.check_output(['cmake', '--version'])
-except OSError:
-    raise RuntimeError("cmake command must be available")
-
-
-# parse project settings
-project_settings = {}
-
-r = re.compile(r'set\((.*) "(.*)"\)')
-
-with open(CMAKE_PROJECT_SETTINGS, 'r') as f:
-    for line in f:
-        m = r.match(line.rstrip())
-
-        var = m[1]
-        var = var[len('CMAKE_PROJECT_'):]
-
-        val = m[2]
-
-        project_settings[var] = val
-
-
 # setup
 setup(
-    name='py' + project_settings['NAME'],
-    version=project_settings['VERSION'],
-    description=project_settings['DESCRIPTION'],
-    url=project_settings['HOMEPAGE_URL'],
-    author=project_settings['AUTHOR'],
-    license=project_settings['LICENSE'],
+    name='pympsym',
+    version="0.2",
+    description="MPSoC Symmetry Reduction",
+    long_description="mpsym is a C++/Lua/Python library that makes it possible to determine whether mappings of computational tasks to multiprocessor systems are equivalent by symmetry. It can also potentially be used to solve more general graph symmetry problems.",
+    url="https://github.com/Time0o/mpsym",
+    author="Timo Nicolai",
+    author_email="timonicolai@arcor.de",
+    license="MIT",
     cmdclass=dict(build_ext=CMakeBuild),
-    ext_modules=[CMakeExtension(project_settings['NAME'])],
+    ext_modules=[CMakeExtension('mpsym')],
     zip_safe=False
 )

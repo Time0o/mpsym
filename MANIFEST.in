@@ -1,0 +1,12 @@
+include CMakeLists.txt
+include embedfile.sh
+include setup.py
+include README.md
+include LICENSE.txt
+
+graft cmake
+graft source
+graft include
+graft nauty
+graft lua
+graft python

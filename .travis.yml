@@ -53,6 +53,7 @@ matrix:
             - doxygen
       env:
          - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+         - DEPLOY=Yes
 
 before_install:
   - sudo add-apt-repository -y ppa:mhier/libboost-latest
@@ -61,14 +62,16 @@ before_install:
   - eval "${MATRIX_EVAL}"
 
 script:
-  - mkdir debug
-  - cd debug
+  - mkdir build
+  - cd build
   - cmake -DCMAKE_BUILD_TYPE=Debug -DPYTHON_BINDINGS=ON -DPYTHON_EXECUTABLE=$(which python3) ..
   - make all
   - make test
-
-after_success:
   - bash "${TRAVIS_BUILD_DIR}/deploy.sh"
 
 notifications:
   email: false
+
+env:
+  global:
+    secure: "XL8MEuDll5YOR9i4QLSYJ79Phk2oNgEbzmYSAmeeWTKGUQRtuv3y7hgJHn7pi/3VkTzxoYF7kX+aytnzhY/SYGS8XIhjRgkjIr4bXKuB+f+b++LtorRiUPHH52VyxLOgytRysDxXJpeTHTULMllJEvMWAk2bkR3hutl25v9FdKF7PbCpTsKPOKi+hL2IkCkHDeW1kZyXwzuCwG+GqwgSaV4RYIGf/WXadQBYdk1Pi7Byn/i0DfPegMtPrW517iUj8m4PMTCDuVeuV9lzVmMh2oEACxU+mu5NGPedj7Au6m0B/7S0DkAA5zCyhr5UmeQEieqv+nfGqTB3j3nBx0ITc+Vw21GLMg5vMi8h3nBgv8ppzHLz26ljgmJk8+gTOaCX5qmkU0uRTkAiwrb12l5WlaX+QQ9yNIErQGgeD9C5t6a0MTiwkUMUHdnJl5apudbLL0K6/0tCicVx3Uq0sry4eI7gWV3sOPWa4jPqOMx4aHUMxV7NqmzQTo9NDLyhRbeTzSXAMJe990hquxcfqi07YeSBegso3NHzejlqkh4PoyEsqmsP1o6pprzRnwBmkM8pXwt7xQHNs2CgRj7TeTRAzSjwTm+b4J/AM+/lcb+dz2ZShxjpDZD3AhEIdD7hNlnehlCL67e2ikyDMylSyXr30pk58emdUwxo0yt+OvM3trY="
