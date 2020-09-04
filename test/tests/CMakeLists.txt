@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.6)
 include_directories("${MPSYM_INCLUDE_DIR}"
                     "${MPSYM_TEST_INCLUDE_DIR}"
                     "${MPSYM_TEST_SRC_DIR}"
+                    "${Boost_INCLUDE_DIRS}"
+                    "${LUA_INCLUDE_DIR}"
                     "${NAUTY_WORK_DIR}")
 
 file(GLOB TEST_SOURCES "*_test.cpp")
