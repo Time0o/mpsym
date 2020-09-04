@@ -51,9 +51,9 @@ class CMakeBuild(build_ext):
         cmake_cmd = [
             'cmake',
             ext.sourcedir,
-            '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(extdir),
             '-DCMAKE_BUILD_TYPE=Release',
             '-DPYTHON_BINDINGS=ON',
+            '-DPYTHON_LIBRARY_OUTPUT_DIRECTORY={}'.format(extdir),
             '-DPYTHON_NO_SETUP_PY=ON',
             '-DPYTHON_EXECUTABLE=' + sys.executable,
             '-DLUA_EMBED=ON'
