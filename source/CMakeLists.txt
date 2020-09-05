@@ -63,7 +63,7 @@ target_link_libraries("${MPSYM_LIB}"
                       PRIVATE nlohmann_json::nlohmann_json)
 
 # Coverage
-if(DO_COVERAGE)
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}" AND DO_COVERAGE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 
