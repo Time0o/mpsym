@@ -52,6 +52,7 @@ class CMakeBuild(build_ext):
             'cmake',
             ext.sourcedir,
             '-DCMAKE_BUILD_TYPE=Release',
+            '-DLINK_STATIC=ON',
             '-DPYTHON_BINDINGS=ON',
             '-DPYTHON_LIBRARY_OUTPUT_DIRECTORY={}'.format(extdir),
             '-DPYTHON_NO_SETUP_PY=ON',

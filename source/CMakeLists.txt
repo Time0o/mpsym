@@ -54,7 +54,12 @@ if(LUA_EMBED)
   )
 endif()
 
-add_library("${MPSYM_LIB}" SHARED ${SOURCE_FILES})
+if(LINK_STATIC)
+  add_library("${MPSYM_LIB}" STATIC ${SOURCE_FILES})
+  set_property(TARGET "${MPSYM_LIB}" PROPERTY POSITION_INDEPENDENT_CODE ON)
+else()
+  add_library("${MPSYM_LIB}" SHARED ${SOURCE_FILES})
+endif()
 
 target_link_libraries("${MPSYM_LIB}"
                       PUBLIC "${Boost_LIBRARIES}"

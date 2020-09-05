@@ -142,6 +142,10 @@ add_definitions(
 include("${CMAKE_ADD_EXTERNAL_PROJECT}")
 
 # Boost
+if(LINK_STATIC)
+  set(Boost_USE_STATIC_LIBS ON)
+endif()
+
 message(STATUS "Finding boost...")
 find_package(Boost 1.40 REQUIRED COMPONENTS graph)
 
