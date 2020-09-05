@@ -57,7 +57,7 @@ endif()
 add_library("${MPSYM_LIB}" SHARED ${SOURCE_FILES})
 
 target_link_libraries("${MPSYM_LIB}"
-                      PRIVATE "${Boost_LIBRARIES}"
+                      PUBLIC "${Boost_LIBRARIES}"
                       PRIVATE "${LUA_LIBRARIES}"
                       PRIVATE "${NAUTY_LIB}"
                       PRIVATE nlohmann_json::nlohmann_json)

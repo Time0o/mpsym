@@ -66,6 +66,8 @@ private:
 
   internal::NautyGraph graph_nauty() const;
 
+  std::string to_gap_nauty() const;
+
   internal::PermGroup automorphisms_nauty(
     AutomorphismOptions const *options) const;
 

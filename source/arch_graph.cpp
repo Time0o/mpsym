@@ -11,7 +11,6 @@
 #include <boost/range/iterator_range_core.hpp>
 
 #include "arch_graph.hpp"
-#include "arch_graph_nauty.hpp"
 #include "dump.hpp"
 #include "perm.hpp"
 #include "perm_group.hpp"
@@ -23,7 +22,7 @@ namespace mpsym
 using namespace internal;
 
 std::string ArchGraph::to_gap() const
-{ return graph_nauty().to_gap(num_processors()); }
+{ return to_gap_nauty(); }
 
 ArchGraph::ProcessorType ArchGraph::new_processor_type(ProcessorLabel pl)
 {

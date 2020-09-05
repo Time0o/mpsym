@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/multiprecision/cpp_int.hpp>
+
 #include "arch_graph_system.hpp"
 #include "bsgs.hpp"
 
