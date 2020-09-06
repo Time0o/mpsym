@@ -30,6 +30,10 @@ local function to_float(obj)
   return obj
 end
 
+local function is_boolean(obj)
+  return type(obj) == 'boolean'
+end
+
 local function is_string(obj)
   return type(obj) == 'string'
 end
@@ -142,6 +146,10 @@ local function is_arch_graph(obj)
     return false, "not a table"
   end
 
+  if obj.directed == nil then
+    return false, "missing 'directed' element"
+  end
+
   if obj.processors == nil and obj.clusters == nil then
     return false, "missing 'processors/clusters' element"
   end
@@ -156,8 +164,13 @@ local function is_arch_graph(obj)
   end
 
   for k, v in pairs(obj) do
+    -- check that directed element is well formed
+    if k == 'directed' then
+      if not is_boolean(v) then
+        return false, "'directed' element is not a boolean"
+      end
     -- check that processing elements are well formed
-    if k == 'processors' then
+    elseif k == 'processors' then
       if not is_array(v) then
         return false, "'processors' element is not an array"
       end

@@ -26,9 +26,10 @@ namespace internal
 class NautyGraph
 {
 public:
-  NautyGraph(int n)
+  NautyGraph(int n, bool directed)
   : _n(n),
-    _m(SETWORDSNEEDED(n))
+    _m(SETWORDSNEEDED(n)),
+    _directed(directed)
   {
 #ifndef NDEBUG
     nauty_check(WORDSIZE, _m, _n, NAUTYVERSIONID);
@@ -56,7 +57,11 @@ public:
 
   void add_edge(int from, int to)
   {
-    ADDONEEDGE(_g, from, to, _m);
+    if (_directed)
+      ADDONEARC(_g, from, to, _m);
+    else
+      ADDONEEDGE(_g, from, to, _m);
+
     _edges.emplace_back(from, to);
   }
 
@@ -101,8 +106,10 @@ public:
       int target = edge.second + 1;
 
       if (source != target) {
-        ss << "[" << source << "," << target << "],"
-           << "[" << target << "," << source << "],";
+        ss << "[" << source << "," << target << "],";
+
+        if (!_directed)
+           ss << "[" << target << "," << source << "],";
       }
     }
 
@@ -148,6 +155,7 @@ private:
 
   graph * _g;
   std::size_t _n, _m;
+  bool _directed;
   int *_lab, *_ptn, *_orbits;
 
   std::vector<std::pair<int, int>> _edges;
@@ -170,7 +178,7 @@ internal::NautyGraph ArchGraph::graph_nauty() const
   int n_orig = num_processors();
   int n = n_orig * (cts_log2 + 1u);
 
-  internal::NautyGraph g(n);
+  internal::NautyGraph g(n, _directed);
 
   /* node numbering:
    *  ...     ...           ...

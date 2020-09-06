@@ -36,7 +36,7 @@ class ArchGraph : public ArchGraphSystem
   struct EdgeProperty { channel_type_size_type type; };
 
   typedef boost::adjacency_list<
-    edge_selector, vertex_selector, boost::undirectedS,
+    edge_selector, vertex_selector, boost::directedS,
     VertexProperty, EdgeProperty> adjacency_type;
 
   typedef adjacency_type::vertices_size_type vertices_size_type;
@@ -45,6 +45,10 @@ class ArchGraph : public ArchGraphSystem
 public:
   typedef processor_type_size_type ProcessorType;
   typedef channel_type_size_type ChannelType;
+
+  ArchGraph(bool directed)
+  : _directed(directed)
+  {}
 
   virtual ~ArchGraph() = default;
 
@@ -81,6 +85,7 @@ private:
   void dump_automorphisms(std::ostream& os);
 
   adjacency_type _adj;
+  bool _directed;
 
   std::vector<std::string> _processor_types;
   std::vector<std::string> _channel_types;

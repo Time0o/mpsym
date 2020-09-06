@@ -187,7 +187,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
   py::class_<ArchGraph,
              ArchGraphSystem,
              std::shared_ptr<ArchGraph>>(m, "ArchGraph")
-    .def(py::init<>())
+    .def(py::init<bool>(), "directed"_a)
     .def("new_processor_type", &ArchGraph::new_processor_type, "pl"_a = "")
     .def("new_channel_type", &ArchGraph::new_channel_type, "cl"_a = "")
     .def("add_processor", &ArchGraph::add_processor, "pe"_a)

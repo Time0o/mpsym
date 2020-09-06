@@ -91,7 +91,7 @@ protected:
      * |         |  |         |
      * 4 -- 3 -- 3  P -- C -- P
      */
-    ArchGraph ag;
+    ArchGraph ag(false);
 
     auto p = ag.new_processor_type("P");
     auto c = ag.new_channel_type("C");
@@ -117,7 +117,7 @@ protected:
      * |         |  |          |
      * 4 -- 3 -- 3  P2 -- C -- P1
      */
-    ArchGraph ag;
+    ArchGraph ag(false);
 
     auto p1 = ag.new_processor_type("P1");
     auto p2 = ag.new_processor_type("P2");
@@ -144,7 +144,7 @@ protected:
      * |         |  |          |
      * 4 -- 3 -- 3  P -- C1 -- P
      */
-    ArchGraph ag;
+    ArchGraph ag(false);
 
     auto p = ag.new_processor_type("P");
     auto c1 = ag.new_channel_type("C1");
@@ -171,7 +171,7 @@ protected:
      * |         |  |           |
      * 4 -- 3 -- 3  P2 -- C1 -- P1
      */
-    ArchGraph ag;
+    ArchGraph ag(false);
 
     auto p1 = ag.new_processor_type("P1");
     auto p2 = ag.new_processor_type("P2");
@@ -192,7 +192,8 @@ protected:
   }
 
   ArchGraph ag_tri() {
-    ArchGraph ag;
+    ArchGraph ag(false);
+
     auto p = ag.new_processor_type("P");
     auto c = ag.new_channel_type("C");
 
@@ -213,7 +214,7 @@ protected:
      * |   |
      * P3--P4
      */
-    ArchGraph ag;
+    ArchGraph ag(false);
 
     auto p = ag.new_processor_type("P");
     auto c = ag.new_channel_type("C");
@@ -239,7 +240,7 @@ protected:
      * |   |   |
      * P7--P8--P9
      */
-    ArchGraph ag;
+    ArchGraph ag(false);
 
     auto p = ag.new_processor_type("P");
     auto c = ag.new_channel_type("C");
@@ -389,7 +390,7 @@ private:
      *
      * P -- C -- P
      */
-    auto ag(std::make_shared<ArchGraph>());
+    auto ag(std::make_shared<ArchGraph>(false));
 
     auto p = ag->new_processor_type("P");
     auto c = ag->new_channel_type("C");
@@ -481,7 +482,7 @@ protected:
 private:
   void construct_minimal() {
     // construct uniform super_graph
-    auto super_graph(std::make_shared<ArchGraph>());
+    auto super_graph(std::make_shared<ArchGraph>(false));
 
     auto sp = super_graph->new_processor_type();
     auto sc = super_graph->new_channel_type();
@@ -497,7 +498,7 @@ private:
     super_graph->add_channel(spe4, spe1, sc);
 
     // construct subsystem prototype
-    auto proto(std::make_shared<ArchGraph>());
+    auto proto(std::make_shared<ArchGraph>(false));
 
     auto p = proto->new_processor_type();
     auto c = proto->new_channel_type();
