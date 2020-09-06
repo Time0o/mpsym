@@ -16,15 +16,18 @@ class CMakeExtension(Extension):
 
 class CMakeBuild(build_ext):
     user_options = build_ext.user_options + [
+        ('debug-build', None, "Build in debug mode"),
         ('cmake-extra-opts=', None, "Additional options passed to CMake"),
     ]
 
     def initialize_options(self):
         build_ext.initialize_options(self)
+        self.debug_build = False
         self.cmake_extra_opts = None
 
     def finalize_options(self):
         build_ext.finalize_options(self)
+        self.debug_build = bool(self.debug_build)
 
     def run(self):
         try:
@@ -51,7 +54,6 @@ class CMakeBuild(build_ext):
         cmake_cmd = [
             'cmake',
             ext.sourcedir,
-            '-DCMAKE_BUILD_TYPE=Release',
             '-DLINK_STATIC=ON',
             '-DPYTHON_BINDINGS=ON',
             '-DPYTHON_LIBRARY_OUTPUT_DIRECTORY={}'.format(extdir),
@@ -59,6 +61,16 @@ class CMakeBuild(build_ext):
             '-DPYTHON_EXECUTABLE=' + sys.executable,
             '-DLUA_EMBED=ON'
         ]
+
+        if self.debug_build:
+            cmake_cmd += [
+                '-DCMAKE_BUILD_TYPE=Debug',
+                '-DNO_COVERAGE=ON'
+            ]
+        else:
+            cmake_cmd += [
+                '-DCMAKE_BUILD_TYPE=Release'
+            ]
 
         if self.cmake_extra_opts is not None:
             cmake_cmd += self.cmake_extra_opts.split()

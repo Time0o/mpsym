@@ -231,7 +231,7 @@ endif()
 # Debug Build
 ################################################################################
 
-if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}")
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}" AND NOT NO_COVERAGE)
   # Coverage
   message(STATUS "Configuring coverage data generation...")
 
