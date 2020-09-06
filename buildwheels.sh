@@ -75,8 +75,10 @@ if [[ -z "$BUILDWHEELS_SKIP_INSTALL_DEPS" ]]; then
 
   if [[ ! -z "$BUILDWHEELS_DEBUG" ]]; then
     BOOST_VARIANT="variant=debug"
+    BOOST_CXXFLAGS="-O2 -g3 -fno-omit-frame-pointer"
   else
     BOOST_VARIANT="variant=release"
+    BOOST_CXXFLAGS="-O2"
   fi
 
   if [[ ! -z "$BUILDWHEELS_LINK_STATIC" ]]; then
@@ -91,7 +93,7 @@ if [[ -z "$BUILDWHEELS_SKIP_INSTALL_DEPS" ]]; then
   tar zxf "$BOOST_ARCHIVE"
   cd "boost_$BOOST_VERSION_"
   ./bootstrap.sh --with-libraries=graph
-  ./b2 "$BOOST_VARIANT" "$BOOST_LINK" cxxflags='-O2'
+  ./b2 "$BOOST_VARIANT" "$BOOST_LINK" cxxflags="$BOOST_CXXFLAGS"
   cd -
 
   # Install Lua
@@ -104,7 +106,9 @@ if [[ -z "$BUILDWHEELS_SKIP_INSTALL_DEPS" ]]; then
   LUA_ARCHIVE="lua-$LUA_VERSION.tar.gz"
 
   if [[ ! -z "$BUILDWHEELS_DEBUG" ]]; then
-    LUA_DEBUG_FLAGS="-g"
+    LUA_MYCFLAGS="-fPIC -O2 -g3 -fno-omit-frame-pointer"
+  else
+    LUA_MYCFLAGS="-fPIC -O2"
   fi
 
   mkdir -p "$LUA_DIR"
@@ -112,7 +116,7 @@ if [[ -z "$BUILDWHEELS_SKIP_INSTALL_DEPS" ]]; then
   curl "https://www.lua.org/ftp/$LUA_ARCHIVE" -o "$LUA_ARCHIVE"
   tar zxf "$LUA_ARCHIVE"
   cd "lua-$LUA_VERSION"
-  make linux MYCFLAGS="-fPIC $LUA_DEBUG_FLAGS"
+  make linux MYCFLAGS="$LUA_MYCFLAGS"
   make install
   cd -
 

@@ -25,6 +25,11 @@ project(
 
 set(CMAKE_CXX_STANDARD 11)
 
+set(DEBUG_FLAGS " -g3 -fno-omit-frame-pointer")
+string(APPEND CMAKE_C_FLAGS_DEBUG "${DEBUG_FLAGS}")
+string(APPEND CMAKE_CXX_FLAGS_DEBUG "${DEBUG_FLAGS}")
+string(APPEND CMAKE_C_FLAGS_RELWITHDEBINFO "${DEBUG_FLAGS}")
+string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO "${DEBUG_FLAGS}")
 
 ################################################################################
 # Project Structure
