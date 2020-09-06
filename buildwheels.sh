@@ -91,7 +91,7 @@ if [[ -z "$BUILDWHEELS_SKIP_INSTALL_DEPS" ]]; then
   tar zxf "$BOOST_ARCHIVE"
   cd "boost_$BOOST_VERSION_"
   ./bootstrap.sh --with-libraries=graph
-  ./b2 "$BOOST_VARIANT" "$BOOST_LINK"
+  ./b2 "$BOOST_VARIANT" "$BOOST_LINK" cxxflags='-O2'
   cd -
 
   # Install Lua
@@ -104,7 +104,7 @@ if [[ -z "$BUILDWHEELS_SKIP_INSTALL_DEPS" ]]; then
   LUA_ARCHIVE="lua-$LUA_VERSION.tar.gz"
 
   if [[ ! -z "$BUILDWHEELS_DEBUG" ]]; then
-    LUA_DEBUG_FLAGS="-Og -g"
+    LUA_DEBUG_FLAGS="-g"
   fi
 
   mkdir -p "$LUA_DIR"

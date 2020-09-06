@@ -54,6 +54,7 @@ class CMakeBuild(build_ext):
         cmake_cmd = [
             'cmake',
             ext.sourcedir,
+            '-DCMAKE_BUILD_TYPE=' + ('RelWithDebInfo' if self.debug_build else 'Release'),
             '-DLINK_STATIC=ON',
             '-DPYTHON_BINDINGS=ON',
             '-DPYTHON_LIBRARY_OUTPUT_DIRECTORY={}'.format(extdir),
@@ -61,16 +62,6 @@ class CMakeBuild(build_ext):
             '-DPYTHON_EXECUTABLE=' + sys.executable,
             '-DLUA_EMBED=ON'
         ]
-
-        if self.debug_build:
-            cmake_cmd += [
-                '-DCMAKE_BUILD_TYPE=Debug',
-                '-DNO_COVERAGE=ON'
-            ]
-        else:
-            cmake_cmd += [
-                '-DCMAKE_BUILD_TYPE=Release'
-            ]
 
         if self.cmake_extra_opts is not None:
             cmake_cmd += self.cmake_extra_opts.split()
