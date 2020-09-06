@@ -54,16 +54,21 @@ if(LUA_EMBED)
   )
 endif()
 
-add_library("${MPSYM_LIB}" SHARED ${SOURCE_FILES})
+if(LINK_STATIC)
+  add_library("${MPSYM_LIB}" STATIC ${SOURCE_FILES})
+  set_property(TARGET "${MPSYM_LIB}" PROPERTY POSITION_INDEPENDENT_CODE ON)
+else()
+  add_library("${MPSYM_LIB}" SHARED ${SOURCE_FILES})
+endif()
 
 target_link_libraries("${MPSYM_LIB}"
-                      PRIVATE "${Boost_LIBRARIES}"
+                      PUBLIC "${Boost_LIBRARIES}"
                       PRIVATE "${LUA_LIBRARIES}"
                       PRIVATE "${NAUTY_LIB}"
                       PRIVATE nlohmann_json::nlohmann_json)
 
 # Coverage
-if(DO_COVERAGE)
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}" AND DO_COVERAGE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 

@@ -25,6 +25,11 @@ project(
 
 set(CMAKE_CXX_STANDARD 11)
 
+set(DEBUG_FLAGS " -g3 -fno-omit-frame-pointer")
+string(APPEND CMAKE_C_FLAGS_DEBUG "${DEBUG_FLAGS}")
+string(APPEND CMAKE_CXX_FLAGS_DEBUG "${DEBUG_FLAGS}")
+string(APPEND CMAKE_C_FLAGS_RELWITHDEBINFO "${DEBUG_FLAGS}")
+string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO "${DEBUG_FLAGS}")
 
 ################################################################################
 # Project Structure
@@ -142,6 +147,10 @@ add_definitions(
 include("${CMAKE_ADD_EXTERNAL_PROJECT}")
 
 # Boost
+if(LINK_STATIC)
+  set(Boost_USE_STATIC_LIBS ON)
+endif()
+
 message(STATUS "Finding boost...")
 find_package(Boost 1.40 REQUIRED COMPONENTS graph)
 
@@ -227,7 +236,7 @@ endif()
 # Debug Build
 ################################################################################
 
-if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}")
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}" AND NOT NO_COVERAGE)
   # Coverage
   message(STATUS "Configuring coverage data generation...")
 
