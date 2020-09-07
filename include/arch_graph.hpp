@@ -9,6 +9,7 @@
 #include <boost/graph/adjacency_list.hpp>
 
 #include "arch_graph_system.hpp"
+#include "nauty_graph.hpp"
 #include "perm_group.hpp"
 
 namespace mpsym
