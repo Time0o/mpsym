@@ -118,12 +118,10 @@ class ArchGraphSystemTest(unittest.TestCase):
 
         return mpsym.ArchUniformSuperGraph:create{
           super_graph = mpsym.ArchGraph:create{
-            directed = false,
             clusters = super_graph_clusters,
             channels = super_graph_channels
           },
           proto = mpsym.ArchGraph:create{
-            directed = false,
             processors = proto_processors,
             channels = proto_channels
           }

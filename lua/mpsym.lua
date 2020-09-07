@@ -146,10 +146,6 @@ local function is_arch_graph(obj)
     return false, "not a table"
   end
 
-  if obj.directed == nil then
-    return false, "missing 'directed' element"
-  end
-
   if obj.processors == nil and obj.clusters == nil then
     return false, "missing 'processors/clusters' element"
   end
@@ -284,6 +280,8 @@ function ArchGraph:create(obj)
 
   setmetatable(obj, self)
   obj.__index = self
+
+  obj._directed = obj.directed or false
 
   obj._num_processors = #obj.processors
   obj._num_channels = #obj.channels

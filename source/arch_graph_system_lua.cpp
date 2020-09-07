@@ -167,7 +167,7 @@ std::shared_ptr<mpsym::ArchGraph> lua_make_arch_graph(lua_State *L)
 {
   assert(lua_is_arch_graph(L, -1));
 
-  lua_getfield(L, -1, "directed");
+  lua_getfield(L, -1, "_directed");
   bool directed = lua_get_and_pop<bool>(L);
 
   auto ag(std::make_shared<mpsym::ArchGraph>(directed));

@@ -47,7 +47,7 @@ public:
   typedef processor_type_size_type ProcessorType;
   typedef channel_type_size_type ChannelType;
 
-  ArchGraph(bool directed)
+  ArchGraph(bool directed = false)
   : _directed(directed)
   {}
 
