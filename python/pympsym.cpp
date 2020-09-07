@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <map>
 #include <memory>
 #include <set>
 #include <sstream>
@@ -14,9 +15,11 @@
 #include <pybind11/stl.h>
 
 #include "arch_graph.hpp"
+#include "arch_graph_automorphisms.hpp"
 #include "arch_graph_cluster.hpp"
 #include "arch_graph_system.hpp"
 #include "arch_uniform_super_graph.hpp"
+#include "nauty_graph.hpp"
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"
@@ -35,7 +38,9 @@ using mpsym::ArchUniformSuperGraph;
 using mpsym::TaskMapping;
 using mpsym::TaskOrbits;
 
+using mpsym::internal::ArchGraphAutomorphisms;
 using mpsym::internal::BSGS;
+using mpsym::internal::NautyGraph;
 using mpsym::internal::Perm;
 using mpsym::internal::PermGroup;
 using mpsym::internal::PermSet;
@@ -132,6 +137,61 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                 "lua_file"_a, "args"_a = std::vector<std::string>())
     .def_static("from_lua", &ArchGraphSystem::from_lua,
                 "lua"_a, "args"_a = std::vector<std::string>())
+    .def_static("from_nauty", [](int vertices,
+                                 std::map<int, std::vector<int>> const &adjacencies,
+                                 bool directed,
+                                 std::vector<std::vector<int>> const &coloring){
+
+                  // validate number of vertices
+                  if (vertices <= 0)
+                    throw std::logic_error("number of vertices must be non-negative");
+
+                  // validate adjacencies
+                  for (auto const &p : adjacencies) {
+                    int from = p.first;
+
+                    if (from >= vertices)
+                      throw std::logic_error("vertex index out of range");
+
+                    for (int to : p.second) {
+                      if (to >= vertices)
+                        throw std::logic_error("vertex index out of range");
+                    }
+                  }
+
+                  // validate coloring
+                  if (!coloring.empty()) {
+                    std::set<int> tmp;
+                    for (auto const &p : coloring)
+                      tmp.insert(p.begin(), p.end());
+
+                    if (static_cast<int>(tmp.size()) != vertices
+                        || *tmp.begin() != 0
+                        || *tmp.rbegin() != vertices - 1) {
+
+                      throw std::logic_error("invalid coloring");
+                    }
+                  }
+
+                  // construct graph
+                  NautyGraph g(vertices, directed);
+
+                  g.add_edges(adjacencies);
+
+                  if (coloring.empty())
+                    g.set_trivial_partition();
+                  else
+                    g.set_partition(coloring);
+
+                  // extract automorphisms
+                  auto automs(g.automorphisms());
+
+                  return std::make_shared<ArchGraphAutomorphisms>(automs);
+                },
+                "vertices"_a,
+                "adjacencies"_a,
+                "directed"_a = true,
+                "coloring"_a = std::vector<int>())
     .def("to_json", &ArchGraphSystem::to_json)
     .def_static("from_json", &ArchGraphSystem::from_json,
                 "json"_a)
@@ -182,6 +242,12 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
            return orbit;
          },
          "mapping"_a, "sorted"_a = true);
+
+  // ArchGraphAutomorphisms
+  py::class_<ArchGraphAutomorphisms,
+             ArchGraphSystem,
+             std::shared_ptr<ArchGraphAutomorphisms>>(m, "ArchGraphAutomorphisms")
+    .def(py::init<PermGroup>(), "automorphisms"_a);
 
   // ArchGraph
   py::class_<ArchGraph,

@@ -1,3 +1,6 @@
+#include <cassert>
+#include <map>
+#include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -118,12 +121,24 @@ std::string NautyGraph::to_gap() const
 
 void NautyGraph::add_edge(int from, int to)
 {
+  assert(from < _n);
+  assert(to < _n);
+
   if (_directed)
     ADDONEARC(_g, from, to, _m);
   else
     ADDONEEDGE(_g, from, to, _m);
 
   _edges.emplace_back(from, to);
+}
+
+void NautyGraph::add_edges(std::map<int, std::vector<int>> const &adj)
+{
+  for (auto const &p : adj) {
+    int from = p.first;
+    for (int to : p.second)
+      add_edge(from, to);
+  }
 }
 
 void NautyGraph::set_partition(std::vector<std::vector<int>> const &ptn)
@@ -140,8 +155,19 @@ void NautyGraph::set_partition(std::vector<std::vector<int>> const &ptn)
   }
 }
 
+void NautyGraph::set_trivial_partition()
+{
+  std::vector<int> ptn(_n);
+  std::iota(ptn.begin(), ptn.end(), 0);
+
+  set_partition({ptn});
+}
+
 PermGroup NautyGraph::automorphisms(AutomorphismOptions const *options) const
 {
+  assert(!_edges.empty());
+  assert(!_ptn_expl.empty());
+
   static DEFAULTOPTIONS_GRAPH(nauty_options);
   nauty_options.defaultptn = FALSE;
   nauty_options.userautomproc = _save_gens;

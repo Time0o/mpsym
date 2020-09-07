@@ -1,6 +1,7 @@
 #ifndef GUARD_NAUTY_GRAPH_H
 #define GUARD_NAUTY_GRAPH_H
 
+#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -17,6 +18,10 @@ namespace internal
 class NautyGraph
 {
 public:
+  NautyGraph(int n, bool directed)
+  : NautyGraph(n, n, directed)
+  {}
+
   NautyGraph(int n, int n_reduced, bool directed);
 
   ~NautyGraph();
@@ -24,7 +29,10 @@ public:
   std::string to_gap() const;
 
   void add_edge(int from, int to);
+  void add_edges(std::map<int, std::vector<int>> const &adj);
+
   void set_partition(std::vector<std::vector<int>> const &ptn);
+  void set_trivial_partition();
 
   PermGroup automorphisms(AutomorphismOptions const *options = nullptr) const;
 
