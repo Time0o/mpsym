@@ -24,7 +24,6 @@
 
 #include "profile_run.hpp"
 #include "profile_timer.hpp"
-#include "profile_util.hpp"
 
 namespace
 {
@@ -337,7 +336,7 @@ std::vector<std::string> parse_output(std::string const &output_,
                                       unsigned num_runs,
                                       std::vector<double> *ts)
 {
-  using profile::split;
+  using mpsym::internal::util::split;
   using profile::stof;
 
   auto output(compress_output(clean_output(output_)));

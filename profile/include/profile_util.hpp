@@ -11,6 +11,8 @@
 
 #include <sys/types.h>
 
+#include "timer.hpp"
+
 namespace profile
 {
 
@@ -49,7 +51,25 @@ void debug_progress(ARGS &&...args)
 inline void debug_progress_done()
 { std::cout << "\n"; }
 
-void debug_timer_dump(char const *timer);
+inline void debug_timer_dump(char const *timer)
+{
+  if (!TIMER_EXISTS(timer)) {
+    debug("TIMER (" + std::string(timer) + "): never invoked");
+    return;
+  }
+
+  std::ostream *os = TIMER_GET_OUT();
+
+  std::stringstream ss;
+  TIMER_SET_OUT(&ss);
+
+  TIMER_DUMP(timer);
+
+  auto str(ss.str());
+  debug(str.substr(0u, str.size() - 1u));
+
+  TIMER_SET_OUT(os);
+}
 
 template<typename... ARGS>
 void warning(ARGS &&...args)
@@ -105,10 +125,6 @@ T stof(std::string const &str)
 
   return d;
 }
-
-std::vector<std::string> split(std::string const &str, char const *delim = " ");
-
-std::string join(std::vector<std::string> const &strs, char const *delim = ",");
 
 } // namespace profile
 
