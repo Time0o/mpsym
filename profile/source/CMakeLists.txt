@@ -8,7 +8,7 @@ include_directories(SYSTEM "${PERMLIB_INCLUDE_DIR}") # to ignore all warnings
 
 file(GLOB PROFILE_SOURCES "*_profile.cpp")
 
-file(GLOB PROFILE_UTIL "${PROFILE_COMMON_DIR}/profile_*.cpp")
+file(GLOB PROFILE_UTIL "${MPSYM_PROFILE_COMMON_DIR}/profile_*.cpp")
 
 foreach(PROFILE_SOURCE ${PROFILE_SOURCES})
   get_filename_component(PROFILE_PROG "${PROFILE_SOURCE}" NAME)
