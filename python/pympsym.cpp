@@ -133,8 +133,6 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
   // ArchGraphSystem
   py::class_<ArchGraphSystem,
              std::shared_ptr<ArchGraphSystem>>(m, "ArchGraphSystem")
-    .def_static("from_lua_file", &ArchGraphSystem::from_lua_file,
-                "lua_file"_a, "args"_a = std::vector<std::string>())
     .def_static("from_lua", &ArchGraphSystem::from_lua,
                 "lua"_a, "args"_a = std::vector<std::string>())
     .def_static("from_nauty", [](int vertices,
