@@ -185,6 +185,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                 "directed"_a = true,
                 "coloring"_a = std::vector<int>())
     .def("to_json", &ArchGraphSystem::to_json)
+    .def("__repr__", &ArchGraphSystem::to_json)
     .def_static("from_json", &ArchGraphSystem::from_json,
                 "json"_a)
     .def("num_processors", &ArchGraphSystem::num_processors)
