@@ -3,6 +3,7 @@
 
 #include "hash.hpp"
 #include "numeric.hpp"
+#include "parse.hpp"
 #include "random.hpp"
 #include "string.hpp"
 
