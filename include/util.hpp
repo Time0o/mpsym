@@ -14,9 +14,6 @@
 namespace mpsym
 {
 
-namespace internal
-{
-
 namespace util
 {
 
@@ -129,8 +126,6 @@ inline std::string join(std::vector<std::string> const &strs,
 }
 
 } // namespace util
-
-} // namespace internal
 
 } // namespace mpsym
 

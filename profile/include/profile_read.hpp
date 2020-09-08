@@ -43,14 +43,14 @@ inline std::string read_file(std::ifstream &stream, unsigned max_lines = 0u)
   if (max_lines == 0u)
     return content;
 
-  auto lines(mpsym::internal::util::split(content, "\n"));
+  auto lines(mpsym::util::split(content, "\n"));
 
   if (lines.size() <= max_lines)
     return content;
 
   lines.resize(max_lines);
 
-  return mpsym::internal::util::join(lines, "\n");
+  return mpsym::util::join(lines, "\n");
 }
 
 template<typename FUNC>

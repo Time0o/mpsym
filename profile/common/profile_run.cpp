@@ -336,7 +336,7 @@ std::vector<std::string> parse_output(std::string const &output_,
                                       unsigned num_runs,
                                       std::vector<double> *ts)
 {
-  using mpsym::internal::util::split;
+  using mpsym::util::split;
   using profile::stof;
 
   auto output(compress_output(clean_output(output_)));
@@ -447,7 +447,7 @@ void dump_runs(std::vector<double> const &ts, bool summarize)
 {
   if (summarize) {
     double t_mean, t_stddev;
-    mpsym::internal::util::mean_stddev(ts, &t_mean, &t_stddev);
+    mpsym::util::mean_stddev(ts, &t_mean, &t_stddev);
 
     result("Mean:", t_mean, "s");
     result("Stddev:", t_stddev, "s");

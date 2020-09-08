@@ -7,7 +7,7 @@
 
 #include "test_main.cpp"
 
-using namespace mpsym::internal::util;
+using namespace mpsym::util;
 
 class PowTest :
   public testing::TestWithParam<std::tuple<unsigned, unsigned, unsigned>> {};

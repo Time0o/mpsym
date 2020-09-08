@@ -34,7 +34,7 @@ std::vector<std::string> split_generators(std::string const &gen_str)
 
   auto gen_str_trimmed(gen_str.substr(gen_first, gen_last - gen_first + 1u));
 
-  auto res(mpsym::internal::util::split(gen_str_trimmed, "),"));
+  auto res(mpsym::util::split(gen_str_trimmed, "),"));
 
   if (res.size() > 0u) {
     for (auto i = 0u; i < res.size() - 1u; ++i)
@@ -282,7 +282,7 @@ mpsym::TaskMappingVector parse_task_mappings_gap_to_mpsym(
   std::vector<std::string> const &gap_output)
 {
   auto task_mappings(split_task_mappings(
-    mpsym::internal::util::join(gap_output, "\n"), R"(.*\[(\d+(?:,\d+)*)\])", ','));
+    mpsym::util::join(gap_output, "\n"), R"(.*\[(\d+(?:,\d+)*)\])", ','));
 
   return std::get<2>(task_mappings);
 }
