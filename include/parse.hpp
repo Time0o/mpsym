@@ -48,18 +48,30 @@ inline internal::Perm parse_perm(unsigned degree, std::string const &str)
   return internal::Perm(degree, cycles);
 }
 
-inline internal::PermSet parse_perm_set(unsigned degree, std::string const &str)
+inline internal::PermSet parse_perm_set(unsigned degree,
+                                        std::vector<std::string> const &strs)
+{
+  internal::PermSet ret;
+  for (auto const &str : strs)
+    ret.insert(parse_perm(degree, str));
+
+  return ret;
+}
+
+inline internal::PermSet parse_perm_set(unsigned degree,
+                                        std::string const &str)
 {
   auto first = str.find('(');
   auto last = str.rfind(')');
 
   auto str_trimmed(str.substr(first, last - first + 1u));
 
-  internal::PermSet ret;
-  for (auto const &str_perm : split(str_trimmed, "),"))
-    ret.insert(parse_perm(degree, str_perm + ")"));
+  auto strs(split(str_trimmed, "),"));
 
-  return ret;
+  for (auto &str : strs)
+    str += ")";
+
+  return parse_perm_set(degree, strs);
 }
 
 } // namespace util

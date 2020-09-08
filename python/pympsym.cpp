@@ -25,6 +25,7 @@
 #include "perm_set.hpp"
 #include "task_mapping.hpp"
 #include "task_orbits.hpp"
+#include "util.hpp"
 
 namespace mp = boost::multiprecision;
 namespace py = pybind11;
@@ -44,6 +45,8 @@ using mpsym::internal::NautyGraph;
 using mpsym::internal::Perm;
 using mpsym::internal::PermGroup;
 using mpsym::internal::PermSet;
+
+using mpsym::util::stream;
 
 namespace
 {
@@ -94,14 +97,6 @@ Sequence<Sequence<T>> sequence_multiplex_apply(Sequence<T> const &seq, FUNC &&f)
 template<typename T = unsigned>
 using Set = std::set<T>;
 
-template<typename T>
-std::string stream(T const &obj)
-{
-  std::stringstream ss;
-  ss << obj;
-  return ss.str();
-}
-
 } // anonymous namespace
 
 namespace pybind11
@@ -112,7 +107,6 @@ namespace detail
 
 template <>
 struct type_caster<mp::cpp_int> {
-
   PYBIND11_TYPE_CASTER(mp::cpp_int, _("cpp_int"));
 
   static handle cast(mp::cpp_int const &src, return_value_policy, handle)

@@ -1,7 +1,9 @@
+#include <algorithm>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <nlohmann/json.hpp>
 
@@ -14,6 +16,7 @@
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"
+#include "util.hpp"
 
 using json = nlohmann::json;
 
@@ -33,6 +36,8 @@ arch_graph_system_from_json(JSON const &json_)
   using mpsym::internal::PermGroup;
   using mpsym::internal::PermSet;
 
+  using mpsym::util::parse_perm_set;
+
   if (!json_.is_object() || json_.size() != 1)
     throw std::logic_error("invalid JSON dictionary");
 
@@ -43,13 +48,9 @@ arch_graph_system_from_json(JSON const &json_)
 
     unsigned degree = automorphisms[0];
     std::vector<unsigned> base = automorphisms[1];
-    std::vector<std::vector<unsigned>> strong_generators_ = automorphisms[2];
+    std::vector<std::string> strong_generators = automorphisms[2];
 
-    PermSet strong_generators;
-    for (auto const &vect : strong_generators_)
-      strong_generators.emplace(vect);
-
-    PermGroup pg(BSGS(degree, base, strong_generators));
+    PermGroup pg(BSGS(degree, base, parse_perm_set(degree, strong_generators)));
 
     return std::make_shared<ArchGraphAutomorphisms>(pg);
 
@@ -87,13 +88,18 @@ ArchGraphSystem::to_json()
 
   auto bsgs(automorphisms().bsgs());
 
+  auto sgs(bsgs.strong_generators());
+  std::sort(sgs.begin(), sgs.end());
+
   std::stringstream ss;
 
   ss << "{\"automorphisms\": ["
      << bsgs.degree() << ","
      << DUMP(bsgs.base()) << ","
-     << TRANSFORM_AND_DUMP(bsgs.strong_generators(),
-                           [](Perm const &perm){ return perm.vect(); }) << "]}";
+     << TRANSFORM_AND_DUMP(
+          std::vector<Perm>(sgs.begin(), sgs.end()),
+          [](Perm const &perm){ return '"' + util::stream(perm) + '"'; })
+     << "]}";
 
   return ss.str();
 }

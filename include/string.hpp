@@ -2,6 +2,7 @@
 #define GUARD_STRING_H
 
 #include <cstring>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -50,6 +51,14 @@ inline std::string join(std::vector<std::string> const &strs,
     res += delim + strs[i];
 
   return res;
+}
+
+template<typename T>
+std::string stream(T const &obj)
+{
+  std::stringstream ss;
+  ss << obj;
+  return ss.str();
 }
 
 template<typename T>
