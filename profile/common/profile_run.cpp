@@ -337,7 +337,7 @@ std::vector<std::string> parse_output(std::string const &output_,
                                       std::vector<double> *ts)
 {
   using mpsym::util::split;
-  using profile::stof;
+  using mpsym::util::stof;
 
   auto output(compress_output(clean_output(output_)));
 

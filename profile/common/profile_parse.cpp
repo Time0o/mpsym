@@ -68,7 +68,7 @@ std::pair<gen_type, unsigned> parse_generators(
       case ',':
       case ')':
         {
-          int n = profile::stox<int>(gen_str.substr(n_beg, i - n_beg));
+          int n = mpsym::util::stox<int>(gen_str.substr(n_beg, i - n_beg));
 
           largest_moved_point = std::max(largest_moved_point,
                                          static_cast<unsigned>(n));
@@ -164,7 +164,7 @@ split_task_mappings(std::string const &task_mappings_str,
     for (;;) {
       pos_end = task_mapping_str.find(delim, pos_begin);
 
-      pe = profile::stox<unsigned>(
+      pe = mpsym::util::stox<unsigned>(
         pos_end == std::string::npos ?
           task_mapping_str.substr(pos_begin) :
           task_mapping_str.substr(pos_begin, pos_end - pos_begin));
@@ -215,11 +215,11 @@ GenericGroup parse_group(std::string const &group_str)
   if (!std::regex_match(group_str, m, re_group))
     throw std::invalid_argument("malformed group expression");
 
-  unsigned degree = stox<unsigned>(m[1]);
+  unsigned degree = mpsym::util::stox<unsigned>(m[1]);
 
   unsigned long long order;
   try {
-    order = stox<unsigned long long>(m[2]);
+    order = mpsym::util::stox<unsigned long long>(m[2]);
   } catch (std::invalid_argument const &) {
     throw std::invalid_argument("group order too large");
   }

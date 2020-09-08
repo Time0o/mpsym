@@ -2,7 +2,9 @@
 #define GUARD_STRING_H
 
 #include <cstring>
+#include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace mpsym
@@ -48,6 +50,53 @@ inline std::string join(std::vector<std::string> const &strs,
     res += delim + strs[i];
 
   return res;
+}
+
+template<typename T>
+T stox(std::string const &str)
+{
+  T i;
+  bool success;
+
+  try {
+    std::size_t idx;
+
+    if (std::is_signed<T>::value)
+      i = std::stoll(str, &idx);
+    else
+      i = std::stoull(str, &idx);
+
+    success = idx == str.size();
+  } catch (...) {
+    success = false;
+  }
+
+  if (!success)
+    throw std::invalid_argument("stox failed");
+
+  return i;
+}
+
+template<typename T>
+T stof(std::string const &str)
+{
+  T d;
+  bool success;
+
+  try {
+    std::size_t idx;
+
+    d = std::stod(str, &idx);
+
+    success = idx == str.size();
+  } catch (...) {
+    success = false;
+  }
+
+  if (!success)
+    throw std::invalid_argument("stof failed");
+
+  return d;
 }
 
 } // namespace util

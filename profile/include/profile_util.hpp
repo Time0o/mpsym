@@ -3,9 +3,7 @@
 
 #include <iostream>
 #include <limits>
-#include <stdexcept>
 #include <string>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -78,53 +76,6 @@ void warning(ARGS &&...args)
 template<typename... ARGS>
 void error(ARGS &&...args)
 { print(std::cerr, "ERROR:", "\n", std::forward<ARGS>(args)...); }
-
-template<typename T>
-T stox(std::string const &str)
-{
-  T i;
-  bool success;
-
-  try {
-    std::size_t idx;
-
-    if (std::is_signed<T>::value)
-      i = std::stoll(str, &idx);
-    else
-      i = std::stoull(str, &idx);
-
-    success = idx == str.size();
-  } catch (...) {
-    success = false;
-  }
-
-  if (!success)
-    throw std::invalid_argument("stox failed");
-
-  return i;
-}
-
-template<typename T>
-T stof(std::string const &str)
-{
-  T d;
-  bool success;
-
-  try {
-    std::size_t idx;
-
-    d = std::stod(str, &idx);
-
-    success = idx == str.size();
-  } catch (...) {
-    success = false;
-  }
-
-  if (!success)
-    throw std::invalid_argument("stof failed");
-
-  return d;
-}
 
 } // namespace profile
 
