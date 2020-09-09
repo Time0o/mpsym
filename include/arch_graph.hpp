@@ -54,9 +54,13 @@ public:
   virtual ~ArchGraph() = default;
 
   std::string to_gap() const override;
+  std::string to_json() const override;
 
   ProcessorType new_processor_type(ProcessorLabel pl = DEFAULT_PROCESSOR_LABEL);
+  ProcessorType lookup_processor_type(ProcessorLabel pl);
+
   ChannelType new_channel_type(ChannelLabel cl = DEFAULT_CHANNEL_LABEL);
+  ChannelType lookup_channel_type(ChannelLabel cl);
 
   unsigned add_processor(ProcessorType pe);
   void add_channel(unsigned pe1, unsigned pe2, ChannelType ch);

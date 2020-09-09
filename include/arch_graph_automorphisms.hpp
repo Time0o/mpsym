@@ -2,10 +2,15 @@
 #define GUARD_ARCH_GRAPH_AUTOMORPHISMS_H
 
 #include <sstream>
+#include <sstream>
 #include <string>
+#include <vector>
 
 #include "arch_graph_system.hpp"
+#include "dump.hpp"
+#include "perm.hpp"
 #include "perm_group.hpp"
+#include "util.hpp"
 
 namespace mpsym
 {
@@ -32,6 +37,26 @@ public:
     generators_str.back() = ']';
 
     return "Group(" + generators_str + ")";
+  }
+
+  std::string to_json() const
+  {
+    auto bsgs(_automorphisms.bsgs());
+
+    auto sgs(bsgs.strong_generators());
+    std::sort(sgs.begin(), sgs.end());
+
+    std::stringstream ss;
+
+    ss << "{\"automorphisms\": ["
+       << bsgs.degree() << ","
+       << DUMP(bsgs.base()) << ","
+       << TRANSFORM_AND_DUMP(std::vector<Perm>(sgs.begin(), sgs.end()),
+                             [](Perm const &perm)
+                             { return '"' + util::stream(perm) + '"'; })
+       << "]}";
+
+    return ss.str();
   }
 
 private:

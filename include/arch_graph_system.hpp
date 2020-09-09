@@ -55,18 +55,18 @@ class ArchGraphSystem
 public:
   virtual ~ArchGraphSystem() = default;
 
-  static std::shared_ptr<ArchGraphSystem> from_lua_file(
-    std::string const &lua_file,
-    std::vector<std::string> const &args = {});
-
   static std::shared_ptr<ArchGraphSystem> from_lua(
     std::string const &lua,
     std::vector<std::string> const &args = {});
 
-  virtual std::string to_gap() const = 0;
+  static std::shared_ptr<ArchGraphSystem> from_lua_file(
+    std::string const &lua_file,
+    std::vector<std::string> const &args = {});
 
-  virtual std::string to_json();
   static std::shared_ptr<ArchGraphSystem> from_json(std::string const &json);
+
+  virtual std::string to_gap() const = 0;
+  virtual std::string to_json() const = 0;
 
   virtual unsigned num_processors() const
   { throw std::logic_error("not implemented"); }
