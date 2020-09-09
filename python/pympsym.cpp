@@ -127,13 +127,15 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
   // ArchGraphSystem
   py::class_<ArchGraphSystem,
              std::shared_ptr<ArchGraphSystem>>(m, "ArchGraphSystem")
+    .def("__repr__", &ArchGraphSystem::to_json)
     .def_static("from_lua", &ArchGraphSystem::from_lua,
                 "lua"_a, "args"_a = std::vector<std::string>())
-    .def_static("from_nauty", [](int vertices,
-                                 std::map<int, std::vector<int>> const &adjacencies,
-                                 bool directed,
-                                 std::vector<std::vector<int>> const &coloring){
-
+    .def_static("from_nauty",
+                [](int vertices,
+                   std::map<int, std::vector<int>> const &adjacencies,
+                   bool directed,
+                   std::vector<std::vector<int>> const &coloring)
+                {
                   // validate number of vertices
                   if (vertices <= 0)
                     throw std::logic_error("number of vertices must be non-negative");
@@ -185,7 +187,6 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                 "directed"_a = true,
                 "coloring"_a = std::vector<int>())
     .def("to_json", &ArchGraphSystem::to_json)
-    .def("__repr__", &ArchGraphSystem::to_json)
     .def_static("from_json", &ArchGraphSystem::from_json,
                 "json"_a)
     .def("num_processors", &ArchGraphSystem::num_processors)
