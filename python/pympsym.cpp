@@ -134,7 +134,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                 [](int vertices,
                    std::map<int, std::vector<int>> const &adjacencies,
                    bool directed,
-                   std::vector<std::vector<int>> const &coloring)
+                   std::vector<std::set<int>> const &coloring)
                 {
                   // validate number of vertices
                   if (vertices <= 0)
@@ -172,10 +172,22 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
 
                   g.add_edges(adjacencies);
 
-                  if (coloring.empty())
+                  if (coloring.empty()) {
                     g.set_trivial_partition();
-                  else
-                    g.set_partition(coloring);
+                  } else {
+                    std::vector<std::vector<int>> coloring_(coloring.size());
+
+                    std::transform(
+                      coloring.begin(),
+                      coloring.end(),
+                      coloring_.begin(),
+                      [](std::set<int> const &p) {
+                        return std::vector<int>(p.begin(), p.end());
+                      }
+                    );
+
+                    g.set_partition(coloring_);
+                  }
 
                   // extract automorphisms
                   auto automs(g.automorphisms());
