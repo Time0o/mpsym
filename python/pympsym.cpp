@@ -133,6 +133,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
     .def_static("from_nauty",
                 [](int vertices,
                    std::map<int, std::vector<int>> const &adjacencies,
+                   int vertices_reduced,
                    bool directed,
                    std::vector<std::set<int>> const &coloring)
                 {
@@ -168,7 +169,10 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                   }
 
                   // construct graph
-                  NautyGraph g(vertices, directed);
+                  NautyGraph g(
+                    vertices,
+                    vertices_reduced == 0 ? vertices : vertices_reduced,
+                    directed);
 
                   g.add_edges(adjacencies);
 
@@ -196,6 +200,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                 },
                 "vertices"_a,
                 "adjacencies"_a,
+                "vertices_reduced"_a = 0,
                 "directed"_a = true,
                 "coloring"_a = std::vector<int>())
     .def_static("from_json", &ArchGraphSystem::from_json,
