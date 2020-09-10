@@ -35,8 +35,14 @@ if [[ -z "$BUILDWHEELS_SKIP_CHECK_VERSION" ]]; then
     # overly complicated manner (due to the fact that pip will not simply spit out
     # this information in a sane way)
 
+    if [ ! -z "$BUILDWHEELS_TESTPYPI" ]; then
+      PIP_INDEX_URL="https://test.pypi.org/simple/"
+    else
+      PIP_INDEX_URL="https://pypi.org/simple/"
+    fi
+
     PYPI_PACKAGE_VERSIONS="$(
-      "$BIN/pip" install "$PACKAGE_NAME==" 2>&1 1>/dev/null | \
+      "$BIN/pip" install --index-url "$PIP_INDEX_URL" "$PACKAGE_NAME==" 2>&1 1>/dev/null | \
        sed '1q;d' | sed 's/.*(from versions: \(.*\)).*/\1/'
     )"
 
@@ -164,11 +170,22 @@ if [[ -z "$BUILDWHEELS_SKIP_BUILD_WHEELS" ]]; then
 fi
 
 # Upload wheels
+if [ ! -z "$BUILDWHEELS_TESTPYPI" ]; then
+  TWINE_REPOSITORY=testpypi
+  TWINE_USER_NAME="$TWINE_TESTPYPI_USER_NAME"
+  TWINE_PASSWORD="$TWINE_TESTPYPI_PASSWORD"
+else
+  TWINE_REPOSITORY=pypi
+  TWINE_USER_NAME="$TWINE_PYPI_USER_NAME"
+  TWINE_PASSWORD="$TWINE_PYPI_PASSWORD"
+fi
+
 if [[ -z "$BUILDWHEELS_SKIP_UPLOAD_WHEELS" ]]; then
   echo "=== Uploading Wheels ==="
 
   for WHEEL in "$WHEELS_DIR"/*.whl; do
     "$PYTHON_BIN_PROTO/twine" upload \
+        --repository "$TWINE_REPOSITORY" \
         --skip-existing \
         -u "$TWINE_USER_NAME" \
         -p "$TWINE_PASSWORD" \
