@@ -4,8 +4,14 @@ set -e
 set -x
 
 PYTHON_DIR=/opt/python
-PYTHON_VERSION=3
-PYTHON_BIN=( "$PYTHON_DIR/cp$PYTHON_VERSION"*/bin )
+
+# Locate Python versions >= 3.6
+for BIN in "$PYTHON_DIR"/cp3*/bin; do
+   MINOR_VERSION=$(echo "$BIN" | sed 's/.*cp3\([0-9]\+\).*/\1/')
+
+   (( $MINOR_VERSION >= 6 )) && PYTHON_BIN+=("$BIN")
+done
+
 PYTHON_BIN_PROTO="${PYTHON_BIN[0]}"
 
 # Update package manager
