@@ -93,10 +93,10 @@ if [[ -z "$BUILDWHEELS_SKIP_INSTALL_DEPS" ]]; then
     BOOST_CXXFLAGS="-O2"
   fi
 
-  if [[ ! -z "$BUILDWHEELS_LINK_STATIC" ]]; then
-    BOOST_LINK="link=static"
-  else
+  if [[ ! -z "$BUILDWHEELS_LINK_DYNAMIC" ]]; then
     BOOST_LINK="link=shared"
+  else
+    BOOST_LINK="link=static"
   fi
 
   mkdir -p "$BOOST_DIR"
