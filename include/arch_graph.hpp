@@ -80,11 +80,6 @@ private:
   internal::PermGroup automorphisms_nauty(
     AutomorphismOptions const *options) const;
 
-  void create_mesh(unsigned width,
-                   unsigned height,
-                   ProcessorType pe,
-                   ChannelType ch);
-
   void dump_processors(std::ostream& os) const;
   void dump_channels(std::ostream& os) const;
   void dump_automorphisms(std::ostream& os);
