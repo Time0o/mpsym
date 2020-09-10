@@ -146,13 +146,15 @@ if [[ -z "$BUILDWHEELS_SKIP_BUILD_WHEELS" ]]; then
   export Boost_DIR="/tmp/boost/boost_1_72_0/stage/lib/cmake"
 
   if [[ ! -z "$BUILDWHEELS_DEBUG" ]]; then
-    DEBUG_BUILD="debug-build=ON"
+    BUILD_EXT="build_ext debug-build=ON"
+  else
+    BUILD_EXT="build_ext"
   fi
 
   for BIN in "${PYTHON_BIN[@]}"; do
     cd "$SRC_DIR"
     "${BIN}/python" "$SRC_DIR/setup.py" \
-      build_ext "$DEBUG_BUILD" \
+      "$BUILD_EXT" \
       bdist_wheel -d "$WHEELS_DIR"
     rm -rf *egg-info
     cd -
