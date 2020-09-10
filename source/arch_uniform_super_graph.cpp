@@ -1,5 +1,6 @@
 #include <memory>
 #include <numeric>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -32,12 +33,17 @@ ArchUniformSuperGraph::to_gap() const
 }
 
 std::string
-ArchUniformSuperGraph::to_json()
+ArchUniformSuperGraph::to_json() const
 {
-  return "{\"super_graph\": [" +
-           _subsystem_proto->to_json() + ", " +
-           _subsystem_super_graph->to_json() +
-         "]}";
+  std::stringstream ss;
+
+  ss << "{\"super_graph\": ["
+     << _subsystem_proto->to_json()
+     << ", "
+     << _subsystem_super_graph->to_json()
+     << "]}";
+
+  return ss.str();
 }
 
 unsigned

@@ -1,4 +1,6 @@
+import pickle
 import unittest
+from copy import deepcopy
 from itertools import permutations
 from textwrap import dedent
 
@@ -184,6 +186,40 @@ class ArchGraphSystemTest(unittest.TestCase):
     def test_orbit(self):
         for orbit in [self.ag_orbit1, self.ag_orbit2]:
             self.assertEqual(self.ag.orbit(orbit[0]), orbit)
+
+    def test_from_nauty(self):
+        vertices_super = 4
+        adj_super = {0: [1], 1: [2], 2: [3]}
+
+        vertices_proto = 16
+        adj_proto = {0:  [1,4],  1:  [2,5],   2:  [3,6],   3:  [7],
+                     4:  [5,8],  5:  [6,9],   6:  [7,10],  7:  [11],
+                     8:  [9,12], 9:  [10,13], 10: [11,14], 11: [15],
+                     12: [13],   13: [14],    14: [15]}
+
+        ag_super = mp.ArchGraphSystem.from_nauty(vertices_super, adj_super, directed=False)
+        ag_proto = mp.ArchGraphSystem.from_nauty(vertices_proto, adj_proto, directed=False)
+
+        haec_nauty = mp.ArchUniformSuperGraph(ag_super, ag_proto)
+
+        self.assertEqual(haec_nauty.automorphisms(), self.ag.automorphisms())
+
+    def test_to_from_json(self):
+        json = self.ag.to_json()
+        ag_from_json = mp.ArchGraphSystem.from_json(json)
+        self.assertEqual(ag_from_json.automorphisms(), self.ag.automorphisms())
+
+    def test_expand_automorphisms(self):
+        ag_expanded = self.ag.expand_automorphisms()
+        self.assertEqual(ag_expanded.automorphisms(), self.ag.automorphisms())
+
+    def test_deepcopy(self):
+        ag_deepcopy = deepcopy(self.ag)
+        self.assertEqual(ag_deepcopy.automorphisms(), self.ag.automorphisms())
+
+    def test_pickle(self):
+        ag_pickle = pickle.loads(pickle.dumps(self.ag))
+        self.assertEqual(ag_pickle.automorphisms(), self.ag.automorphisms())
 
 
 if __name__ == '__main__':

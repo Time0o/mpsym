@@ -24,7 +24,6 @@
 
 #include "profile_run.hpp"
 #include "profile_timer.hpp"
-#include "profile_util.hpp"
 
 namespace
 {
@@ -337,8 +336,8 @@ std::vector<std::string> parse_output(std::string const &output_,
                                       unsigned num_runs,
                                       std::vector<double> *ts)
 {
-  using profile::split;
-  using profile::stof;
+  using mpsym::util::split;
+  using mpsym::util::stof;
 
   auto output(compress_output(clean_output(output_)));
 
@@ -448,7 +447,7 @@ void dump_runs(std::vector<double> const &ts, bool summarize)
 {
   if (summarize) {
     double t_mean, t_stddev;
-    mpsym::internal::util::mean_stddev(ts, &t_mean, &t_stddev);
+    mpsym::util::mean_stddev(ts, &t_mean, &t_stddev);
 
     result("Mean:", t_mean, "s");
     result("Stddev:", t_stddev, "s");

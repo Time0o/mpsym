@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <map>
 #include <memory>
 #include <set>
 #include <sstream>
@@ -14,14 +15,17 @@
 #include <pybind11/stl.h>
 
 #include "arch_graph.hpp"
+#include "arch_graph_automorphisms.hpp"
 #include "arch_graph_cluster.hpp"
 #include "arch_graph_system.hpp"
 #include "arch_uniform_super_graph.hpp"
+#include "nauty_graph.hpp"
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"
 #include "task_mapping.hpp"
 #include "task_orbits.hpp"
+#include "util.hpp"
 
 namespace mp = boost::multiprecision;
 namespace py = pybind11;
@@ -35,10 +39,14 @@ using mpsym::ArchUniformSuperGraph;
 using mpsym::TaskMapping;
 using mpsym::TaskOrbits;
 
+using mpsym::internal::ArchGraphAutomorphisms;
 using mpsym::internal::BSGS;
+using mpsym::internal::NautyGraph;
 using mpsym::internal::Perm;
 using mpsym::internal::PermGroup;
 using mpsym::internal::PermSet;
+
+using mpsym::util::stream;
 
 namespace
 {
@@ -89,14 +97,6 @@ Sequence<Sequence<T>> sequence_multiplex_apply(Sequence<T> const &seq, FUNC &&f)
 template<typename T = unsigned>
 using Set = std::set<T>;
 
-template<typename T>
-std::string stream(T const &obj)
-{
-  std::stringstream ss;
-  ss << obj;
-  return ss.str();
-}
-
 } // anonymous namespace
 
 namespace pybind11
@@ -107,7 +107,6 @@ namespace detail
 
 template <>
 struct type_caster<mp::cpp_int> {
-
   PYBIND11_TYPE_CASTER(mp::cpp_int, _("cpp_int"));
 
   static handle cast(mp::cpp_int const &src, return_value_policy, handle)
@@ -128,13 +127,86 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
   // ArchGraphSystem
   py::class_<ArchGraphSystem,
              std::shared_ptr<ArchGraphSystem>>(m, "ArchGraphSystem")
-    .def_static("from_lua_file", &ArchGraphSystem::from_lua_file,
-                "lua_file"_a, "args"_a = std::vector<std::string>())
+    .def("__repr__", &ArchGraphSystem::to_json)
     .def_static("from_lua", &ArchGraphSystem::from_lua,
                 "lua"_a, "args"_a = std::vector<std::string>())
-    .def("to_json", &ArchGraphSystem::to_json)
+    .def_static("from_nauty",
+                [](int vertices,
+                   std::map<int, std::vector<int>> const &adjacencies,
+                   int vertices_reduced,
+                   bool directed,
+                   std::vector<std::set<int>> const &coloring)
+                {
+                  // validate number of vertices
+                  if (vertices <= 0)
+                    throw std::logic_error("number of vertices must be non-negative");
+
+                  // validate adjacencies
+                  for (auto const &p : adjacencies) {
+                    int from = p.first;
+
+                    if (from >= vertices)
+                      throw std::logic_error("vertex index out of range");
+
+                    for (int to : p.second) {
+                      if (to >= vertices)
+                        throw std::logic_error("vertex index out of range");
+                    }
+                  }
+
+                  // validate coloring
+                  if (!coloring.empty()) {
+                    std::set<int> tmp;
+                    for (auto const &p : coloring)
+                      tmp.insert(p.begin(), p.end());
+
+                    if (static_cast<int>(tmp.size()) != vertices
+                        || *tmp.begin() != 0
+                        || *tmp.rbegin() != vertices - 1) {
+
+                      throw std::logic_error("invalid coloring");
+                    }
+                  }
+
+                  // construct graph
+                  NautyGraph g(
+                    vertices,
+                    vertices_reduced == 0 ? vertices : vertices_reduced,
+                    directed);
+
+                  g.add_edges(adjacencies);
+
+                  if (coloring.empty()) {
+                    g.set_trivial_partition();
+                  } else {
+                    std::vector<std::vector<int>> coloring_(coloring.size());
+
+                    std::transform(
+                      coloring.begin(),
+                      coloring.end(),
+                      coloring_.begin(),
+                      [](std::set<int> const &p) {
+                        return std::vector<int>(p.begin(), p.end());
+                      }
+                    );
+
+                    g.set_partition(coloring_);
+                  }
+
+                  // extract automorphisms
+                  auto automs(g.automorphisms());
+
+                  return std::make_shared<ArchGraphAutomorphisms>(automs);
+                },
+                "vertices"_a,
+                "adjacencies"_a,
+                "vertices_reduced"_a = 0,
+                "directed"_a = true,
+                "coloring"_a = std::vector<int>())
     .def_static("from_json", &ArchGraphSystem::from_json,
                 "json"_a)
+    .def("to_json", &ArchGraphSystem::to_json)
+    .def("expand_automorphisms", &ArchGraphSystem::expand_automorphisms)
     .def("num_processors", &ArchGraphSystem::num_processors)
     .def("num_channels", &ArchGraphSystem::num_channels)
     .def("automorphisms",
@@ -183,11 +255,33 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          },
          "mapping"_a, "sorted"_a = true);
 
+  // ArchGraphAutomorphisms
+  py::class_<ArchGraphAutomorphisms,
+             ArchGraphSystem,
+             std::shared_ptr<ArchGraphAutomorphisms>>(m, "ArchGraphAutomorphisms")
+    .def(py::init<PermGroup>(), "automorphisms"_a)
+    .def(py::pickle(
+        [](ArchGraphAutomorphisms &self)
+        { return self.to_json(); },
+        [](std::string const &json)
+        {
+          return std::dynamic_pointer_cast<ArchGraphAutomorphisms>(
+            ArchGraphSystem::from_json(json));
+        }));
+
   // ArchGraph
   py::class_<ArchGraph,
              ArchGraphSystem,
              std::shared_ptr<ArchGraph>>(m, "ArchGraph")
-    .def(py::init<>())
+    .def(py::init<bool>(), "directed"_a)
+    .def(py::pickle(
+        [](ArchGraph &self)
+        { return self.to_json(); },
+        [](std::string const &json)
+        {
+          return std::dynamic_pointer_cast<ArchGraph>(
+            ArchGraphSystem::from_json(json));
+        })) // TODO: this ain't gonna work...
     .def("new_processor_type", &ArchGraph::new_processor_type, "pl"_a = "")
     .def("new_channel_type", &ArchGraph::new_channel_type, "cl"_a = "")
     .def("add_processor", &ArchGraph::add_processor, "pe"_a)
@@ -198,6 +292,14 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
              ArchGraphSystem,
              std::shared_ptr<ArchGraphCluster>>(m, "ArchGraphCluster")
     .def(py::init<>())
+    .def(py::pickle(
+        [](ArchGraphCluster &self)
+        { return self.to_json(); },
+        [](std::string const &json)
+        {
+          return std::dynamic_pointer_cast<ArchGraphCluster>(
+            ArchGraphSystem::from_json(json));
+        }))
     .def("add_subsystem", &ArchGraphCluster::add_subsystem, "subsystem"_a)
     .def("num_subsystems", &ArchGraphCluster::num_subsystems);
 
@@ -207,7 +309,15 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
              std::shared_ptr<ArchUniformSuperGraph>>(m, "ArchUniformSuperGraph")
     .def(py::init<std::shared_ptr<ArchGraphSystem>,
                   std::shared_ptr<ArchGraphSystem>>(),
-         "super_graph"_a, "proto"_a);
+         "super_graph"_a, "proto"_a)
+    .def(py::pickle(
+        [](ArchUniformSuperGraph &self)
+        { return self.to_json(); },
+        [](std::string const &json)
+        {
+          return std::dynamic_pointer_cast<ArchUniformSuperGraph>(
+            ArchGraphSystem::from_json(json));
+        }));
 
   // TaskOrbits
   py::class_<TaskOrbits>(m, "Representatives")

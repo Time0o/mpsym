@@ -9,7 +9,7 @@
 #include <vector>
 #include <iostream>
 
-#include "profile_util.hpp"
+#include "util.hpp"
 
 namespace profile
 {
@@ -96,7 +96,7 @@ private:
 template<typename FUNC>
 void foreach_option(char const *optarg, FUNC &&f)
 {
-  for (auto const &option : split(optarg, ",")) {
+  for (auto const &option : mpsym::util::split(optarg, ",")) {
     if (!option.empty())
       f(option);
   }

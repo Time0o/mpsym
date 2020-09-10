@@ -1,6 +1,4 @@
-#include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
@@ -11,158 +9,15 @@ extern "C" {
 }
 
 #include "arch_graph.hpp"
-#include "arch_graph_system.hpp"
-#include "bsgs.hpp"
-#include "dump.hpp"
+#include "nauty_graph.hpp"
 #include "perm_group.hpp"
-#include "perm_set.hpp"
 
 namespace mpsym
 {
 
-namespace internal
-{
+using namespace internal;
 
-class NautyGraph
-{
-public:
-  NautyGraph(int n)
-  : _n(n),
-    _m(SETWORDSNEEDED(n))
-  {
-#ifndef NDEBUG
-    nauty_check(WORDSIZE, _m, _n, NAUTYVERSIONID);
-#endif
-
-    _g = _alloc<graph>(_m * _n);
-    _lab = _alloc<int>(_n);
-    _ptn = _alloc<int>(_n);
-    _orbits = _alloc<int>(_n);
-
-    EMPTYGRAPH(_g, _m, _n);
-  }
-
-  ~NautyGraph()
-  {
-    FREES(_g);
-    FREES(_lab);
-    FREES(_ptn);
-    FREES(_orbits);
-
-    naugraph_freedyn();
-    nautil_freedyn();
-    nauty_freedyn();
-  }
-
-  void add_edge(int from, int to)
-  {
-    ADDONEEDGE(_g, from, to, _m);
-    _edges.emplace_back(from, to);
-  }
-
-  void set_partition(std::vector<std::vector<int>> const &ptn)
-  {
-    _ptn_expl = ptn;
-
-    int i = 0;
-    for (auto const &p : _ptn_expl) {
-      for (auto j = 0u; j < p.size(); ++j) {
-        _lab[i] = p[j];
-        _ptn[i] = (j == p.size() - 1u) ? 0 : 1;
-        ++i;
-      }
-    }
-  }
-
-  PermSet automorphisms(int reduce = 0) const
-  {
-    static DEFAULTOPTIONS_GRAPH(options);
-    options.defaultptn = FALSE;
-    options.userautomproc = _save_gens;
-
-    _gens.clear();
-    _gen_degree = reduce == 0 ? _n : reduce;
-
-    statsblk stats;
-    densenauty(_g, _lab, _ptn, _orbits, &options, &stats, _m, _n, nullptr);
-
-    return _gens;
-  }
-
-  std::string to_gap(int reduce = 0) const
-  {
-    std::stringstream ss;
-
-    ss << "ReduceGroup(GraphAutoms([";
-
-    // edges
-    for (auto const &edge : _edges) {
-      int source = edge.first + 1;
-      int target = edge.second + 1;
-
-      if (source != target) {
-        ss << "[" << source << "," << target << "],"
-           << "[" << target << "," << source << "],";
-      }
-    }
-
-    ss << "],";
-
-    // partition
-    auto ptn_inc(_ptn_expl);
-    for (auto &p : ptn_inc) {
-      for (auto &v : p)
-        ++v;
-    }
-
-    ss << DUMP(ptn_inc) << ",";
-
-    // number of vertices
-    ss << _n << "),";
-
-    // number of vertices to reduce to
-    ss << (reduce == 0 ? _n : reduce) << ")";
-
-    return ss.str();
-  }
-
-private:
-  template<typename T>
-  static T *_alloc(std::size_t sz)
-  {
-    void *ret = ALLOCS(sz, sizeof(T));
-    if (!ret)
-      throw std::bad_alloc();
-
-    return static_cast<T *>(ret);
-  }
-
-  static void _save_gens(int, int *perm, int *, int, int, int)
-  {
-    std::vector<unsigned> tmp(_gen_degree);
-    for (int i = 0; i < _gen_degree; ++i)
-      tmp[i] = perm[i] + 1;
-
-    _gens.emplace(tmp);
-  }
-
-  graph * _g;
-  std::size_t _n, _m;
-  int *_lab, *_ptn, *_orbits;
-
-  std::vector<std::pair<int, int>> _edges;
-  std::vector<std::vector<int>> _ptn_expl;
-
-  static PermSet _gens;
-  static int _gen_degree;
-};
-
-PermSet NautyGraph::_gens;
-int NautyGraph::_gen_degree;
-
-} // namespace internal
-
-internal::NautyGraph ArchGraph::graph_nauty() const
+NautyGraph ArchGraph::graph_nauty() const
 {
   int cts = _channel_types.size();
   int cts_log2 = 0; while (cts >>= 1) ++cts_log2;
@@ -170,7 +25,7 @@ internal::NautyGraph ArchGraph::graph_nauty() const
   int n_orig = num_processors();
   int n = n_orig * (cts_log2 + 1u);
 
-  internal::NautyGraph g(n);
+  NautyGraph g(n, n_orig, _directed);
 
   /* node numbering:
    *  ...     ...           ...
@@ -218,17 +73,15 @@ std::string ArchGraph::to_gap_nauty() const
 {
   auto g(graph_nauty());
 
-  return g.to_gap(num_processors());
+  return g.to_gap();
 }
 
-internal::PermGroup ArchGraph::automorphisms_nauty(
+PermGroup ArchGraph::automorphisms_nauty(
   AutomorphismOptions const *options) const
 {
   auto g(graph_nauty());
 
-  auto automs(g.automorphisms(num_processors()));
-
-  return internal::PermGroup(internal::BSGS(num_processors(), automs, options));
+  return g.automorphisms(options);
 }
 
 } // namespace mpsym

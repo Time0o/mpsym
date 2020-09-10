@@ -9,6 +9,7 @@
 #include <boost/graph/adjacency_list.hpp>
 
 #include "arch_graph_system.hpp"
+#include "nauty_graph.hpp"
 #include "perm_group.hpp"
 
 namespace mpsym
@@ -36,7 +37,7 @@ class ArchGraph : public ArchGraphSystem
   struct EdgeProperty { channel_type_size_type type; };
 
   typedef boost::adjacency_list<
-    edge_selector, vertex_selector, boost::undirectedS,
+    edge_selector, vertex_selector, boost::directedS,
     VertexProperty, EdgeProperty> adjacency_type;
 
   typedef adjacency_type::vertices_size_type vertices_size_type;
@@ -46,12 +47,20 @@ public:
   typedef processor_type_size_type ProcessorType;
   typedef channel_type_size_type ChannelType;
 
+  ArchGraph(bool directed = false)
+  : _directed(directed)
+  {}
+
   virtual ~ArchGraph() = default;
 
   std::string to_gap() const override;
+  std::string to_json() const override;
 
   ProcessorType new_processor_type(ProcessorLabel pl = DEFAULT_PROCESSOR_LABEL);
+  ProcessorType lookup_processor_type(ProcessorLabel pl);
+
   ChannelType new_channel_type(ChannelLabel cl = DEFAULT_CHANNEL_LABEL);
+  ChannelType lookup_channel_type(ChannelLabel cl);
 
   unsigned add_processor(ProcessorType pe);
   void add_channel(unsigned pe1, unsigned pe2, ChannelType ch);
@@ -71,16 +80,12 @@ private:
   internal::PermGroup automorphisms_nauty(
     AutomorphismOptions const *options) const;
 
-  void create_mesh(unsigned width,
-                   unsigned height,
-                   ProcessorType pe,
-                   ChannelType ch);
-
   void dump_processors(std::ostream& os) const;
   void dump_channels(std::ostream& os) const;
   void dump_automorphisms(std::ostream& os);
 
   adjacency_type _adj;
+  bool _directed;
 
   std::vector<std::string> _processor_types;
   std::vector<std::string> _channel_types;

@@ -185,7 +185,7 @@ template<>
 struct hash<mpsym::TaskMapping>
 {
   std::size_t operator()(mpsym::TaskMapping const &ta) const
-  { return mpsym::internal::util::container_hash(ta.begin(), ta.end()); }
+  { return mpsym::util::container_hash(ta.begin(), ta.end()); }
 };
 
 } // namespace std

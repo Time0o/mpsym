@@ -24,6 +24,7 @@ set(SOURCE_FILES
     "dbg.cpp"
     "eemp.cpp"
     "explicit_transversals.cpp"
+    "nauty_graph.cpp"
     "orbits.cpp"
     "partial_perm.cpp"
     "partial_perm_inverse_semigroup.cpp"

@@ -28,8 +28,13 @@ public:
                         std::shared_ptr<ArchGraphSystem> proto);
 
   std::string to_gap() const override;
+  std::string to_json() const override;
 
-  std::string to_json() override;
+  std::shared_ptr<ArchGraphSystem> super_graph() const
+  { return _subsystem_super_graph; }
+
+  std::shared_ptr<ArchGraphSystem> proto() const
+  { return _subsystem_proto; }
 
   unsigned num_processors() const override;
   unsigned num_channels() const override;

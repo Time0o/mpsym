@@ -376,6 +376,8 @@ void do_profile(Stream &automorphisms_stream,
 
 int main(int argc, char **argv)
 {
+  using mpsym::util::stox;
+
   progname = basename(argv[0]);
 
   struct option long_options[] = {

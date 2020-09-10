@@ -90,5 +90,6 @@ setup(
     license="MIT",
     cmdclass=dict(build_ext=CMakeBuild),
     ext_modules=[CMakeExtension('mpsym')],
+    setup_requires=['wheel'],
     zip_safe=False
 )

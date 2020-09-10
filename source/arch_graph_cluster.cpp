@@ -34,16 +34,15 @@ ArchGraphCluster::to_gap() const
 }
 
 std::string
-ArchGraphCluster::to_json()
+ArchGraphCluster::to_json() const
 {
   std::stringstream ss;
-  ss << "{\"cluster\": ";
 
-  ss << TRANSFORM_AND_DUMP(
-    _subsystems,
-    [](std::shared_ptr<ArchGraphSystem> const &ags){ return ags->to_json(); });
-
-  ss << "}";
+  ss << "{\"cluster\": "
+     << TRANSFORM_AND_DUMP(_subsystems,
+                           [](std::shared_ptr<ArchGraphSystem> const &ags)
+                           { return ags->to_json(); })
+     << "}";
 
   return ss.str();
 }

@@ -193,6 +193,7 @@ protected:
 
   ArchGraph ag_tri() {
     ArchGraph ag;
+
     auto p = ag.new_processor_type("P");
     auto c = ag.new_channel_type("C");
 

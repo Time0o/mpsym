@@ -7,8 +7,8 @@ include(ExternalProject)
 ExternalProject_Add(permlib
   GIT_REPOSITORY    "https://github.com/tremlin/PermLib.git"
   GIT_TAG           "master"
-  SOURCE_DIR        "${PERMLIB_WORKDIR}"
-  BINARY_DIR        "${PERMLIB_WORKDIR}"
+  SOURCE_DIR        "${PERMLIB_WORK_DIR}"
+  BINARY_DIR        "${PERMLIB_WORK_DIR}"
   CONFIGURE_COMMAND ""
   BUILD_COMMAND     ""
   INSTALL_COMMAND   ""

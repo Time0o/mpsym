@@ -4,8 +4,14 @@ set -e
 set -x
 
 PYTHON_DIR=/opt/python
-PYTHON_VERSION=3
-PYTHON_BIN=( "$PYTHON_DIR/cp$PYTHON_VERSION"*/bin )
+
+# Locate Python versions >= 3.6
+for BIN in "$PYTHON_DIR"/cp3*/bin; do
+   MINOR_VERSION=$(echo "$BIN" | sed 's/.*cp3\([0-9]\+\).*/\1/')
+
+   (( $MINOR_VERSION >= 6 )) && PYTHON_BIN+=("$BIN")
+done
+
 PYTHON_BIN_PROTO="${PYTHON_BIN[0]}"
 
 # Update package manager
@@ -35,8 +41,14 @@ if [[ -z "$BUILDWHEELS_SKIP_CHECK_VERSION" ]]; then
     # overly complicated manner (due to the fact that pip will not simply spit out
     # this information in a sane way)
 
+    if [ ! -z "$BUILDWHEELS_TESTPYPI" ]; then
+      PIP_INDEX_URL="https://test.pypi.org/simple/"
+    else
+      PIP_INDEX_URL="https://pypi.org/simple/"
+    fi
+
     PYPI_PACKAGE_VERSIONS="$(
-      "$BIN/pip" install "$PACKAGE_NAME==" 2>&1 1>/dev/null | \
+      "$BIN/pip" install --index-url "$PIP_INDEX_URL" "$PACKAGE_NAME==" 2>&1 1>/dev/null | \
        sed '1q;d' | sed 's/.*(from versions: \(.*\)).*/\1/'
     )"
 
@@ -81,10 +93,10 @@ if [[ -z "$BUILDWHEELS_SKIP_INSTALL_DEPS" ]]; then
     BOOST_CXXFLAGS="-O2"
   fi
 
-  if [[ ! -z "$BUILDWHEELS_LINK_STATIC" ]]; then
-    BOOST_LINK="link=static"
-  else
+  if [[ ! -z "$BUILDWHEELS_LINK_DYNAMIC" ]]; then
     BOOST_LINK="link=shared"
+  else
+    BOOST_LINK="link=static"
   fi
 
   mkdir -p "$BOOST_DIR"
@@ -140,13 +152,15 @@ if [[ -z "$BUILDWHEELS_SKIP_BUILD_WHEELS" ]]; then
   export Boost_DIR="/tmp/boost/boost_1_72_0/stage/lib/cmake"
 
   if [[ ! -z "$BUILDWHEELS_DEBUG" ]]; then
-    DEBUG_BUILD="debug-build=ON"
+    BUILD_EXT="build_ext debug-build=ON"
+  else
+    BUILD_EXT="build_ext"
   fi
 
   for BIN in "${PYTHON_BIN[@]}"; do
     cd "$SRC_DIR"
     "${BIN}/python" "$SRC_DIR/setup.py" \
-      build_ext "$DEBUG_BUILD" \
+      "$BUILD_EXT" \
       bdist_wheel -d "$WHEELS_DIR"
     rm -rf *egg-info
     cd -
@@ -164,11 +178,22 @@ if [[ -z "$BUILDWHEELS_SKIP_BUILD_WHEELS" ]]; then
 fi
 
 # Upload wheels
+if [ ! -z "$BUILDWHEELS_TESTPYPI" ]; then
+  TWINE_REPOSITORY=testpypi
+  TWINE_USER_NAME="$TWINE_TESTPYPI_USER_NAME"
+  TWINE_PASSWORD="$TWINE_TESTPYPI_PASSWORD"
+else
+  TWINE_REPOSITORY=pypi
+  TWINE_USER_NAME="$TWINE_PYPI_USER_NAME"
+  TWINE_PASSWORD="$TWINE_PYPI_PASSWORD"
+fi
+
 if [[ -z "$BUILDWHEELS_SKIP_UPLOAD_WHEELS" ]]; then
   echo "=== Uploading Wheels ==="
 
   for WHEEL in "$WHEELS_DIR"/*.whl; do
     "$PYTHON_BIN_PROTO/twine" upload \
+        --repository "$TWINE_REPOSITORY" \
         --skip-existing \
         -u "$TWINE_USER_NAME" \
         -p "$TWINE_PASSWORD" \
