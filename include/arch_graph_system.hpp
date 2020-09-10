@@ -65,6 +65,8 @@ public:
 
   static std::shared_ptr<ArchGraphSystem> from_json(std::string const &json);
 
+  std::shared_ptr<ArchGraphSystem> expand_automorphisms() const;
+
   virtual std::string to_gap() const = 0;
   virtual std::string to_json() const = 0;
 

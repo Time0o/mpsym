@@ -33,6 +33,9 @@ public:
     _subsystems.push_back(subsystem);
   }
 
+  std::vector<std::shared_ptr<ArchGraphSystem>> subsystems() const
+  { return _subsystems; }
+
   unsigned num_processors() const override;
   unsigned num_channels() const override;
   unsigned num_subsystems() const;

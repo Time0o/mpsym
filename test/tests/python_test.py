@@ -207,6 +207,10 @@ class ArchGraphSystemTest(unittest.TestCase):
         ag_from_json = mp.ArchGraphSystem.from_json(json)
         self.assertEqual(ag_from_json.automorphisms(), self.ag.automorphisms())
 
+    def test_expand_automorphisms(self):
+        ag_expanded = self.ag.expand_automorphisms()
+        self.assertEqual(ag_expanded.automorphisms(), self.ag.automorphisms())
+
 
 if __name__ == '__main__':
     unittest.main()

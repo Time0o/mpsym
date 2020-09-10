@@ -198,9 +198,10 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                 "adjacencies"_a,
                 "directed"_a = true,
                 "coloring"_a = std::vector<int>())
-    .def("to_json", &ArchGraphSystem::to_json)
     .def_static("from_json", &ArchGraphSystem::from_json,
                 "json"_a)
+    .def("to_json", &ArchGraphSystem::to_json)
+    .def("expand_automorphisms", &ArchGraphSystem::expand_automorphisms)
     .def("num_processors", &ArchGraphSystem::num_processors)
     .def("num_channels", &ArchGraphSystem::num_channels)
     .def("automorphisms",

@@ -12,10 +12,14 @@
 #include <utility>
 #include <vector>
 
-#include "bsgs.hpp"
-#include "perm_group.hpp"
+#include "arch_graph.hpp"
+#include "arch_graph_automorphisms.hpp"
+#include "arch_graph_cluster.hpp"
 #include "arch_graph_system.hpp"
+#include "arch_uniform_super_graph.hpp"
+#include "bsgs.hpp"
 #include "perm.hpp"
+#include "perm_group.hpp"
 #include "perm_set.hpp"
 #include "task_mapping.hpp"
 #include "task_orbits.hpp"
@@ -27,6 +31,41 @@ namespace mpsym
 {
 
 using namespace internal;
+
+std::shared_ptr<ArchGraphSystem> ArchGraphSystem::expand_automorphisms() const
+{
+  auto const *ag(dynamic_cast<ArchGraph const *>(this));
+  if (ag) {
+    auto ag_copy(std::make_shared<ArchGraph>(*ag));
+    return std::make_shared<ArchGraphAutomorphisms>(ag_copy->automorphisms());
+  }
+
+  auto const *agc(dynamic_cast<ArchGraphCluster const *>(this));
+  if (agc) {
+    auto agc_copy(std::make_shared<ArchGraphCluster>());
+    for (auto ss : agc->subsystems())
+      agc_copy->add_subsystem(ss->expand_automorphisms());
+
+    return agc_copy;
+  }
+
+  auto const *ausg(dynamic_cast<ArchUniformSuperGraph const *>(this));
+  if (ausg) {
+    auto ausg_copy(std::make_shared<ArchUniformSuperGraph>(
+      ausg->super_graph()->expand_automorphisms(),
+      ausg->proto()->expand_automorphisms()));
+
+    return ausg_copy;
+  }
+
+  auto const *aga(dynamic_cast<ArchGraphAutomorphisms const *>(this));
+  if (aga) {
+    auto aga_copy(std::make_shared<ArchGraphAutomorphisms>(*aga));
+    return aga_copy;
+  }
+
+  throw std::logic_error("unreachable");
+}
 
 unsigned ArchGraphSystem::num_automorphism_orbits(
   unsigned num_tasks,
