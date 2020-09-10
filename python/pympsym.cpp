@@ -254,13 +254,29 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
   py::class_<ArchGraphAutomorphisms,
              ArchGraphSystem,
              std::shared_ptr<ArchGraphAutomorphisms>>(m, "ArchGraphAutomorphisms")
-    .def(py::init<PermGroup>(), "automorphisms"_a);
+    .def(py::init<PermGroup>(), "automorphisms"_a)
+    .def(py::pickle(
+        [](ArchGraphAutomorphisms &self)
+        { return self.to_json(); },
+        [](std::string const &json)
+        {
+          return std::dynamic_pointer_cast<ArchGraphAutomorphisms>(
+            ArchGraphSystem::from_json(json));
+        }));
 
   // ArchGraph
   py::class_<ArchGraph,
              ArchGraphSystem,
              std::shared_ptr<ArchGraph>>(m, "ArchGraph")
     .def(py::init<bool>(), "directed"_a)
+    .def(py::pickle(
+        [](ArchGraph &self)
+        { return self.to_json(); },
+        [](std::string const &json)
+        {
+          return std::dynamic_pointer_cast<ArchGraph>(
+            ArchGraphSystem::from_json(json));
+        })) // TODO: this ain't gonna work...
     .def("new_processor_type", &ArchGraph::new_processor_type, "pl"_a = "")
     .def("new_channel_type", &ArchGraph::new_channel_type, "cl"_a = "")
     .def("add_processor", &ArchGraph::add_processor, "pe"_a)
@@ -271,6 +287,14 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
              ArchGraphSystem,
              std::shared_ptr<ArchGraphCluster>>(m, "ArchGraphCluster")
     .def(py::init<>())
+    .def(py::pickle(
+        [](ArchGraphCluster &self)
+        { return self.to_json(); },
+        [](std::string const &json)
+        {
+          return std::dynamic_pointer_cast<ArchGraphCluster>(
+            ArchGraphSystem::from_json(json));
+        }))
     .def("add_subsystem", &ArchGraphCluster::add_subsystem, "subsystem"_a)
     .def("num_subsystems", &ArchGraphCluster::num_subsystems);
 
@@ -280,7 +304,15 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
              std::shared_ptr<ArchUniformSuperGraph>>(m, "ArchUniformSuperGraph")
     .def(py::init<std::shared_ptr<ArchGraphSystem>,
                   std::shared_ptr<ArchGraphSystem>>(),
-         "super_graph"_a, "proto"_a);
+         "super_graph"_a, "proto"_a)
+    .def(py::pickle(
+        [](ArchUniformSuperGraph &self)
+        { return self.to_json(); },
+        [](std::string const &json)
+        {
+          return std::dynamic_pointer_cast<ArchUniformSuperGraph>(
+            ArchGraphSystem::from_json(json));
+        }));
 
   // TaskOrbits
   py::class_<TaskOrbits>(m, "Representatives")

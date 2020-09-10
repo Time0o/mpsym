@@ -1,4 +1,6 @@
+import pickle
 import unittest
+from copy import deepcopy
 from itertools import permutations
 from textwrap import dedent
 
@@ -210,6 +212,14 @@ class ArchGraphSystemTest(unittest.TestCase):
     def test_expand_automorphisms(self):
         ag_expanded = self.ag.expand_automorphisms()
         self.assertEqual(ag_expanded.automorphisms(), self.ag.automorphisms())
+
+    def test_deepcopy(self):
+        ag_deepcopy = deepcopy(self.ag)
+        self.assertEqual(ag_deepcopy.automorphisms(), self.ag.automorphisms())
+
+    def test_pickle(self):
+        ag_pickle = pickle.loads(pickle.dumps(self.ag))
+        self.assertEqual(ag_pickle.automorphisms(), self.ag.automorphisms())
 
 
 if __name__ == '__main__':
