@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.6)
 
+# Valgrind support
+set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --error-exitcode=1")
+
+include(CTest)
+
+add_custom_target(test_memcheck
+  COMMAND ${CMAKE_CTEST_COMMAND} --force-new-ctest-process --test-action memcheck
+  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
 # C++
 include_directories("${MPSYM_INCLUDE_DIR}"
                     "${MPSYM_TEST_INCLUDE_DIR}"
