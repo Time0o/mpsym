@@ -1,6 +1,5 @@
 #include <cassert>
 #include <cmath>
-#include <fstream>
 #include <functional>
 #include <iterator>
 #include <limits>
@@ -263,21 +262,6 @@ namespace mpsym
 {
 
 using namespace internal;
-
-std::shared_ptr<ArchGraphSystem> ArchGraphSystem::from_lua_file(
-  std::string const &lua_file,
-  std::vector<std::string> const &args)
-{
-  std::ifstream lua_stream(lua_file);
-
-  if (!lua_stream)
-    throw std::runtime_error("failed to read lua file");
-
-  std::string lua((std::istreambuf_iterator<char>(lua_stream)),
-                   std::istreambuf_iterator<char>());
-
-  return from_lua(lua, args);
-}
 
 std::shared_ptr<ArchGraphSystem> ArchGraphSystem::from_lua(
   std::string const &lua,
