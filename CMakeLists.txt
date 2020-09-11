@@ -286,6 +286,10 @@ if(BUILD_DOC AND CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
   # Prefix check
   message(STATUS "Checking install prefix...")
 
+  if(NOT IGNORE_INSTALL_PREFIX AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    message(FATAL_ERROR "CMAKE_INSTALL_PREFIX must be specified explicitly")
+  endif()
+
   # Documentation
   message(STATUS "Configuring documentation...")
 
