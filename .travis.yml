@@ -3,6 +3,7 @@ language: cpp
 matrix:
   include:
     - os: linux
+      dist: bionic
       compiler:
         - g++
       addons:
@@ -13,6 +14,7 @@ matrix:
             - valgrind
 
     - os: linux
+      dist: bionic
       compiler:
         - g++
       addons:
@@ -28,6 +30,7 @@ matrix:
          - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
 
     - os: linux
+      dist: bionic
       compiler:
         - g++
       addons:
@@ -43,6 +46,7 @@ matrix:
          - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 
     - os: linux
+      dist: bionic
       compiler:
         - g++
       addons:
@@ -71,7 +75,8 @@ script:
   - cmake -DCMAKE_BUILD_TYPE=Debug -DPYTHON_BINDINGS=ON -DPYTHON_EXECUTABLE=$(which python3) ..
   - make all
   - make test_memcheck
-  - bash "${TRAVIS_BUILD_DIR}/deploy.sh"
+  - tail -n +1 $(ls -v "${TRAVIS_BUILD_DIR}"/build/Testing/Temporary/MemoryChecker.*.log)
+  - bash "${TRAVIS_BUILD_DIR}"/deploy.sh
 
 notifications:
   email: false

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 
 # Valgrind support
-set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --error-exitcode=1")
+set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --show-leak-kinds=all --error-exitcode=1")
 
 include(CTest)
 
