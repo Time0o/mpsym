@@ -26,7 +26,7 @@ for BIN in "${PYTHON_BIN[@]}"; do
 done
 
 # Check if package needs to be published
-if [[ -z "$BUILDWHEELS_SKIP_CHECK_VERSION" ]]; then
+if [[ "$BUILDWHEELS_SKIP_CHECK_VERSION" != "y" ]]; then
   echo "=== Checking Package Version ==="
 
   yum install -y bc
@@ -41,7 +41,7 @@ if [[ -z "$BUILDWHEELS_SKIP_CHECK_VERSION" ]]; then
     # overly complicated manner (due to the fact that pip will not simply spit out
     # this information in a sane way)
 
-    if [ ! -z "$BUILDWHEELS_TESTPYPI" ]; then
+    if [[ "$PIP_TESTPYPI" = "y" ]]; then
       PIP_INDEX_URL="https://test.pypi.org/simple/"
     else
       PIP_INDEX_URL="https://pypi.org/simple/"
@@ -74,7 +74,7 @@ if [[ -z "$BUILDWHEELS_SKIP_CHECK_VERSION" ]]; then
 fi
 
 # Install dependencies
-if [[ -z "$BUILDWHEELS_SKIP_INSTALL_DEPS" ]]; then
+if [[ "$BUILDWHEELS_SKIP_INSTALL_DEPS" != "y" ]]; then
   # Install Boost
   echo "=== Installing Boost ==="
 
@@ -145,7 +145,7 @@ if [[ -z "$BUILDWHEELS_SKIP_INSTALL_DEPS" ]]; then
 fi
 
 # Build wheels
-if [[ -z "$BUILDWHEELS_SKIP_BUILD_WHEELS" ]]; then
+if [[ "$BUILDWHEELS_SKIP_BUILD_WHEELS" != "y" ]]; then
   # Compile wheels
   echo "=== Compiling Wheels ==="
 
@@ -178,17 +178,7 @@ if [[ -z "$BUILDWHEELS_SKIP_BUILD_WHEELS" ]]; then
 fi
 
 # Upload wheels
-if [ ! -z "$BUILDWHEELS_TESTPYPI" ]; then
-  TWINE_REPOSITORY=testpypi
-  TWINE_USER_NAME="$TWINE_TESTPYPI_USER_NAME"
-  TWINE_PASSWORD="$TWINE_TESTPYPI_PASSWORD"
-else
-  TWINE_REPOSITORY=pypi
-  TWINE_USER_NAME="$TWINE_PYPI_USER_NAME"
-  TWINE_PASSWORD="$TWINE_PYPI_PASSWORD"
-fi
-
-if [[ -z "$BUILDWHEELS_SKIP_UPLOAD_WHEELS" ]]; then
+if [[ "$BUILDWHEELS_SKIP_UPLOAD_WHEELS" != "y" ]]; then
   echo "=== Uploading Wheels ==="
 
   for WHEEL in "$WHEELS_DIR"/*.whl; do
