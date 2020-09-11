@@ -1,4 +1,6 @@
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Releases](https://img.shields.io/github/release/Time0o/mpsym.svg)](https://github.com/Time0o/mpsym/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Documentation](https://img.shields.io/badge/docs-doxygen-blue.svg)](https://Time0o.github.io/mpsym/doxygen)
 [![Build Status](https://travis-ci.com/Time0o/mpsym.svg?branch=master)](https://travis-ci.com/Time0o/mpsym)
 [![Coverage
 status](https://codecov.io/gh/Time0o/mpsym/branch/master/graph/badge.svg)](https://codecov.io/gh/Time0o/mpsym?branch=master)
