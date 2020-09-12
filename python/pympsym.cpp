@@ -130,6 +130,8 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
     .def("__repr__", &ArchGraphSystem::to_json)
     .def_static("from_lua", &ArchGraphSystem::from_lua,
                 "lua"_a, "args"_a = std::vector<std::string>())
+    .def_static("from_lua_file", &ArchGraphSystem::from_lua_file,
+                "lua_file"_a, "args"_a = std::vector<std::string>())
     .def_static("from_nauty",
                 [](int vertices,
                    std::map<int, std::vector<int>> const &adjacencies,
@@ -205,6 +207,8 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                 "coloring"_a = std::vector<int>())
     .def_static("from_json", &ArchGraphSystem::from_json,
                 "json"_a)
+    .def_static("from_json_file", &ArchGraphSystem::from_json_file,
+                "json_file"_a)
     .def("to_json", &ArchGraphSystem::to_json)
     .def("expand_automorphisms", &ArchGraphSystem::expand_automorphisms)
     .def("num_processors", &ArchGraphSystem::num_processors)
