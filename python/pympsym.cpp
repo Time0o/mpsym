@@ -210,15 +210,15 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
     .def_static("from_json_file", &ArchGraphSystem::from_json_file,
                 "json_file"_a)
     .def("to_json", &ArchGraphSystem::to_json)
-    .def("expand_automorphisms", &ArchGraphSystem::expand_automorphisms)
     .def("num_processors", &ArchGraphSystem::num_processors)
     .def("num_channels", &ArchGraphSystem::num_channels)
-    .def("automorphisms",
-         [](ArchGraphSystem &self)
-         { return self.automorphisms(); })
     .def("num_automorphisms",
          [](ArchGraphSystem &self)
          { return self.num_automorphisms(); })
+    .def("automorphisms",
+         [](ArchGraphSystem &self)
+         { return self.automorphisms(); })
+    .def("expand_automorphisms", &ArchGraphSystem::expand_automorphisms)
     .def("representative",
          [&](ArchGraphSystem &self, Sequence<> const &mapping)
          {
@@ -285,7 +285,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
         {
           return std::dynamic_pointer_cast<ArchGraph>(
             ArchGraphSystem::from_json(json));
-        })) // TODO: this ain't gonna work...
+        }))
     .def("new_processor_type", &ArchGraph::new_processor_type, "pl"_a = "")
     .def("new_channel_type", &ArchGraph::new_channel_type, "cl"_a = "")
     .def("add_processor", &ArchGraph::add_processor, "pe"_a)
