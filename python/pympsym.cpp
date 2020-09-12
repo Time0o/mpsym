@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <functional>
 #include <map>
 #include <memory>
 #include <set>
@@ -94,6 +95,21 @@ Sequence<Sequence<T>> sequence_multiplex_apply(Sequence<T> const &seq, FUNC &&f)
   return seqs;
 }
 
+template<typename U, typename T, typename FUNC>
+Sequence<U> transform_sequence(Sequence<T> const &seq, FUNC &&f)
+{
+  Sequence<U> seq_transformed(seq.size());
+  std::transform(seq.begin(), seq.end(), seq_transformed.begin(), f);
+  return seq_transformed;
+}
+
+template<typename T>
+py::tuple sequence_to_tuple(Sequence<T> const &seq)
+{
+  py::tuple t = py::cast(seq);
+  return t;
+}
+
 template<typename T = unsigned>
 using Set = std::set<T>;
 
@@ -181,18 +197,11 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                   if (coloring.empty()) {
                     g.set_trivial_partition();
                   } else {
-                    std::vector<std::vector<int>> coloring_(coloring.size());
-
-                    std::transform(
-                      coloring.begin(),
-                      coloring.end(),
-                      coloring_.begin(),
-                      [](std::set<int> const &p) {
-                        return std::vector<int>(p.begin(), p.end());
-                      }
-                    );
-
-                    g.set_partition(coloring_);
+                    g.set_partition(
+                      transform_sequence<std::vector<int>>(
+                        coloring,
+                        [](std::set<int> const &p)
+                        { return std::vector<int>(p.begin(), p.end()); }));
                   }
 
                   // extract automorphisms
@@ -222,9 +231,12 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
     .def("representative",
          [&](ArchGraphSystem &self, Sequence<> const &mapping)
          {
-           return sequence_apply(mapping,
-                                 [&](Sequence<> const &mapping)
-                                 { return self.repr(mapping); });
+           auto repr(
+             sequence_apply(mapping,
+                            [&](Sequence<> const &mapping)
+                            { return self.repr(mapping); }));
+
+           return sequence_to_tuple(repr);
          },
          "mapping"_a)
     .def("representative",
@@ -234,14 +246,15 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          {
            auto num_orbits_old = representatives->num_orbits();
 
-           auto repr(sequence_apply(
-             mapping,
-             [&](Sequence<> const &mapping)
-             { return self.repr(mapping, representatives); }));
+           auto repr(
+             sequence_apply(mapping,
+                            [&](Sequence<> const &mapping)
+                            { return self.repr(mapping, representatives); }));
 
            bool repr_is_new = representatives->num_orbits() > num_orbits_old;
 
-           return std::pair<Sequence<>, bool>(repr, repr_is_new);
+             return std::pair<py::tuple, bool>(sequence_to_tuple(repr),
+                                               repr_is_new);
          },
          "mapping"_a, "representatives"_a)
     .def("orbit",
@@ -255,7 +268,10 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
            if (sorted)
              std::sort(orbit.begin(), orbit.end());
 
-           return orbit;
+           return transform_sequence<py::tuple>(
+             orbit,
+             [](Sequence<> const &mapping)
+             { return sequence_to_tuple(mapping); });
          },
          "mapping"_a, "sorted"_a = true);
 
