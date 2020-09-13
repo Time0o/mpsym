@@ -80,11 +80,11 @@ arch_graph_system_from_json(JSON const &json_)
       ag->new_channel_type(ct);
 
     for (auto const &p : processors)
-      ag->add_processor(ag->lookup_processor_type(p.second));
+      ag->add_processor(p.second);
 
     for (auto const &from : channels) {
       for (auto const &to : from.second)
-        ag->add_channel(from.first, to.first, ag->lookup_channel_type(to.second));
+        ag->add_channel(from.first, to.first, to.second);
     }
 
     return ag;

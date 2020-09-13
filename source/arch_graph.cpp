@@ -80,16 +80,6 @@ ArchGraph::ProcessorType ArchGraph::new_processor_type(ProcessorLabel pl)
   return id;
 }
 
-ArchGraph::ProcessorType ArchGraph::lookup_processor_type(ProcessorLabel pl)
-{
-  for (ProcessorType pt = 0u; pt < _processor_types.size(); ++pt) {
-    if (_processor_types[pt] == pl)
-      return pt;
-  }
-
-  throw std::logic_error("invalid processor label");
-}
-
 ArchGraph::ChannelType ArchGraph::new_channel_type(ChannelLabel cl)
 {
   auto id = _channel_types.size();
@@ -98,16 +88,6 @@ ArchGraph::ChannelType ArchGraph::new_channel_type(ChannelLabel cl)
   _channel_type_instances.push_back(0u);
 
   return id;
-}
-
-ArchGraph::ChannelType ArchGraph::lookup_channel_type(ChannelLabel cl)
-{
-  for (ChannelType ct = 0u; ct < _channel_types.size(); ++ct) {
-    if (_channel_types[ct] == cl)
-      return ct;
-  }
-
-  throw std::logic_error("invalid channel label");
 }
 
 unsigned ArchGraph::add_processor(ProcessorType pt)
@@ -120,14 +100,40 @@ unsigned ArchGraph::add_processor(ProcessorType pt)
   return static_cast<unsigned>(boost::add_vertex(vp, _adj));
 }
 
-void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType cht)
+unsigned ArchGraph::add_processor(ProcessorLabel pl)
+{
+  ProcessorType pt = 0u;
+  while (pt < _processor_types.size())
+    if (_processor_types[pt++] == pl)
+      break;
+
+  if (pt == _processor_types.size())
+    new_processor_type(pl);
+
+  return add_processor(pt);
+}
+
+void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType ct)
 {
   reset_automorphisms();
 
-  _channel_type_instances[cht]++;
+  _channel_type_instances[ct]++;
 
-  EdgeProperty ep {cht};
+  EdgeProperty ep {ct};
   boost::add_edge(from, to, ep, _adj);
+}
+
+void ArchGraph::add_channel(unsigned pe1, unsigned pe2, ChannelLabel cl)
+{
+  ChannelType ct = 0u;
+  while (ct < _channel_types.size())
+    if (_channel_types[ct++] == cl)
+      break;
+
+  if (ct == _channel_types.size())
+    new_channel_type(cl);
+
+  add_channel(pe1, pe2, ct);
 }
 
 unsigned ArchGraph::num_processors() const

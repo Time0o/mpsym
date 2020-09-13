@@ -304,8 +304,22 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
         }))
     .def("new_processor_type", &ArchGraph::new_processor_type, "pl"_a = "")
     .def("new_channel_type", &ArchGraph::new_channel_type, "cl"_a = "")
-    .def("add_processor", &ArchGraph::add_processor, "pe"_a)
-    .def("add_channel", &ArchGraph::add_channel, "pe1"_a, "pe2"_a, "ch"_a);
+    .def("add_processor",
+         (unsigned(ArchGraph::*)(ArchGraph::ProcessorType))
+         &ArchGraph::add_processor,
+         "pt"_a)
+    .def("add_processor",
+         (unsigned(ArchGraph::*)(ArchGraph::ProcessorLabel))
+         &ArchGraph::add_processor,
+         "pl"_a)
+    .def("add_channel",
+         (void(ArchGraph::*)(unsigned, unsigned, ArchGraph::ChannelType))
+         &ArchGraph::add_channel,
+         "pe1"_a, "pe2"_a, "ct"_a)
+    .def("add_channel",
+         (void(ArchGraph::*)(unsigned, unsigned, ArchGraph::ChannelLabel))
+         &ArchGraph::add_channel,
+         "pe1"_a, "pe2"_a, "cl"_a);
 
   // ArchGraphCluster
   py::class_<ArchGraphCluster,

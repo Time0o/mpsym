@@ -17,12 +17,6 @@ namespace mpsym
 
 namespace internal { class NautyGraph; }
 
-using ProcessorLabel = std::string const &;
-using ChannelLabel = std::string const &;
-
-#define DEFAULT_PROCESSOR_LABEL ""
-#define DEFAULT_CHANNEL_LABEL ""
-
 class ArchGraph : public ArchGraphSystem
 {
   friend std::ostream &operator<<(std::ostream &os, ArchGraph &ag);
@@ -47,6 +41,9 @@ public:
   typedef processor_type_size_type ProcessorType;
   typedef channel_type_size_type ChannelType;
 
+  typedef std::string const &ProcessorLabel;
+  typedef std::string const &ChannelLabel;
+
   ArchGraph(bool directed = false)
   : _directed(directed)
   {}
@@ -56,14 +53,13 @@ public:
   std::string to_gap() const override;
   std::string to_json() const override;
 
-  ProcessorType new_processor_type(ProcessorLabel pl = DEFAULT_PROCESSOR_LABEL);
-  ProcessorType lookup_processor_type(ProcessorLabel pl);
+  ProcessorType new_processor_type(ProcessorLabel pl = "");
+  ChannelType new_channel_type(ChannelLabel cl = "");
 
-  ChannelType new_channel_type(ChannelLabel cl = DEFAULT_CHANNEL_LABEL);
-  ChannelType lookup_channel_type(ChannelLabel cl);
-
-  unsigned add_processor(ProcessorType pe);
-  void add_channel(unsigned pe1, unsigned pe2, ChannelType ch);
+  unsigned add_processor(ProcessorType pt);
+  unsigned add_processor(ProcessorLabel pl = "");
+  void add_channel(unsigned pe1, unsigned pe2, ChannelType ct);
+  void add_channel(unsigned pe1, unsigned pe2, ChannelLabel cl = "");
 
   unsigned num_processors() const override;
   unsigned num_channels() const override;
