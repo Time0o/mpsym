@@ -79,8 +79,8 @@ private:
   }
 
   TaskMapping repr_(TaskMapping const &mapping_,
-                    TaskOrbits *orbits,
-                    ReprOptions const *options) override;
+                    ReprOptions const *options,
+                    TaskOrbits *orbits) override;
 
   std::shared_ptr<internal::ArchGraphAutomorphisms>
   wreath_product_action_super_graph(AutomorphismOptions const *options) const;

@@ -77,8 +77,8 @@ private:
   }
 
   TaskMapping repr_(TaskMapping const &mapping,
-                    TaskOrbits *orbits,
-                    ReprOptions const *options) override;
+                    ReprOptions const *options,
+                    TaskOrbits *orbits) override;
 
   std::vector<std::shared_ptr<ArchGraphSystem>> _subsystems;
 };

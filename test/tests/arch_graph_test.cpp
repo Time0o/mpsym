@@ -39,7 +39,7 @@ static void expect_generates_orbits(
       ReprOptions options;
       options.method = method;
 
-      TaskMapping repr(ag->repr(mapping, nullptr, &options));
+      TaskMapping repr(ag->repr(mapping, &options));
 
       if (orbits.find(repr) == orbits.end())
         orbits[repr] = {repr};

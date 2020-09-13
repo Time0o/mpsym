@@ -225,18 +225,14 @@ std::string ArchGraphSystem::read_file(std::string const &file)
   return content;
 }
 
-TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
-                                   TaskOrbits *orbits,
-                                   ReprOptions const *options_)
+bool ArchGraphSystem::automorphisms_symmetric(ReprOptions const *options)
 {
-  auto options(ReprOptions::fill_defaults(options_));
-
   auto automs(automorphisms());
   auto gens(automs.generators());
 
   TaskMapping representative;
 
-  if (options.optimize_symmetric && !_automorphisms_is_shifted_symmetric_valid) {
+  if (options->optimize_symmetric && !_automorphisms_is_shifted_symmetric_valid) {
     _automorphisms_is_shifted_symmetric = automs.is_shifted_symmetric();
 
     if (_automorphisms_is_shifted_symmetric) {
@@ -247,37 +243,46 @@ TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
     _automorphisms_is_shifted_symmetric_valid = true;
   }
 
-  if (options.optimize_symmetric && _automorphisms_is_shifted_symmetric) {
-    unsigned task_min = _automorphisms_smp + options.offset;
-    unsigned task_max = _automorphisms_lmp + options.offset;
+  return options->optimize_symmetric && _automorphisms_is_shifted_symmetric;
+}
 
-    representative = min_elem_symmetric(mapping, task_min, task_max, &options);
+TaskMapping ArchGraphSystem::repr_symmetric(TaskMapping const &mapping,
+                                            ReprOptions const *options)
+{
+  unsigned task_min = _automorphisms_smp + options->offset;
+  unsigned task_max = _automorphisms_lmp + options->offset;
 
-  } else {
-    unsigned task_min = 1u + options.offset;
-    unsigned task_max = automs.degree() + options.offset;
+  return min_elem_symmetric(mapping, task_min, task_max, options);
+}
 
-    representative =
-      options.method == ReprOptions::Method::ITERATE ?
-        min_elem_iterate(mapping, orbits, &options) :
-      options.method == ReprOptions::Method::ORBITS ?
-        min_elem_orbits(mapping, orbits, &options) :
-      options.method == ReprOptions::Method::LOCAL_SEARCH ?
-        options.variant == ReprOptions::Variant::LOCAL_SEARCH_SA_LINEAR ?
-          min_elem_local_search_sa(mapping, task_min, task_max, &options) :
-          min_elem_local_search(mapping, &options) :
-      throw std::logic_error("unreachable");
-  }
+TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
+                                   ReprOptions const *options_,
+                                   TaskOrbits *orbits)
+{
+  auto options(ReprOptions::fill_defaults(options_));
 
-  if (orbits)
-    orbits->insert(representative);
+  if (automorphisms_symmetric(&options))
+    return repr_symmetric(mapping, &options);
 
-  return representative;
+  auto automs(automorphisms());
+
+  unsigned task_min = 1u + options.offset;
+  unsigned task_max = automs.degree() + options.offset;
+
+  return options.method == ReprOptions::Method::ITERATE ?
+           min_elem_iterate(mapping, &options, orbits) :
+         options.method == ReprOptions::Method::ORBITS ?
+           min_elem_orbits(mapping, &options, orbits) :
+         options.method == ReprOptions::Method::LOCAL_SEARCH ?
+           options.variant == ReprOptions::Variant::LOCAL_SEARCH_SA_LINEAR ?
+             min_elem_local_search_sa(mapping, task_min, task_max, &options) :
+             min_elem_local_search(mapping, &options) :
+         throw std::logic_error("unreachable");
 }
 
 TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
-                                              TaskOrbits *orbits,
-                                              ReprOptions const *options)
+                                              ReprOptions const *options,
+                                              TaskOrbits *orbits)
 {
   auto automs(automorphisms());
 
@@ -289,7 +294,7 @@ TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
     if (tasks.less_than(representative, factors, options->offset))
       representative = tasks.permuted(factors, options->offset);
 
-    if (is_repr(representative, orbits, options)) {
+    if (is_repr(representative, options, orbits)) {
       return representative;
     }
   }
@@ -298,8 +303,8 @@ TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
 }
 
 TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
-                                             TaskOrbits *orbits,
-                                             ReprOptions const *options)
+                                             ReprOptions const *options,
+                                             TaskOrbits *orbits)
 {
   auto automs(automorphisms());
   auto gens(automs.generators());
@@ -323,7 +328,7 @@ TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
     for (Perm const &gen : gens) {
       TaskMapping next(current.permuted(gen, options->offset));
 
-      if (is_repr(next, orbits, options))
+      if (is_repr(next, options, orbits))
         return next;
       else if (processed.find(next) == processed.end())
         unprocessed.insert(next);

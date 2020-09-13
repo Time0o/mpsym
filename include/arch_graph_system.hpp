@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <tuple>
 #include <unordered_set>
 
 #include "bsgs.hpp"
@@ -129,13 +130,27 @@ public:
   { reset_repr_(); }
 
   TaskMapping repr(TaskMapping const &mapping,
-                   TaskOrbits *orbits = nullptr,
                    ReprOptions const *options = nullptr)
   {
     if (!repr_ready_())
       init_repr();
 
-    return repr_(mapping, orbits, options);
+    return repr_(mapping, options, nullptr);
+  }
+
+  std::tuple<TaskMapping, bool, unsigned> repr(
+    TaskMapping const &mapping,
+    TaskOrbits &orbits,
+    ReprOptions const *options = nullptr)
+  {
+    if (!repr_ready_())
+      init_repr();
+
+    auto representative(repr_(mapping, options, &orbits));
+
+    auto ins(orbits.insert(representative));
+
+    return std::make_tuple(representative, ins.first, ins.second);
   }
 
   std::vector<TaskMapping> orbit(TaskMapping const &mapping);
@@ -159,13 +174,18 @@ private:
   virtual void reset_repr_()
   { reset_automorphisms(); }
 
+  bool automorphisms_symmetric(ReprOptions const *options);
+
+  TaskMapping repr_symmetric(TaskMapping const &mapping,
+                             ReprOptions const *options);
+
   virtual TaskMapping repr_(TaskMapping const &mapping,
-                            TaskOrbits *orbits,
-                            ReprOptions const *options);
+                            ReprOptions const *options,
+                            TaskOrbits *orbits);
 
   static bool is_repr(TaskMapping const &tasks,
-                      TaskOrbits *orbits,
-                      ReprOptions const *options)
+                      ReprOptions const *options,
+                      TaskOrbits *orbits)
   {
     if (!options->match || !orbits)
       return false;
@@ -174,12 +194,12 @@ private:
   }
 
   TaskMapping min_elem_iterate(TaskMapping const &tasks,
-                               TaskOrbits *orbits,
-                               ReprOptions const *options);
+                               ReprOptions const *options,
+                               TaskOrbits *orbits);
 
   TaskMapping min_elem_orbits(TaskMapping const &tasks,
-                              TaskOrbits *orbits,
-                              ReprOptions const *options);
+                              ReprOptions const *options,
+                              TaskOrbits *orbits);
 
   TaskMapping min_elem_local_search(TaskMapping const &tasks,
                                     ReprOptions const *options);

@@ -88,23 +88,20 @@ ArchGraphCluster::automorphisms_(AutomorphismOptions const *options)
 
 TaskMapping
 ArchGraphCluster::repr_(TaskMapping const &mapping_,
-                        TaskOrbits *orbits,
-                        ReprOptions const *options_)
+                        ReprOptions const *options_,
+                        TaskOrbits *)
 {
+  auto options(ReprOptions::fill_defaults(options_));
+
   assert(_subsystems.size() > 0u);
 
   TaskMapping mapping(mapping_);
 
-  auto options(ReprOptions::fill_defaults(options_));
-
   for (auto i = 0u; i < _subsystems.size(); ++i) {
-    mapping = _subsystems[i]->repr(mapping, nullptr, &options);
+    mapping = _subsystems[i]->repr(mapping, &options);
 
     options.offset += _subsystems[i]->num_processors();
   }
-
-  if (orbits)
-    orbits->insert(mapping);
 
   return mapping;
 }

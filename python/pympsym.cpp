@@ -6,6 +6,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -242,19 +243,19 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
     .def("representative",
          [&](ArchGraphSystem &self,
              Sequence<> const &mapping,
-             TaskOrbits *representatives)
+             TaskOrbits &representatives)
          {
-           auto num_orbits_old = representatives->num_orbits();
+           TaskMapping repr;
+           bool orbit_new;
+           unsigned orbit_index;
 
-           auto repr(
-             sequence_apply(mapping,
-                            [&](Sequence<> const &mapping)
-                            { return self.repr(mapping, representatives); }));
+           std::tie(repr, orbit_new, orbit_index) =
+             self.repr(inc_sequence(mapping), representatives);
 
-           bool repr_is_new = representatives->num_orbits() > num_orbits_old;
-
-             return std::pair<py::tuple, bool>(sequence_to_tuple(repr),
-                                               repr_is_new);
+           return std::make_tuple(
+             sequence_to_tuple(dec_sequence(to_sequence(repr))),
+             orbit_new,
+             orbit_index);
          },
          "mapping"_a, "representatives"_a)
     .def("orbit",

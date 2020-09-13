@@ -146,18 +146,15 @@ ArchUniformSuperGraph::automorphisms_(AutomorphismOptions const *options)
 
 TaskMapping
 ArchUniformSuperGraph::repr_(TaskMapping const &mapping_,
-                             TaskOrbits *orbits,
-                             ReprOptions const *options)
+                             ReprOptions const *options,
+                             TaskOrbits *)
 {
   TaskMapping mapping(mapping_);
 
   for (auto &sigma : _sigmas_proto)
-    mapping = sigma->repr(mapping, nullptr, options);
+    mapping = sigma->repr(mapping, options);
 
-  mapping = _sigma_super_graph->repr(mapping, nullptr, options);
-
-  if (orbits)
-    orbits->insert(mapping);
+  mapping = _sigma_super_graph->repr(mapping, options);
 
   return mapping;
 }
