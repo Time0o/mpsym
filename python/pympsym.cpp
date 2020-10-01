@@ -294,7 +294,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
   py::class_<ArchGraph,
              ArchGraphSystem,
              std::shared_ptr<ArchGraph>>(m, "ArchGraph")
-    .def(py::init<bool>(), "directed"_a)
+    .def(py::init<bool>(), "directed"_a = false)
     .def(py::pickle(
         [](ArchGraph &self)
         { return self.to_json(); },
