@@ -113,6 +113,26 @@ unsigned ArchGraph::add_processor(ProcessorLabel pl)
   return add_processor(pt);
 }
 
+unsigned ArchGraph::add_processors(unsigned n, ProcessorType pt)
+{
+  assert(n > 0u);
+
+  for (unsigned i = 0u; i < n - 1u; ++i)
+    add_processor(pt);
+
+  return add_processor(pt);
+}
+
+unsigned ArchGraph::add_processors(unsigned n, ProcessorLabel pl)
+{
+  assert(n > 0u);
+
+  for (unsigned i = 0u; i < n - 1u; ++i)
+    add_processor(pl);
+
+  return add_processor(pl);
+}
+
 void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType ct)
 {
   reset_automorphisms();
@@ -134,6 +154,22 @@ void ArchGraph::add_channel(unsigned pe1, unsigned pe2, ChannelLabel cl)
     new_channel_type(cl);
 
   add_channel(pe1, pe2, ct);
+}
+
+void ArchGraph::fully_connect(ChannelType ct)
+{
+  for (unsigned pe1 = 0u; pe1 < num_processors(); ++pe1) {
+    for (unsigned pe2 = pe1 + 1u; pe2 < num_processors(); ++pe2)
+      add_channel(pe1, pe2, ct);
+  }
+}
+
+void ArchGraph::fully_connect(ChannelLabel cl)
+{
+  for (unsigned pe1 = 0u; pe1 < num_processors(); ++pe1) {
+    for (unsigned pe2 = pe1 + 1u; pe2 < num_processors(); ++pe2)
+      add_channel(pe1, pe2, cl);
+  }
 }
 
 unsigned ArchGraph::num_processors() const

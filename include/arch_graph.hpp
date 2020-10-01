@@ -58,8 +58,15 @@ public:
 
   unsigned add_processor(ProcessorType pt);
   unsigned add_processor(ProcessorLabel pl = "");
+
+  unsigned add_processors(unsigned n, ProcessorType pt);
+  unsigned add_processors(unsigned n, ProcessorLabel pl = "");
+
   void add_channel(unsigned pe1, unsigned pe2, ChannelType ct);
   void add_channel(unsigned pe1, unsigned pe2, ChannelLabel cl = "");
+
+  void fully_connect(ChannelType ct);
+  void fully_connect(ChannelLabel cl = "");
 
   unsigned num_processors() const override;
   unsigned num_channels() const override;
