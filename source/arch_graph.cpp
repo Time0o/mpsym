@@ -103,9 +103,12 @@ unsigned ArchGraph::add_processor(ProcessorType pt)
 unsigned ArchGraph::add_processor(ProcessorLabel pl)
 {
   ProcessorType pt = 0u;
-  while (pt < _processor_types.size())
-    if (_processor_types[pt++] == pl)
+  while (pt < _processor_types.size()) {
+    if (_processor_types[pt] == pl)
       break;
+
+    ++pt;
+  }
 
   if (pt == _processor_types.size())
     new_processor_type(pl);
@@ -146,9 +149,12 @@ void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType ct)
 void ArchGraph::add_channel(unsigned pe1, unsigned pe2, ChannelLabel cl)
 {
   ChannelType ct = 0u;
-  while (ct < _channel_types.size())
-    if (_channel_types[ct++] == cl)
+  while (ct < _channel_types.size()) {
+    if (_channel_types[ct] == cl)
       break;
+
+    ++ct;
+  }
 
   if (ct == _channel_types.size())
     new_channel_type(cl);
