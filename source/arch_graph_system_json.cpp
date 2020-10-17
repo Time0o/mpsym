@@ -60,16 +60,16 @@ arch_graph_system_from_json(JSON const &json_)
   } if (typestr == "graph") {
     auto graph(json_["graph"]);
 
-    bool directed = graph[0]["directed"];
+    bool directed = graph["directed"];
 
-    std::vector<std::string> processor_types = graph[1]["processor_types"];
-    std::vector<std::string> channel_types = graph[2]["channel_types"];
+    std::vector<std::string> processor_types = graph["processor_types"];
+    std::vector<std::string> channel_types = graph["channel_types"];
 
     using PT = ArchGraph::ProcessorType;
-    std::vector<std::pair<PT, std::string>> processors = graph[3]["processors"];
+    std::vector<std::pair<PT, std::string>> processors = graph["processors"];
 
     using CT = std::pair<PT, std::string>;
-    std::vector<std::pair<PT, std::vector<CT>>> channels = graph[4]["channels"];
+    std::vector<std::pair<PT, std::vector<CT>>> channels = graph["channels"];
 
     auto ag(std::make_shared<ArchGraph>(directed));
 

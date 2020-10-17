@@ -46,27 +46,15 @@ std::string ArchGraph::to_json() const
     }
   }
 
-  json j_directed;
-  j_directed["directed"] = _directed;
-
-  json j_processor_types;
-  j_processor_types["processor_types"] = _processor_types;
-
-  json j_channel_types;
-  j_channel_types["channel_types"] = _channel_types;
-
-  json j_processors;
-  j_processors["processors"] = processors_dict;
-
-  json j_channels;
-  j_channels["channels"] = channels_dict;
+  json j_;
+  j_["directed"] = _directed;
+  j_["processor_types"] = _processor_types;
+  j_["channel_types"] = _channel_types;
+  j_["processors"] = processors_dict;
+  j_["channels"] = channels_dict;
 
   json j;
-  j["graph"].push_back(j_directed);
-  j["graph"].push_back(j_processor_types);
-  j["graph"].push_back(j_channel_types);
-  j["graph"].push_back(j_processors);
-  j["graph"].push_back(j_channels);
+  j["graph"] = j_;
 
   return j.dump();
 }
