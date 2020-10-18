@@ -68,6 +68,7 @@ public:
   void fully_connect(ChannelType ct);
   void fully_connect(ChannelLabel cl = "");
 
+  bool directed() const { return _directed; }
   unsigned num_processors() const override;
   unsigned num_channels() const override;
 

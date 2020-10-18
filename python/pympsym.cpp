@@ -303,6 +303,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
           return std::dynamic_pointer_cast<ArchGraph>(
             ArchGraphSystem::from_json(json));
         }))
+    .def("directed", &ArchGraph::directed)
     .def("new_processor_type", &ArchGraph::new_processor_type, "pl"_a = "")
     .def("new_channel_type", &ArchGraph::new_channel_type, "cl"_a = "")
     .def("add_processor",
