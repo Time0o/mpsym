@@ -141,7 +141,7 @@ void ArchGraph::add_channel(unsigned pe1, unsigned pe2, ChannelLabel cl)
 void ArchGraph::fully_connect(ChannelType ct)
 {
   for (unsigned pe1 = 0u; pe1 < num_processors(); ++pe1) {
-    for (unsigned pe2 = pe1 + 1u; pe2 < num_processors(); ++pe2)
+    for (unsigned pe2 = (directed() ? 0u : pe1); pe2 < num_processors(); ++pe2)
       add_channel(pe1, pe2, ct);
   }
 }
