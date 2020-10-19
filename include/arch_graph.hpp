@@ -77,6 +77,10 @@ private:
     AutomorphismOptions const *options) override
   { return automorphisms_nauty(options); }
 
+  bool edge_exists(unsigned from, unsigned to, ChannelType ct) const;
+  bool edge_exists_directed(unsigned from, unsigned to, ChannelType ct) const;
+  bool edge_exists_undirected(unsigned from, unsigned to, ChannelType ct) const;
+
   internal::NautyGraph graph_nauty() const;
 
   std::string to_gap_nauty() const;

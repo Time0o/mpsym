@@ -178,6 +178,23 @@ class ArchGraphSystemTest(unittest.TestCase):
         autom = self.ag.automorphisms()
         self.assertEqual(len(autom), 8192)
 
+    def test_duplicate_edges(self):
+        ag_directed = mp.ArchGraph(directed=True)
+        ag_undirected = mp.ArchGraph(directed=False)
+
+        for ag in ag_directed, ag_undirected:
+            ag.add_processor('p')
+            ag.add_processor('p')
+
+            for _ in range(2):
+                ag.add_channel(0, 0, 'L1')
+
+                ag.add_channel(0, 1, 'c')
+                ag.add_channel(1, 0, 'c')
+
+        self.assertEqual(ag_directed.num_channels(), 3)
+        self.assertEqual(ag_undirected.num_channels(), 2)
+
     def test_representative(self):
         for orbit in [self.ag_orbit1, self.ag_orbit2]:
             for mapping in orbit:
@@ -220,7 +237,6 @@ class ArchGraphSystemTest(unittest.TestCase):
     def test_pickle(self):
         ag_pickle = pickle.loads(pickle.dumps(self.ag))
         self.assertEqual(ag_pickle.automorphisms(), self.ag.automorphisms())
-
 
 if __name__ == '__main__':
     unittest.main()
