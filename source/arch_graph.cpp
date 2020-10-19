@@ -59,7 +59,7 @@ std::string ArchGraph::to_json() const
   return j.dump();
 }
 
-ArchGraph::ProcessorType ArchGraph::new_processor_type(ProcessorLabel pl)
+ArchGraph::ProcessorType ArchGraph::new_processor_type(std::string const &pl)
 {
   assert(!pl.empty());
 
@@ -70,7 +70,7 @@ ArchGraph::ProcessorType ArchGraph::new_processor_type(ProcessorLabel pl)
   return id;
 }
 
-ArchGraph::ChannelType ArchGraph::new_channel_type(ChannelLabel cl)
+ArchGraph::ChannelType ArchGraph::new_channel_type(std::string const &cl)
 {
   assert(!cl.empty());
 
@@ -91,7 +91,7 @@ unsigned ArchGraph::add_processor(ProcessorType pt)
   return static_cast<unsigned>(boost::add_vertex(vp, _adj));
 }
 
-unsigned ArchGraph::add_processor(ProcessorLabel pl)
+unsigned ArchGraph::add_processor(std::string const &pl)
 {
   ProcessorType pt = assert_processor_type(pl);
 
@@ -108,7 +108,7 @@ unsigned ArchGraph::add_processors(unsigned n, ProcessorType pt)
   return add_processor(pt);
 }
 
-unsigned ArchGraph::add_processors(unsigned n, ProcessorLabel pl)
+unsigned ArchGraph::add_processors(unsigned n, std::string const &pl)
 {
   assert(n > 0u);
 
@@ -131,7 +131,7 @@ void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType ct)
   boost::add_edge(from, to, ep, _adj);
 }
 
-void ArchGraph::add_channel(unsigned pe1, unsigned pe2, ChannelLabel cl)
+void ArchGraph::add_channel(unsigned pe1, unsigned pe2, std::string const &cl)
 {
   ChannelType ct = assert_channel_type(cl);
 
@@ -146,7 +146,7 @@ void ArchGraph::fully_connect(ChannelType ct)
   }
 }
 
-void ArchGraph::fully_connect(ChannelLabel cl)
+void ArchGraph::fully_connect(std::string const &cl)
 {
   ChannelType ct = assert_channel_type(cl);
 
@@ -168,7 +168,7 @@ void ArchGraph::fully_connect(ProcessorType pt, ChannelType ct)
   }
 }
 
-void ArchGraph::fully_connect(ProcessorLabel pl, ChannelLabel cl)
+void ArchGraph::fully_connect(std::string const &pl, std::string const &cl)
 {
   ProcessorType pt = assert_processor_type(pl);
   ChannelType ct = assert_channel_type(cl);
@@ -182,7 +182,7 @@ void ArchGraph::self_connect(ChannelType ct)
     add_channel(pe, pe, ct);
 }
 
-void ArchGraph::self_connect(ChannelLabel cl)
+void ArchGraph::self_connect(std::string const &cl)
 {
   ChannelType ct = assert_channel_type(cl);
 
@@ -199,7 +199,7 @@ void ArchGraph::self_connect(ProcessorType pt, ChannelType ct)
   }
 }
 
-void ArchGraph::self_connect(ProcessorLabel pl, ChannelLabel cl)
+void ArchGraph::self_connect(std::string const &pl, std::string const &cl)
 {
   ProcessorType pt = assert_processor_type(pl);
   ChannelType ct = assert_channel_type(cl);
@@ -213,7 +213,7 @@ unsigned ArchGraph::num_processors() const
 unsigned ArchGraph::num_channels() const
 { return static_cast<unsigned>(boost::num_edges(_adj)); }
 
-ArchGraph::ChannelType ArchGraph::assert_channel_type(ChannelLabel cl)
+ArchGraph::ChannelType ArchGraph::assert_channel_type(std::string const &cl)
 {
   ChannelType ct = 0u;
   while (ct < _channel_types.size()) {
@@ -229,7 +229,7 @@ ArchGraph::ChannelType ArchGraph::assert_channel_type(ChannelLabel cl)
   return ct;
 }
 
-ArchGraph::ProcessorType ArchGraph::assert_processor_type(ProcessorLabel pl)
+ArchGraph::ProcessorType ArchGraph::assert_processor_type(std::string const &pl)
 {
   ProcessorType pt = 0u;
   while (pt < _processor_types.size()) {

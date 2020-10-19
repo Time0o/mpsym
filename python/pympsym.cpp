@@ -311,7 +311,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          &ArchGraph::add_processor,
          "pt"_a)
     .def("add_processor",
-         (unsigned(ArchGraph::*)(ArchGraph::ProcessorLabel))
+         (unsigned(ArchGraph::*)(std::string const &))
          &ArchGraph::add_processor,
          "pl"_a)
     .def("add_processors",
@@ -319,7 +319,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          &ArchGraph::add_processors,
          "n"_a, "pt"_a)
     .def("add_processors",
-         (unsigned(ArchGraph::*)(unsigned, ArchGraph::ProcessorLabel))
+         (unsigned(ArchGraph::*)(unsigned, std::string const &))
          &ArchGraph::add_processors,
          "n"_a, "pl"_a)
     .def("add_channel",
@@ -327,7 +327,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          &ArchGraph::add_channel,
          "pe1"_a, "pe2"_a, "ct"_a)
     .def("add_channel",
-         (void(ArchGraph::*)(unsigned, unsigned, ArchGraph::ChannelLabel))
+         (void(ArchGraph::*)(unsigned, unsigned, std::string const &))
          &ArchGraph::add_channel,
          "pe1"_a, "pe2"_a, "cl"_a)
     .def("fully_connect",
@@ -335,7 +335,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          &ArchGraph::fully_connect,
          "ct"_a)
     .def("fully_connect",
-         (void(ArchGraph::*)(ArchGraph::ChannelLabel))
+         (void(ArchGraph::*)(std::string const &))
          &ArchGraph::fully_connect,
          "cl"_a)
     .def("fully_connect",
@@ -343,7 +343,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          &ArchGraph::fully_connect,
          "pt"_a, "ct"_a)
     .def("fully_connect",
-         (void(ArchGraph::*)(ArchGraph::ProcessorLabel, ArchGraph::ChannelLabel))
+         (void(ArchGraph::*)(std::string const &, std::string const &))
          &ArchGraph::fully_connect,
          "pl"_a, "cl"_a)
     .def("self_connect",
@@ -351,7 +351,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          &ArchGraph::self_connect,
          "ct"_a)
     .def("self_connect",
-         (void(ArchGraph::*)(ArchGraph::ChannelLabel))
+         (void(ArchGraph::*)(std::string const &))
          &ArchGraph::self_connect,
          "cl"_a)
     .def("self_connect",
@@ -359,7 +359,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          &ArchGraph::self_connect,
          "pt"_a, "ct"_a)
     .def("self_connect",
-         (void(ArchGraph::*)(ArchGraph::ProcessorLabel, ArchGraph::ChannelLabel))
+         (void(ArchGraph::*)(std::string const &, std::string const &))
          &ArchGraph::self_connect,
          "pl"_a, "cl"_a);
 

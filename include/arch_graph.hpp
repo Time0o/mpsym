@@ -41,9 +41,6 @@ public:
   typedef processor_type_size_type ProcessorType;
   typedef channel_type_size_type ChannelType;
 
-  typedef std::string const &ProcessorLabel;
-  typedef std::string const &ChannelLabel;
-
   ArchGraph(bool directed = false)
   : _directed(directed)
   {}
@@ -53,27 +50,27 @@ public:
   std::string to_gap() const override;
   std::string to_json() const override;
 
-  ProcessorType new_processor_type(ProcessorLabel pl);
-  ChannelType new_channel_type(ChannelLabel cl);
+  ProcessorType new_processor_type(std::string const &pl);
+  ChannelType new_channel_type(std::string const &cl);
 
   unsigned add_processor(ProcessorType pt);
-  unsigned add_processor(ProcessorLabel pl);
+  unsigned add_processor(std::string const &pl);
 
   unsigned add_processors(unsigned n, ProcessorType pt);
-  unsigned add_processors(unsigned n, ProcessorLabel pl);
+  unsigned add_processors(unsigned n, std::string const &pl);
 
   void add_channel(unsigned pe1, unsigned pe2, ChannelType ct);
-  void add_channel(unsigned pe1, unsigned pe2, ChannelLabel cl);
+  void add_channel(unsigned pe1, unsigned pe2, std::string const &cl);
 
   void fully_connect(ChannelType ct);
-  void fully_connect(ChannelLabel cl);
+  void fully_connect(std::string const &cl);
   void fully_connect(ProcessorType pt, ChannelType ct);
-  void fully_connect(ProcessorLabel pl, ChannelLabel cl);
+  void fully_connect(std::string const &pl, std::string const &cl);
 
   void self_connect(ChannelType ct);
-  void self_connect(ChannelLabel cl);
+  void self_connect(std::string const &cl);
   void self_connect(ProcessorType pt, ChannelType ct);
-  void self_connect(ProcessorLabel pl, ChannelLabel cl);
+  void self_connect(std::string const &pl, std::string const &cl);
 
   bool directed() const { return _directed; }
   unsigned num_processors() const override;
@@ -84,8 +81,8 @@ private:
     AutomorphismOptions const *options) override
   { return automorphisms_nauty(options); }
 
-  ChannelType assert_channel_type(ChannelLabel cl);
-  ProcessorType assert_processor_type(ProcessorLabel cl);
+  ChannelType assert_channel_type(std::string const &cl);
+  ProcessorType assert_processor_type(std::string const &cl);
 
   bool edge_exists(unsigned from, unsigned to, ChannelType ct) const;
   bool edge_exists_directed(unsigned from, unsigned to, ChannelType ct) const;
