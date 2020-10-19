@@ -70,6 +70,11 @@ public:
   void fully_connect(ProcessorType pt, ChannelType ct);
   void fully_connect(ProcessorLabel pl, ChannelLabel cl);
 
+  void self_connect(ChannelType ct);
+  void self_connect(ChannelLabel cl);
+  void self_connect(ProcessorType pt, ChannelType ct);
+  void self_connect(ProcessorLabel pl, ChannelLabel cl);
+
   bool directed() const { return _directed; }
   unsigned num_processors() const override;
   unsigned num_channels() const override;

@@ -176,6 +176,37 @@ void ArchGraph::fully_connect(ProcessorLabel pl, ChannelLabel cl)
   fully_connect(pt, ct);
 }
 
+void ArchGraph::self_connect(ChannelType ct)
+{
+  for (unsigned pe = 0u; pe < num_processors(); ++pe)
+    add_channel(pe, pe, ct);
+}
+
+void ArchGraph::self_connect(ChannelLabel cl)
+{
+  ChannelType ct = assert_channel_type(cl);
+
+  self_connect(ct);
+}
+
+void ArchGraph::self_connect(ProcessorType pt, ChannelType ct)
+{
+  for (unsigned pe = 0u; pe < num_processors(); ++pe) {
+    if (_adj[pe].type != pt)
+      continue;
+
+    add_channel(pe, pe, ct);
+  }
+}
+
+void ArchGraph::self_connect(ProcessorLabel pl, ChannelLabel cl)
+{
+  ProcessorType pt = assert_processor_type(pl);
+  ChannelType ct = assert_channel_type(cl);
+
+  self_connect(pt, ct);
+}
+
 unsigned ArchGraph::num_processors() const
 { return static_cast<unsigned>(boost::num_vertices(_adj)); }
 
