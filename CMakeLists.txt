@@ -238,30 +238,32 @@ endif()
 # Debug Build
 ################################################################################
 
-if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}" AND NOT NO_COVERAGE)
-  # Coverage
-  message(STATUS "Configuring coverage data generation...")
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}")
+  if (NOT NO_COVERAGE)
+    # Coverage
+    message(STATUS "Configuring coverage data generation...")
 
-  set(DO_COVERAGE TRUE)
+    set(DO_COVERAGE TRUE)
 
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    find_program(GCOV_EXECUTABLE gcov)
-    if(NOT GCOV_EXECUTABLE)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      find_program(GCOV_EXECUTABLE gcov)
+      if(NOT GCOV_EXECUTABLE)
+        set(DO_COVERAGE FALSE)
+        message(STATUS "Failed to find gcov")
+      endif()
+    else()
       set(DO_COVERAGE FALSE)
-      message(STATUS "Failed to find gcov")
+      message(STATUS "Coverage data generation currently only available with g++")
     endif()
-  else()
-    set(DO_COVERAGE FALSE)
-    message(STATUS "Coverage data generation currently only available with g++")
-  endif()
 
-  if(DO_COVERAGE)
-    message(STATUS "Coverage data will be generated")
+    if(DO_COVERAGE)
+      message(STATUS "Coverage data will be generated")
 
-    set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O0 --coverage")
-    set(MAIN_LINK_FLAGS "${MAIN_LINK_FLAGS} --coverage")
-  else()
-    message(STATUS "Coverage data will be generated")
+      set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O0 --coverage")
+      set(MAIN_LINK_FLAGS "${MAIN_LINK_FLAGS} --coverage")
+    else()
+      message(STATUS "Coverage data will be generated")
+    endif()
   endif()
 
   # Enable and build tests
