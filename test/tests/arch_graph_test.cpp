@@ -484,8 +484,8 @@ private:
     // construct uniform super_graph
     auto super_graph(std::make_shared<ArchGraph>());
 
-    auto sp = super_graph->new_processor_type();
-    auto sc = super_graph->new_channel_type();
+    auto sp = super_graph->new_processor_type("p");
+    auto sc = super_graph->new_channel_type("c");
 
     auto spe1 = super_graph->add_processor(sp);
     auto spe2 = super_graph->add_processor(sp);
@@ -500,8 +500,8 @@ private:
     // construct subsystem prototype
     auto proto(std::make_shared<ArchGraph>());
 
-    auto p = proto->new_processor_type();
-    auto c = proto->new_channel_type();
+    auto p = proto->new_processor_type("p");
+    auto c = proto->new_channel_type("c");
 
     auto pe1 = proto->add_processor(p);
     auto pe2 = proto->add_processor(p);

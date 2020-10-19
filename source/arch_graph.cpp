@@ -61,6 +61,8 @@ std::string ArchGraph::to_json() const
 
 ArchGraph::ProcessorType ArchGraph::new_processor_type(ProcessorLabel pl)
 {
+  assert(!pl.empty());
+
   auto id = _processor_types.size();
   _processor_types.push_back(pl);
   _processor_type_instances.push_back(0u);
@@ -70,8 +72,9 @@ ArchGraph::ProcessorType ArchGraph::new_processor_type(ProcessorLabel pl)
 
 ArchGraph::ChannelType ArchGraph::new_channel_type(ChannelLabel cl)
 {
-  auto id = _channel_types.size();
+  assert(!cl.empty());
 
+  auto id = _channel_types.size();
   _channel_types.push_back(cl);
   _channel_type_instances.push_back(0u);
 

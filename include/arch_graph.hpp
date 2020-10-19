@@ -53,20 +53,20 @@ public:
   std::string to_gap() const override;
   std::string to_json() const override;
 
-  ProcessorType new_processor_type(ProcessorLabel pl = "");
-  ChannelType new_channel_type(ChannelLabel cl = "");
+  ProcessorType new_processor_type(ProcessorLabel pl);
+  ChannelType new_channel_type(ChannelLabel cl);
 
   unsigned add_processor(ProcessorType pt);
-  unsigned add_processor(ProcessorLabel pl = "");
+  unsigned add_processor(ProcessorLabel pl);
 
   unsigned add_processors(unsigned n, ProcessorType pt);
-  unsigned add_processors(unsigned n, ProcessorLabel pl = "");
+  unsigned add_processors(unsigned n, ProcessorLabel pl);
 
   void add_channel(unsigned pe1, unsigned pe2, ChannelType ct);
-  void add_channel(unsigned pe1, unsigned pe2, ChannelLabel cl = "");
+  void add_channel(unsigned pe1, unsigned pe2, ChannelLabel cl);
 
   void fully_connect(ChannelType ct);
-  void fully_connect(ChannelLabel cl = "");
+  void fully_connect(ChannelLabel cl);
 
   bool directed() const { return _directed; }
   unsigned num_processors() const override;
