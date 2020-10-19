@@ -67,6 +67,8 @@ public:
 
   void fully_connect(ChannelType ct);
   void fully_connect(ChannelLabel cl);
+  void fully_connect(ProcessorType pt, ChannelType ct);
+  void fully_connect(ProcessorLabel pl, ChannelLabel cl);
 
   bool directed() const { return _directed; }
   unsigned num_processors() const override;
@@ -77,16 +79,16 @@ private:
     AutomorphismOptions const *options) override
   { return automorphisms_nauty(options); }
 
+  ChannelType assert_channel_type(ChannelLabel cl);
+  ProcessorType assert_processor_type(ProcessorLabel cl);
+
   bool edge_exists(unsigned from, unsigned to, ChannelType ct) const;
   bool edge_exists_directed(unsigned from, unsigned to, ChannelType ct) const;
   bool edge_exists_undirected(unsigned from, unsigned to, ChannelType ct) const;
 
   internal::NautyGraph graph_nauty() const;
-
   std::string to_gap_nauty() const;
-
-  internal::PermGroup automorphisms_nauty(
-    AutomorphismOptions const *options) const;
+  internal::PermGroup automorphisms_nauty(AutomorphismOptions const *options) const;
 
   void dump_processors(std::ostream& os) const;
   void dump_channels(std::ostream& os) const;

@@ -93,16 +93,7 @@ unsigned ArchGraph::add_processor(ProcessorType pt)
 
 unsigned ArchGraph::add_processor(ProcessorLabel pl)
 {
-  ProcessorType pt = 0u;
-  while (pt < _processor_types.size()) {
-    if (_processor_types[pt] == pl)
-      break;
-
-    ++pt;
-  }
-
-  if (pt == _processor_types.size())
-    new_processor_type(pl);
+  ProcessorType pt = assert_processor_type(pl);
 
   return add_processor(pt);
 }
@@ -142,16 +133,7 @@ void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType ct)
 
 void ArchGraph::add_channel(unsigned pe1, unsigned pe2, ChannelLabel cl)
 {
-  ChannelType ct = 0u;
-  while (ct < _channel_types.size()) {
-    if (_channel_types[ct] == cl)
-      break;
-
-    ++ct;
-  }
-
-  if (ct == _channel_types.size())
-    new_channel_type(cl);
+  ChannelType ct = assert_channel_type(cl);
 
   add_channel(pe1, pe2, ct);
 }
@@ -166,10 +148,32 @@ void ArchGraph::fully_connect(ChannelType ct)
 
 void ArchGraph::fully_connect(ChannelLabel cl)
 {
+  ChannelType ct = assert_channel_type(cl);
+
+  fully_connect(ct);
+}
+
+void ArchGraph::fully_connect(ProcessorType pt, ChannelType ct)
+{
   for (unsigned pe1 = 0u; pe1 < num_processors(); ++pe1) {
-    for (unsigned pe2 = pe1 + 1u; pe2 < num_processors(); ++pe2)
-      add_channel(pe1, pe2, cl);
+    if (_adj[pe1].type != pt)
+      continue;
+
+    for (unsigned pe2 = pe1 + 1u; pe2 < num_processors(); ++pe2) {
+      if (_adj[pe2].type != pt)
+        continue;
+
+      add_channel(pe1, pe2, ct);
+    }
   }
+}
+
+void ArchGraph::fully_connect(ProcessorLabel pl, ChannelLabel cl)
+{
+  ProcessorType pt = assert_processor_type(pl);
+  ChannelType ct = assert_channel_type(cl);
+
+  fully_connect(pt, ct);
 }
 
 unsigned ArchGraph::num_processors() const
@@ -177,6 +181,38 @@ unsigned ArchGraph::num_processors() const
 
 unsigned ArchGraph::num_channels() const
 { return static_cast<unsigned>(boost::num_edges(_adj)); }
+
+ArchGraph::ChannelType ArchGraph::assert_channel_type(ChannelLabel cl)
+{
+  ChannelType ct = 0u;
+  while (ct < _channel_types.size()) {
+    if (_channel_types[ct] == cl)
+      break;
+
+    ++ct;
+  }
+
+  if (ct == _channel_types.size())
+    new_channel_type(cl);
+
+  return ct;
+}
+
+ArchGraph::ProcessorType ArchGraph::assert_processor_type(ProcessorLabel pl)
+{
+  ProcessorType pt = 0u;
+  while (pt < _processor_types.size()) {
+    if (_processor_types[pt] == pl)
+      break;
+
+    ++pt;
+  }
+
+  if (pt == _processor_types.size())
+    new_processor_type(pl);
+
+  return pt;
+}
 
 bool ArchGraph::edge_exists(unsigned from, unsigned to, ChannelType ct) const
 {

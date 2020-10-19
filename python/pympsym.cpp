@@ -337,7 +337,15 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
     .def("fully_connect",
          (void(ArchGraph::*)(ArchGraph::ChannelLabel))
          &ArchGraph::fully_connect,
-         "cl"_a);
+         "cl"_a)
+    .def("fully_connect",
+         (void(ArchGraph::*)(ArchGraph::ProcessorType, ArchGraph::ChannelType))
+         &ArchGraph::fully_connect,
+         "pt"_a, "ct"_a)
+    .def("fully_connect",
+         (void(ArchGraph::*)(ArchGraph::ProcessorLabel, ArchGraph::ChannelLabel))
+         &ArchGraph::fully_connect,
+         "pl"_a, "cl"_a);
 
   // ArchGraphCluster
   py::class_<ArchGraphCluster,
