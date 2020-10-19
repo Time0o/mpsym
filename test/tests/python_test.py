@@ -1,7 +1,8 @@
 import pickle
 import unittest
 from copy import deepcopy
-from itertools import permutations
+from itertools import cycle, permutations
+from math import factorial
 from textwrap import dedent
 
 import pympsym as mp
@@ -194,6 +195,52 @@ class ArchGraphSystemTest(unittest.TestCase):
 
         self.assertEqual(ag_directed.num_channels(), 3)
         self.assertEqual(ag_undirected.num_channels(), 2)
+
+    def test_loops(self):
+        def base_ag(directed, processors):
+            assert processors % 2 == 0
+
+            ag = mp.ArchGraph(directed)
+
+            for _ in range(processors):
+                ag.add_processor('p')
+
+            ag.fully_connect('RAM')
+
+            return ag
+
+        for directed in True, False:
+            # ag1
+            ag1 = base_ag(directed, 10)
+
+            for pe in range(ag1.num_processors()):
+                ag1.add_channel(pe, pe, 'L1')
+
+            self.assertEqual(ag1.num_automorphisms(),
+                             factorial(ag1.num_processors()))
+
+            # ag2
+            ag2 = base_ag(directed, 20)
+
+            for pe in range(ag2.num_processors()):
+                if pe < ag2.num_processors() // 2:
+                    ag2.add_channel(pe, pe, 'L1')
+                else:
+                    ag2.add_channel(pe, pe, 'L2')
+
+            self.assertEqual(ag2.num_automorphisms(),
+                             factorial(ag2.num_processors() // 2)**2)
+
+            # ag 3
+            ag3 = base_ag(directed, 30)
+
+            for pe, caches in zip(range(ag3.num_processors()),
+                                  cycle(permutations(['L1', 'L2', 'L3']))):
+                for cache in caches:
+                    ag3.add_channel(pe, pe, cache)
+
+            self.assertEqual(ag3.num_automorphisms(),
+                             factorial(ag3.num_processors()))
 
     def test_representative(self):
         for orbit in [self.ag_orbit1, self.ag_orbit2]:

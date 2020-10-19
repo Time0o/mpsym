@@ -17,6 +17,7 @@
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"
+#include "string.hpp"
 
 using json = nlohmann::json;
 
@@ -129,6 +130,39 @@ void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType ct)
 
   EdgeProperty ep {ct};
   boost::add_edge(from, to, ep, _adj);
+
+  if (from == to)
+    add_self_channel(from, ct);
+}
+
+void ArchGraph::add_self_channel(unsigned pe_, ChannelType ct)
+{
+  auto &pe(_adj[pe_]);
+
+  auto pl(_processor_types[pe.type]);
+  auto cl(_channel_types[ct]);
+
+  auto pt = assert_processor_type(add_self_channel_to_processor_label(pl, cl));
+
+  if (--_processor_type_instances[pt] == 0u) {
+    _processor_type_instances.erase(_processor_type_instances.begin() + pt);
+    _processor_types.erase(_processor_types.begin() + pt);
+  }
+
+  pe.type = pt;
+}
+
+std::string ArchGraph::add_self_channel_to_processor_label(
+  std::string const &pl, std::string const &cl)
+{
+  auto tmp(util::split(pl, "%"));
+
+  if (tmp.size() > 1u)
+    tmp.insert(std::upper_bound(tmp.begin() + 1, tmp.end(), cl), cl);
+  else
+    tmp.push_back(cl);
+
+  return util::join(tmp, "%");
 }
 
 void ArchGraph::add_channel(unsigned pe1, unsigned pe2, std::string const &cl)
