@@ -31,6 +31,13 @@ std::string ArchGraph::to_gap() const
 
 std::string ArchGraph::to_json() const
 {
+  // processor_types in use
+  decltype(_processor_types) processor_types_in_use;
+  for (auto i = 0u; i < _processor_types.size(); ++i) {
+    if (_processor_type_instances[i] > 0u)
+      processor_types_in_use.push_back(_processor_types[i]);
+  }
+
   // processors dict
   std::map<ProcessorType, std::string> processors_dict;
 
@@ -49,7 +56,7 @@ std::string ArchGraph::to_json() const
 
   json j_;
   j_["directed"] = _directed;
-  j_["processor_types"] = _processor_types;
+  j_["processor_types"] = processor_types_in_use;
   j_["channel_types"] = _channel_types;
   j_["processors"] = processors_dict;
   j_["channels"] = channels_dict;
@@ -142,14 +149,12 @@ void ArchGraph::add_self_channel(unsigned pe_, ChannelType ct)
   auto pl(_processor_types[pe.type]);
   auto cl(_channel_types[ct]);
 
-  auto pt = assert_processor_type(add_self_channel_to_processor_label(pl, cl));
+  if (_processor_type_instances[pe.type] > 0u)
+    --_processor_type_instances[pe.type];
 
-  if (--_processor_type_instances[pt] == 0u) {
-    _processor_type_instances.erase(_processor_type_instances.begin() + pt);
-    _processor_types.erase(_processor_types.begin() + pt);
-  }
+  pe.type = assert_processor_type(add_self_channel_to_processor_label(pl, cl));
 
-  pe.type = pt;
+  ++_processor_type_instances[pe.type];
 }
 
 std::string ArchGraph::add_self_channel_to_processor_label(
