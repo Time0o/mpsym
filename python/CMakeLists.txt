@@ -7,7 +7,9 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
 
 pybind11_add_module("${PYTHON_MODULE}" "pympsym.cpp")
 
-target_link_libraries("${PYTHON_MODULE}" PRIVATE "${MPSYM_LIB}")
+target_link_libraries("${PYTHON_MODULE}"
+                      PRIVATE "${MPSYM_LIB}"
+                      PRIVATE nlohmann_json::nlohmann_json)
 
 if(PYTHON_LIBRARY_OUTPUT_DIRECTORY)
   set_target_properties("${PYTHON_MODULE}" PROPERTIES

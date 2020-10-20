@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <boost/multiprecision/cpp_int.hpp>
+#include <nlohmann/json.hpp>
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -33,6 +34,8 @@ namespace mp = boost::multiprecision;
 namespace py = pybind11;
 
 using namespace py::literals;
+
+using json = nlohmann::json;
 
 using mpsym::ArchGraph;
 using mpsym::ArchGraphCluster;
@@ -113,6 +116,14 @@ py::tuple sequence_to_tuple(Sequence<T> const &seq)
 
 template<typename T = unsigned>
 using Set = std::set<T>;
+
+template<typename T>
+T arch_graph_json_cast(ArchGraphSystem const &self, std::string const &key)
+{
+  auto j(json::parse(self.to_json()));
+  T ret = j["graph"][key];
+  return ret;
+}
 
 } // anonymous namespace
 
@@ -220,6 +231,32 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
     .def_static("from_json_file", &ArchGraphSystem::from_json_file,
                 "json_file"_a)
     .def("to_json", &ArchGraphSystem::to_json)
+    .def("processor_types",
+         [](ArchGraphSystem const &self)
+         {
+           using T = std::vector<std::string>;
+           return arch_graph_json_cast<T>(self, "processor_types");
+         })
+    .def("channel_types",
+         [](ArchGraphSystem const &self)
+         {
+           using T = std::vector<std::string>;
+           return arch_graph_json_cast<T>(self, "channel_types");
+         })
+    .def("processors",
+         [](ArchGraphSystem const &self)
+         {
+           using T = std::pair<unsigned, std::string>;
+           using U = std::vector<T>;
+           return arch_graph_json_cast<U>(self, "processors");
+         })
+    .def("channels",
+         [](ArchGraphSystem const &self)
+         {
+           using T = std::pair<unsigned, std::string>;
+           using U = std::map<unsigned, std::vector<T>>;
+           return arch_graph_json_cast<U>(self, "channels");
+         })
     .def("num_processors", &ArchGraphSystem::num_processors)
     .def("num_channels", &ArchGraphSystem::num_channels)
     .def("num_automorphisms",
