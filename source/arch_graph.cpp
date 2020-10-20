@@ -162,10 +162,13 @@ std::string ArchGraph::add_self_channel_to_processor_label(
 {
   auto tmp(util::split(pl, "%"));
 
-  if (tmp.size() > 1u)
-    tmp.insert(std::upper_bound(tmp.begin() + 1, tmp.end(), cl), cl);
-  else
+  if (tmp.size() > 1u) {
+    auto it(std::lower_bound(tmp.begin() + 1, tmp.end(), cl));
+    if (it == tmp.end() || *it != cl)
+      tmp.insert(it, cl);
+  } else {
     tmp.push_back(cl);
+  }
 
   return util::join(tmp, "%");
 }
