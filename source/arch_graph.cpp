@@ -50,7 +50,13 @@ std::string ArchGraph::to_json() const
 
     for (auto e : boost::make_iterator_range(boost::out_edges(pe1, _adj))) {
       auto pe2 = boost::target(e, _adj);
-      channels_dict[pe1].emplace_back(pe2, _channel_types[_adj[e].type]);
+      auto ct = _channel_types[_adj[e].type];
+      auto channel(std::make_pair(pe2, ct));
+
+      auto &channels(channels_dict[pe1]);
+
+      channels.insert(
+        std::upper_bound(channels.begin(), channels.end(), channel), channel);
     }
   }
 
@@ -135,26 +141,35 @@ void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType ct)
 
   _channel_type_instances[ct]++;
 
-  EdgeProperty ep {ct};
-  boost::add_edge(from, to, ep, _adj);
-
   if (from == to)
     add_self_channel(from, ct);
+  else
+    add_non_self_channel(from, to, ct);
 }
 
-void ArchGraph::add_self_channel(unsigned pe_, ChannelType ct)
+void ArchGraph::add_self_channel(unsigned pe, ChannelType ct)
 {
-  auto &pe(_adj[pe_]);
+  EdgeProperty ep {ct};
+  boost::add_edge(pe, pe, ep, _adj);
 
-  auto pl(_processor_types[pe.type]);
+  auto pt(_adj[pe].type);
+  auto pl(_processor_types[pt]);
   auto cl(_channel_types[ct]);
 
-  if (_processor_type_instances[pe.type] > 0u)
-    --_processor_type_instances[pe.type];
+  if (_processor_type_instances[pt] > 0u)
+    --_processor_type_instances[pt];
 
-  pe.type = assert_processor_type(add_self_channel_to_processor_label(pl, cl));
+  pt = assert_processor_type(add_self_channel_to_processor_label(pl, cl));
 
-  ++_processor_type_instances[pe.type];
+  ++_processor_type_instances[pt];
+
+  _adj[pe].type = pt;
+}
+
+void ArchGraph::add_non_self_channel(unsigned from, unsigned to, ChannelType ct)
+{
+  EdgeProperty ep {ct};
+  boost::add_edge(from, to, ep, _adj);
 }
 
 std::string ArchGraph::add_self_channel_to_processor_label(

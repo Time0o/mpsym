@@ -85,8 +85,9 @@ private:
   ProcessorType assert_processor_type(std::string const &cl);
 
   void add_self_channel(unsigned pe, ChannelType ct);
-  static std::string add_self_channel_to_processor_label(
-    std::string const &pl, std::string const &cl);
+  void add_non_self_channel(unsigned from, unsigned to, ChannelType ct);
+  static std::string add_self_channel_to_processor_label(std::string const &pl,
+                                                         std::string const &cl);
 
   bool edge_exists(unsigned from, unsigned to, ChannelType ct) const;
   bool edge_exists_directed(unsigned from, unsigned to, ChannelType ct) const;
