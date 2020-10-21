@@ -310,12 +310,12 @@ bool ArchGraph::channel_exists(unsigned from, unsigned to, ChannelType ct) const
 
 bool ArchGraph::channel_exists_directed(unsigned from, unsigned to, ChannelType ct) const
 {
-  boost::graph_traits<adjacency_type>::edge_descriptor edge;
-  bool exists;
+  for (auto e : boost::make_iterator_range(boost::out_edges(from, _adj))) {
+    if (boost::target(e, _adj) == to && _adj[e].type == ct)
+      return true;
+  }
 
-  std::tie(edge, exists) = boost::edge(from, to, _adj);
-
-  return exists && _adj[edge].type == ct;
+  return false;
 }
 
 bool ArchGraph::channel_exists_undirected(unsigned from, unsigned to, ChannelType ct) const
