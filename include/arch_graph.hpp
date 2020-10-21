@@ -89,9 +89,9 @@ private:
   static std::string add_self_channel_to_processor_label(std::string const &pl,
                                                          std::string const &cl);
 
-  bool edge_exists(unsigned from, unsigned to, ChannelType ct) const;
-  bool edge_exists_directed(unsigned from, unsigned to, ChannelType ct) const;
-  bool edge_exists_undirected(unsigned from, unsigned to, ChannelType ct) const;
+  bool channel_exists(unsigned from, unsigned to, ChannelType ct) const;
+  bool channel_exists_directed(unsigned from, unsigned to, ChannelType ct) const;
+  bool channel_exists_undirected(unsigned from, unsigned to, ChannelType ct) const;
 
   internal::NautyGraph graph_nauty() const;
   std::string to_gap_nauty() const;

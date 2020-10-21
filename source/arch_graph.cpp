@@ -134,7 +134,7 @@ unsigned ArchGraph::add_processors(unsigned n, std::string const &pl)
 
 void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType ct)
 {
-  if (edge_exists(from, to, ct))
+  if (channel_exists(from, to, ct))
     return;
 
   reset_automorphisms();
@@ -302,26 +302,26 @@ ArchGraph::ProcessorType ArchGraph::assert_processor_type(std::string const &pl)
   return pt;
 }
 
-bool ArchGraph::edge_exists(unsigned from, unsigned to, ChannelType ct) const
+bool ArchGraph::channel_exists(unsigned from, unsigned to, ChannelType ct) const
 {
-  return directed() ? edge_exists_directed(from, to, ct)
-                    : edge_exists_undirected(from, to, ct);
+  return directed() ? channel_exists_directed(from, to, ct)
+                    : channel_exists_undirected(from, to, ct);
 }
 
-bool ArchGraph::edge_exists_directed(unsigned from, unsigned to, ChannelType ct) const
+bool ArchGraph::channel_exists_directed(unsigned from, unsigned to, ChannelType ct) const
 {
   boost::graph_traits<adjacency_type>::edge_descriptor edge;
-  bool edge_exists;
+  bool exists;
 
-  std::tie(edge, edge_exists) = boost::edge(from, to, _adj);
+  std::tie(edge, exists) = boost::edge(from, to, _adj);
 
-  return edge_exists && _adj[edge].type == ct;
+  return exists && _adj[edge].type == ct;
 }
 
-bool ArchGraph::edge_exists_undirected(unsigned from, unsigned to, ChannelType ct) const
+bool ArchGraph::channel_exists_undirected(unsigned from, unsigned to, ChannelType ct) const
 {
-  return edge_exists_directed(from, to, ct) ||
-         edge_exists_directed(to, from, ct);
+  return channel_exists_directed(from, to, ct) ||
+         channel_exists_directed(to, from, ct);
 }
 
 void ArchGraph::dump_processors(std::ostream& os) const
