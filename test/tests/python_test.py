@@ -251,13 +251,13 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
 
         ag1 = make_ag(10, True)
         self.assertEqual(ag1.num_channels(), 2 * ag1.num_processors())
-        self.assertCountEqual(ag1.processor_types(), ['p', 'p%L1%L2'])
-        self.assertCountEqual(ag1.channel_types(), ['c', 'L1', 'L2'])
+        self.assertEqual(ag1.processor_types(), ['p', 'p%L1%L2'])
+        self.assertEqual(ag1.channel_types(), ['L1', 'L2', 'c'])
 
         ag2 = make_ag(10, False)
         self.assertEqual(ag2.num_channels(), int(1.5 * ag2.num_processors()))
         self.assertCountEqual(ag2.processor_types(), ['p', 'p%L1%L2'])
-        self.assertCountEqual(ag2.channel_types(), ['c', 'L1', 'L2'])
+        self.assertCountEqual(ag2.channel_types(), ['L1', 'L2', 'c'])
 
     def test_self_channels(self):
         def make_ag(directed, processors):

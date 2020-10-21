@@ -33,10 +33,18 @@ std::string ArchGraph::to_json() const
 {
   // processor_types in use
   decltype(_processor_types) processor_types_in_use;
+
   for (auto i = 0u; i < _processor_types.size(); ++i) {
     if (_processor_type_instances[i] > 0u)
       processor_types_in_use.push_back(_processor_types[i]);
   }
+
+  std::sort(processor_types_in_use.begin(), processor_types_in_use.end());
+
+  // channel types in use
+  auto channel_types_in_use(_channel_types);
+
+  std::sort(channel_types_in_use.begin(), channel_types_in_use.end());
 
   // processors dict
   std::map<ProcessorType, std::string> processors_dict;
@@ -63,7 +71,7 @@ std::string ArchGraph::to_json() const
   json j_;
   j_["directed"] = _directed;
   j_["processor_types"] = processor_types_in_use;
-  j_["channel_types"] = _channel_types;
+  j_["channel_types"] = channel_types_in_use;
   j_["processors"] = processors_dict;
   j_["channels"] = channels_dict;
 
