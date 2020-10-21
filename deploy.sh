@@ -29,7 +29,7 @@ cd ..
 # release build
 echo "Preparing release build..."
 rm -rf *
-cmake -DCMAKE_BUILD_TYPE=Release -DLUA_NO_ROCK=ON -DBUILD_DOC=ON ..
+cmake -DCMAKE_BUILD_TYPE=Release -DNO_INSTALL=ON -DBUILD_DOC=ON ..
 
 # deploy documentation
 echo "Deploying documentation..."

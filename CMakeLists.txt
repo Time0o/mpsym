@@ -5,10 +5,8 @@ cmake_minimum_required(VERSION 3.6)
 # Project Settings
 ################################################################################
 
-file (STRINGS "version.txt" VERSION)
-
 set(CMAKE_PROJECT_NAME "mpsym")
-set(CMAKE_PROJECT_VERSION "${VERSION}")
+set(CMAKE_PROJECT_VERSION "0.2")
 set(CMAKE_PROJECT_DESCRIPTION "MPSoC Symmetry Reduction")
 set(CMAKE_PROJECT_HOMEPAGE_URL "https://github.com/Time0o/mpsym")
 set(CMAKE_PROJECT_DOC_URL "https://time0o.github.io/mpsym/")
@@ -161,7 +159,8 @@ message(STATUS "Finding Lua...")
 find_package(Lua 5.2 REQUIRED)
 
 # LuaRocks
-if(NOT LUA_NO_ROCK AND NOT LUA_EMBED AND CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}" AND
+   NOT NO_INSTALL AND NOT LUA_NO_ROCK AND NOT LUA_EMBED)
   message(STATUS "Finding LuaRocks...")
   find_program(LUAROCKS_EXECUTABLE luarocks)
   if(NOT LUAROCKS_EXECUTABLE)
@@ -286,45 +285,47 @@ endif()
 # Release Build
 ################################################################################
 
-if(BUILD_DOC AND CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
-  # Prefix check
-  message(STATUS "Checking install prefix...")
-
-  if(NOT IGNORE_INSTALL_PREFIX AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
+  if(NOT NO_INSTALL AND NOT IGNORE_INSTALL_PREFIX AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     message(FATAL_ERROR "CMAKE_INSTALL_PREFIX must be specified explicitly")
   endif()
 
-  # Documentation
-  message(STATUS "Configuring documentation...")
-
-  set(BUILD_DOC TRUE)
-
-  find_package(Doxygen)
-  if(NOT DOXYGEN_FOUND)
-    set(BUILD_DOC FALSE)
-    message(STATUS "Failed to find Doxygen")
-  else()
-    message(STATUS "Found Doxygen")
-  endif()
-
   if(BUILD_DOC)
-    message(STATUS "Documentation will be generated")
+    # Prefix check
+    message(STATUS "Checking install prefix...")
 
-    # Doxygen
-    set(DOXYFILE_IN "${DOC_DOXYGEN_IN_DIR}/Doxyfile.in")
-    set(DOXYFILE_OUT "${DOC_DOXYGEN_OUT_DIR}/Doxyfile")
+    # Documentation
+    message(STATUS "Configuring documentation...")
 
-    configure_file("${DOXYFILE_IN}" "${DOXYFILE_OUT}" @ONLY)
+    set(BUILD_DOC TRUE)
 
-    add_custom_command(
-      OUTPUT "${DOC_DOXYGEN_INDEX_HTML}"
-      COMMAND "${DOXYGEN_EXECUTABLE}" "${DOXYFILE_OUT}"
-      DEPENDS "${MPSYM_LIB}"
-    )
+    find_package(Doxygen)
+    if(NOT DOXYGEN_FOUND)
+      set(BUILD_DOC FALSE)
+      message(STATUS "Failed to find Doxygen")
+    else()
+      message(STATUS "Found Doxygen")
+    endif()
 
-    add_custom_target(doc DEPENDS "${DOC_DOXYGEN_INDEX_HTML}")
-  else()
-    message(STATUS "Documentation will not be generated")
+    if(BUILD_DOC)
+      message(STATUS "Documentation will be generated")
+
+      # Doxygen
+      set(DOXYFILE_IN "${DOC_DOXYGEN_IN_DIR}/Doxyfile.in")
+      set(DOXYFILE_OUT "${DOC_DOXYGEN_OUT_DIR}/Doxyfile")
+
+      configure_file("${DOXYFILE_IN}" "${DOXYFILE_OUT}" @ONLY)
+
+      add_custom_command(
+        OUTPUT "${DOC_DOXYGEN_INDEX_HTML}"
+        COMMAND "${DOXYGEN_EXECUTABLE}" "${DOXYFILE_OUT}"
+        DEPENDS "${MPSYM_LIB}"
+      )
+
+      add_custom_target(doc DEPENDS "${DOC_DOXYGEN_INDEX_HTML}")
+    else()
+      message(STATUS "Documentation will not be generated")
+    endif()
   endif()
 endif()
 
