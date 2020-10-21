@@ -3,6 +3,7 @@ import unittest
 from copy import deepcopy
 from itertools import cycle, permutations
 from math import factorial
+from random import sample
 from textwrap import dedent
 
 import pympsym as mp
@@ -179,69 +180,6 @@ class ArchGraphSystemTest(unittest.TestCase):
         autom = self.ag.automorphisms()
         self.assertEqual(len(autom), 8192)
 
-    def test_duplicate_edges(self):
-        ag_directed = mp.ArchGraph(directed=True)
-        ag_undirected = mp.ArchGraph(directed=False)
-
-        for ag in ag_directed, ag_undirected:
-            ag.add_processor('p')
-            ag.add_processor('p')
-
-            for _ in range(2):
-                ag.add_channel(0, 0, 'L1')
-
-                ag.add_channel(0, 1, 'c')
-                ag.add_channel(1, 0, 'c')
-
-        self.assertEqual(ag_directed.num_channels(), 3)
-        self.assertEqual(ag_undirected.num_channels(), 2)
-
-    def test_loops(self):
-        def base_ag(directed, processors):
-            assert processors % 2 == 0
-
-            ag = mp.ArchGraph(directed)
-
-            for _ in range(processors):
-                ag.add_processor('p')
-
-            ag.fully_connect('RAM')
-
-            return ag
-
-        for directed in True, False:
-            # ag1
-            ag1 = base_ag(directed, 10)
-
-            for pe in range(ag1.num_processors()):
-                ag1.add_channel(pe, pe, 'L1')
-
-            self.assertEqual(ag1.num_automorphisms(),
-                             factorial(ag1.num_processors()))
-
-            # ag2
-            ag2 = base_ag(directed, 20)
-
-            for pe in range(ag2.num_processors()):
-                if pe < ag2.num_processors() // 2:
-                    ag2.add_channel(pe, pe, 'L1')
-                else:
-                    ag2.add_channel(pe, pe, 'L2')
-
-            self.assertEqual(ag2.num_automorphisms(),
-                             factorial(ag2.num_processors() // 2)**2)
-
-            # ag 3
-            ag3 = base_ag(directed, 30)
-
-            for pe, caches in zip(range(ag3.num_processors()),
-                                  cycle(permutations(['L1', 'L2', 'L3']))):
-                for cache in caches:
-                    ag3.add_channel(pe, pe, cache)
-
-            self.assertEqual(ag3.num_automorphisms(),
-                             factorial(ag3.num_processors()))
-
     def test_representative(self):
         for orbit in [self.ag_orbit1, self.ag_orbit2]:
             for mapping in orbit:
@@ -284,6 +222,87 @@ class ArchGraphSystemTest(unittest.TestCase):
     def test_pickle(self):
         ag_pickle = pickle.loads(pickle.dumps(self.ag))
         self.assertEqual(ag_pickle.automorphisms(), self.ag.automorphisms())
+
+
+class ArchGraphSystemBugFixTest(unittest.TestCase):
+    def test_duplicate_channels(self):
+        def make_ag(processors, directed):
+            assert processors % 2 == 0
+
+            ag = mp.ArchGraph(directed)
+
+            ag.add_processors(processors, 'p')
+
+            for pe in sample(range(ag.num_processors()),
+                             ag.num_processors() // 2):
+                for _ in range(2):
+                    ag.add_channel(pe, pe, 'L1')
+                    ag.add_channel(pe, pe, 'L2')
+
+            for pe in sample(range(ag.num_processors() - 1),
+                             ag.num_processors() // 2):
+                for _ in range(2):
+                    ag.add_channel(pe, pe + 1, 'c')
+                    ag.add_channel(pe + 1, pe, 'c')
+
+            return ag
+
+        ag1 = make_ag(10, True)
+        self.assertEqual(ag1.num_channels(), 2 * ag1.num_processors())
+        self.assertCountEqual(ag1.processor_types(), ['p', 'p%L1%L2'])
+        self.assertCountEqual(ag1.channel_types(), ['c', 'L1', 'L2'])
+
+        ag2 = make_ag(10, False)
+        self.assertEqual(ag2.num_channels(), int(1.5 * ag2.num_processors()))
+        self.assertCountEqual(ag2.processor_types(), ['p', 'p%L1%L2'])
+        self.assertCountEqual(ag2.channel_types(), ['c', 'L1', 'L2'])
+
+    def test_self_channels(self):
+        def make_ag(directed, processors):
+            assert processors % 2 == 0
+
+            ag = mp.ArchGraph(directed)
+
+            for _ in range(processors):
+                ag.add_processor('p')
+
+            ag.fully_connect('RAM')
+
+            return ag
+
+        for directed in True, False:
+            # ag1
+            ag1 = make_ag(directed, 10)
+
+            for pe in range(ag1.num_processors()):
+                ag1.add_channel(pe, pe, 'L1')
+
+            self.assertEqual(ag1.num_automorphisms(),
+                             factorial(ag1.num_processors()))
+
+            # ag2
+            ag2 = make_ag(directed, 20)
+
+            for pe in range(ag2.num_processors()):
+                if pe < ag2.num_processors() // 2:
+                    ag2.add_channel(pe, pe, 'L1')
+                else:
+                    ag2.add_channel(pe, pe, 'L2')
+
+            self.assertEqual(ag2.num_automorphisms(),
+                             factorial(ag2.num_processors() // 2)**2)
+
+            # ag 3
+            ag3 = make_ag(directed, 30)
+
+            for pe, caches in zip(range(ag3.num_processors()),
+                                  cycle(permutations(['L1', 'L2', 'L3']))):
+                for cache in caches:
+                    ag3.add_channel(pe, pe, cache)
+
+            self.assertEqual(ag3.num_automorphisms(),
+                             factorial(ag3.num_processors()))
+
 
 if __name__ == '__main__':
     unittest.main()
