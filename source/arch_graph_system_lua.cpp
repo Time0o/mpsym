@@ -326,8 +326,8 @@ std::shared_ptr<ArchGraphSystem> ArchGraphSystem::from_lua(
       throw lua_Error(L, "syntax error while loading chunk");
     case LUA_ERRMEM:
       throw lua_Error(L, "memory error while loading chunk");
-    case LUA_ERRGCMM:
-      throw lua_Error(L, "garbage collector error while loading chunk");
+    default:
+      throw lua_Error(L, "error while loading chunk");
   }
 
   // run chunk
