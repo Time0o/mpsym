@@ -165,10 +165,17 @@ void NautyGraph::set_trivial_partition()
 
 PermGroup NautyGraph::automorphisms(AutomorphismOptions const *options) const
 {
+  static decltype(optionblk::invarproc) adjacencies = nullptr;
+  static DEFAULTOPTIONS_DIGRAPH(nauty_options_directed);
+
+  static DEFAULTOPTIONS_GRAPH(nauty_options_undirected);
+
   assert(!_edges.empty());
   assert(!_ptn_expl.empty());
 
-  static DEFAULTOPTIONS_GRAPH(nauty_options);
+  auto &nauty_options = _directed ? nauty_options_directed
+                                  : nauty_options_undirected;
+
   nauty_options.defaultptn = FALSE;
   nauty_options.userautomproc = _save_gens;
 
