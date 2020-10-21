@@ -281,7 +281,7 @@ function ArchGraph:create(obj)
   setmetatable(obj, self)
   obj.__index = self
 
-  obj._directed = obj.directed or false
+  obj._directed = (obj.directed == nil) and true or obj.directed
 
   obj._num_processors = #obj.processors
   obj._num_channels = #obj.channels
