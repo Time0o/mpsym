@@ -172,6 +172,9 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                     throw std::logic_error("number of vertices must be non-negative");
 
                   // validate adjacencies
+                  std::set<std::pair<int, int>> edges;
+                  std::set<std::pair<int, int>> edge_parities;
+
                   for (auto const &p : adjacencies) {
                     int from = p.first;
 
@@ -181,8 +184,26 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                     for (int to : p.second) {
                       if (to >= vertices)
                         throw std::logic_error("vertex index out of range");
+
+                      auto edge(std::make_pair(from, to));
+                      auto reverse_edge(std::make_pair(to, from));
+
+                      if (!edges.insert(edge).second)
+                        throw std::logic_error("duplicate edges");
+
+                      if (directed) {
+                        auto it(edge_parities.find(reverse_edge));
+
+                        if (it == edge_parities.end())
+                          edge_parities.insert(edge);
+                        else
+                          edge_parities.erase(it);
+                      }
                     }
                   }
+
+                  bool effectively_directed = directed ? edge_parities.empty()
+                                                       : false;
 
                   // validate coloring
                   if (!coloring.empty()) {
@@ -202,7 +223,8 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                   NautyGraph g(
                     vertices,
                     vertices_reduced == 0 ? vertices : vertices_reduced,
-                    directed);
+                    directed,
+                    effectively_directed);
 
                   g.add_edges(adjacencies);
 

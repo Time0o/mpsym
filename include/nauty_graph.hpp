@@ -18,11 +18,11 @@ namespace internal
 class NautyGraph
 {
 public:
-  NautyGraph(int n, bool directed)
-  : NautyGraph(n, n, directed)
+  NautyGraph(int n, bool directed, bool effectively_directed)
+  : NautyGraph(n, n, directed, effectively_directed)
   {}
 
-  NautyGraph(int n, int n_reduced, bool directed);
+  NautyGraph(int n, int n_reduced, bool directed, bool effectively_directed);
 
   ~NautyGraph();
 
@@ -38,7 +38,7 @@ public:
 
 private:
   unsigned long *_g;
-  bool _directed;
+  bool _directed, _effectively_directed;
   int _n, _n_reduced, _m;
   int *_lab, *_ptn, *_orbits;
 

@@ -72,7 +72,9 @@ public:
   void self_connect(ProcessorType pt, ChannelType ct);
   void self_connect(std::string const &pl, std::string const &cl);
 
-  bool directed() const { return _directed; }
+  bool directed() const;
+  bool effectively_directed() const;
+
   unsigned num_processors() const override;
   unsigned num_channels() const override;
 

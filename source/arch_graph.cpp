@@ -264,6 +264,26 @@ void ArchGraph::self_connect(std::string const &pl, std::string const &cl)
   self_connect(pt, ct);
 }
 
+bool ArchGraph::directed() const
+{ return _directed; }
+
+bool ArchGraph::effectively_directed() const
+{
+  if (!directed())
+    return false;
+
+  for (auto e : boost::make_iterator_range(boost::edges(_adj))) {
+    int from = boost::source(e, _adj);
+    int to = boost::target(e, _adj);
+    auto ct = _adj[e].type;
+
+    if (!channel_exists(to, from, ct))
+      return true;
+  }
+
+  return false;
+}
+
 unsigned ArchGraph::num_processors() const
 { return static_cast<unsigned>(boost::num_vertices(_adj)); }
 

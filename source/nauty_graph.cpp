@@ -50,8 +50,12 @@ namespace mpsym
 namespace internal
 {
 
-NautyGraph::NautyGraph(int n, int n_reduced, bool directed)
+NautyGraph::NautyGraph(int n,
+                       int n_reduced,
+                       bool directed,
+                       bool effectively_directed)
 : _directed(directed),
+  _effectively_directed(effectively_directed),
   _n(n),
   _n_reduced(n_reduced),
   _m(SETWORDSNEEDED(n))
@@ -124,7 +128,7 @@ void NautyGraph::add_edge(int from, int to)
   assert(from < _n);
   assert(to < _n);
 
-  if (_directed)
+  if (_effectively_directed)
     ADDONEARC(_g, from, to, _m);
   else
     ADDONEEDGE(_g, from, to, _m);
@@ -173,8 +177,8 @@ PermGroup NautyGraph::automorphisms(AutomorphismOptions const *options) const
   assert(!_edges.empty());
   assert(!_ptn_expl.empty());
 
-  auto &nauty_options = _directed ? nauty_options_directed
-                                  : nauty_options_undirected;
+  auto &nauty_options = _effectively_directed ? nauty_options_directed
+                                              : nauty_options_undirected;
 
   nauty_options.defaultptn = FALSE;
   nauty_options.userautomproc = _save_gens;

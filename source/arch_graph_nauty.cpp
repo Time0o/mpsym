@@ -25,7 +25,7 @@ NautyGraph ArchGraph::graph_nauty() const
   int n_orig = num_processors();
   int n = n_orig * (cts_log2 + 1u);
 
-  NautyGraph g(n, n_orig, _directed);
+  NautyGraph g(n, n_orig, directed(), effectively_directed());
 
   /* node numbering:
    *  ...     ...           ...
