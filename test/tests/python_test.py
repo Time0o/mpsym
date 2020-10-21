@@ -305,6 +305,49 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
             self.assertEqual(ag3.num_automorphisms(),
                              factorial(ag3.num_processors()))
 
+    def test_multi_channel_automorphisms(self):
+        def make_ag(directed, processors):
+            assert processors % 2 == 0
+
+            ag = mp.ArchGraph(directed)
+            ag.add_processors(processors, 'p')
+            ag.fully_connect('RAM')
+
+            return ag
+
+        ag1 = make_ag(True, 4)
+        self.assertEqual(ag1.num_automorphisms(),
+                         factorial(ag1.num_processors()))
+
+        ag2 = make_ag(False, 4)
+        self.assertEqual(ag2.num_automorphisms(),
+                         factorial(ag2.num_processors()))
+
+        ag3 = make_ag(True, 4)
+        ag3.add_channel(0, 1, 'c')
+        ag3.add_channel(1, 2, 'c')
+        ag3.add_channel(2, 3, 'c')
+        ag3.add_channel(3, 0, 'c')
+        self.assertEqual(ag3.num_automorphisms(), 4)
+
+        ag4 = make_ag(True, 4)
+        ag4.add_channel(0, 1, 'c')
+        ag4.add_channel(1, 0, 'c')
+        ag4.add_channel(1, 2, 'c')
+        ag4.add_channel(2, 1, 'c')
+        ag4.add_channel(2, 3, 'c')
+        ag4.add_channel(3, 2, 'c')
+        ag4.add_channel(3, 0, 'c')
+        ag4.add_channel(0, 3, 'c')
+        self.assertEqual(ag4.num_automorphisms(), 8)
+
+        ag5 = make_ag(False, 4)
+        ag5.add_channel(0, 1, 'c')
+        ag5.add_channel(1, 2, 'c')
+        ag5.add_channel(2, 3, 'c')
+        ag5.add_channel(3, 0, 'c')
+        self.assertEqual(ag5.num_automorphisms(), 8)
+
 
 if __name__ == '__main__':
     unittest.main()
