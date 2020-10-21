@@ -8,6 +8,7 @@
 
 extern "C" {
   #include "nauty.h"
+  #include "nautinv.h"
 }
 
 #include "arch_graph_system.hpp"
@@ -169,7 +170,6 @@ void NautyGraph::set_trivial_partition()
 
 PermGroup NautyGraph::automorphisms(AutomorphismOptions const *options) const
 {
-  static decltype(optionblk::invarproc) adjacencies = nullptr;
   static DEFAULTOPTIONS_DIGRAPH(nauty_options_directed);
 
   static DEFAULTOPTIONS_GRAPH(nauty_options_undirected);
