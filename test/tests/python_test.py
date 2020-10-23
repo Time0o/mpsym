@@ -306,47 +306,65 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
                              factorial(ag3.num_processors()))
 
     def test_multi_channel_automorphisms(self):
-        def make_ag(directed, processors):
+        def make_ag(processors, directed=True):
             assert processors % 2 == 0
 
             ag = mp.ArchGraph(directed)
             ag.add_processors(processors, 'p')
-            ag.fully_connect('RAM')
 
             return ag
 
-        ag1 = make_ag(True, 4)
+        ag1 = make_ag(4, directed=True)
+        ag1.fully_connect('RAM')
+
         self.assertEqual(ag1.num_automorphisms(),
                          factorial(ag1.num_processors()))
 
-        ag2 = make_ag(False, 4)
+        ag2 = make_ag(4, directed=True)
+        ag2.fully_connect('RAM')
         self.assertEqual(ag2.num_automorphisms(),
                          factorial(ag2.num_processors()))
 
-        ag3 = make_ag(True, 4)
-        ag3.add_channel(0, 1, 'c')
-        ag3.add_channel(1, 2, 'c')
-        ag3.add_channel(2, 3, 'c')
-        ag3.add_channel(3, 0, 'c')
-        self.assertEqual(ag3.num_automorphisms(), 4)
+        def cyclically_connect(self, ct, start=0, end=None, directed=True):
+            if end is None:
+                end = self.num_processors() - 1
 
-        ag4 = make_ag(True, 4)
-        ag4.add_channel(0, 1, 'c')
-        ag4.add_channel(1, 0, 'c')
-        ag4.add_channel(1, 2, 'c')
-        ag4.add_channel(2, 1, 'c')
-        ag4.add_channel(2, 3, 'c')
-        ag4.add_channel(3, 2, 'c')
-        ag4.add_channel(3, 0, 'c')
-        ag4.add_channel(0, 3, 'c')
-        self.assertEqual(ag4.num_automorphisms(), 8)
+            def connect(source, target):
+                self.add_channel(source, target, ct)
 
-        ag5 = make_ag(False, 4)
-        ag5.add_channel(0, 1, 'c')
-        ag5.add_channel(1, 2, 'c')
-        ag5.add_channel(2, 3, 'c')
-        ag5.add_channel(3, 0, 'c')
-        self.assertEqual(ag5.num_automorphisms(), 8)
+                if self.directed() and not directed:
+                    self.add_channel(target, source, ct)
+
+            for pe in range(start, end):
+                connect(pe, pe + 1)
+
+            connect(end, start)
+
+        mp.ArchGraph.cyclically_connect = cyclically_connect
+
+        def test_ag(ag, connections, num_automorphisms):
+            for fs in permutations(connections):
+                ag_ = deepcopy(ag)
+                for f in fs:
+                    f(ag_)
+                self.assertEqual(ag_.num_automorphisms(), num_automorphisms)
+
+        ram = lambda ag: ag.fully_connect('RAM')
+
+        def ring(directed=False, partial=False):
+            def ring_(ag):
+                end = (ag.num_processors() // 2 - 1) if partial else None
+
+                ag.cyclically_connect('c', start=0, end=end, directed=directed)
+
+            return ring_
+
+        test_ag(make_ag(4, directed=True), [ram, ring(directed=True)], 4)
+        test_ag(make_ag(4, directed=True), [ram, ring()], 8)
+        test_ag(make_ag(4, directed=False), [ram, ring()], 8)
+        test_ag(make_ag(8, directed=True), [ram, ring(directed=True, partial=True)], 96)
+        test_ag(make_ag(8, directed=True), [ram, ring(partial=True)], 192)
+        test_ag(make_ag(8, directed=False), [ram, ring(partial=True)], 192)
 
 
 if __name__ == '__main__':
