@@ -228,9 +228,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
 
                   g.add_edges(adjacencies);
 
-                  if (coloring.empty()) {
-                    g.set_trivial_partition();
-                  } else {
+                  if (!coloring.empty()) {
                     g.set_partition(
                       transform_sequence<std::vector<int>>(
                         coloring,

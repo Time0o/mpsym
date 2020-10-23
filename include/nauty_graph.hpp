@@ -32,7 +32,6 @@ public:
   void add_edges(std::map<int, std::vector<int>> const &adj);
 
   void set_partition(std::vector<std::vector<int>> const &ptn);
-  void set_trivial_partition();
 
   PermGroup automorphisms(AutomorphismOptions const *options = nullptr) const;
 

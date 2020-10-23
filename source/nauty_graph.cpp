@@ -160,27 +160,19 @@ void NautyGraph::set_partition(std::vector<std::vector<int>> const &ptn)
   }
 }
 
-void NautyGraph::set_trivial_partition()
-{
-  std::vector<int> ptn(_n);
-  std::iota(ptn.begin(), ptn.end(), 0);
-
-  set_partition({ptn});
-}
-
 PermGroup NautyGraph::automorphisms(AutomorphismOptions const *options) const
 {
   static DEFAULTOPTIONS_DIGRAPH(nauty_options_directed);
 
   static DEFAULTOPTIONS_GRAPH(nauty_options_undirected);
 
-  assert(!_edges.empty());
-  assert(!_ptn_expl.empty());
+  if (_edges.empty())
+    return PermGroup(_n_reduced);
 
   auto &nauty_options = _effectively_directed ? nauty_options_directed
                                               : nauty_options_undirected;
 
-  nauty_options.defaultptn = FALSE;
+  nauty_options.defaultptn = _ptn_expl.empty() ? TRUE : FALSE;
   nauty_options.userautomproc = _save_gens;
 
   _gens.clear();
