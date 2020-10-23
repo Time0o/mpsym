@@ -37,9 +37,12 @@ NautyGraph ArchGraph::graph_nauty() const
 
   // add edges
   for (int level = 0; level <= cts_log2; ++level) {
-    if (level > 0) {
+    for (int level_ = 0; level_ <= cts_log2; ++level_) {
+      if (level_ == level)
+        continue;
+
       for (int v = 0; v < n_orig; ++v)
-        g.add_edge(v + level * n_orig, v + (level - 1) * n_orig);
+        g.add_edge(v + level * n_orig, v + level_ * n_orig);
     }
 
     for (auto e : boost::make_iterator_range(boost::edges(_adj))) {

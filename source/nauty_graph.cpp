@@ -129,7 +129,7 @@ void NautyGraph::add_edge(int from, int to)
   assert(from < _n);
   assert(to < _n);
 
-  if (_effectively_directed)
+  if (_directed)
     ADDONEARC(_g, from, to, _m);
   else
     ADDONEEDGE(_g, from, to, _m);
