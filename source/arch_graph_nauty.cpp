@@ -43,14 +43,12 @@ NautyGraph ArchGraph::graph_nauty() const
     }
 
     for (auto e : boost::make_iterator_range(boost::edges(_adj))) {
+      int source = boost::source(e, _adj);
+      int target = boost::target(e, _adj);
       int t = _adj[e].type + 1;
 
-      if (t & (1 << level)){
-        int source = boost::source(e, _adj);
-        int target = boost::target(e, _adj);
-
+      if (source != target && (t & (1 << level)))
         g.add_edge(source + level * n_orig, target + level * n_orig);
-      }
     }
   }
 
