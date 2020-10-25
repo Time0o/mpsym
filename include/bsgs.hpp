@@ -1,6 +1,7 @@
 #ifndef GUARD_BSGS_H
 #define GUARD_BSGS_H
 
+#include <atomic>
 #include <cassert>
 #include <memory>
 #include <ostream>
@@ -124,17 +125,23 @@ private:
   void construct_unknown(PermSet const &generators, BSGSOptions const *options);
 
   // schreier sims initialization
-  void schreier_sims(PermSet const &generators);
+  void schreier_sims(PermSet const &generators,
+                     BSGSOptions const *options,
+                     std::atomic<bool> &aborted);
 
   void schreier_sims(std::vector<PermSet> &strong_generators,
-                     std::vector<Orbit> &fundamental_orbits);
+                     std::vector<Orbit> &fundamental_orbits,
+                     BSGSOptions const *options,
+                     std::atomic<bool> &aborted);
 
   void schreier_sims_random(PermSet const &generators,
-                            BSGSOptions const *options);
+                            BSGSOptions const *options,
+                            std::atomic<bool> &aborted);
 
   void schreier_sims_random(std::vector<PermSet> &strong_generators,
                             std::vector<Orbit> &fundamental_orbits,
-                            BSGSOptions const *options);
+                            BSGSOptions const *options,
+                            std::atomic<bool> &aborted);
 
   void schreier_sims_init(PermSet const &generators,
                           std::vector<PermSet> &strong_generators,
@@ -240,6 +247,8 @@ struct BSGSOptions
   BSGS::order_type schreier_sims_random_known_order = 0;
   int schreier_sims_random_retries = -1;
   unsigned schreier_sims_random_w = 100u;
+
+  double timeout = 0.0;
 };
 
 } // namespace internal

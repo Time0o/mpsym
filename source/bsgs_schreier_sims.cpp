@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <memory>
 #include <tuple>
@@ -12,6 +13,7 @@
 #include "pr_randomizer.hpp"
 #include "schreier_generator_queue.hpp"
 #include "schreier_structure.hpp"
+#include "timeout.hpp"
 #include "timer.hpp"
 
 namespace mpsym
@@ -20,7 +22,9 @@ namespace mpsym
 namespace internal
 {
 
-void BSGS::schreier_sims(PermSet const &generators)
+void BSGS::schreier_sims(PermSet const &generators,
+                         BSGSOptions const *options,
+                         std::atomic<bool> &aborted)
 {
   DBG(DEBUG) << "Executing Schreier Sims algorithm for:";
   DBG(DEBUG) << generators;
@@ -34,11 +38,13 @@ void BSGS::schreier_sims(PermSet const &generators)
   schreier_sims_init(generators, strong_generators, fundamental_orbits);
 
   // run algorithm
-  schreier_sims(strong_generators, fundamental_orbits);
+  schreier_sims(strong_generators, fundamental_orbits, options, aborted);
 }
 
 void BSGS::schreier_sims(std::vector<PermSet> &strong_generators,
-                         std::vector<Orbit> &fundamental_orbits)
+                         std::vector<Orbit> &fundamental_orbits,
+                         BSGSOptions const *,
+                         std::atomic<bool> &aborted)
 {
   std::vector<SchreierGeneratorQueue> schreier_generator_queues(base_size());
 
@@ -47,6 +53,9 @@ void BSGS::schreier_sims(std::vector<PermSet> &strong_generators,
   // main loop
   unsigned i = base_size();
   while (i >= 1u) {
+    if (aborted.load())
+      throw timeout::AbortedError("schreier_sims");
+
     DBG(TRACE) << "i = " << i;
 top:
     schreier_generator_queues[i - 1].update(strong_generators[i - 1],
@@ -131,7 +140,8 @@ top:
 }
 
 void BSGS::schreier_sims_random(PermSet const &generators,
-                                BSGSOptions const *options)
+                                BSGSOptions const *options,
+                                std::atomic<bool> &aborted)
 {
   DBG(TRACE) << "Executing (random) Schreier Sims algorithm";
 
@@ -142,12 +152,12 @@ void BSGS::schreier_sims_random(PermSet const &generators,
 
   if (!options->schreier_sims_random_guarantee) {
     schreier_sims_init(generators, strong_generators, fundamental_orbits);
-    schreier_sims_random(strong_generators, fundamental_orbits, options);
+    schreier_sims_random(strong_generators, fundamental_orbits, options, aborted);
 
   } else {
     auto try_bsgs = [&](bool check_order){
       schreier_sims_init(generators, strong_generators, fundamental_orbits);
-      schreier_sims_random(strong_generators, fundamental_orbits, options);
+      schreier_sims_random(strong_generators, fundamental_orbits, options, aborted);
 
       // we assume that if the BSGS is correct if it has the correct order
       if (check_order)
@@ -179,7 +189,7 @@ void BSGS::schreier_sims_random(PermSet const &generators,
     // force correctness by running the deterministic Schreier Sims algorithm
     if (!correct) {
       DBG(TRACE) << "Executing Schreier Sims algorithm to guarantee correctness";
-      schreier_sims(strong_generators, fundamental_orbits);
+      schreier_sims(strong_generators, fundamental_orbits, options, aborted);
     }
   }
 
@@ -188,13 +198,17 @@ void BSGS::schreier_sims_random(PermSet const &generators,
 
 void BSGS::schreier_sims_random(std::vector<PermSet> &strong_generators,
                                 std::vector<Orbit> &fundamental_orbits,
-                                BSGSOptions const *options)
+                                BSGSOptions const *options,
+                                std::atomic<bool> &aborted)
 {
   // random group element generator
   PrRandomizer pr(_strong_generators);
 
   unsigned c = 0u;
   while (c < options->schreier_sims_random_w) {
+    if (aborted)
+      throw timeout::AbortedError("schreier_sims_random");
+
     // generate random group element
     Perm rand_perm = pr.next();
     DBG(TRACE) << "Random group element: " << rand_perm;

@@ -1,5 +1,7 @@
 #include <algorithm>
+#include <atomic>
 #include <cassert>
+#include <chrono>
 #include <memory>
 #include <numeric>
 #include <ostream>
@@ -18,6 +20,7 @@
 #include "explicit_transversals.hpp"
 #include "schreier_structure.hpp"
 #include "schreier_tree.hpp"
+#include "timeout.hpp"
 
 namespace mpsym
 {
@@ -272,20 +275,45 @@ void BSGS::construct_alternating()
 void BSGS::construct_unknown(PermSet const &generators,
                              BSGSOptions const *options)
 {
+  auto construct_schreier_sims = [&](bool random) {
+    typedef void(BSGS::*SS)(PermSet const &,
+                            BSGSOptions const *,
+                            std::atomic<bool> &);
+
+    SS ss = random ? (SS)&BSGS::schreier_sims_random
+                   : (SS)&BSGS::schreier_sims;
+
+    std::atomic<bool> aborted(false);
+
+    if (options->timeout <= 0.0) {
+      (this->*ss)(generators, options, aborted);
+    } else {
+      try {
+        timeout::run_with_timeout(
+          "construct_schreier_sims",
+          std::chrono::duration<double>(options->timeout),
+          [&]() { (this->*ss)(generators, options, aborted); });
+
+      } catch (timeout::TimeoutError const &) {
+        aborted.store(true);
+      }
+    }
+  };
+
   switch (options->construction) {
     case BSGSOptions::Construction::AUTO:
       if (options->schreier_sims_random_use_known_order &&
           options->schreier_sims_random_known_order > 0) {
-        schreier_sims_random(generators, options);
+        construct_schreier_sims(true);
       } else {
-        schreier_sims(generators);
+        construct_schreier_sims(false);
       }
       break;
     case BSGSOptions::Construction::SCHREIER_SIMS:
-      schreier_sims(generators);
+      construct_schreier_sims(false);
       break;
     case BSGSOptions::Construction::SCHREIER_SIMS_RANDOM:
-      schreier_sims_random(generators, options);
+      construct_schreier_sims(true);
       break;
     case BSGSOptions::Construction::SOLVE:
       solve(generators);
