@@ -42,22 +42,33 @@ using ReturnTypeWrapper = boost::optional<ReturnType<FUNC, ARGS...>>;
 template<typename FUNC, typename ...ARGS, typename REP, typename PERIOD>
 std::future<ReturnType<FUNC, ARGS...>> future_with_timeout(
   std::string const &what,
-  std::chrono::duration<REP, PERIOD> const &timeout,
+  std::chrono::duration<REP, PERIOD> &timeout,
   FUNC &&f,
   ARGS &&...args)
 {
+  using namespace std::chrono;
+
   std::packaged_task<ReturnType<FUNC, ARGS...>()> task(
    [&]() { return f(std::forward<ARGS>(args)...); });
 
   auto future(task.get_future());
 
+  auto start_thread(high_resolution_clock::now());
+
   std::thread thread(std::move(task));
 
   if (future.wait_for(timeout) == std::future_status::timeout) {
      thread.detach();
+
      throw TimeoutError(what);
+
   } else {
      thread.join();
+
+     auto end_thread(high_resolution_clock::now());
+
+     timeout = duration_cast<duration<REP, PERIOD>>(end_thread - start_thread);
+
      return future;
   }
 }
@@ -65,7 +76,7 @@ std::future<ReturnType<FUNC, ARGS...>> future_with_timeout(
 template<typename FUNC, typename ...ARGS, typename REP, typename PERIOD>
 typename std::enable_if<std::is_void<ReturnType<FUNC, ARGS...>>::value>::type
 run_with_timeout(std::string const &what,
-                 std::chrono::duration<REP, PERIOD> const &timeout,
+                 std::chrono::duration<REP, PERIOD> &timeout,
                  FUNC &&f,
                  ARGS &&...args)
 {
@@ -84,7 +95,7 @@ template<typename FUNC, typename ...ARGS, typename REP, typename PERIOD>
 typename std::enable_if<!std::is_void<ReturnType<FUNC, ARGS...>>::value,
                         ReturnType<FUNC, ARGS...>>::type
 run_with_timeout(std::string const &what,
-                 std::chrono::duration<REP, PERIOD> const &timeout,
+                 std::chrono::duration<REP, PERIOD> &timeout,
                  FUNC &&f,
                  ARGS &&...args)
 {

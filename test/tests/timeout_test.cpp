@@ -1,5 +1,6 @@
 #include <atomic>
 #include <chrono>
+#include <cstdlib>
 #include <thread>
 
 #include "gmock/gmock.h"
@@ -19,6 +20,12 @@ template<typename REP, typename PERIOD>
 void sleep(std::chrono::duration<REP, PERIOD> const &time)
 { std::this_thread::sleep_for(time); }
 
+template<typename REP, typename PERIOD>
+bool within(std::chrono::duration<REP, PERIOD> const &duration,
+            std::chrono::duration<REP, PERIOD> const &target,
+            std::chrono::duration<REP, PERIOD> const &margin)
+{ return target - margin <= duration && target + margin >= duration; }
+
 TEST(TimeoutTest, CanTimeoutFunction)
 {
   enum : int { ARG = 42 };
@@ -29,8 +36,13 @@ TEST(TimeoutTest, CanTimeoutFunction)
     return arg;
   };
 
-  EXPECT_EQ(ARG, run_with_timeout("id_no_timeout", ms(100), id_no_timeout, ARG))
+  auto id_no_timeout_timeout(ms(100));
+
+  EXPECT_EQ(ARG, run_with_timeout("id_no_timeout", id_no_timeout_timeout, id_no_timeout, ARG))
     << "Function returns before timeout.";
+
+  EXPECT_TRUE(within(id_no_timeout_timeout, ms(10), ms(5)))
+    << "Approximate function execution time correctly determined.";
 
   auto id_timeout = [](int arg)
   {
@@ -38,8 +50,10 @@ TEST(TimeoutTest, CanTimeoutFunction)
     return arg;
   };
 
+  auto id_timeout_timeout(ms(100));
+
   EXPECT_THAT(
-    [&](){ run_with_timeout("id_timeout", ms(100), id_timeout, ARG); },
+    [&](){ run_with_timeout("id_timeout", id_timeout_timeout, id_timeout, ARG); },
     testing::ThrowsMessage<TimeoutError>("id_timeout timeout"))
       << "Function timeout yields exception.";
 
@@ -57,13 +71,15 @@ TEST(TimeoutTest, CanTimeoutFunction)
     throw AbortedError("endless_loop_abort");
   };
 
+  auto endless_loop_timeout(ms(100));
+
   std::atomic<bool> endless_loop_abort(false);
   std::atomic<bool> endless_loop_done(false);
 
   EXPECT_THAT(
     [&]() {
       run_with_timeout("endless_loop",
-                       ms(100),
+                       endless_loop_timeout,
                        endless_loop,
                        endless_loop_abort,
                        endless_loop_done);

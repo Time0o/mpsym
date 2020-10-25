@@ -288,10 +288,12 @@ void BSGS::construct_unknown(PermSet const &generators,
     if (options->timeout <= 0.0) {
       (this->*ss)(generators, options, aborted);
     } else {
+      std::chrono::duration<double> timeout(options->timeout);
+
       try {
         timeout::run_with_timeout(
           "construct_schreier_sims",
-          std::chrono::duration<double>(options->timeout),
+          timeout,
           [&]() { (this->*ss)(generators, options, aborted); });
 
       } catch (timeout::TimeoutError const &) {
