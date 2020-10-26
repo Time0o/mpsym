@@ -387,6 +387,22 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          (void(ArchGraph::*)(unsigned, unsigned, std::string const &))
          &ArchGraph::add_channel,
          "pe1"_a, "pe2"_a, "cl"_a)
+    .def("add_channels",
+         (void(ArchGraph::*)(ArchGraph::ChannelDictType<ArchGraph::ChannelType> const &))
+         &ArchGraph::add_channels<ArchGraph::ChannelType>,
+         "channels"_a)
+    .def("add_channels",
+         (void(ArchGraph::*)(ArchGraph::ChannelDictType<std::string> const &))
+         &ArchGraph::add_channels<std::string>,
+         "channels"_a)
+    .def("add_channels",
+         (void(ArchGraph::*)(ArchGraph::ChannelDictType<> const &, ArchGraph::ChannelType))
+         &ArchGraph::add_channels<ArchGraph::ChannelType>,
+         "channels"_a, "ct"_a)
+    .def("add_channels",
+         (void(ArchGraph::*)(ArchGraph::ChannelDictType<> const &, std::string const &))
+         &ArchGraph::add_channels<std::string const &>,
+         "channels"_a, "ct"_a)
     .def("fully_connect",
          (void(ArchGraph::*)(ArchGraph::ChannelType))
          &ArchGraph::fully_connect,

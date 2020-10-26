@@ -120,26 +120,6 @@ unsigned ArchGraph::add_processor(std::string const &pl)
   return add_processor(pt);
 }
 
-unsigned ArchGraph::add_processors(unsigned n, ProcessorType pt)
-{
-  assert(n > 0u);
-
-  for (unsigned i = 0u; i < n - 1u; ++i)
-    add_processor(pt);
-
-  return add_processor(pt);
-}
-
-unsigned ArchGraph::add_processors(unsigned n, std::string const &pl)
-{
-  assert(n > 0u);
-
-  for (unsigned i = 0u; i < n - 1u; ++i)
-    add_processor(pl);
-
-  return add_processor(pl);
-}
-
 void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType ct)
 {
   if (channel_exists(from, to, ct))
@@ -203,21 +183,6 @@ void ArchGraph::add_channel(unsigned pe1, unsigned pe2, std::string const &cl)
   add_channel(pe1, pe2, ct);
 }
 
-void ArchGraph::fully_connect(ChannelType ct)
-{
-  for (unsigned pe1 = 0u; pe1 < num_processors(); ++pe1) {
-    for (unsigned pe2 = (directed() ? 0u : pe1); pe2 < num_processors(); ++pe2)
-      add_channel(pe1, pe2, ct);
-  }
-}
-
-void ArchGraph::fully_connect(std::string const &cl)
-{
-  ChannelType ct = assert_channel_type(cl);
-
-  fully_connect(ct);
-}
-
 void ArchGraph::fully_connect(ProcessorType pt, ChannelType ct)
 {
   for (unsigned pe1 = 0u; pe1 < num_processors(); ++pe1) {
@@ -239,19 +204,6 @@ void ArchGraph::fully_connect(std::string const &pl, std::string const &cl)
   ChannelType ct = assert_channel_type(cl);
 
   fully_connect(pt, ct);
-}
-
-void ArchGraph::self_connect(ChannelType ct)
-{
-  for (unsigned pe = 0u; pe < num_processors(); ++pe)
-    add_channel(pe, pe, ct);
-}
-
-void ArchGraph::self_connect(std::string const &cl)
-{
-  ChannelType ct = assert_channel_type(cl);
-
-  self_connect(ct);
 }
 
 void ArchGraph::self_connect(ProcessorType pt, ChannelType ct)
