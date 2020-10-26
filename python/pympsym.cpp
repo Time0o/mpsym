@@ -15,6 +15,7 @@
 #include <nlohmann/json.hpp>
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
 
 #include "arch_graph.hpp"
@@ -66,6 +67,24 @@ using contained_type =
 template<typename T>
 Sequence<contained_type<T>> to_sequence(T const &obj)
 { return Sequence<contained_type<T>>(obj.begin(), obj.end()); }
+
+template<typename T = unsigned>
+Sequence<T> to_sequence(py::iterator it)
+{
+  Sequence<T> seq;
+
+  while (it != py::iterator::sentinel()) {
+    try {
+      seq.push_back(it->cast<T>());
+    } catch (py::cast_error const &) {
+      throw std::runtime_error("failed to convert iterable to matching sequence");
+    }
+
+    ++it;
+  }
+
+  return seq;
+}
 
 template<typename T = unsigned>
 Sequence<T> inc_sequence(Sequence<T> seq)
@@ -389,6 +408,17 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          (void(ArchGraph::*)(std::string const &, std::string const &))
          &ArchGraph::fully_connect,
          "pl"_a, "cl"_a)
+    .def("fully_connect",
+         [](ArchGraph &self, py::iterable it, std::string const &cl)
+         {
+           auto processors(to_sequence<>(py::make_iterator(it)));
+
+           for (unsigned pe1 : processors) {
+             for (unsigned pe2 : processors)
+               self.add_channel(pe1, pe2, cl);
+           }
+         },
+         "processors"_a, "cl"_a)
     .def("self_connect",
          (void(ArchGraph::*)(std::string const &))
          &ArchGraph::self_connect,
@@ -396,7 +426,16 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
     .def("self_connect",
          (void(ArchGraph::*)(std::string const &, std::string const &))
          &ArchGraph::self_connect,
-         "pl"_a, "cl"_a);
+         "pl"_a, "cl"_a)
+    .def("self_connect",
+         [](ArchGraph &self, py::iterator it, std::string const &cl)
+         {
+           auto processors(to_sequence<>(it));
+
+           for (unsigned pe : processors)
+             self.add_channel(pe, pe, cl);
+         },
+         "processors"_a, "cl"_a);
 
   // ArchGraphCluster
   py::class_<ArchGraphCluster,
