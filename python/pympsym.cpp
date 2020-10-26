@@ -361,76 +361,38 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
             ArchGraphSystem::from_json(json));
         }))
     .def("directed", &ArchGraph::directed)
-    .def("new_processor_type", &ArchGraph::new_processor_type, "pl"_a = "")
-    .def("new_channel_type", &ArchGraph::new_channel_type, "cl"_a = "")
-    .def("add_processor",
-         (unsigned(ArchGraph::*)(ArchGraph::ProcessorType))
-         &ArchGraph::add_processor,
-         "pt"_a)
     .def("add_processor",
          (unsigned(ArchGraph::*)(std::string const &))
          &ArchGraph::add_processor,
          "pl"_a)
     .def("add_processors",
-         (unsigned(ArchGraph::*)(unsigned, ArchGraph::ProcessorType))
-         &ArchGraph::add_processors,
-         "n"_a, "pt"_a)
-    .def("add_processors",
          (unsigned(ArchGraph::*)(unsigned, std::string const &))
          &ArchGraph::add_processors,
          "n"_a, "pl"_a)
-    .def("add_channel",
-         (void(ArchGraph::*)(unsigned, unsigned, ArchGraph::ChannelType))
-         &ArchGraph::add_channel,
-         "pe1"_a, "pe2"_a, "ct"_a)
     .def("add_channel",
          (void(ArchGraph::*)(unsigned, unsigned, std::string const &))
          &ArchGraph::add_channel,
          "pe1"_a, "pe2"_a, "cl"_a)
     .def("add_channels",
-         (void(ArchGraph::*)(ArchGraph::ChannelDictType<ArchGraph::ChannelType> const &))
-         &ArchGraph::add_channels<ArchGraph::ChannelType>,
-         "channels"_a)
-    .def("add_channels",
          (void(ArchGraph::*)(ArchGraph::ChannelDictType<std::string> const &))
          &ArchGraph::add_channels<std::string>,
          "channels"_a)
-    .def("add_channels",
-         (void(ArchGraph::*)(ArchGraph::ChannelDictType<> const &, ArchGraph::ChannelType))
-         &ArchGraph::add_channels<ArchGraph::ChannelType>,
-         "channels"_a, "ct"_a)
     .def("add_channels",
          (void(ArchGraph::*)(ArchGraph::ChannelDictType<> const &, std::string const &))
          &ArchGraph::add_channels<std::string const &>,
          "channels"_a, "ct"_a)
     .def("fully_connect",
-         (void(ArchGraph::*)(ArchGraph::ChannelType))
-         &ArchGraph::fully_connect,
-         "ct"_a)
-    .def("fully_connect",
          (void(ArchGraph::*)(std::string const &))
          &ArchGraph::fully_connect,
          "cl"_a)
-    .def("fully_connect",
-         (void(ArchGraph::*)(ArchGraph::ProcessorType, ArchGraph::ChannelType))
-         &ArchGraph::fully_connect,
-         "pt"_a, "ct"_a)
     .def("fully_connect",
          (void(ArchGraph::*)(std::string const &, std::string const &))
          &ArchGraph::fully_connect,
          "pl"_a, "cl"_a)
     .def("self_connect",
-         (void(ArchGraph::*)(ArchGraph::ChannelType))
-         &ArchGraph::self_connect,
-         "ct"_a)
-    .def("self_connect",
          (void(ArchGraph::*)(std::string const &))
          &ArchGraph::self_connect,
          "cl"_a)
-    .def("self_connect",
-         (void(ArchGraph::*)(ArchGraph::ProcessorType, ArchGraph::ChannelType))
-         &ArchGraph::self_connect,
-         "pt"_a, "ct"_a)
     .def("self_connect",
          (void(ArchGraph::*)(std::string const &, std::string const &))
          &ArchGraph::self_connect,
