@@ -2,10 +2,10 @@
 #define GUARD_SCHREIER_GENERATOR_QUEUE_H
 
 #include <cassert>
-#include <iterator>
 #include <memory>
 #include <vector>
 
+#include "iterator.hpp"
 #include "perm.hpp"
 #include "schreier_structure.hpp"
 
@@ -24,14 +24,9 @@ class SchreierGeneratorQueue
   using fo_it_type = fo_type::const_iterator;
 
 public:
-  class iterator
+  class iterator : public ForwardIterator<iterator, Perm const>
   {
   public:
-    using iterator_category = std::forward_iterator_tag;
-    using value_type = Perm;
-    using pointer = Perm const *;
-    using reference = Perm const &;
-
     iterator()
     : _queue(nullptr),
       _end(true)
@@ -45,18 +40,16 @@ public:
       _queue->mark_used();
     }
 
-    iterator operator++() { _queue->advance(); return *this; }
-    iterator operator++(int) { throw std::logic_error("not implemented"); }
-    reference operator*() const { return _queue->_schreier_generator; }
-    pointer operator->() const { return &_queue->_schreier_generator; }
-
-    bool operator==(iterator const &rhs) const
+    bool operator==(iterator const &rhs) const override
     { return end() && rhs.end(); }
 
-    bool operator!=(iterator const &rhs) const
-    { return !((*this) == rhs); }
-
   private:
+    reference current() override
+    { return _queue->_schreier_generator; }
+
+    void next() override
+    { _queue->advance(); }
+
     bool end() const
     { return _end || _queue->_exhausted; }
 

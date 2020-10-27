@@ -3,12 +3,12 @@
 
 #include <algorithm>
 #include <cassert>
-#include <iterator>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
+#include "iterator.hpp"
 #include "task_mapping.hpp"
 
 namespace mpsym
@@ -20,56 +20,24 @@ class TaskOrbits
 
 public:
   class const_iterator
+  : public internal::ForwardIterator<const_iterator, TaskMapping const>
   {
   public:
-    using iterator_category = std::forward_iterator_tag;
-    using value_type = TaskMapping;
-    using pointer = TaskMapping const *;
-    using reference = TaskMapping const &;
-
-    const_iterator(orbit_reprs_map::const_iterator current_it,
-                   orbit_reprs_map::const_iterator end_it)
-    : _current_it(current_it),
-      _end_it(end_it),
-      _current_key(current_it == _end_it ? TaskMapping({}) : _current_it->first)
+    const_iterator(orbit_reprs_map::const_iterator const &it)
+    : _it(it)
     {}
 
-    const_iterator operator++()
-    {
-      const_iterator ret = *this;
-      next();
-      return ret;
-    }
-
-    const_iterator operator++(int)
-    {
-      next();
-      return *this;
-    }
-
-    reference operator*() const
-    { return _current_key; }
-
-    pointer operator->() const
-    { return &_current_key; }
-
-    bool operator==(const_iterator const &rhs) const
-    { return _current_it == rhs._current_it; };
-
-    bool operator!=(const_iterator const &rhs) const
-    { return !((*this) == rhs); }
+    bool operator==(const_iterator const &rhs) const override
+    { return _it == rhs._it; }
 
   private:
-    void next()
-    {
-      if (++_current_it != _end_it)
-        _current_key = _current_it->first;
-    }
+    reference current() override
+    { return _it->first; }
 
-    orbit_reprs_map::const_iterator _current_it;
-    orbit_reprs_map::const_iterator _end_it;
+    void next() override
+    { ++_it; }
 
-    TaskMapping _current_key;
+    orbit_reprs_map::const_iterator _it;
   };
 
   bool operator==(TaskOrbits const &rhs) const
@@ -116,16 +84,10 @@ public:
   { return static_cast<unsigned>(_orbit_reprs.size()); }
 
   const_iterator begin() const
-  {
-    return const_iterator(_orbit_reprs.begin(),
-                          _orbit_reprs.end());
-  }
+  { return const_iterator(_orbit_reprs.begin()); }
 
   const_iterator end() const
-  {
-    return const_iterator(_orbit_reprs.end(),
-                          _orbit_reprs.end());
-  }
+  { return const_iterator(_orbit_reprs.end()); }
 
 private:
   std::unordered_set<TaskMapping> orbit_repr_set() const

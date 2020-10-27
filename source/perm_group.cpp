@@ -271,12 +271,13 @@ Perm PermGroup::random_element() const
 }
 
 PermGroup::const_iterator::const_iterator(PermGroup const &pg)
-  : _trivial(pg.bsgs().base_empty()), _end(false)
+  : _trivial(pg.bsgs().base_empty()),
+    _end(false)
 {
   if (_trivial) {
-    _current_result = Perm(pg.degree());
+    _current = Perm(pg.degree());
 
-    _current_result_valid = true;
+    _current_valid = true;
 
   } else {
     for (unsigned i = 0u; i < pg.bsgs().base_size(); ++i) {
@@ -288,12 +289,11 @@ PermGroup::const_iterator::const_iterator(PermGroup const &pg)
       _current_factors.insert(transv[0]);
     }
 
-    _current_result_valid = false;
+    _current_valid = false;
   }
 }
 
-bool PermGroup::const_iterator::operator==(
-  PermGroup::const_iterator const &rhs) const
+bool PermGroup::const_iterator::operator==(PermGroup::const_iterator const &rhs) const
 {
   if (_end != rhs._end)
     return false;
@@ -305,10 +305,25 @@ bool PermGroup::const_iterator::operator==(
     if (_state[i] != rhs._state[i])
       return false;
   }
+
   return true;
 }
 
-void PermGroup::const_iterator::next_state()
+PermGroup::const_iterator::reference PermGroup::const_iterator::current()
+{
+  if (_current_valid)
+    return _current;
+
+  _current = _current_factors[0];
+  for (unsigned j = 1u; j < _current_factors.size(); ++j)
+    _current = _current_factors[j] * _current;
+
+  _current_valid = true;
+
+  return _current;
+}
+
+void PermGroup::const_iterator::next()
 {
   if (_trivial) {
     _end = true;
@@ -331,19 +346,7 @@ void PermGroup::const_iterator::next_state()
       break;
   }
 
-  _current_result_valid = false;
-}
-
-void PermGroup::const_iterator::update_current_result()
-{
-  if (_current_result_valid)
-    return;
-
-  _current_result = _current_factors[0];
-  for (unsigned j = 1u; j < _current_factors.size(); ++j)
-    _current_result = _current_factors[j] * _current_result;
-
-  _current_result_valid = true;
+  _current_valid = false;
 }
 
 std::ostream &operator<<(std::ostream &os, PermGroup const &pg)

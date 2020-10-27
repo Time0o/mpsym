@@ -569,7 +569,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
     .def("__len__", &PermGroup::order)
     .def("__iter__",
          [](PermGroup const &self)
-         { return py::make_iterator(self.begin(), self.end()); },
+         { return py::make_iterator<py::return_value_policy::copy>(self.begin(), self.end()); },
          py::keep_alive<0, 1>())
     .def("__contains__",
          [](PermGroup const &self, Perm const &p)

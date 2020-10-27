@@ -2,7 +2,6 @@
 #define GUARD_PERM_GROUP_H
 
 #include <cassert>
-#include <iterator>
 #include <map>
 #include <tuple>
 #include <type_traits>
@@ -11,6 +10,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include "bsgs.hpp"
+#include "iterator.hpp"
 #include "perm.hpp"
 #include "perm_set.hpp"
 
@@ -30,55 +30,29 @@ class PermGroup
   friend std::ostream &operator<<(std::ostream &os, PermGroup const &pg);
 
 public:
-  class const_iterator
+  class const_iterator : public ForwardIterator<const_iterator, Perm const>
   {
   public:
-    using iterator_category = std::forward_iterator_tag;
-    using value_type = Perm;
-    using pointer = Perm const *;
-    using reference = Perm const &;
-
     const_iterator() : _end(true) {};
     const_iterator(PermGroup const &pg);
 
-    const_iterator const & operator++()
-    {
-      next_state();
-      return *this;
-    }
+    bool operator==(const_iterator const &rhs) const override;
 
-    value_type operator*()
-    {
-      update_current_result();
-      return _current_result;
-    }
-
-    pointer operator->()
-    {
-      update_current_result();
-      return &_current_result;
-    }
-
-    bool operator==(const_iterator const &rhs) const;
-
-    bool operator!=(const_iterator const &rhs) const
-    { return !((*this) == rhs); }
-
-    PermSet const & factors() const
+    PermSet const &factors() const
     { return _current_factors; }
 
   private:
-    void next_state();
-    void update_current_result();
+    reference current() override;
+    void next() override;
 
     std::vector<unsigned> _state;
     bool _trivial;
     bool _end;
 
     std::vector<PermSet> _transversals;
+    Perm _current;
+    bool _current_valid;
     PermSet _current_factors;
-    Perm _current_result;
-    bool _current_result_valid;
   };
 
   explicit PermGroup(unsigned degree = 1)
