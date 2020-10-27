@@ -24,8 +24,8 @@ class ArchGraph : public ArchGraphSystem
 {
   friend std::ostream &operator<<(std::ostream &os, ArchGraph &ag);
 
-  typedef std::vector<std::string>::size_type processor_type_size_type;
-  typedef std::vector<std::string>::size_type channel_type_size_type;
+  using processor_type_size_type = std::vector<std::string>::size_type;
+  using channel_type_size_type = std::vector<std::string>::size_type;
 
   template<typename L>
   using typed_channel_dict_type = std::unordered_map<
@@ -38,22 +38,22 @@ class ArchGraph : public ArchGraphSystem
     std::vector<unsigned>
   >;
 
-  typedef boost::vecS vertex_selector;
-  typedef boost::vecS edge_selector;
+  using vertex_selector = boost::vecS;
+  using edge_selector = boost::vecS;
 
   struct VertexProperty { processor_type_size_type type; };
   struct EdgeProperty { channel_type_size_type type; };
 
-  typedef boost::adjacency_list<
+  using adjacency_type = boost::adjacency_list<
     edge_selector, vertex_selector, boost::directedS,
-    VertexProperty, EdgeProperty> adjacency_type;
+    VertexProperty, EdgeProperty>;
 
-  typedef adjacency_type::vertices_size_type vertices_size_type;
-  typedef adjacency_type::edges_size_type edges_size_type;
+  using vertices_size_type = adjacency_type::vertices_size_type;
+  using edges_size_type = adjacency_type::edges_size_type;
 
 public:
-  typedef processor_type_size_type ProcessorType;
-  typedef channel_type_size_type ChannelType;
+  using ProcessorType = processor_type_size_type;
+  using ChannelType = channel_type_size_type;
 
   template<typename L = void>
   using ChannelDictType = typename std::conditional<

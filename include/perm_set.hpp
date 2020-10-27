@@ -23,11 +23,11 @@ class PermSet
   friend std::ostream &operator<<(std::ostream &os, PermSet const &ps);
 
 public:
-  typedef std::vector<Perm>::iterator iterator;
-  typedef std::vector<Perm>::const_iterator const_iterator;
-  typedef std::vector<Perm>::reverse_iterator reverse_iterator;
-  typedef std::vector<Perm>::const_reverse_iterator const_reverse_iterator;
-  typedef std::vector<Perm>::size_type size_type;
+  using iterator = std::vector<Perm>::iterator;
+  using const_iterator = std::vector<Perm>::const_iterator;
+  using reverse_iterator = std::vector<Perm>::reverse_iterator;
+  using const_reverse_iterator = std::vector<Perm>::const_reverse_iterator;
+  using size_type = std::vector<Perm>::size_type;
 
   PermSet()
   {}
