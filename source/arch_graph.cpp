@@ -189,7 +189,7 @@ void ArchGraph::fully_connect(ProcessorType pt, ChannelType ct)
     if (_adj[pe1].type != pt)
       continue;
 
-    for (unsigned pe2 = pe1 + 1u; pe2 < num_processors(); ++pe2) {
+    for (unsigned pe2 = (directed() ? 0u : pe1); pe2 < num_processors(); ++pe2) {
       if (_adj[pe2].type != pt)
         continue;
 
