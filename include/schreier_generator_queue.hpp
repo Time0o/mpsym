@@ -24,9 +24,14 @@ class SchreierGeneratorQueue
   using fo_it_type = fo_type::const_iterator;
 
 public:
-  class iterator : std::iterator<std::forward_iterator_tag, Perm>
+  class iterator
   {
   public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = Perm;
+    using pointer = Perm const *;
+    using reference = Perm const &;
+
     iterator()
     : _queue(nullptr),
       _end(true)
@@ -42,8 +47,8 @@ public:
 
     iterator operator++() { _queue->advance(); return *this; }
     iterator operator++(int) { throw std::logic_error("not implemented"); }
-    Perm const & operator*() const { return _queue->_schreier_generator; }
-    Perm const * operator->() const { return &_queue->_schreier_generator; }
+    reference operator*() const { return _queue->_schreier_generator; }
+    pointer operator->() const { return &_queue->_schreier_generator; }
 
     bool operator==(iterator const &rhs) const
     { return end() && rhs.end(); }

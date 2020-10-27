@@ -30,9 +30,14 @@ class PermGroup
   friend std::ostream &operator<<(std::ostream &os, PermGroup const &pg);
 
 public:
-  class const_iterator : std::iterator<std::forward_iterator_tag, Perm>
+  class const_iterator
   {
   public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = Perm;
+    using pointer = Perm const *;
+    using reference = Perm const &;
+
     const_iterator() : _end(true) {};
     const_iterator(PermGroup const &pg);
 
@@ -42,25 +47,25 @@ public:
       return *this;
     }
 
-    Perm const operator*()
+    value_type operator*()
     {
       update_current_result();
       return _current_result;
     }
 
-    Perm const * operator->()
+    pointer operator->()
     {
       update_current_result();
       return &_current_result;
     }
 
-    PermSet const & factors() const
-    { return _current_factors; }
-
     bool operator==(const_iterator const &rhs) const;
 
     bool operator!=(const_iterator const &rhs) const
     { return !((*this) == rhs); }
+
+    PermSet const & factors() const
+    { return _current_factors; }
 
   private:
     void next_state();

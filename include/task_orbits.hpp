@@ -20,9 +20,13 @@ class TaskOrbits
 
 public:
   class const_iterator
-  : public std::iterator<std::forward_iterator_tag, TaskMapping>
   {
   public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = TaskMapping;
+    using pointer = TaskMapping const *;
+    using reference = TaskMapping const &;
+
     const_iterator(orbit_reprs_map::const_iterator current_it,
                    orbit_reprs_map::const_iterator end_it)
     : _current_it(current_it),
@@ -43,12 +47,15 @@ public:
       return *this;
     }
 
-    TaskMapping const & operator*() const
+    reference operator*() const
     { return _current_key; }
-    TaskMapping const * operator->() const
+
+    pointer operator->() const
     { return &_current_key; }
+
     bool operator==(const_iterator const &rhs) const
     { return _current_it == rhs._current_it; };
+
     bool operator!=(const_iterator const &rhs) const
     { return !((*this) == rhs); }
 
