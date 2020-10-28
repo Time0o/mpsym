@@ -127,51 +127,8 @@ void ArchGraph::add_channel(unsigned from, unsigned to, ChannelType ct)
 
   _channel_type_instances[ct]++;
 
-  if (from == to)
-    add_self_channel(from, ct);
-  else
-    add_non_self_channel(from, to, ct);
-}
-
-void ArchGraph::add_self_channel(unsigned pe, ChannelType ct)
-{
-  EdgeProperty ep {ct};
-  boost::add_edge(pe, pe, ep, _adj);
-
-  auto pt(_adj[pe].type);
-  auto pl(_processor_types[pt]);
-  auto cl(_channel_types[ct]);
-
-  if (_processor_type_instances[pt] > 0u)
-    --_processor_type_instances[pt];
-
-  pt = assert_processor_type(add_self_channel_to_processor_label(pl, cl));
-
-  ++_processor_type_instances[pt];
-
-  _adj[pe].type = pt;
-}
-
-void ArchGraph::add_non_self_channel(unsigned from, unsigned to, ChannelType ct)
-{
   EdgeProperty ep {ct};
   boost::add_edge(from, to, ep, _adj);
-}
-
-std::string ArchGraph::add_self_channel_to_processor_label(
-  std::string const &pl, std::string const &cl)
-{
-  auto tmp(util::split(pl, "%"));
-
-  if (tmp.size() > 1u) {
-    auto it(std::lower_bound(tmp.begin() + 1, tmp.end(), cl));
-    if (it == tmp.end() || *it != cl)
-      tmp.insert(it, cl);
-  } else {
-    tmp.push_back(cl);
-  }
-
-  return util::join(tmp, "%");
 }
 
 void ArchGraph::add_channel(unsigned pe1, unsigned pe2, std::string const &cl)
@@ -237,12 +194,6 @@ bool ArchGraph::effectively_directed() const
 
   return false;
 }
-
-unsigned ArchGraph::num_processor_types() const
-{ return static_cast<unsigned>(_processor_types.size()); }
-
-unsigned ArchGraph::num_channel_types() const
-{ return static_cast<unsigned>(_channel_types.size()); }
 
 unsigned ArchGraph::num_processors() const
 { return static_cast<unsigned>(boost::num_vertices(_adj)); }

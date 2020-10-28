@@ -1,6 +1,7 @@
 #ifndef GUARD_ARCH_GRAPH_H
 #define GUARD_ARCH_GRAPH_H
 
+#include <cassert>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -142,16 +143,19 @@ public:
   bool directed() const;
   bool effectively_directed() const;
 
-  unsigned num_processor_types() const;
-  unsigned num_channel_types() const;
-
   unsigned num_processors() const override;
   unsigned num_channels() const override;
 
 private:
   internal::PermGroup automorphisms_(
     AutomorphismOptions const *options) override
-  { return automorphisms_nauty(options); }
+  {
+    resolve_loops_nauty();
+
+    return automorphisms_nauty(options);
+  }
+
+  // Convenience functions
 
   ChannelType assert_channel_type(std::string const &cl);
   ProcessorType assert_processor_type(std::string const &cl);
@@ -160,22 +164,38 @@ private:
   bool channel_exists_directed(unsigned from, unsigned to, ChannelType ct) const;
   bool channel_exists_undirected(unsigned from, unsigned to, ChannelType ct) const;
 
-  void add_self_channel(unsigned pe, ChannelType ct);
-  void add_non_self_channel(unsigned from, unsigned to, ChannelType ct);
-  static std::string add_self_channel_to_processor_label(std::string const &pl,
-                                                         std::string const &cl);
-
   using pe_it = adjacency_type::vertex_iterator;
   using pe = pe_it::value_type;
 
   boost::iterator_range<pe_it> processors() const
   { return boost::make_iterator_range(boost::vertices(_adj)); }
 
-  ProcessorType processor_type(pe pe) const
-  { return _adj[pe].type; }
+  processor_type_size_type num_processor_types(bool resolve_loops = false) const
+  {
+    if (resolve_loops)
+      return _processor_types_loops_resolved.size();
 
-  std::string processor_type_str(pe pe) const
-  { return _processor_types[processor_type(pe)]; }
+    return _processor_types.size();
+  }
+
+  ProcessorType processor_type(pe pe, bool resolve_loops = false) const
+  {
+    if (resolve_loops) {
+      auto it(_processor_types_loops_resolved.find(pe));
+      assert(it != _processor_types_loops_resolved.end());
+      return it->second;
+    }
+
+    return _adj[pe].type;
+  }
+
+  std::string processor_type_str(pe pe, bool resolve_loops = false) const
+  {
+    if (resolve_loops)
+      throw std::logic_error("not implemented");
+
+    return _processor_types[processor_type(pe)];
+  }
 
   using ch_it = adjacency_type::edge_iterator;
   using ch_out_it = adjacency_type::out_edge_iterator;
@@ -193,15 +213,25 @@ private:
   boost::iterator_range<ch_out_it> out_channels(pe pe) const
   { return boost::make_iterator_range(boost::out_edges(pe, _adj)); }
 
+  channel_type_size_type num_channel_types() const
+  { return _channel_types.size(); }
+
   ChannelType channel_type(ch ch) const
   { return _adj[ch].type; }
 
   std::string channel_type_str(ch ch) const
   { return _channel_types[channel_type(ch)]; }
 
-  internal::NautyGraph graph_nauty() const;
+  // Nauty
+
+  internal::NautyGraph graph_nauty(bool resolve_loops) const;
+
+  void resolve_loops_nauty();
+
   std::string to_gap_nauty() const;
-  internal::PermGroup automorphisms_nauty(AutomorphismOptions const *options) const;
+
+  internal::PermGroup automorphisms_nauty(
+    AutomorphismOptions const *options) const;
 
   adjacency_type _adj;
   bool _directed;
@@ -211,6 +241,8 @@ private:
 
   std::vector<vertices_size_type> _processor_type_instances;
   std::vector<edges_size_type> _channel_type_instances;
+
+  std::unordered_map<pe, ProcessorType> _processor_types_loops_resolved;
 };
 
 }
