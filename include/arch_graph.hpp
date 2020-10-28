@@ -56,7 +56,7 @@ public:
   using ChannelType = channel_type_size_type;
 
   template<typename L = void>
-  using ChannelDictType = typename std::conditional<
+  using ChannelDict = typename std::conditional<
     std::is_void<L>::value,
     untyped_channel_dict_type,
     typed_channel_dict_type<L>
@@ -92,7 +92,7 @@ public:
   void add_channel(unsigned pe1, unsigned pe2, std::string const &cl);
 
   template<typename T>
-  void add_channels(ChannelDictType<T> const &channels)
+  void add_channels(ChannelDict<T> const &channels)
   {
     for (auto const &tmp : channels) {
       unsigned pe1 = tmp.first;
@@ -108,7 +108,7 @@ public:
   }
 
   template<typename T>
-  void add_channels(ChannelDictType<> const &channels, T ct)
+  void add_channels(ChannelDict<> const &channels, T ct)
   {
     for (auto const &tmp : channels) {
       unsigned pe1 = tmp.first;
