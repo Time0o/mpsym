@@ -2,7 +2,6 @@
 #define GUARD_ARCH_GRAPH_H
 
 #include <memory>
-#include <ostream>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -23,8 +22,6 @@ namespace internal { class NautyGraph; }
 
 class ArchGraph : public ArchGraphSystem
 {
-  friend std::ostream &operator<<(std::ostream &os, ArchGraph &ag);
-
   using processor_type_size_type = std::vector<std::string>::size_type;
   using channel_type_size_type = std::vector<std::string>::size_type;
 
@@ -206,10 +203,6 @@ private:
   std::string to_gap_nauty() const;
   internal::PermGroup automorphisms_nauty(AutomorphismOptions const *options) const;
 
-  void dump_processors(std::ostream& os) const;
-  void dump_channels(std::ostream& os) const;
-  void dump_automorphisms(std::ostream& os);
-
   adjacency_type _adj;
   bool _directed;
 
@@ -219,8 +212,6 @@ private:
   std::vector<vertices_size_type> _processor_type_instances;
   std::vector<edges_size_type> _channel_type_instances;
 };
-
-std::ostream &operator<<(std::ostream &os, ArchGraph &ag);
 
 }
 

@@ -238,8 +238,6 @@ private:
   unsigned _automorphisms_lmp;
 };
 
-// TODO: outstream operator
-
 } // namespace mpsym
 
 #endif // GUARD_ARCH_GRAPH_SYSTEM_H
