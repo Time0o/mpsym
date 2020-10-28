@@ -9,6 +9,24 @@ from textwrap import dedent
 import pympsym as mp
 
 
+def cyclically_connect(self, ct, start=0, end=None, directed=True):
+    if end is None:
+        end = self.num_processors() - 1
+
+    def connect(source, target):
+        self.add_channel(source, target, ct)
+
+        if self.directed() and not directed:
+            self.add_channel(target, source, ct)
+
+    for pe in range(start, end):
+        connect(pe, pe + 1)
+
+    connect(end, start)
+
+mp.ArchGraph.cyclically_connect = cyclically_connect
+
+
 class PermTest(unittest.TestCase):
     def setUp(self):
         self.dom = [0,1,2,3]
@@ -251,12 +269,12 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
 
         ag1 = make_ag(10, True)
         self.assertEqual(ag1.num_channels(), 2 * ag1.num_processors())
-        self.assertEqual(ag1.processor_types(), ['p', 'p%L1%L2'])
+        self.assertEqual(ag1.processor_types(), ['p'])
         self.assertEqual(ag1.channel_types(), ['L1', 'L2', 'c'])
 
         ag2 = make_ag(10, False)
         self.assertEqual(ag2.num_channels(), int(1.5 * ag2.num_processors()))
-        self.assertCountEqual(ag2.processor_types(), ['p', 'p%L1%L2'])
+        self.assertCountEqual(ag2.processor_types(), ['p'])
         self.assertCountEqual(ag2.channel_types(), ['L1', 'L2', 'c'])
 
     def test_self_channels(self):
@@ -305,51 +323,33 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
             self.assertEqual(ag3.num_automorphisms(),
                              factorial(ag3.num_processors()))
 
-    def test_multi_channel_automorphisms(self):
-        def make_ag(processors, directed=True):
+    def test_architectures(self):
+        def make_ag(processors, directed=True, mult='single'):
             assert processors % 2 == 0
 
-            ag = mp.ArchGraph(directed)
-            ag.add_processors(processors, 'p')
+            def make_ag_():
+                ag = mp.ArchGraph(directed)
 
-            return ag
+                if mult == 'single':
+                    ag.add_processors(processors, 'p')
+                elif mult == 'double_identical':
+                    ag.add_processors(processors, 'p')
+                    ag.add_processors(processors, 'p')
+                elif mult == 'double_distinct':
+                    ag.add_processors(processors, 'p1')
+                    ag.add_processors(processors, 'p2')
+                else:
+                    raise ValueError
 
-        ag1 = make_ag(4, directed=True)
-        ag1.fully_connect('RAM')
+                return ag
 
-        self.assertEqual(ag1.num_automorphisms(),
-                         factorial(ag1.num_processors()))
+            return make_ag_
 
-        ag2 = make_ag(4, directed=True)
-        ag2.fully_connect('RAM')
-        self.assertEqual(ag2.num_automorphisms(),
-                         factorial(ag2.num_processors()))
+        def ram(ag):
+            ag.fully_connect('RAM')
 
-        def cyclically_connect(self, ct, start=0, end=None, directed=True):
-            if end is None:
-                end = self.num_processors() - 1
-
-            def connect(source, target):
-                self.add_channel(source, target, ct)
-
-                if self.directed() and not directed:
-                    self.add_channel(target, source, ct)
-
-            for pe in range(start, end):
-                connect(pe, pe + 1)
-
-            connect(end, start)
-
-        mp.ArchGraph.cyclically_connect = cyclically_connect
-
-        def test_ag(ag, connections, num_automorphisms):
-            for fs in permutations(connections):
-                ag_ = deepcopy(ag)
-                for f in fs:
-                    f(ag_)
-                self.assertEqual(ag_.num_automorphisms(), num_automorphisms)
-
-        ram = lambda ag: ag.fully_connect('RAM')
+        def cache(where, cache_type):
+            return lambda ag: ag.fully_connect(where, cache_type)
 
         def ring(directed=False, partial=False):
             def ring_(ag):
@@ -359,12 +359,73 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
 
             return ring_
 
-        test_ag(make_ag(4, directed=True), [ram, ring(directed=True)], 4)
-        test_ag(make_ag(4, directed=True), [ram, ring()], 8)
-        test_ag(make_ag(4, directed=False), [ram, ring()], 8)
-        test_ag(make_ag(8, directed=True), [ram, ring(directed=True, partial=True)], 96)
-        test_ag(make_ag(8, directed=True), [ram, ring(partial=True)], 192)
-        test_ag(make_ag(8, directed=False), [ram, ring(partial=True)], 192)
+        self._test_ag_generator(make_ag(4),
+                                [ram],
+                                factorial(4))
+
+        self._test_ag_generator(make_ag(4, directed=False),
+                                [ram],
+                                factorial(4))
+
+        self._test_ag_generator(make_ag(4),
+                                [ram, ring(directed=True)],
+                                4)
+
+        self._test_ag_generator(make_ag(4),
+                                [ram, ring()],
+                                8)
+
+        self._test_ag_generator(make_ag(4, directed=False),
+                                [ram, ring()],
+                                8)
+
+        self._test_ag_generator(make_ag(8),
+                                [ram, ring(directed=True, partial=True)],
+                                96)
+
+        self._test_ag_generator(make_ag(8),
+                                [ram, ring(partial=True)],
+                                192)
+
+        self._test_ag_generator(make_ag(8, directed=False),
+                                [ram, ring(partial=True)],
+                                192)
+
+        self._test_ag_generator(make_ag(4, mult='double_identical'),
+                                [ram],
+                                factorial(8))
+
+        self._test_ag_generator(make_ag(4, mult='double_identical'),
+                                [ram,
+                                 cache(range(4), 'L1_1'),
+                                 cache(range(4, 8), 'L1_2')],
+                                factorial(4)**2)
+
+        self._test_ag_generator(make_ag(4, mult='double_distinct'),
+                                [ram],
+                                factorial(4)**2)
+
+        self._test_ag_generator(make_ag(4, mult='double_distinct'),
+                                [ram,
+                                 cache('p1', 'L1_1'),
+                                 cache('p2', 'L1_2')],
+                                factorial(4)**2)
+
+    def _test_ag_generator(self, make_ag, connections, num_automorphisms):
+        for fs in permutations(connections):
+            ag = make_ag()
+
+            p = 1
+
+            for ag_ in ag, deepcopy(ag):
+                for f in fs:
+                    f(ag_)
+
+                self.assertEqual(ag_.num_automorphisms(),
+                                 num_automorphisms,
+                                 "(permutation {})".format(p))
+
+                p += 1
 
 
 if __name__ == '__main__':
