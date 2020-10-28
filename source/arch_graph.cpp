@@ -34,7 +34,7 @@ std::string ArchGraph::to_json() const
   // processor_types in use
   decltype(_processor_types) processor_types_in_use;
 
-  for (auto i = 0u; i < _processor_types.size(); ++i) {
+  for (auto i = 0u; i < num_processor_types(); ++i) {
     if (_processor_type_instances[i] > 0u)
       processor_types_in_use.push_back(_processor_types[i]);
   }
@@ -53,15 +53,13 @@ std::string ArchGraph::to_json() const
   using edge_type = std::pair<ProcessorType, std::string>;
   std::map<ProcessorType, std::vector<edge_type>> channels_dict;
 
-  for (auto pe1 : boost::make_iterator_range(boost::vertices(_adj))) {
-    processors_dict[pe1] = _processor_types[_adj[pe1].type];
+  for (auto pe : processors()) {
+    processors_dict[pe] = processor_type_str(pe);
 
-    for (auto e : boost::make_iterator_range(boost::out_edges(pe1, _adj))) {
-      auto pe2 = boost::target(e, _adj);
-      auto ct = _channel_types[_adj[e].type];
-      auto channel(std::make_pair(pe2, ct));
+    auto &channels(channels_dict[pe]);
 
-      auto &channels(channels_dict[pe1]);
+    for (auto ch : out_channels(pe)) {
+      auto channel(std::make_pair(target(ch), channel_type_str(ch)));
 
       channels.insert(
         std::upper_bound(channels.begin(), channels.end(), channel), channel);
@@ -85,7 +83,7 @@ ArchGraph::ProcessorType ArchGraph::new_processor_type(std::string const &pl)
 {
   assert(!pl.empty());
 
-  auto id = _processor_types.size();
+  auto id = num_processor_types();
   _processor_types.push_back(pl);
   _processor_type_instances.push_back(0u);
 
@@ -96,7 +94,7 @@ ArchGraph::ChannelType ArchGraph::new_channel_type(std::string const &cl)
 {
   assert(!cl.empty());
 
-  auto id = _channel_types.size();
+  auto id = num_channel_types();
   _channel_types.push_back(cl);
   _channel_type_instances.push_back(0u);
 
@@ -232,17 +230,19 @@ bool ArchGraph::effectively_directed() const
   if (!directed())
     return false;
 
-  for (auto e : boost::make_iterator_range(boost::edges(_adj))) {
-    int from = boost::source(e, _adj);
-    int to = boost::target(e, _adj);
-    auto ct = _adj[e].type;
-
-    if (!channel_exists(to, from, ct))
+  for (auto ch : channels()) {
+    if (!channel_exists(target(ch), source(ch), channel_type(ch)))
       return true;
   }
 
   return false;
 }
+
+unsigned ArchGraph::num_processor_types() const
+{ return static_cast<unsigned>(_processor_types.size()); }
+
+unsigned ArchGraph::num_channel_types() const
+{ return static_cast<unsigned>(_channel_types.size()); }
 
 unsigned ArchGraph::num_processors() const
 { return static_cast<unsigned>(boost::num_vertices(_adj)); }
@@ -253,14 +253,14 @@ unsigned ArchGraph::num_channels() const
 ArchGraph::ChannelType ArchGraph::assert_channel_type(std::string const &cl)
 {
   ChannelType ct = 0u;
-  while (ct < _channel_types.size()) {
+  while (ct < num_channel_types()) {
     if (_channel_types[ct] == cl)
       break;
 
     ++ct;
   }
 
-  if (ct == _channel_types.size())
+  if (ct == num_channel_types())
     new_channel_type(cl);
 
   return ct;
@@ -269,14 +269,14 @@ ArchGraph::ChannelType ArchGraph::assert_channel_type(std::string const &cl)
 ArchGraph::ProcessorType ArchGraph::assert_processor_type(std::string const &pl)
 {
   ProcessorType pt = 0u;
-  while (pt < _processor_types.size()) {
+  while (pt < num_processor_types()) {
     if (_processor_types[pt] == pl)
       break;
 
     ++pt;
   }
 
-  if (pt == _processor_types.size())
+  if (pt == num_processor_types())
     new_processor_type(pl);
 
   return pt;
@@ -290,8 +290,8 @@ bool ArchGraph::channel_exists(unsigned from, unsigned to, ChannelType ct) const
 
 bool ArchGraph::channel_exists_directed(unsigned from, unsigned to, ChannelType ct) const
 {
-  for (auto e : boost::make_iterator_range(boost::out_edges(from, _adj))) {
-    if (boost::target(e, _adj) == to && _adj[e].type == ct)
+  for (auto ch : out_channels(from)) {
+    if (target(ch) == to && channel_type(ch) == ct)
       return true;
   }
 
@@ -306,10 +306,10 @@ bool ArchGraph::channel_exists_undirected(unsigned from, unsigned to, ChannelTyp
 
 void ArchGraph::dump_processors(std::ostream& os) const
 {
-  std::vector<std::vector<unsigned>> pes_by_type(_processor_types.size());
+  std::vector<std::vector<unsigned>> pes_by_type(num_processor_types());
 
-  for (auto pe : boost::make_iterator_range(boost::vertices(_adj)))
-    pes_by_type[_adj[pe].type].push_back(pe);
+  for (auto pe : processors())
+    pes_by_type[processor_type(pe)].push_back(pe);
 
   os << "processors: [";
 
@@ -328,16 +328,14 @@ void ArchGraph::dump_processors(std::ostream& os) const
 
 void ArchGraph::dump_channels(std::ostream& os) const
 {
-  std::vector<std::vector<std::set<unsigned>>> chs_by_type(_channel_types.size());
+  std::vector<std::vector<std::set<unsigned>>> chs_by_type(num_channel_types());
 
   for (auto &chs : chs_by_type)
     chs.resize(num_processors());
 
-  for (auto pe1 : boost::make_iterator_range(boost::vertices(_adj))) {
-    for (auto e : boost::make_iterator_range(boost::out_edges(pe1, _adj))) {
-      auto pe2 = boost::target(e, _adj);
-      chs_by_type[_adj[e].type][pe1].insert(pe2);
-    }
+  for (auto pe : processors()) {
+    for (auto ch : out_channels(pe))
+      chs_by_type[channel_type(ch)][pe].insert(target(ch));
   }
 
   os << "channels: [";

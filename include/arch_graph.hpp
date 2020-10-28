@@ -12,6 +12,7 @@
 #include <boost/graph/adjacency_list.hpp>
 
 #include "arch_graph_system.hpp"
+#include "iterator.hpp"
 #include "nauty_graph.hpp"
 #include "perm_group.hpp"
 
@@ -144,6 +145,9 @@ public:
   bool directed() const;
   bool effectively_directed() const;
 
+  unsigned num_processor_types() const;
+  unsigned num_channel_types() const;
+
   unsigned num_processors() const override;
   unsigned num_channels() const override;
 
@@ -155,14 +159,48 @@ private:
   ChannelType assert_channel_type(std::string const &cl);
   ProcessorType assert_processor_type(std::string const &cl);
 
+  bool channel_exists(unsigned from, unsigned to, ChannelType ct) const;
+  bool channel_exists_directed(unsigned from, unsigned to, ChannelType ct) const;
+  bool channel_exists_undirected(unsigned from, unsigned to, ChannelType ct) const;
+
   void add_self_channel(unsigned pe, ChannelType ct);
   void add_non_self_channel(unsigned from, unsigned to, ChannelType ct);
   static std::string add_self_channel_to_processor_label(std::string const &pl,
                                                          std::string const &cl);
 
-  bool channel_exists(unsigned from, unsigned to, ChannelType ct) const;
-  bool channel_exists_directed(unsigned from, unsigned to, ChannelType ct) const;
-  bool channel_exists_undirected(unsigned from, unsigned to, ChannelType ct) const;
+  using pe_it = adjacency_type::vertex_iterator;
+  using pe = pe_it::value_type;
+
+  boost::iterator_range<pe_it> processors() const
+  { return boost::make_iterator_range(boost::vertices(_adj)); }
+
+  ProcessorType processor_type(pe pe) const
+  { return _adj[pe].type; }
+
+  std::string processor_type_str(pe pe) const
+  { return _processor_types[processor_type(pe)]; }
+
+  using ch_it = adjacency_type::edge_iterator;
+  using ch_out_it = adjacency_type::out_edge_iterator;
+  using ch = ch_it::value_type;
+
+  boost::iterator_range<ch_it> channels() const
+  { return boost::make_iterator_range(boost::edges(_adj)); }
+
+  pe source(ch ch) const
+  { return boost::source(ch, _adj); }
+
+  pe target(ch ch) const
+  { return boost::target(ch, _adj); }
+
+  boost::iterator_range<ch_out_it> out_channels(pe pe) const
+  { return boost::make_iterator_range(boost::out_edges(pe, _adj)); }
+
+  ChannelType channel_type(ch ch) const
+  { return _adj[ch].type; }
+
+  std::string channel_type_str(ch ch) const
+  { return _channel_types[channel_type(ch)]; }
 
   internal::NautyGraph graph_nauty() const;
   std::string to_gap_nauty() const;
