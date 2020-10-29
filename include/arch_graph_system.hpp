@@ -96,16 +96,6 @@ public:
     AutomorphismOptions const *options = nullptr)
   { return num_automorphisms_(options); }
 
-  unsigned num_automorphism_orbits(
-    unsigned num_tasks,
-    bool unique_tasks,
-    AutomorphismOptions const *options = nullptr);
-
-  std::vector<unsigned> automorphism_orbit_sizes(
-    unsigned num_tasks,
-    bool unique_tasks,
-    AutomorphismOptions const *options = nullptr);
-
   internal::PermGroup automorphisms(
     AutomorphismOptions const *options = nullptr)
   {
