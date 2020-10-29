@@ -75,30 +75,54 @@ public:
   template<typename IT>
   static PermGroup direct_product(IT first,
                                   IT last,
-                                  BSGSOptions const *bsgs_options = nullptr)
+                                  BSGSOptions const *bsgs_options_ = nullptr)
   {
     assert(std::distance(first, last) > 0);
 
-    unsigned current_degree = 0u;
-    unsigned total_degree = 0u;
+    // direct product degree
+    unsigned dp_degree = 0u;
 
     for (auto it = first; it != last; ++it)
-      total_degree += it->degree();
+      dp_degree += it->degree();
 
-    PermSet generators;
+    // direct product order
+    auto dp_order(direct_product_order(first, last));
+
+    // direct product generators
+    unsigned d = 0u;
+
+    PermSet dp_generators;
     for (auto it = first; it != last; ++it) {
       for (Perm const &perm : it->generators())
-        generators.insert(perm.shifted(current_degree).extended(total_degree));
+        dp_generators.insert(perm.shifted(d).extended(dp_degree));
 
-      current_degree += it->degree();
+      d += it->degree();
     }
 
-    return PermGroup(BSGS(total_degree, generators, bsgs_options));
+    // construct direct product
+    auto bsgs_options(BSGSOptions::fill_defaults(bsgs_options_));
+    bsgs_options.schreier_sims_random_known_order = dp_order;
+
+    return PermGroup(BSGS(dp_degree, dp_generators, &bsgs_options));
+  }
+
+  template<typename IT>
+  static BSGS::order_type direct_product_order(IT first, IT last)
+  {
+    BSGS::order_type dp_order = 1u;
+
+    for (auto it = first; it != last; ++it)
+      dp_order *= it->order();
+
+    return dp_order;
   }
 
   static PermGroup wreath_product(PermGroup const &lhs,
                                   PermGroup const &rhs,
                                   BSGSOptions const *bsgs_options = nullptr);
+
+  static BSGS::order_type wreath_product_order(PermGroup const &lhs,
+                                               PermGroup const &rhs);
 
   bool operator==(PermGroup const &rhs) const;
   bool operator!=(PermGroup const &rhs) const;

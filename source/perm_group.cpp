@@ -16,9 +16,6 @@
 #include "perm_set.hpp"
 #include "util.hpp"
 
-using boost::multiprecision::cpp_int;
-using boost::multiprecision::pow;
-
 namespace mpsym
 {
 
@@ -156,14 +153,17 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
   rhs.minimize_degree();
 
   // degree of wreath product
-  unsigned degree = lhs.degree() * rhs.degree();
+  unsigned wp_degree = lhs.degree() * rhs.degree();
+
+  // order of wreath product
+  auto wp_order(wreath_product_order(lhs_, rhs_));
 
   // determine generators of wreath product
-  PermSet generators;
+  PermSet wp_generators;
 
   for (unsigned i = 0u; i < rhs.degree(); ++i) {
     for (Perm const &perm : lhs)
-      generators.insert(perm.shifted(lhs.degree() * i).extended(degree));
+      wp_generators.insert(perm.shifted(lhs.degree() * i).extended(wp_degree));
   }
 
   for (Perm const &gen_rhs : rhs) {
@@ -186,24 +186,33 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
       }
     }
 
-    generators.emplace(degree, shifted_cycles);
+    wp_generators.emplace(wp_degree, shifted_cycles);
   }
 
-  // order of resulting wreath product
-  auto lhs_order(lhs_.order());
-  auto rhs_order(rhs_.order());
+  // construct wreath product
+  auto bsgs_options(BSGSOptions::fill_defaults(bsgs_options_));
+  bsgs_options.schreier_sims_random_known_order = wp_order;
+
+  return PermGroup(BSGS(wp_degree, wp_generators, &bsgs_options));
+}
+
+BSGS::order_type PermGroup::wreath_product_order(PermGroup const &lhs,
+                                                 PermGroup const &rhs)
+{
+  using boost::multiprecision::pow;
+
+  auto lhs_order(lhs.order());
+  auto rhs_order(rhs.order());
+
+  if (lhs.is_trivial())
+    return rhs_order;
+
+  if (rhs.is_trivial())
+    return lhs_order;
+
   unsigned rhs_lmp = rhs.largest_moved_point();
 
-  if (rhs_order > std::numeric_limits<unsigned>::max() / 2u)
-    throw std::overflow_error("order of wreath product would overflow");
-
-  cpp_int wreath_product_order(pow(lhs_order, rhs_lmp) * rhs_order);
-
-  auto bsgs_options(BSGSOptions::fill_defaults(bsgs_options_));
-  bsgs_options.schreier_sims_random_known_order = wreath_product_order;
-
-  // construct wreath product
-  return PermGroup(BSGS(degree, generators, &bsgs_options));
+  return pow(lhs_order, rhs_lmp) * rhs_order;
 }
 
 bool PermGroup::is_symmetric() const
