@@ -20,7 +20,6 @@
 #include "explicit_transversals.hpp"
 #include "schreier_structure.hpp"
 #include "schreier_tree.hpp"
-#include "timeout.hpp"
 
 namespace mpsym
 {
@@ -68,7 +67,8 @@ BSGS::BSGS(unsigned degree)
 
 BSGS::BSGS(unsigned degree,
            PermSet const &generators,
-           BSGSOptions const *options_)
+           BSGSOptions const *options_,
+           std::atomic<bool> &aborted)
 : _degree(degree)
 {
   assert(degree > 0);
@@ -93,10 +93,10 @@ BSGS::BSGS(unsigned degree,
     } else if (pr.test_alternating()) {
       construct_alternating();
     } else {
-      construct_unknown(generators, &options);
+      construct_unknown(generators, &options, aborted);
     }
   } else {
-    construct_unknown(generators, &options);
+    construct_unknown(generators, &options, aborted);
   }
 
   DBG(DEBUG) << "=> B = " << _base;
@@ -273,49 +273,23 @@ void BSGS::construct_alternating()
 }
 
 void BSGS::construct_unknown(PermSet const &generators,
-                             BSGSOptions const *options)
+                             BSGSOptions const *options,
+                             std::atomic<bool> &aborted)
 {
-  auto construct_schreier_sims = [&](bool random) {
-    typedef void(BSGS::*SS)(PermSet const &,
-                            BSGSOptions const *,
-                            std::atomic<bool> &);
-
-    SS ss = random ? (SS)&BSGS::schreier_sims_random
-                   : (SS)&BSGS::schreier_sims;
-
-    std::atomic<bool> aborted(false);
-
-    if (options->timeout <= 0.0) {
-      (this->*ss)(generators, options, aborted);
-    } else {
-      std::chrono::duration<double> timeout(options->timeout);
-
-      try {
-        timeout::run_with_timeout(
-          "construct_schreier_sims",
-          timeout,
-          [&]() { (this->*ss)(generators, options, aborted); });
-
-      } catch (timeout::TimeoutError const &) {
-        aborted.store(true);
-      }
-    }
-  };
-
   switch (options->construction) {
     case BSGSOptions::Construction::AUTO:
       if (options->schreier_sims_random_use_known_order &&
           options->schreier_sims_random_known_order > 0) {
-        construct_schreier_sims(true);
+        schreier_sims_random(generators, options, aborted);
       } else {
-        construct_schreier_sims(false);
+        schreier_sims(generators, options, aborted);
       }
       break;
     case BSGSOptions::Construction::SCHREIER_SIMS:
-      construct_schreier_sims(false);
+      schreier_sims(generators, options, aborted);
       break;
     case BSGSOptions::Construction::SCHREIER_SIMS_RANDOM:
-      construct_schreier_sims(true);
+      schreier_sims_random(generators, options, aborted);
       break;
     case BSGSOptions::Construction::SOLVE:
       solve(generators);

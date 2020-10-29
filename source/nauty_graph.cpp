@@ -160,14 +160,14 @@ void NautyGraph::set_partition(std::vector<std::vector<int>> const &ptn)
   }
 }
 
-PermGroup NautyGraph::automorphisms(AutomorphismOptions const *options) const
+PermSet NautyGraph::automorphism_generators() const
 {
   static DEFAULTOPTIONS_DIGRAPH(nauty_options_directed);
 
   static DEFAULTOPTIONS_GRAPH(nauty_options_undirected);
 
   if (_edges.empty())
-    return PermGroup(_n_reduced);
+    return {};
 
   auto &nauty_options = _effectively_directed ? nauty_options_directed
                                               : nauty_options_undirected;
@@ -181,7 +181,7 @@ PermGroup NautyGraph::automorphisms(AutomorphismOptions const *options) const
   statsblk stats;
   densenauty(_g, _lab, _ptn, _orbits, &nauty_options, &stats, _m, _n, nullptr);
 
-  return PermGroup(BSGS(_n_reduced, _gens, options));
+  return _gens;
 }
 
 } // namespace internal

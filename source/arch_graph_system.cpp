@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <functional>
 #include <fstream>
@@ -24,6 +25,7 @@
 #include "perm_set.hpp"
 #include "task_mapping.hpp"
 #include "task_orbits.hpp"
+#include "timeout.hpp"
 #include "util.hpp"
 
 using boost::multiprecision::pow;
@@ -140,7 +142,8 @@ TaskMapping ArchGraphSystem::repr_symmetric(TaskMapping const &mapping,
 
 TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
                                    ReprOptions const *options_,
-                                   TaskOrbits *orbits)
+                                   TaskOrbits *orbits,
+                                   std::atomic<bool> &aborted)
 {
   auto options(ReprOptions::fill_defaults(options_));
 
@@ -153,9 +156,9 @@ TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
   unsigned task_max = automs.degree() + options.offset;
 
   return options.method == ReprOptions::Method::ITERATE ?
-           min_elem_iterate(mapping, &options, orbits) :
+           min_elem_iterate(mapping, &options, orbits, aborted) :
          options.method == ReprOptions::Method::ORBITS ?
-           min_elem_orbits(mapping, &options, orbits) :
+           min_elem_orbits(mapping, &options, orbits, aborted) :
          options.method == ReprOptions::Method::LOCAL_SEARCH ?
            options.variant == ReprOptions::Variant::LOCAL_SEARCH_SA_LINEAR ?
              min_elem_local_search_sa(mapping, task_min, task_max, &options) :
@@ -165,13 +168,17 @@ TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
 
 TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
                                               ReprOptions const *options,
-                                              TaskOrbits *orbits)
+                                              TaskOrbits *orbits,
+                                              std::atomic<bool> &aborted)
 {
   auto automs(automorphisms());
 
   TaskMapping representative(tasks);
 
   for (auto it = automs.begin(); it != automs.end(); ++it) {
+    if (aborted)
+      throw timeout::AbortedError("min_elem_iterate");
+
     auto const &factors(it.factors());
 
     if (tasks.less_than(representative, factors, options->offset))
@@ -187,7 +194,8 @@ TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
 
 TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
                                              ReprOptions const *options,
-                                             TaskOrbits *orbits)
+                                             TaskOrbits *orbits,
+                                             std::atomic<bool> &aborted)
 {
   auto automs(automorphisms());
   auto gens(automs.generators());
@@ -199,6 +207,9 @@ TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
   unprocessed.insert(tasks);
 
   while (!unprocessed.empty()) {
+    if (aborted)
+      throw timeout::AbortedError("min_elem_orbits");
+
     auto it(unprocessed.begin());
     TaskMapping current(*it);
     unprocessed.erase(it);

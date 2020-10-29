@@ -1,3 +1,4 @@
+#include <atomic>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -109,12 +110,21 @@ std::string ArchGraph::to_gap_nauty() const
   return g.to_gap();
 }
 
-PermGroup ArchGraph::automorphisms_nauty(
-  AutomorphismOptions const *options) const
+PermSet ArchGraph::automorphism_generators_nauty() const
 {
   auto g(graph_nauty(true));
 
-  return g.automorphisms(options);
+  return g.automorphism_generators();
+}
+
+PermGroup ArchGraph::automorphisms_nauty(AutomorphismOptions const *options,
+                                         std::atomic<bool> &aborted)
+{
+  resolve_loops_nauty();
+
+  auto generators(automorphism_generators_nauty());
+
+  return PermGroup(BSGS(num_processors(), generators, options, aborted));
 }
 
 } // namespace mpsym

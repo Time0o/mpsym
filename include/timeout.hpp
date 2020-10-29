@@ -1,6 +1,7 @@
 #ifndef GUARD_TIMEOUT_H
 #define GUARD_TIMEOUT_H
 
+#include <atomic>
 #include <chrono>
 #include <functional>
 #include <future>
@@ -33,8 +34,22 @@ struct AbortedError : public std::runtime_error
   {}
 };
 
+using seconds = std::chrono::duration<double>;
+
+inline std::atomic<bool> &unabortable()
+{
+  static std::atomic<bool> f(false);
+
+  return f;
+}
+
 template<typename FUNC, typename ...ARGS>
 using ReturnType = decltype(std::declval<FUNC>()(std::declval<ARGS>()...));
+
+template<typename FUNC, typename ...ARGS>
+using AbortableReturnType =
+  decltype(std::declval<FUNC>()(std::declval<ARGS>()...,
+                                std::declval<std::atomic<bool> &>()));
 
 template<typename FUNC, typename ...ARGS>
 using ReturnTypeWrapper = boost::optional<ReturnType<FUNC, ARGS...>>;
@@ -42,7 +57,7 @@ using ReturnTypeWrapper = boost::optional<ReturnType<FUNC, ARGS...>>;
 template<typename FUNC, typename ...ARGS, typename REP, typename PERIOD>
 std::future<ReturnType<FUNC, ARGS...>> future_with_timeout(
   std::string const &what,
-  std::chrono::duration<REP, PERIOD> &timeout,
+  std::chrono::duration<REP, PERIOD> const &timeout,
   FUNC &&f,
   ARGS &&...args)
 {
@@ -52,8 +67,6 @@ std::future<ReturnType<FUNC, ARGS...>> future_with_timeout(
    [&]() { return f(std::forward<ARGS>(args)...); });
 
   auto future(task.get_future());
-
-  auto start_thread(high_resolution_clock::now());
 
   std::thread thread(std::move(task));
 
@@ -65,10 +78,6 @@ std::future<ReturnType<FUNC, ARGS...>> future_with_timeout(
   } else {
      thread.join();
 
-     auto end_thread(high_resolution_clock::now());
-
-     timeout = duration_cast<duration<REP, PERIOD>>(end_thread - start_thread);
-
      return future;
   }
 }
@@ -76,7 +85,7 @@ std::future<ReturnType<FUNC, ARGS...>> future_with_timeout(
 template<typename FUNC, typename ...ARGS, typename REP, typename PERIOD>
 typename std::enable_if<std::is_void<ReturnType<FUNC, ARGS...>>::value>::type
 run_with_timeout(std::string const &what,
-                 std::chrono::duration<REP, PERIOD> &timeout,
+                 std::chrono::duration<REP, PERIOD> const &timeout,
                  FUNC &&f,
                  ARGS &&...args)
 {
@@ -95,7 +104,7 @@ template<typename FUNC, typename ...ARGS, typename REP, typename PERIOD>
 typename std::enable_if<!std::is_void<ReturnType<FUNC, ARGS...>>::value,
                         ReturnType<FUNC, ARGS...>>::type
 run_with_timeout(std::string const &what,
-                 std::chrono::duration<REP, PERIOD> &timeout,
+                 std::chrono::duration<REP, PERIOD> const &timeout,
                  FUNC &&f,
                  ARGS &&...args)
 {
@@ -113,6 +122,31 @@ run_with_timeout(std::string const &what,
     std::forward<ARGS>(args)...));
 
   return *future.get();
+}
+
+template<typename FUNC, typename ...ARGS, typename REP, typename PERIOD>
+AbortableReturnType<FUNC, ARGS...>
+run_abortable_with_timeout(std::string const &what,
+                           std::chrono::duration<REP, PERIOD> const &timeout,
+                           FUNC &&f,
+                           ARGS &&...args)
+{
+  if (timeout <= std::chrono::duration<double>::zero())
+    return f(std::forward<ARGS>(args)..., unabortable());
+
+  std::atomic<bool> aborted(false);
+
+  try {
+    return run_with_timeout(what,
+                            timeout,
+                            std::forward<FUNC>(f),
+                            std::forward<ARGS>(args)...,
+                            aborted);
+
+  } catch (TimeoutError const &) {
+    aborted.store(true);
+    throw;
+  }
 }
 
 } // namespace timeout

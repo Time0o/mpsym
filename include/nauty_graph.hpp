@@ -6,7 +6,6 @@
 #include <utility>
 #include <vector>
 
-#include "perm_group.hpp"
 #include "perm_set.hpp"
 
 namespace mpsym
@@ -33,7 +32,7 @@ public:
 
   void set_partition(std::vector<std::vector<int>> const &ptn);
 
-  PermGroup automorphisms(AutomorphismOptions const *options = nullptr) const;
+  PermSet automorphism_generators() const;
 
 private:
   unsigned long *_g;

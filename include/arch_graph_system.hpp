@@ -1,6 +1,7 @@
 #ifndef GUARD_ARCH_GRAPH_SYSTEM_H
 #define GUARD_ARCH_GRAPH_SYSTEM_H
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -10,6 +11,7 @@
 #include "perm_group.hpp"
 #include "task_mapping.hpp"
 #include "task_orbits.hpp"
+#include "timeout.hpp"
 
 namespace mpsym
 {
@@ -93,24 +95,28 @@ public:
   }
 
   internal::BSGS::order_type num_automorphisms(
-    AutomorphismOptions const *options = nullptr)
-  { return num_automorphisms_(options); }
+    AutomorphismOptions const *options = nullptr,
+    std::atomic<bool> &aborted = internal::timeout::unabortable())
+  { return num_automorphisms_(options, aborted); }
 
   internal::PermGroup automorphisms(
-    AutomorphismOptions const *options = nullptr)
+    AutomorphismOptions const *options = nullptr,
+    std::atomic<bool> &aborted = internal::timeout::unabortable())
   {
     if (!automorphisms_ready()) {
-      _automorphisms = automorphisms_(options);
+      _automorphisms = automorphisms_(options, aborted);
       _automorphisms_valid = true;
     }
 
     return _automorphisms;
   }
 
-  void init_repr(AutomorphismOptions const *options = nullptr)
+  void init_repr(
+    AutomorphismOptions const *options = nullptr,
+    std::atomic<bool> &aborted = internal::timeout::unabortable())
   {
     if (!repr_ready_())
-      init_repr_(options);
+      init_repr_(options, aborted);
   }
 
   bool repr_ready() const
@@ -120,23 +126,25 @@ public:
   { reset_repr_(); }
 
   TaskMapping repr(TaskMapping const &mapping,
-                   ReprOptions const *options = nullptr)
+                   ReprOptions const *options = nullptr,
+                   std::atomic<bool> &aborted = internal::timeout::unabortable())
   {
     if (!repr_ready_())
       init_repr();
 
-    return repr_(mapping, options, nullptr);
+    return repr_(mapping, options, nullptr, aborted);
   }
 
   std::tuple<TaskMapping, bool, unsigned> repr(
     TaskMapping const &mapping,
     TaskOrbits &orbits,
-    ReprOptions const *options = nullptr)
+    ReprOptions const *options = nullptr,
+    std::atomic<bool> &aborted = internal::timeout::unabortable())
   {
     if (!repr_ready_())
       init_repr();
 
-    auto representative(repr_(mapping, options, &orbits));
+    auto representative(repr_(mapping, options, &orbits, aborted));
 
     auto ins(orbits.insert(representative));
 
@@ -149,14 +157,21 @@ private:
   static std::string read_file(std::string const &file);
 
   virtual internal::BSGS::order_type num_automorphisms_(
-    AutomorphismOptions const *options)
-  { return automorphisms(options).order(); }
+    AutomorphismOptions const *options,
+    std::atomic<bool> &aborted)
+  { return automorphisms(options, aborted).order(); }
 
-  virtual internal::PermGroup automorphisms_(
-    AutomorphismOptions const *options) = 0;
+  virtual internal::PermGroup automorphisms_(AutomorphismOptions const *options,
+                                             std::atomic<bool> &aborted) = 0;
 
-  virtual void init_repr_(AutomorphismOptions const *options)
-  { automorphisms(options); }
+  virtual void init_repr_(AutomorphismOptions const *,
+                          std::atomic<bool> &)
+  {}
+
+  virtual TaskMapping repr_(TaskMapping const &mapping,
+                            ReprOptions const *options,
+                            TaskOrbits *orbits,
+                            std::atomic<bool> &aborted);
 
   virtual bool repr_ready_() const
   { return automorphisms_ready(); }
@@ -168,10 +183,6 @@ private:
 
   TaskMapping repr_symmetric(TaskMapping const &mapping,
                              ReprOptions const *options);
-
-  virtual TaskMapping repr_(TaskMapping const &mapping,
-                            ReprOptions const *options,
-                            TaskOrbits *orbits);
 
   static bool is_repr(TaskMapping const &tasks,
                       ReprOptions const *options,
@@ -185,11 +196,13 @@ private:
 
   TaskMapping min_elem_iterate(TaskMapping const &tasks,
                                ReprOptions const *options,
-                               TaskOrbits *orbits);
+                               TaskOrbits *orbits,
+                               std::atomic<bool> &aborted);
 
   TaskMapping min_elem_orbits(TaskMapping const &tasks,
                               ReprOptions const *options,
-                              TaskOrbits *orbits);
+                              TaskOrbits *orbits,
+                              std::atomic<bool> &aborted);
 
   TaskMapping min_elem_local_search(TaskMapping const &tasks,
                                     ReprOptions const *options);

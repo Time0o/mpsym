@@ -14,6 +14,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include "perm_set.hpp"
+#include "timeout.hpp"
 
 namespace mpsym
 {
@@ -85,7 +86,8 @@ public:
 
   BSGS(unsigned degree,
        PermSet const &generators,
-       BSGSOptions const *options = nullptr);
+       BSGSOptions const *options = nullptr,
+       std::atomic<bool> &aborted = timeout::unabortable()); // TODO: constexpr?
 
   BSGS(unsigned degree,
        Base const &base,
@@ -122,7 +124,9 @@ private:
   // construction
   void construct_symmetric();
   void construct_alternating();
-  void construct_unknown(PermSet const &generators, BSGSOptions const *options);
+  void construct_unknown(PermSet const &generators,
+                         BSGSOptions const *options,
+                         std::atomic<bool> &aborted);
 
   // schreier sims initialization
   void schreier_sims(PermSet const &generators,
@@ -247,8 +251,6 @@ struct BSGSOptions
   BSGS::order_type schreier_sims_random_known_order = 0;
   int schreier_sims_random_retries = -1;
   unsigned schreier_sims_random_w = 100u;
-
-  double timeout = 0.0;
 };
 
 } // namespace internal

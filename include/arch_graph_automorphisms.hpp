@@ -1,6 +1,7 @@
 #ifndef GUARD_ARCH_GRAPH_AUTOMORPHISMS_H
 #define GUARD_ARCH_GRAPH_AUTOMORPHISMS_H
 
+#include <atomic>
 #include <sstream>
 #include <sstream>
 #include <string>
@@ -60,7 +61,8 @@ public:
   }
 
 private:
-  PermGroup automorphisms_(AutomorphismOptions const *) override
+  PermGroup automorphisms_(AutomorphismOptions const *,
+                           std::atomic<bool> &) override
   { return _automorphisms; }
 
   PermGroup _automorphisms;

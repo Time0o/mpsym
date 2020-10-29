@@ -1,6 +1,7 @@
 #ifndef GUARD_ARCH_UNIFORM_SUPER_GRAPH_H
 #define GUARD_ARCH_UNIFORM_SUPER_GRAPH_H
 
+#include <atomic>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -40,20 +41,22 @@ public:
 
 private:
   internal::BSGS::order_type num_automorphisms_(
-    AutomorphismOptions const *options) override
+    AutomorphismOptions const *options,
+    std::atomic<bool> &aborted) override
   {
     return internal::PermGroup::wreath_product_order(
-      _subsystem_proto->automorphisms(options),
-      _subsystem_super_graph->automorphisms(options));
+      _subsystem_proto->automorphisms(options, aborted),
+      _subsystem_super_graph->automorphisms(options, aborted));
   }
 
-  internal::PermGroup automorphisms_(
-    AutomorphismOptions const *options) override;
+  internal::PermGroup automorphisms_(AutomorphismOptions const *options,
+                                     std::atomic<bool> &aborted) override;
 
-  void init_repr_(AutomorphismOptions const *options) override
+  void init_repr_(AutomorphismOptions const *options,
+                  std::atomic<bool> &aborted) override
   {
-    _sigma_super_graph = wreath_product_action_super_graph(options);
-    _sigmas_proto = wreath_product_action_proto(options);
+    _sigma_super_graph = wreath_product_action_super_graph(options, aborted);
+    _sigmas_proto = wreath_product_action_proto(options, aborted);
     _sigmas_valid = true;
   }
 
@@ -73,13 +76,16 @@ private:
 
   TaskMapping repr_(TaskMapping const &mapping_,
                     ReprOptions const *options,
-                    TaskOrbits *orbits) override;
+                    TaskOrbits *orbits,
+                    std::atomic<bool> &aborted) override;
 
   std::shared_ptr<internal::ArchGraphAutomorphisms>
-  wreath_product_action_super_graph(AutomorphismOptions const *options) const;
+  wreath_product_action_super_graph(AutomorphismOptions const *options,
+                                    std::atomic<bool> &aborted) const;
 
   std::vector<std::shared_ptr<internal::ArchGraphAutomorphisms>>
-  wreath_product_action_proto(AutomorphismOptions const *options) const;
+  wreath_product_action_proto(AutomorphismOptions const *options,
+                              std::atomic<bool> &aborted) const;
 
   std::shared_ptr<ArchGraphSystem> _subsystem_super_graph;
   std::shared_ptr<ArchGraphSystem> _subsystem_proto;

@@ -1,3 +1,4 @@
+#include <atomic>
 #include <memory>
 #include <numeric>
 #include <sstream>
@@ -68,7 +69,8 @@ ArchUniformSuperGraph::num_channels() const
 
 std::vector<std::shared_ptr<ArchGraphAutomorphisms>>
 ArchUniformSuperGraph::wreath_product_action_proto(
-  AutomorphismOptions const *options) const
+  AutomorphismOptions const *options,
+  std::atomic<bool> &aborted) const
 {
   unsigned degree_super_graph = _subsystem_super_graph->num_processors();
   unsigned degree_proto = _subsystem_proto->num_processors();
@@ -76,7 +78,7 @@ ArchUniformSuperGraph::wreath_product_action_proto(
   std::vector<PermSet> sigmas_proto_gens(degree_super_graph);
 
   for (auto const &gen_ :
-       _subsystem_proto->automorphisms(options).generators()) {
+       _subsystem_proto->automorphisms(options, aborted).generators()) {
 
     for (unsigned b = 0u; b < sigmas_proto_gens.size(); ++b) {
       std::vector<unsigned> gen(degree_super_graph * degree_proto);
@@ -96,7 +98,7 @@ ArchUniformSuperGraph::wreath_product_action_proto(
   std::vector<std::shared_ptr<ArchGraphAutomorphisms>> sigmas_proto;
 
   for (auto const &gens : sigmas_proto_gens) {
-    PermGroup pg(gens.degree(), gens);
+    PermGroup pg(BSGS(gens.degree(), gens, options, aborted));
 
     sigmas_proto.push_back(std::make_shared<ArchGraphAutomorphisms>(pg));
   }
@@ -106,7 +108,8 @@ ArchUniformSuperGraph::wreath_product_action_proto(
 
 std::shared_ptr<ArchGraphAutomorphisms>
 ArchUniformSuperGraph::wreath_product_action_super_graph(
-  AutomorphismOptions const *options) const
+  AutomorphismOptions const *options,
+  std::atomic<bool> &aborted) const
 {
   unsigned degree_super_graph = _subsystem_super_graph->num_processors();
   unsigned degree_proto = _subsystem_proto->num_processors();
@@ -114,7 +117,7 @@ ArchUniformSuperGraph::wreath_product_action_super_graph(
   PermSet sigma_super_graph_gens;
 
   for (auto const &gen_ :
-       _subsystem_super_graph->automorphisms(options).generators()) {
+       _subsystem_super_graph->automorphisms(options, aborted).generators()) {
 
     std::vector<unsigned> gen(degree_super_graph * degree_proto);
 
@@ -130,31 +133,36 @@ ArchUniformSuperGraph::wreath_product_action_super_graph(
     sigma_super_graph_gens.insert(Perm(gen));
   }
 
-  PermGroup pg(sigma_super_graph_gens.degree(), sigma_super_graph_gens);
+  PermGroup pg(BSGS(sigma_super_graph_gens.degree(),
+                    sigma_super_graph_gens,
+                    options,
+                    aborted));
 
   return std::make_shared<ArchGraphAutomorphisms>(pg);
 }
 
 PermGroup
-ArchUniformSuperGraph::automorphisms_(AutomorphismOptions const *options)
+ArchUniformSuperGraph::automorphisms_(AutomorphismOptions const *options,
+                                      std::atomic<bool> &aborted)
 {
   return PermGroup::wreath_product(
-    _subsystem_proto->automorphisms(options),
-    _subsystem_super_graph->automorphisms(options),
+    _subsystem_proto->automorphisms(options, aborted),
+    _subsystem_super_graph->automorphisms(options, aborted),
     options);
 }
 
 TaskMapping
 ArchUniformSuperGraph::repr_(TaskMapping const &mapping_,
                              ReprOptions const *options,
-                             TaskOrbits *)
+                             TaskOrbits *,
+                             std::atomic<bool> &aborted)
 {
   TaskMapping mapping(mapping_);
 
   for (auto &sigma : _sigmas_proto)
-    mapping = sigma->repr(mapping, options);
+    mapping = sigma->repr(mapping, options, aborted);
 
-  mapping = _sigma_super_graph->repr(mapping, options);
+  mapping = _sigma_super_graph->repr(mapping, options, aborted);
 
   return mapping;
 }

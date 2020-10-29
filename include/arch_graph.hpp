@@ -1,6 +1,7 @@
 #ifndef GUARD_ARCH_GRAPH_H
 #define GUARD_ARCH_GRAPH_H
 
+#include <atomic>
 #include <cassert>
 #include <memory>
 #include <string>
@@ -15,6 +16,7 @@
 #include "iterator.hpp"
 #include "nauty_graph.hpp"
 #include "perm_group.hpp"
+#include "perm_set.hpp"
 
 namespace mpsym
 {
@@ -148,12 +150,13 @@ public:
 
 private:
   internal::PermGroup automorphisms_(
-    AutomorphismOptions const *options) override
-  {
-    resolve_loops_nauty();
+    AutomorphismOptions const *options,
+    std::atomic<bool> &aborted) override
+  { return automorphisms_nauty(options, aborted); }
 
-    return automorphisms_nauty(options);
-  }
+  void init_repr_(AutomorphismOptions const *options,
+                  std::atomic<bool> &aborted) override
+  { automorphisms_nauty(options, aborted); }
 
   // Convenience functions
 
@@ -230,8 +233,10 @@ private:
 
   std::string to_gap_nauty() const;
 
-  internal::PermGroup automorphisms_nauty(
-    AutomorphismOptions const *options) const;
+  internal::PermSet automorphism_generators_nauty() const;
+
+  internal::PermGroup automorphisms_nauty(AutomorphismOptions const *options,
+                                          std::atomic<bool> &aborted);
 
   adjacency_type _adj;
   bool _directed;

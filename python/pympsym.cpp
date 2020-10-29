@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <atomic>
 #include <functional>
 #include <map>
 #include <memory>
@@ -29,9 +30,11 @@
 #include "perm_set.hpp"
 #include "task_mapping.hpp"
 #include "task_orbits.hpp"
+#include "timeout.hpp"
 #include "util.hpp"
 
 namespace mp = boost::multiprecision;
+
 namespace py = pybind11;
 
 using namespace py::literals;
@@ -53,6 +56,10 @@ using mpsym::internal::PermGroup;
 using mpsym::internal::PermSet;
 
 using mpsym::util::stream;
+
+using mpsym::internal::timeout::run_abortable_with_timeout;
+using mpsym::internal::timeout::seconds;
+using mpsym::internal::timeout::TimeoutError;
 
 namespace
 {
@@ -172,6 +179,20 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
   m.attr("__version__") = VERSION;
 
   // ArchGraphSystem
+  #define AGS_TIMEOUT(what, method) \
+    run_abortable_with_timeout( \
+      what, \
+      seconds(timeout), \
+      [&](std::atomic<bool> &aborted) \
+      { return self.method(nullptr, aborted); })
+
+  #define AGS_TIMEOUT_WITH_ARGS(what, method, ...) \
+    run_abortable_with_timeout( \
+      what, \
+      seconds(timeout), \
+      [&](std::atomic<bool> &aborted) \
+      { return self.method(__VA_ARGS__, nullptr, aborted); })
+
   py::class_<ArchGraphSystem,
              std::shared_ptr<ArchGraphSystem>>(m, "ArchGraphSystem")
     .def("__repr__", &ArchGraphSystem::to_json)
@@ -239,9 +260,11 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                   }
 
                   // construct graph
+                  if (vertices_reduced == 0)
+                    vertices_reduced = vertices;
+
                   NautyGraph g(
                     vertices,
-                    vertices_reduced == 0 ? vertices : vertices_reduced,
                     directed,
                     effectively_directed);
 
@@ -256,9 +279,8 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                   }
 
                   // extract automorphisms
-                  auto automs(g.automorphisms());
-
-                  return std::make_shared<ArchGraphAutomorphisms>(automs);
+                  return std::make_shared<ArchGraphAutomorphisms>(
+                    PermGroup(vertices_reduced, g.automorphism_generators()));
                 },
                 "vertices"_a,
                 "adjacencies"_a,
@@ -298,42 +320,51 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          })
     .def("num_processors", &ArchGraphSystem::num_processors)
     .def("num_channels", &ArchGraphSystem::num_channels)
+    .def("initialize",
+         [&](ArchGraphSystem &self, double timeout)
+         { return AGS_TIMEOUT("initialize", init_repr); },
+         "timeout"_a = 0.0)
     .def("num_automorphisms",
-         [](ArchGraphSystem &self)
-         { return self.num_automorphisms(); })
+         [](ArchGraphSystem &self, double timeout)
+         { return AGS_TIMEOUT("num_automorphisms", num_automorphisms); },
+         "timeout"_a = 0.0)
     .def("automorphisms",
-         [](ArchGraphSystem &self)
-         { return self.automorphisms(); })
+         [](ArchGraphSystem &self, double timeout)
+         { return AGS_TIMEOUT("automorphisms", automorphisms); },
+         "timeout"_a = 0.0)
     .def("expand_automorphisms", &ArchGraphSystem::expand_automorphisms)
     .def("representative",
-         [&](ArchGraphSystem &self, Sequence<> const &mapping)
+         [&](ArchGraphSystem &self, Sequence<> const &mapping, double timeout)
          {
-           auto repr(
-             sequence_apply(mapping,
-                            [&](Sequence<> const &mapping)
-                            { return self.repr(mapping); }));
+           auto repr(AGS_TIMEOUT_WITH_ARGS("representative",
+                                           repr,
+                                           inc_sequence(mapping)));
 
-           return sequence_to_tuple(repr);
+           return sequence_to_tuple(dec_sequence(to_sequence(repr)));
          },
-         "mapping"_a)
+         "mapping"_a, "timeout"_a = 0.0)
     .def("representative",
          [&](ArchGraphSystem &self,
              Sequence<> const &mapping,
-             TaskOrbits &representatives)
+             TaskOrbits &representatives,
+             double timeout)
          {
            TaskMapping repr;
            bool orbit_new;
            unsigned orbit_index;
 
            std::tie(repr, orbit_new, orbit_index) =
-             self.repr(inc_sequence(mapping), representatives);
+             AGS_TIMEOUT_WITH_ARGS("representative",
+                                   repr,
+                                   inc_sequence(mapping),
+                                   representatives);
 
            return std::make_tuple(
              sequence_to_tuple(dec_sequence(to_sequence(repr))),
              orbit_new,
              orbit_index);
          },
-         "mapping"_a, "representatives"_a)
+         "mapping"_a, "representatives"_a, "timeout"_a = 0.0)
     .def("orbit",
          [&](ArchGraphSystem &self, Sequence<> const &mapping, bool sorted)
          {

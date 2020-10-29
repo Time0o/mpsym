@@ -1,3 +1,4 @@
+#include <atomic>
 #include <cassert>
 #include <memory>
 #include <sstream>
@@ -73,7 +74,8 @@ ArchGraphCluster::num_subsystems() const
 
 
 PermGroup
-ArchGraphCluster::automorphisms_(AutomorphismOptions const *options)
+ArchGraphCluster::automorphisms_(AutomorphismOptions const *options,
+                                 std::atomic<bool> &aborted)
 {
   assert(!_subsystems.empty());
 
@@ -89,7 +91,8 @@ ArchGraphCluster::automorphisms_(AutomorphismOptions const *options)
 TaskMapping
 ArchGraphCluster::repr_(TaskMapping const &mapping_,
                         ReprOptions const *options_,
-                        TaskOrbits *)
+                        TaskOrbits *,
+                        std::atomic<bool> &aborted)
 {
   auto options(ReprOptions::fill_defaults(options_));
 
@@ -98,7 +101,7 @@ ArchGraphCluster::repr_(TaskMapping const &mapping_,
   TaskMapping mapping(mapping_);
 
   for (auto i = 0u; i < _subsystems.size(); ++i) {
-    mapping = _subsystems[i]->repr(mapping, &options);
+    mapping = _subsystems[i]->repr(mapping, &options, aborted);
 
     options.offset += _subsystems[i]->num_processors();
   }
