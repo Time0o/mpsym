@@ -381,15 +381,15 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
 
         self._test_ag_generator(make_ag(8),
                                 [ram, ring(directed=True, partial=True)],
-                                96)
+                                4 * factorial(4))
 
         self._test_ag_generator(make_ag(8),
                                 [ram, ring(partial=True)],
-                                192)
+                                8 * factorial(4))
 
         self._test_ag_generator(make_ag(8, directed=False),
                                 [ram, ring(partial=True)],
-                                192)
+                                8 * factorial(4))
 
         self._test_ag_generator(make_ag(4, mult='double_identical'),
                                 [ram],
@@ -410,6 +410,18 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
                                  cache('p1', 'L1_1'),
                                  cache('p2', 'L1_2')],
                                 factorial(4)**2)
+
+        self._test_ag_generator(make_ag(4, mult='single'),
+                                [ram,
+                                 cache('p', 'L1'),
+                                 ring()],
+                                8)
+
+        self._test_ag_generator(make_ag(4, mult='double_distinct'),
+                                [ram,
+                                 cache('p1', 'L1_1'),
+                                 ring(partial=True)],
+                                8 * factorial(4))
 
     def _test_ag_generator(self, make_ag, connections, num_automorphisms):
         for fs in permutations(connections):
