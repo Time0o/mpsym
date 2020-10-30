@@ -2,7 +2,6 @@
 #include <atomic>
 #include <cmath>
 #include <functional>
-#include <fstream>
 #include <limits>
 #include <memory>
 #include <new>
@@ -95,19 +94,6 @@ std::vector<TaskMapping> ArchGraphSystem::orbit(TaskMapping const &mapping)
   }
 
   return std::vector<TaskMapping>(processed.begin(), processed.end());
-}
-
-std::string ArchGraphSystem::read_file(std::string const &file)
-{
-  std::ifstream stream(file);
-
-  if (!stream)
-    throw std::runtime_error("failed to read file");
-
-  std::string content((std::istreambuf_iterator<char>(stream)),
-                       std::istreambuf_iterator<char>());
-
-  return content;
 }
 
 bool ArchGraphSystem::automorphisms_symmetric(ReprOptions const *options)

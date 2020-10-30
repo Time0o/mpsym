@@ -2,6 +2,8 @@
 #define GUARD_STRING_H
 
 #include <cstring>
+#include <fstream>
+#include <iterator>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -106,6 +108,19 @@ T stof(std::string const &str)
     throw std::invalid_argument("stof failed");
 
   return d;
+}
+
+inline std::string read_file(std::string const &file)
+{
+  std::ifstream stream(file);
+
+  if (!stream)
+    throw std::runtime_error("failed to read file");
+
+  std::string content((std::istreambuf_iterator<char>(stream)),
+                       std::istreambuf_iterator<char>());
+
+  return content;
 }
 
 } // namespace util

@@ -9,6 +9,7 @@
 
 #include "bsgs.hpp"
 #include "perm_group.hpp"
+#include "string.hpp"
 #include "task_mapping.hpp"
 #include "task_orbits.hpp"
 #include "timeout.hpp"
@@ -65,14 +66,14 @@ public:
   static std::shared_ptr<ArchGraphSystem> from_lua_file(
     std::string const &lua_file,
     std::vector<std::string> const &args = {})
-  { return from_lua(read_file(lua_file), args); }
+  { return from_lua(util::read_file(lua_file), args); }
 
   static std::shared_ptr<ArchGraphSystem> from_json(
     std::string const &json);
 
   static std::shared_ptr<ArchGraphSystem> from_json_file(
     std::string const &json_file)
-  { return from_json(read_file(json_file)); }
+  { return from_json(util::read_file(json_file)); }
 
   virtual std::string to_gap() const = 0;
   virtual std::string to_json() const = 0;
@@ -154,8 +155,6 @@ public:
   std::vector<TaskMapping> orbit(TaskMapping const &mapping);
 
 private:
-  static std::string read_file(std::string const &file);
-
   virtual internal::BSGS::order_type num_automorphisms_(
     AutomorphismOptions const *options,
     std::atomic<bool> &aborted)
