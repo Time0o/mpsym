@@ -173,32 +173,14 @@ private:
   boost::iterator_range<pe_it> processors() const
   { return boost::make_iterator_range(boost::vertices(_adj)); }
 
-  processor_type_size_type num_processor_types(bool resolve_loops = false) const
-  {
-    if (resolve_loops)
-      return _processor_types_loops_resolved.size();
+  processor_type_size_type num_processor_types() const
+  { return _processor_types.size(); }
 
-    return _processor_types.size();
-  }
+  ProcessorType processor_type(pe pe) const
+  { return _adj[pe].type; }
 
-  ProcessorType processor_type(pe pe, bool resolve_loops = false) const
-  {
-    if (resolve_loops) {
-      auto it(_processor_types_loops_resolved.find(pe));
-      assert(it != _processor_types_loops_resolved.end());
-      return it->second;
-    }
-
-    return _adj[pe].type;
-  }
-
-  std::string processor_type_str(pe pe, bool resolve_loops = false) const
-  {
-    if (resolve_loops)
-      throw std::logic_error("not implemented");
-
-    return _processor_types[processor_type(pe)];
-  }
+  std::string processor_type_str(pe pe) const
+  { return _processor_types[processor_type(pe)]; }
 
   using ch_it = adjacency_type::edge_iterator;
   using ch_out_it = adjacency_type::out_edge_iterator;
@@ -227,13 +209,11 @@ private:
 
   // Nauty
 
-  internal::NautyGraph graph_nauty(bool resolve_loops) const;
-
-  void resolve_loops_nauty();
+  internal::NautyGraph graph_nauty() const;
 
   std::string to_gap_nauty() const;
 
-  internal::PermSet automorphism_generators_nauty() const;
+  internal::PermSet automorphism_generators_nauty();
 
   internal::PermGroup automorphisms_nauty(AutomorphismOptions const *options,
                                           std::atomic<bool> &aborted);
@@ -246,8 +226,6 @@ private:
 
   std::vector<vertices_size_type> _processor_type_instances;
   std::vector<edges_size_type> _channel_type_instances;
-
-  std::unordered_map<pe, ProcessorType> _processor_types_loops_resolved;
 };
 
 }

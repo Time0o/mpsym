@@ -230,20 +230,8 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
 
                       if (!edges.insert(edge).second)
                         throw std::logic_error("duplicate edges");
-
-                      if (directed) {
-                        auto it(edge_parities.find(reverse_edge));
-
-                        if (it == edge_parities.end())
-                          edge_parities.insert(edge);
-                        else
-                          edge_parities.erase(it);
-                      }
                     }
                   }
-
-                  bool effectively_directed = directed ? edge_parities.empty()
-                                                       : false;
 
                   // validate coloring
                   if (!coloring.empty()) {
@@ -263,10 +251,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                   if (vertices_reduced == 0)
                     vertices_reduced = vertices;
 
-                  NautyGraph g(
-                    vertices,
-                    directed,
-                    effectively_directed);
+                  NautyGraph g{vertices, directed};
 
                   g.add_edges(adjacencies);
 

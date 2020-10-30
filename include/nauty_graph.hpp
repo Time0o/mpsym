@@ -17,11 +17,11 @@ namespace internal
 class NautyGraph
 {
 public:
-  NautyGraph(int n, bool directed, bool effectively_directed)
-  : NautyGraph(n, n, directed, effectively_directed)
+  NautyGraph(int n, bool directed)
+  : NautyGraph(n, n, directed)
   {}
 
-  NautyGraph(int n, int n_reduced, bool directed, bool effectively_directed);
+  NautyGraph(int n, int n_reduced, bool directed);
 
   ~NautyGraph();
 
@@ -32,12 +32,11 @@ public:
 
   void set_partition(std::vector<std::vector<int>> const &ptn);
 
-  PermSet automorphism_generators() const;
+  PermSet automorphism_generators();
 
 private:
-  unsigned long *_g;
-  bool _directed, _effectively_directed;
-  int _n, _n_reduced, _m;
+  bool _directed;
+  int _n, _n_reduced;
   int *_lab, *_ptn, *_orbits;
 
   std::vector<std::pair<int, int>> _edges;

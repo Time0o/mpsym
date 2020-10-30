@@ -8,6 +8,7 @@
 
 extern "C" {
   #include "nauty.h"
+  #include "nausparse.h"
   #include "nautinv.h"
 }
 
@@ -51,31 +52,22 @@ namespace mpsym
 namespace internal
 {
 
-NautyGraph::NautyGraph(int n,
-                       int n_reduced,
-                       bool directed,
-                       bool effectively_directed)
+NautyGraph::NautyGraph(int n, int n_reduced, bool directed)
 : _directed(directed),
-  _effectively_directed(effectively_directed),
   _n(n),
-  _n_reduced(n_reduced),
-  _m(SETWORDSNEEDED(n))
+  _n_reduced(n_reduced)
 {
 #ifndef NDEBUG
-  nauty_check(WORDSIZE, _m, _n, NAUTYVERSIONID);
+  nauty_check(WORDSIZE, SETWORDSNEEDED(_n), _n, NAUTYVERSIONID);
 #endif
 
-  _g = _alloc<graph>(_m * _n);
   _lab = _alloc<int>(_n);
   _ptn = _alloc<int>(_n);
   _orbits = _alloc<int>(_n);
-
-  EMPTYGRAPH(_g, _m, _n);
 }
 
 NautyGraph::~NautyGraph()
 {
-  FREES(_g);
   FREES(_lab);
   FREES(_ptn);
   FREES(_orbits);
@@ -87,6 +79,9 @@ NautyGraph::~NautyGraph()
 
 std::string NautyGraph::to_gap() const
 {
+  throw std::logic_error("TODO: need to consider loops");
+
+#if 0
   std::stringstream ss;
 
   ss << "ReduceGroup(GraphAutoms([";
@@ -96,12 +91,8 @@ std::string NautyGraph::to_gap() const
     int source = edge.first + 1;
     int target = edge.second + 1;
 
-    if (source != target) {
+    if (source != target)
       ss << "[" << source << "," << target << "],";
-
-      if (!_directed)
-         ss << "[" << target << "," << source << "],";
-    }
   }
 
   ss << "],";
@@ -122,6 +113,7 @@ std::string NautyGraph::to_gap() const
   ss << _n_reduced << ")";
 
   return ss.str();
+#endif
 }
 
 void NautyGraph::add_edge(int from, int to)
@@ -129,12 +121,10 @@ void NautyGraph::add_edge(int from, int to)
   assert(from < _n);
   assert(to < _n);
 
-  if (_directed)
-    ADDONEARC(_g, from, to, _m);
-  else
-    ADDONEEDGE(_g, from, to, _m);
-
   _edges.emplace_back(from, to);
+
+  if (!_directed)
+    _edges.emplace_back(to, from);
 }
 
 void NautyGraph::add_edges(std::map<int, std::vector<int>> const &adj)
@@ -160,26 +150,63 @@ void NautyGraph::set_partition(std::vector<std::vector<int>> const &ptn)
   }
 }
 
-PermSet NautyGraph::automorphism_generators() const
+PermSet NautyGraph::automorphism_generators()
 {
-  static DEFAULTOPTIONS_DIGRAPH(nauty_options_directed);
-
-  static DEFAULTOPTIONS_GRAPH(nauty_options_undirected);
-
   if (_edges.empty())
     return {};
 
-  auto &nauty_options = _effectively_directed ? nauty_options_directed
-                                              : nauty_options_undirected;
+  // construct (sparse) nauty graph
+  sparsegraph sg;
+
+  SG_INIT(sg);
+
+  int nde = static_cast<int>(_edges.size());
+
+  SG_ALLOC(sg, _n, nde, "SG_ALLOC");
+
+  sg.nv = _n;
+  sg.nde = nde;
+
+  std::vector<std::vector<int>> out_edges(_n);
+
+  for (int v = 0; v < _n; ++v)
+    sg.d[v] = 0;
+
+  for (auto const &edge : _edges) {
+    int source = edge.first;
+    int target = edge.second;
+
+    ++sg.d[source];
+
+    out_edges[source].push_back(target);
+  }
+
+  int e_offs = 0u;
+  for (int v = 0; v < _n; ++v) {
+    sg.v[v] = e_offs;
+
+    for (int target : out_edges[v])
+      sg.e[e_offs++] = target;
+  }
+
+  // set nauty options
+  static DEFAULTOPTIONS_SPARSEDIGRAPH(nauty_options_directed);
+  static DEFAULTOPTIONS_SPARSEGRAPH(nauty_options_undirected);
+
+  auto &nauty_options = _directed ? nauty_options_directed
+                                  : nauty_options_undirected;
 
   nauty_options.defaultptn = _ptn_expl.empty() ? TRUE : FALSE;
   nauty_options.userautomproc = _save_gens;
 
+  // call nauty
   _gens.clear();
   _gen_degree = _n_reduced;
 
   statsblk stats;
-  densenauty(_g, _lab, _ptn, _orbits, &nauty_options, &stats, _m, _n, nullptr);
+  sparsenauty(&sg, _lab, _ptn, _orbits, &nauty_options, &stats, nullptr);
+
+  SG_FREE(sg);
 
   return _gens;
 }

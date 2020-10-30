@@ -18,7 +18,7 @@ namespace mpsym
 
 using namespace internal;
 
-NautyGraph ArchGraph::graph_nauty(bool resolve_loops) const
+NautyGraph ArchGraph::graph_nauty() const
 {
   int cts = num_channel_types();
   int cts_log2 = 0; while (cts >>= 1) ++cts_log2;
@@ -26,7 +26,7 @@ NautyGraph ArchGraph::graph_nauty(bool resolve_loops) const
   int n_orig = num_processors();
   int n = n_orig * (cts_log2 + 1u);
 
-  NautyGraph g(n, n_orig, directed(), effectively_directed());
+  NautyGraph g(n, n_orig, directed());
 
   /* node numbering:
    *  ...     ...           ...
@@ -47,19 +47,17 @@ NautyGraph ArchGraph::graph_nauty(bool resolve_loops) const
     }
 
     for (auto ch : channels()) {
-      if (source(ch) != target(ch) && (channel_type(ch) + 1 & (1 << level)))
+      if (channel_type(ch) + 1 & (1 << level))
         g.add_edge(source(ch) + level * n_orig, target(ch) + level * n_orig);
     }
   }
 
   // set partition
-  std::vector<std::vector<int>> ptn(
-    num_processor_types(resolve_loops) * (cts_log2 + 1));
+  std::vector<std::vector<int>> ptn(num_processor_types() * (cts_log2 + 1));
 
   for (int level = 0; level <= cts_log2; ++level) {
     for (int v = 0; v < n_orig; ++v) {
-      auto p = processor_type(v, resolve_loops)
-               + level * num_processor_types(resolve_loops);
+      auto p = processor_type(v) + level * num_processor_types();
 
       ptn[p].push_back(v + level * n_orig);
     }
@@ -70,48 +68,16 @@ NautyGraph ArchGraph::graph_nauty(bool resolve_loops) const
   return g;
 }
 
-void ArchGraph::resolve_loops_nauty()
-{
-  std::map<std::string, std::vector<unsigned>> processor_types_no_loops;
-
-  for (auto pe : processors()) {
-    // append loop channel names to processor name
-    std::vector<std::string> dummy_pt_components{processor_type_str(pe)};
-
-    for (auto ch : out_channels(pe)) {
-      if (source(ch) != target(ch))
-        continue;
-
-      dummy_pt_components.push_back(channel_type_str(ch));
-    }
-
-    if (dummy_pt_components.size() > 1u)
-      std::sort(dummy_pt_components.begin() + 1, dummy_pt_components.end());
-
-    auto dummy_pt(util::join(dummy_pt_components, "%"));
-
-    processor_types_no_loops[dummy_pt].push_back(pe);
-  }
-
-  ProcessorType pt = 0u;
-  for (auto const &tmp : processor_types_no_loops) {
-    for (unsigned pe : tmp.second)
-      _processor_types_loops_resolved[pe] = pt;
-
-    ++pt;
-  }
-}
-
 std::string ArchGraph::to_gap_nauty() const
 {
-  auto g(graph_nauty(false));
+  auto g(graph_nauty());
 
   return g.to_gap();
 }
 
-PermSet ArchGraph::automorphism_generators_nauty() const
+PermSet ArchGraph::automorphism_generators_nauty()
 {
-  auto g(graph_nauty(true));
+  auto g(graph_nauty());
 
   return g.automorphism_generators();
 }
@@ -119,8 +85,6 @@ PermSet ArchGraph::automorphism_generators_nauty() const
 PermGroup ArchGraph::automorphisms_nauty(AutomorphismOptions const *options,
                                          std::atomic<bool> &aborted)
 {
-  resolve_loops_nauty();
-
   auto generators(automorphism_generators_nauty());
 
   return PermGroup(BSGS(num_processors(), generators, options, aborted));
