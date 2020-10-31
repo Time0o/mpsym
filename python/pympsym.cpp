@@ -195,6 +195,9 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
 
   py::class_<ArchGraphSystem,
              std::shared_ptr<ArchGraphSystem>>(m, "ArchGraphSystem")
+    .def("__eq__",
+        [](ArchGraphSystem const &self, ArchGraphSystem const &other)
+        { return self.to_json() == other.to_json(); })
     .def("__repr__", &ArchGraphSystem::to_json)
     .def_static("from_lua", &ArchGraphSystem::from_lua,
                 "lua"_a, "args"_a = std::vector<std::string>())
