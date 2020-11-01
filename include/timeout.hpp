@@ -3,8 +3,11 @@
 
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <functional>
 #include <future>
+#include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <thread>
 #include <utility>
@@ -20,6 +23,31 @@ namespace internal
 namespace timeout
 {
 
+// keep track of and wait for termination of detached threads
+
+extern std::atomic<int> _timeout_thread_count;
+extern std::condition_variable _timeout_thread_count_cv;
+extern std::mutex _timeout_thread_count_mtx;
+
+inline void _inc_timeout_thread_count()
+{ ++_timeout_thread_count; }
+
+inline void _dec_timeout_thread_count()
+{
+  --_timeout_thread_count;
+  _timeout_thread_count_cv.notify_one();
+}
+
+inline void wait_for_timed_out_threads()
+{
+  std::unique_lock<std::mutex> lock(_timeout_thread_count_mtx);
+
+  _timeout_thread_count_cv.wait(lock,
+                                [&]{ return _timeout_thread_count == 0; });
+}
+
+// exceptions
+
 struct TimeoutError : public std::runtime_error
 {
   TimeoutError(std::string const &what)
@@ -34,14 +62,18 @@ struct AbortedError : public std::runtime_error
   {}
 };
 
-using seconds = std::chrono::duration<double>;
+// timeout function wrappers
 
-inline std::atomic<bool> &unabortable()
-{
-  static std::atomic<bool> f(false);
+using aborted_type = std::shared_ptr<std::atomic<bool>>;
 
-  return f;
-}
+inline aborted_type unaborted()
+{ return std::make_shared<std::atomic<bool>>(false); }
+
+inline void mark_aborted(aborted_type const &aborted)
+{ return aborted->store(true); }
+
+inline bool marked_aborted(aborted_type const &aborted)
+{ return aborted->load(); }
 
 template<typename FUNC, typename ...ARGS>
 using ReturnType = decltype(std::declval<FUNC>()(std::declval<ARGS>()...));
@@ -49,7 +81,7 @@ using ReturnType = decltype(std::declval<FUNC>()(std::declval<ARGS>()...));
 template<typename FUNC, typename ...ARGS>
 using AbortableReturnType =
   decltype(std::declval<FUNC>()(std::declval<ARGS>()...,
-                                std::declval<std::atomic<bool> &>()));
+                                std::declval<aborted_type>()));
 
 template<typename FUNC, typename ...ARGS>
 using ReturnTypeWrapper = boost::optional<ReturnType<FUNC, ARGS...>>;
@@ -61,24 +93,24 @@ std::future<ReturnType<FUNC, ARGS...>> future_with_timeout(
   FUNC &&f,
   ARGS &&...args)
 {
-  using namespace std::chrono;
-
   std::packaged_task<ReturnType<FUNC, ARGS...>()> task(
    [&]() { return f(std::forward<ARGS>(args)...); });
 
   auto future(task.get_future());
 
+  _inc_timeout_thread_count();
+
   std::thread thread(std::move(task));
 
   if (future.wait_for(timeout) == std::future_status::timeout) {
-     thread.detach();
+    thread.detach();
 
-     throw TimeoutError(what);
+    throw TimeoutError(what);
 
   } else {
-     thread.join();
+    thread.join();
 
-     return future;
+    return future;
   }
 }
 
@@ -96,6 +128,8 @@ run_with_timeout(std::string const &what,
        try {
          f(std::forward<ARGS>(args)...);
        } catch (AbortedError const &aborted) {}
+
+       _dec_timeout_thread_count();
      },
      std::forward<ARGS>(args)...);
 }
@@ -112,12 +146,15 @@ run_with_timeout(std::string const &what,
     what,
     timeout,
     [&](ARGS &&...args) {
+      ReturnTypeWrapper<FUNC, ARGS...> ret;
+
       try {
-        return ReturnTypeWrapper<FUNC, ARGS...>(
-          f(std::forward<ARGS>(args)...));
-      } catch (AbortedError const &aborted) {
-        return ReturnTypeWrapper<FUNC, ARGS...>();
-      }
+        ret = f(std::forward<ARGS>(args)...);
+      } catch (AbortedError const &aborted) {}
+
+       _dec_timeout_thread_count();
+
+       return ret;
     },
     std::forward<ARGS>(args)...));
 
@@ -131,10 +168,10 @@ run_abortable_with_timeout(std::string const &what,
                            FUNC &&f,
                            ARGS &&...args)
 {
-  if (timeout <= std::chrono::duration<double>::zero())
-    return f(std::forward<ARGS>(args)..., unabortable());
+  aborted_type aborted(unaborted());
 
-  std::atomic<bool> aborted(false);
+  if (timeout <= std::chrono::duration<double>::zero())
+    return f(std::forward<ARGS>(args)..., aborted);
 
   try {
     return run_with_timeout(what,
@@ -144,7 +181,7 @@ run_abortable_with_timeout(std::string const &what,
                             aborted);
 
   } catch (TimeoutError const &) {
-    aborted.store(true);
+    mark_aborted(aborted);
     throw;
   }
 }

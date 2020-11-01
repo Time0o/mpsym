@@ -1,7 +1,6 @@
 #ifndef GUARD_BSGS_H
 #define GUARD_BSGS_H
 
-#include <atomic>
 #include <cassert>
 #include <memory>
 #include <ostream>
@@ -87,7 +86,7 @@ public:
   BSGS(unsigned degree,
        PermSet const &generators,
        BSGSOptions const *options = nullptr,
-       std::atomic<bool> &aborted = timeout::unabortable()); // TODO: constexpr?
+       timeout::aborted_type aborted = timeout::unaborted());
 
   BSGS(unsigned degree,
        Base const &base,
@@ -126,26 +125,26 @@ private:
   void construct_alternating();
   void construct_unknown(PermSet const &generators,
                          BSGSOptions const *options,
-                         std::atomic<bool> &aborted);
+                         timeout::aborted_type aborted);
 
   // schreier sims initialization
   void schreier_sims(PermSet const &generators,
                      BSGSOptions const *options,
-                     std::atomic<bool> &aborted);
+                     timeout::aborted_type aborted);
 
   void schreier_sims(std::vector<PermSet> &strong_generators,
                      std::vector<Orbit> &fundamental_orbits,
                      BSGSOptions const *options,
-                     std::atomic<bool> &aborted);
+                     timeout::aborted_type aborted);
 
   void schreier_sims_random(PermSet const &generators,
                             BSGSOptions const *options,
-                            std::atomic<bool> &aborted);
+                            timeout::aborted_type aborted);
 
   void schreier_sims_random(std::vector<PermSet> &strong_generators,
                             std::vector<Orbit> &fundamental_orbits,
                             BSGSOptions const *options,
-                            std::atomic<bool> &aborted);
+                            timeout::aborted_type aborted);
 
   void schreier_sims_init(PermSet const &generators,
                           std::vector<PermSet> &strong_generators,

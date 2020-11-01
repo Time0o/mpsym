@@ -1,4 +1,3 @@
-#include <atomic>
 #include <memory>
 #include <numeric>
 #include <sstream>
@@ -70,7 +69,7 @@ ArchUniformSuperGraph::num_channels() const
 std::vector<std::shared_ptr<ArchGraphAutomorphisms>>
 ArchUniformSuperGraph::wreath_product_action_proto(
   AutomorphismOptions const *options,
-  std::atomic<bool> &aborted) const
+  timeout::aborted_type aborted) const
 {
   unsigned degree_super_graph = _subsystem_super_graph->num_processors();
   unsigned degree_proto = _subsystem_proto->num_processors();
@@ -109,7 +108,7 @@ ArchUniformSuperGraph::wreath_product_action_proto(
 std::shared_ptr<ArchGraphAutomorphisms>
 ArchUniformSuperGraph::wreath_product_action_super_graph(
   AutomorphismOptions const *options,
-  std::atomic<bool> &aborted) const
+  timeout::aborted_type aborted) const
 {
   unsigned degree_super_graph = _subsystem_super_graph->num_processors();
   unsigned degree_proto = _subsystem_proto->num_processors();
@@ -143,7 +142,7 @@ ArchUniformSuperGraph::wreath_product_action_super_graph(
 
 PermGroup
 ArchUniformSuperGraph::automorphisms_(AutomorphismOptions const *options,
-                                      std::atomic<bool> &aborted)
+                                      timeout::aborted_type aborted)
 {
   return PermGroup::wreath_product(
     _subsystem_proto->automorphisms(options, aborted),
@@ -155,7 +154,7 @@ TaskMapping
 ArchUniformSuperGraph::repr_(TaskMapping const &mapping_,
                              ReprOptions const *options,
                              TaskOrbits *,
-                             std::atomic<bool> &aborted)
+                             timeout::aborted_type aborted)
 {
   TaskMapping mapping(mapping_);
 

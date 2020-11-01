@@ -1,7 +1,6 @@
 #ifndef GUARD_ARCH_GRAPH_SYSTEM_H
 #define GUARD_ARCH_GRAPH_SYSTEM_H
 
-#include <atomic>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -97,12 +96,12 @@ public:
 
   internal::BSGS::order_type num_automorphisms(
     AutomorphismOptions const *options = nullptr,
-    std::atomic<bool> &aborted = internal::timeout::unabortable())
+    internal::timeout::aborted_type aborted = internal::timeout::unaborted())
   { return num_automorphisms_(options, aborted); }
 
   internal::PermGroup automorphisms(
     AutomorphismOptions const *options = nullptr,
-    std::atomic<bool> &aborted = internal::timeout::unabortable())
+    internal::timeout::aborted_type aborted = internal::timeout::unaborted())
   {
     if (!automorphisms_ready()) {
       _automorphisms = automorphisms_(options, aborted);
@@ -114,7 +113,7 @@ public:
 
   void init_repr(
     AutomorphismOptions const *options = nullptr,
-    std::atomic<bool> &aborted = internal::timeout::unabortable())
+    internal::timeout::aborted_type aborted = internal::timeout::unaborted())
   {
     if (!repr_ready_())
       init_repr_(options, aborted);
@@ -126,9 +125,10 @@ public:
   void reset_repr()
   { reset_repr_(); }
 
-  TaskMapping repr(TaskMapping const &mapping,
-                   ReprOptions const *options = nullptr,
-                   std::atomic<bool> &aborted = internal::timeout::unabortable())
+  TaskMapping repr(
+    TaskMapping const &mapping,
+    ReprOptions const *options = nullptr,
+    internal::timeout::aborted_type aborted = internal::timeout::unaborted())
   {
     if (!repr_ready_())
       init_repr();
@@ -140,7 +140,7 @@ public:
     TaskMapping const &mapping,
     TaskOrbits &orbits,
     ReprOptions const *options = nullptr,
-    std::atomic<bool> &aborted = internal::timeout::unabortable())
+    internal::timeout::aborted_type aborted = internal::timeout::unaborted())
   {
     if (!repr_ready_())
       init_repr();
@@ -157,20 +157,21 @@ public:
 private:
   virtual internal::BSGS::order_type num_automorphisms_(
     AutomorphismOptions const *options,
-    std::atomic<bool> &aborted)
+    internal::timeout::aborted_type aborted)
   { return automorphisms(options, aborted).order(); }
 
-  virtual internal::PermGroup automorphisms_(AutomorphismOptions const *options,
-                                             std::atomic<bool> &aborted) = 0;
+  virtual internal::PermGroup automorphisms_(
+    AutomorphismOptions const *options,
+    internal::timeout::aborted_type aborted) = 0;
 
   virtual void init_repr_(AutomorphismOptions const *,
-                          std::atomic<bool> &)
+                          internal::timeout::aborted_type )
   {}
 
   virtual TaskMapping repr_(TaskMapping const &mapping,
                             ReprOptions const *options,
                             TaskOrbits *orbits,
-                            std::atomic<bool> &aborted);
+                            internal::timeout::aborted_type aborted);
 
   virtual bool repr_ready_() const
   { return automorphisms_ready(); }
@@ -196,12 +197,12 @@ private:
   TaskMapping min_elem_iterate(TaskMapping const &tasks,
                                ReprOptions const *options,
                                TaskOrbits *orbits,
-                               std::atomic<bool> &aborted);
+                               internal::timeout::aborted_type aborted);
 
   TaskMapping min_elem_orbits(TaskMapping const &tasks,
                               ReprOptions const *options,
                               TaskOrbits *orbits,
-                              std::atomic<bool> &aborted);
+                              internal::timeout::aborted_type aborted);
 
   TaskMapping min_elem_local_search(TaskMapping const &tasks,
                                     ReprOptions const *options);

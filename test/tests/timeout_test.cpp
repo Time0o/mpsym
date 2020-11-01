@@ -1,6 +1,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
+#include <memory>
 #include <thread>
 
 #include "gmock/gmock.h"
@@ -44,40 +45,38 @@ TEST(TimeoutTest, CanTimeoutFunction)
     testing::ThrowsMessage<TimeoutError>("id_timeout timeout"))
       << "Function timeout yields exception.";
 
-  auto endless_loop = [](std::atomic<bool> &abort, std::atomic<bool> &done)
+  auto endless_loop = [](std::atomic<bool> &done, aborted_type aborted)
   {
     for (;;) {
-      if (abort.load())
+      if (marked_aborted(aborted))
         break;
 
       sleep(ms(10));
     }
 
-    done.store(true);
+    done = true;
 
     throw AbortedError("endless_loop_abort");
   };
 
-  std::atomic<bool> endless_loop_abort(false);
   std::atomic<bool> endless_loop_done(false);
 
   EXPECT_THAT(
     [&]() {
-      run_with_timeout("endless_loop",
-                       ms(100),
-                       endless_loop,
-                       endless_loop_abort,
-                       endless_loop_done);
+      run_abortable_with_timeout("endless_loop",
+                                 ms(100),
+                                 endless_loop,
+                                 endless_loop_done);
     },
     testing::ThrowsMessage<TimeoutError>("endless_loop timeout"))
       << "Function timeout yields exception.";
 
-  endless_loop_abort.store(true);
-
   sleep(ms(100));
 
-  EXPECT_TRUE(endless_loop_done.load())
+  EXPECT_TRUE(endless_loop_done)
     << "Timed out thread terminates execution after abort flag is set.";
+
+  wait_for_timed_out_threads();
 }
 
 } // anonymous namespace

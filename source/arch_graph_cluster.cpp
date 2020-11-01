@@ -1,4 +1,3 @@
-#include <atomic>
 #include <cassert>
 #include <memory>
 #include <sstream>
@@ -75,7 +74,7 @@ ArchGraphCluster::num_subsystems() const
 
 PermGroup
 ArchGraphCluster::automorphisms_(AutomorphismOptions const *options,
-                                 std::atomic<bool> &aborted)
+                                 timeout::aborted_type aborted)
 {
   assert(!_subsystems.empty());
 
@@ -92,7 +91,7 @@ TaskMapping
 ArchGraphCluster::repr_(TaskMapping const &mapping_,
                         ReprOptions const *options_,
                         TaskOrbits *,
-                        std::atomic<bool> &aborted)
+                        timeout::aborted_type aborted)
 {
   auto options(ReprOptions::fill_defaults(options_));
 

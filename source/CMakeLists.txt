@@ -35,6 +35,7 @@ set(SOURCE_FILES
     "perm_set.cpp"
     "pr_randomizer.cpp"
     "schreier_tree.cpp"
+    "timeout.cpp"
     "timer.cpp")
 
 if(LUA_EMBED)

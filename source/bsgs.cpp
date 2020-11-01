@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <atomic>
 #include <cassert>
 #include <chrono>
 #include <memory>
@@ -68,7 +67,7 @@ BSGS::BSGS(unsigned degree)
 BSGS::BSGS(unsigned degree,
            PermSet const &generators,
            BSGSOptions const *options_,
-           std::atomic<bool> &aborted)
+           timeout::aborted_type aborted)
 : _degree(degree)
 {
   assert(degree > 0);
@@ -274,7 +273,7 @@ void BSGS::construct_alternating()
 
 void BSGS::construct_unknown(PermSet const &generators,
                              BSGSOptions const *options,
-                             std::atomic<bool> &aborted)
+                             timeout::aborted_type aborted)
 {
   switch (options->construction) {
     case BSGSOptions::Construction::AUTO:

@@ -1,7 +1,6 @@
 #ifndef GUARD_ARCH_GRAPH_CLUSTER_H
 #define GUARD_ARCH_GRAPH_CLUSTER_H
 
-#include <atomic>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -44,7 +43,7 @@ public:
 private:
   internal::BSGS::order_type num_automorphisms_(
     AutomorphismOptions const *options,
-    std::atomic<bool> &aborted) override
+    internal::timeout::aborted_type aborted) override
   {
     internal::BSGS::order_type ret = 1;
     for (auto const &subsystem : _subsystems)
@@ -54,10 +53,10 @@ private:
   }
 
   internal::PermGroup automorphisms_(AutomorphismOptions const *options,
-                                     std::atomic<bool> &aborted) override;
+                                     internal::timeout::aborted_type aborted) override;
 
   void init_repr_(AutomorphismOptions const *options,
-                  std::atomic<bool> &aborted) override
+                  internal::timeout::aborted_type aborted) override
   {
     for (auto const &subsystem : _subsystems) {
       if (!subsystem->repr_ready())
@@ -84,7 +83,7 @@ private:
   TaskMapping repr_(TaskMapping const &mapping,
                     ReprOptions const *options,
                     TaskOrbits *orbits,
-                    std::atomic<bool> &aborted) override;
+                    internal::timeout::aborted_type aborted) override;
 
   std::vector<std::shared_ptr<ArchGraphSystem>> _subsystems;
 };

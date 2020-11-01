@@ -1,4 +1,3 @@
-#include <atomic>
 #include <string>
 #include <vector>
 
@@ -83,7 +82,7 @@ PermSet ArchGraph::automorphism_generators_nauty()
 }
 
 PermGroup ArchGraph::automorphisms_nauty(AutomorphismOptions const *options,
-                                         std::atomic<bool> &aborted)
+                                         timeout::aborted_type aborted)
 {
   auto generators(automorphism_generators_nauty());
 

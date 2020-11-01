@@ -1,7 +1,6 @@
 #ifndef GUARD_ARCH_GRAPH_H
 #define GUARD_ARCH_GRAPH_H
 
-#include <atomic>
 #include <cassert>
 #include <memory>
 #include <string>
@@ -151,11 +150,11 @@ public:
 private:
   internal::PermGroup automorphisms_(
     AutomorphismOptions const *options,
-    std::atomic<bool> &aborted) override
+    internal::timeout::aborted_type aborted) override
   { return automorphisms_nauty(options, aborted); }
 
   void init_repr_(AutomorphismOptions const *options,
-                  std::atomic<bool> &aborted) override
+                  internal::timeout::aborted_type aborted) override
   { automorphisms_nauty(options, aborted); }
 
   // Convenience functions
@@ -215,8 +214,9 @@ private:
 
   internal::PermSet automorphism_generators_nauty();
 
-  internal::PermGroup automorphisms_nauty(AutomorphismOptions const *options,
-                                          std::atomic<bool> &aborted);
+  internal::PermGroup automorphisms_nauty(
+    AutomorphismOptions const *options,
+    internal::timeout::aborted_type aborted);
 
   adjacency_type _adj;
   bool _directed;

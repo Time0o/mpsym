@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <atomic>
+#include <chrono>
 #include <functional>
 #include <map>
 #include <memory>
@@ -57,8 +57,8 @@ using mpsym::internal::PermSet;
 
 using mpsym::util::stream;
 
+using mpsym::internal::timeout::aborted_type;
 using mpsym::internal::timeout::run_abortable_with_timeout;
-using mpsym::internal::timeout::seconds;
 using mpsym::internal::timeout::TimeoutError;
 
 namespace
@@ -182,15 +182,15 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
   #define AGS_TIMEOUT(what, method) \
     run_abortable_with_timeout( \
       what, \
-      seconds(timeout), \
-      [&](std::atomic<bool> &aborted) \
+      std::chrono::duration<double>(timeout), \
+      [&](aborted_type aborted) \
       { return self.method(nullptr, aborted); })
 
   #define AGS_TIMEOUT_WITH_ARGS(what, method, ...) \
     run_abortable_with_timeout( \
       what, \
-      seconds(timeout), \
-      [&](std::atomic<bool> &aborted) \
+      std::chrono::duration<double>(timeout), \
+      [&](aborted_type aborted) \
       { return self.method(__VA_ARGS__, nullptr, aborted); })
 
   py::class_<ArchGraphSystem,
