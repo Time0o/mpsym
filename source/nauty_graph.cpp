@@ -206,7 +206,9 @@ PermSet NautyGraph::automorphism_generators()
   statsblk stats;
   sparsenauty(&sg, _lab, _ptn, _orbits, &nauty_options, &stats, nullptr);
 
+  // free memory
   SG_FREE(sg);
+  nausparse_freedyn();
 
   return _gens;
 }
