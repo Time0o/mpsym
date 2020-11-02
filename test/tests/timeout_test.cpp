@@ -1,6 +1,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
+#include <functional>
 #include <memory>
 #include <thread>
 
@@ -31,7 +32,7 @@ TEST(TimeoutTest, CanTimeoutFunction)
     return arg;
   };
 
-  EXPECT_EQ(ARG, run_with_timeout("id_no_timeout", ms(100), id_no_timeout, ARG))
+  EXPECT_EQ(ARG, run_with_timeout("id_no_timeout", ms(100), [&]{ return id_no_timeout(ARG); }))
     << "Function returns before timeout.";
 
   auto id_timeout = [](int arg)
@@ -41,7 +42,7 @@ TEST(TimeoutTest, CanTimeoutFunction)
   };
 
   EXPECT_THAT(
-    [&](){ run_with_timeout("id_timeout", ms(100), id_timeout, ARG); },
+    [&](){ run_with_timeout("id_timeout", ms(100), [&]{ return id_timeout(ARG); }); },
     testing::ThrowsMessage<TimeoutError>("id_timeout timeout"))
       << "Function timeout yields exception.";
 
@@ -63,10 +64,11 @@ TEST(TimeoutTest, CanTimeoutFunction)
 
   EXPECT_THAT(
     [&]() {
-      run_abortable_with_timeout("endless_loop",
-                                 ms(100),
-                                 endless_loop,
-                                 endless_loop_done);
+      run_abortable_with_timeout(
+        "endless_loop",
+        ms(100),
+        [&](flag aborted)
+        { return endless_loop(endless_loop_done, aborted); });
     },
     testing::ThrowsMessage<TimeoutError>("endless_loop timeout"))
       << "Function timeout yields exception.";

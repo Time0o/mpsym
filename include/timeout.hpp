@@ -75,26 +75,23 @@ inline void set(flag const &f)
 inline bool is_set(flag const &f)
 { return f->load(); }
 
-template<typename FUNC, typename ...ARGS>
-using ReturnType = decltype(std::declval<FUNC>()(std::declval<ARGS>()...));
+template<typename FUNC>
+using ReturnType = decltype(std::declval<FUNC>()());
 
-template<typename FUNC, typename ...ARGS>
+template<typename FUNC>
 using AbortableReturnType =
-  decltype(std::declval<FUNC>()(std::declval<ARGS>()...,
-                                std::declval<flag>()));
+  decltype(std::declval<FUNC>()(std::declval<flag>()));
 
-template<typename FUNC, typename ...ARGS>
-using ReturnTypeWrapper = boost::optional<ReturnType<FUNC, ARGS...>>;
+template<typename FUNC>
+using ReturnTypeWrapper = boost::optional<ReturnType<FUNC>>;
 
-template<typename FUNC, typename ...ARGS, typename REP, typename PERIOD>
-std::future<ReturnType<FUNC, ARGS...>> future_with_timeout(
+template<typename FUNC, typename REP, typename PERIOD>
+std::future<ReturnType<FUNC>> future_with_timeout(
   std::string const &what,
   std::chrono::duration<REP, PERIOD> const &timeout,
-  FUNC &&f,
-  ARGS &&...args)
+  FUNC &&f)
 {
-  std::packaged_task<ReturnType<FUNC, ARGS...>()> task(
-   [&]() { return f(std::forward<ARGS>(args)...); });
+  std::packaged_task<ReturnType<FUNC>()> task(f);
 
   auto future(task.get_future());
 
@@ -114,71 +111,64 @@ std::future<ReturnType<FUNC, ARGS...>> future_with_timeout(
   }
 }
 
-template<typename FUNC, typename ...ARGS, typename REP, typename PERIOD>
-typename std::enable_if<std::is_void<ReturnType<FUNC, ARGS...>>::value>::type
+template<typename FUNC, typename REP, typename PERIOD>
+typename std::enable_if<std::is_void<ReturnType<FUNC>>::value>::type
 run_with_timeout(std::string const &what,
                  std::chrono::duration<REP, PERIOD> const &timeout,
-                 FUNC &&f,
-                 ARGS &&...args)
+                 FUNC &&f)
 {
   (void)future_with_timeout(
     what,
     timeout,
-    [&](ARGS &&...args) {
+    [&]() {
        try {
-         f(std::forward<ARGS>(args)...);
+         f();
        } catch (AbortedError const &aborted) {}
 
        _dec_timeout_thread_count();
-     },
-     std::forward<ARGS>(args)...);
+     });
 }
 
-template<typename FUNC, typename ...ARGS, typename REP, typename PERIOD>
-typename std::enable_if<!std::is_void<ReturnType<FUNC, ARGS...>>::value,
-                        ReturnType<FUNC, ARGS...>>::type
+template<typename FUNC, typename REP, typename PERIOD>
+typename std::enable_if<!std::is_void<ReturnType<FUNC>>::value,
+                        ReturnType<FUNC>>::type
 run_with_timeout(std::string const &what,
                  std::chrono::duration<REP, PERIOD> const &timeout,
-                 FUNC &&f,
-                 ARGS &&...args)
+                 FUNC &&f)
 {
   auto future(future_with_timeout(
     what,
     timeout,
-    [&](ARGS &&...args) {
-      ReturnTypeWrapper<FUNC, ARGS...> ret;
+    [&]() {
+      ReturnTypeWrapper<FUNC> ret;
 
       try {
-        ret = f(std::forward<ARGS>(args)...);
-      } catch (AbortedError const &aborted) {}
+        ret = f();
+      } catch (AbortedError const &) {}
 
        _dec_timeout_thread_count();
 
        return ret;
-    },
-    std::forward<ARGS>(args)...));
+    }));
 
   return *future.get();
 }
 
-template<typename FUNC, typename ...ARGS, typename REP, typename PERIOD>
-AbortableReturnType<FUNC, ARGS...>
+template<typename FUNC, typename REP, typename PERIOD>
+AbortableReturnType<FUNC>
 run_abortable_with_timeout(std::string const &what,
                            std::chrono::duration<REP, PERIOD> const &timeout,
-                           FUNC &&f,
-                           ARGS &&...args)
+                           FUNC &&f)
 {
   flag aborted(unset());
 
   if (timeout <= std::chrono::duration<double>::zero())
-    return f(std::forward<ARGS>(args)..., aborted);
+    return f(aborted);
 
   try {
     return run_with_timeout(what,
                             timeout,
-                            std::forward<FUNC>(f),
-                            std::forward<ARGS>(args)...,
-                            aborted);
+                            [&]{ return f(aborted); });
 
   } catch (TimeoutError const &) {
     set(aborted);
