@@ -61,7 +61,7 @@ public:
 
 private:
   PermGroup automorphisms_(AutomorphismOptions const *,
-                           internal::timeout::aborted_type) override
+                           internal::timeout::flag) override
   { return _automorphisms; }
 
   PermGroup _automorphisms;

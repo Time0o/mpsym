@@ -74,7 +74,7 @@ ArchGraphCluster::num_subsystems() const
 
 PermGroup
 ArchGraphCluster::automorphisms_(AutomorphismOptions const *options,
-                                 timeout::aborted_type aborted)
+                                 timeout::flag aborted)
 {
   assert(!_subsystems.empty());
 
@@ -91,7 +91,7 @@ TaskMapping
 ArchGraphCluster::repr_(TaskMapping const &mapping_,
                         ReprOptions const *options_,
                         TaskOrbits *,
-                        timeout::aborted_type aborted)
+                        timeout::flag aborted)
 {
   auto options(ReprOptions::fill_defaults(options_));
 

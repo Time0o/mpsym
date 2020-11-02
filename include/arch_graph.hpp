@@ -150,11 +150,11 @@ public:
 private:
   internal::PermGroup automorphisms_(
     AutomorphismOptions const *options,
-    internal::timeout::aborted_type aborted) override
+    internal::timeout::flag aborted) override
   { return automorphisms_nauty(options, aborted); }
 
   void init_repr_(AutomorphismOptions const *options,
-                  internal::timeout::aborted_type aborted) override
+                  internal::timeout::flag aborted) override
   { automorphisms_nauty(options, aborted); }
 
   // Convenience functions
@@ -216,7 +216,7 @@ private:
 
   internal::PermGroup automorphisms_nauty(
     AutomorphismOptions const *options,
-    internal::timeout::aborted_type aborted);
+    internal::timeout::flag aborted);
 
   adjacency_type _adj;
   bool _directed;

@@ -82,7 +82,7 @@ PermSet ArchGraph::automorphism_generators_nauty()
 }
 
 PermGroup ArchGraph::automorphisms_nauty(AutomorphismOptions const *options,
-                                         timeout::aborted_type aborted)
+                                         timeout::flag aborted)
 {
   auto generators(automorphism_generators_nauty());
 

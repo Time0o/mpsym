@@ -86,7 +86,7 @@ public:
   BSGS(unsigned degree,
        PermSet const &generators,
        BSGSOptions const *options = nullptr,
-       timeout::aborted_type aborted = timeout::unaborted());
+       timeout::flag aborted = timeout::unset());
 
   BSGS(unsigned degree,
        Base const &base,
@@ -125,26 +125,26 @@ private:
   void construct_alternating();
   void construct_unknown(PermSet const &generators,
                          BSGSOptions const *options,
-                         timeout::aborted_type aborted);
+                         timeout::flag aborted);
 
   // schreier sims initialization
   void schreier_sims(PermSet const &generators,
                      BSGSOptions const *options,
-                     timeout::aborted_type aborted);
+                     timeout::flag aborted);
 
   void schreier_sims(std::vector<PermSet> &strong_generators,
                      std::vector<Orbit> &fundamental_orbits,
                      BSGSOptions const *options,
-                     timeout::aborted_type aborted);
+                     timeout::flag aborted);
 
   void schreier_sims_random(PermSet const &generators,
                             BSGSOptions const *options,
-                            timeout::aborted_type aborted);
+                            timeout::flag aborted);
 
   void schreier_sims_random(std::vector<PermSet> &strong_generators,
                             std::vector<Orbit> &fundamental_orbits,
                             BSGSOptions const *options,
-                            timeout::aborted_type aborted);
+                            timeout::flag aborted);
 
   void schreier_sims_init(PermSet const &generators,
                           std::vector<PermSet> &strong_generators,

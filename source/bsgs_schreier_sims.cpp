@@ -23,7 +23,7 @@ namespace internal
 
 void BSGS::schreier_sims(PermSet const &generators,
                          BSGSOptions const *options,
-                         timeout::aborted_type aborted)
+                         timeout::flag aborted)
 {
   DBG(DEBUG) << "Executing Schreier Sims algorithm for:";
   DBG(DEBUG) << generators;
@@ -43,7 +43,7 @@ void BSGS::schreier_sims(PermSet const &generators,
 void BSGS::schreier_sims(std::vector<PermSet> &strong_generators,
                          std::vector<Orbit> &fundamental_orbits,
                          BSGSOptions const *,
-                         timeout::aborted_type aborted)
+                         timeout::flag aborted)
 {
   std::vector<SchreierGeneratorQueue> schreier_generator_queues(base_size());
 
@@ -52,7 +52,7 @@ void BSGS::schreier_sims(std::vector<PermSet> &strong_generators,
   // main loop
   unsigned i = base_size();
   while (i >= 1u) {
-    if (timeout::marked_aborted(aborted))
+    if (timeout::is_set(aborted))
       throw timeout::AbortedError("schreier_sims");
 
     DBG(TRACE) << "i = " << i;
@@ -140,7 +140,7 @@ top:
 
 void BSGS::schreier_sims_random(PermSet const &generators,
                                 BSGSOptions const *options,
-                                timeout::aborted_type aborted)
+                                timeout::flag aborted)
 {
   DBG(TRACE) << "Executing (random) Schreier Sims algorithm";
 
@@ -198,14 +198,14 @@ void BSGS::schreier_sims_random(PermSet const &generators,
 void BSGS::schreier_sims_random(std::vector<PermSet> &strong_generators,
                                 std::vector<Orbit> &fundamental_orbits,
                                 BSGSOptions const *options,
-                                timeout::aborted_type aborted)
+                                timeout::flag aborted)
 {
   // random group element generator
   PrRandomizer pr(_strong_generators);
 
   unsigned c = 0u;
   while (c < options->schreier_sims_random_w) {
-    if (timeout::marked_aborted(aborted))
+    if (timeout::is_set(aborted))
       throw timeout::AbortedError("schreier_sims_random");
 
     // generate random group element

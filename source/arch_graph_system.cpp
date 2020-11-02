@@ -129,7 +129,7 @@ TaskMapping ArchGraphSystem::repr_symmetric(TaskMapping const &mapping,
 TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
                                    ReprOptions const *options_,
                                    TaskOrbits *orbits,
-                                   timeout::aborted_type aborted)
+                                   timeout::flag aborted)
 {
   auto options(ReprOptions::fill_defaults(options_));
 
@@ -155,14 +155,14 @@ TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
 TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
                                               ReprOptions const *options,
                                               TaskOrbits *orbits,
-                                              timeout::aborted_type aborted)
+                                              timeout::flag aborted)
 {
   auto automs(automorphisms());
 
   TaskMapping representative(tasks);
 
   for (auto it = automs.begin(); it != automs.end(); ++it) {
-    if (timeout::marked_aborted(aborted))
+    if (timeout::is_set(aborted))
       throw timeout::AbortedError("min_elem_iterate");
 
     auto const &factors(it.factors());
@@ -181,7 +181,7 @@ TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
 TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
                                              ReprOptions const *options,
                                              TaskOrbits *orbits,
-                                             timeout::aborted_type aborted)
+                                             timeout::flag aborted)
 {
   auto automs(automorphisms());
   auto gens(automs.generators());
@@ -193,7 +193,7 @@ TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
   unprocessed.insert(tasks);
 
   while (!unprocessed.empty()) {
-    if (timeout::marked_aborted(aborted))
+    if (timeout::is_set(aborted))
       throw timeout::AbortedError("min_elem_orbits");
 
     auto it(unprocessed.begin());

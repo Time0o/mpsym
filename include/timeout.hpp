@@ -64,16 +64,16 @@ struct AbortedError : public std::runtime_error
 
 // timeout function wrappers
 
-using aborted_type = std::shared_ptr<std::atomic<bool>>;
+using flag = std::shared_ptr<std::atomic<bool>>;
 
-inline aborted_type unaborted()
+inline flag unset()
 { return std::make_shared<std::atomic<bool>>(false); }
 
-inline void mark_aborted(aborted_type const &aborted)
-{ return aborted->store(true); }
+inline void set(flag const &f)
+{ f->store(true); }
 
-inline bool marked_aborted(aborted_type const &aborted)
-{ return aborted->load(); }
+inline bool is_set(flag const &f)
+{ return f->load(); }
 
 template<typename FUNC, typename ...ARGS>
 using ReturnType = decltype(std::declval<FUNC>()(std::declval<ARGS>()...));
@@ -81,7 +81,7 @@ using ReturnType = decltype(std::declval<FUNC>()(std::declval<ARGS>()...));
 template<typename FUNC, typename ...ARGS>
 using AbortableReturnType =
   decltype(std::declval<FUNC>()(std::declval<ARGS>()...,
-                                std::declval<aborted_type>()));
+                                std::declval<flag>()));
 
 template<typename FUNC, typename ...ARGS>
 using ReturnTypeWrapper = boost::optional<ReturnType<FUNC, ARGS...>>;
@@ -168,7 +168,7 @@ run_abortable_with_timeout(std::string const &what,
                            FUNC &&f,
                            ARGS &&...args)
 {
-  aborted_type aborted(unaborted());
+  flag aborted(unset());
 
   if (timeout <= std::chrono::duration<double>::zero())
     return f(std::forward<ARGS>(args)..., aborted);
@@ -181,7 +181,7 @@ run_abortable_with_timeout(std::string const &what,
                             aborted);
 
   } catch (TimeoutError const &) {
-    mark_aborted(aborted);
+    set(aborted);
     throw;
   }
 }

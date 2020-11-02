@@ -45,21 +45,21 @@ TEST(TimeoutTest, CanTimeoutFunction)
     testing::ThrowsMessage<TimeoutError>("id_timeout timeout"))
       << "Function timeout yields exception.";
 
-  auto endless_loop = [](std::atomic<bool> &done, aborted_type aborted)
+  auto endless_loop = [](flag done, flag aborted)
   {
     for (;;) {
-      if (marked_aborted(aborted))
+      if (is_set(aborted))
         break;
 
       sleep(ms(10));
     }
 
-    done = true;
+    set(done);
 
     throw AbortedError("endless_loop_abort");
   };
 
-  std::atomic<bool> endless_loop_done(false);
+  flag endless_loop_done(unset());
 
   EXPECT_THAT(
     [&]() {
@@ -73,7 +73,7 @@ TEST(TimeoutTest, CanTimeoutFunction)
 
   sleep(ms(100));
 
-  EXPECT_TRUE(endless_loop_done)
+  EXPECT_TRUE(is_set(endless_loop_done))
     << "Timed out thread terminates execution after abort flag is set.";
 
   wait_for_timed_out_threads();

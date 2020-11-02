@@ -96,12 +96,12 @@ public:
 
   internal::BSGS::order_type num_automorphisms(
     AutomorphismOptions const *options = nullptr,
-    internal::timeout::aborted_type aborted = internal::timeout::unaborted())
+    internal::timeout::flag aborted = internal::timeout::unset())
   { return num_automorphisms_(options, aborted); }
 
   internal::PermGroup automorphisms(
     AutomorphismOptions const *options = nullptr,
-    internal::timeout::aborted_type aborted = internal::timeout::unaborted())
+    internal::timeout::flag aborted = internal::timeout::unset())
   {
     if (!automorphisms_ready()) {
       _automorphisms = automorphisms_(options, aborted);
@@ -113,7 +113,7 @@ public:
 
   void init_repr(
     AutomorphismOptions const *options = nullptr,
-    internal::timeout::aborted_type aborted = internal::timeout::unaborted())
+    internal::timeout::flag aborted = internal::timeout::unset())
   {
     if (!repr_ready_())
       init_repr_(options, aborted);
@@ -128,7 +128,7 @@ public:
   TaskMapping repr(
     TaskMapping const &mapping,
     ReprOptions const *options = nullptr,
-    internal::timeout::aborted_type aborted = internal::timeout::unaborted())
+    internal::timeout::flag aborted = internal::timeout::unset())
   {
     if (!repr_ready_())
       init_repr();
@@ -140,7 +140,7 @@ public:
     TaskMapping const &mapping,
     TaskOrbits &orbits,
     ReprOptions const *options = nullptr,
-    internal::timeout::aborted_type aborted = internal::timeout::unaborted())
+    internal::timeout::flag aborted = internal::timeout::unset())
   {
     if (!repr_ready_())
       init_repr();
@@ -157,21 +157,21 @@ public:
 private:
   virtual internal::BSGS::order_type num_automorphisms_(
     AutomorphismOptions const *options,
-    internal::timeout::aborted_type aborted)
+    internal::timeout::flag aborted)
   { return automorphisms(options, aborted).order(); }
 
   virtual internal::PermGroup automorphisms_(
     AutomorphismOptions const *options,
-    internal::timeout::aborted_type aborted) = 0;
+    internal::timeout::flag aborted) = 0;
 
   virtual void init_repr_(AutomorphismOptions const *,
-                          internal::timeout::aborted_type )
+                          internal::timeout::flag )
   {}
 
   virtual TaskMapping repr_(TaskMapping const &mapping,
                             ReprOptions const *options,
                             TaskOrbits *orbits,
-                            internal::timeout::aborted_type aborted);
+                            internal::timeout::flag aborted);
 
   virtual bool repr_ready_() const
   { return automorphisms_ready(); }
@@ -197,12 +197,12 @@ private:
   TaskMapping min_elem_iterate(TaskMapping const &tasks,
                                ReprOptions const *options,
                                TaskOrbits *orbits,
-                               internal::timeout::aborted_type aborted);
+                               internal::timeout::flag aborted);
 
   TaskMapping min_elem_orbits(TaskMapping const &tasks,
                               ReprOptions const *options,
                               TaskOrbits *orbits,
-                              internal::timeout::aborted_type aborted);
+                              internal::timeout::flag aborted);
 
   TaskMapping min_elem_local_search(TaskMapping const &tasks,
                                     ReprOptions const *options);

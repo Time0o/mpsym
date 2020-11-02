@@ -57,7 +57,7 @@ using mpsym::internal::PermSet;
 
 using mpsym::util::stream;
 
-using mpsym::internal::timeout::aborted_type;
+using mpsym::internal::timeout::flag;
 using mpsym::internal::timeout::run_abortable_with_timeout;
 using mpsym::internal::timeout::TimeoutError;
 
@@ -151,6 +151,20 @@ T arch_graph_json_cast(ArchGraphSystem const &self, std::string const &key)
   return ret;
 }
 
+#define AGS_TIMEOUT(what, method) \
+  run_abortable_with_timeout( \
+    what, \
+    std::chrono::duration<double>(timeout), \
+    [&](flag aborted) \
+    { return self.method(nullptr, aborted); })
+
+#define AGS_TIMEOUT_WITH_ARGS(what, method, ...) \
+  run_abortable_with_timeout( \
+    what, \
+    std::chrono::duration<double>(timeout), \
+    [&](flag aborted) \
+    { return self.method(__VA_ARGS__, nullptr, aborted); })
+
 } // anonymous namespace
 
 namespace pybind11
@@ -179,20 +193,6 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
   m.attr("__version__") = VERSION;
 
   // ArchGraphSystem
-  #define AGS_TIMEOUT(what, method) \
-    run_abortable_with_timeout( \
-      what, \
-      std::chrono::duration<double>(timeout), \
-      [&](aborted_type aborted) \
-      { return self.method(nullptr, aborted); })
-
-  #define AGS_TIMEOUT_WITH_ARGS(what, method, ...) \
-    run_abortable_with_timeout( \
-      what, \
-      std::chrono::duration<double>(timeout), \
-      [&](aborted_type aborted) \
-      { return self.method(__VA_ARGS__, nullptr, aborted); })
-
   py::class_<ArchGraphSystem,
              std::shared_ptr<ArchGraphSystem>>(m, "ArchGraphSystem")
     .def("__repr__", &ArchGraphSystem::to_json)

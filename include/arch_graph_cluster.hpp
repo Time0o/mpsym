@@ -43,7 +43,7 @@ public:
 private:
   internal::BSGS::order_type num_automorphisms_(
     AutomorphismOptions const *options,
-    internal::timeout::aborted_type aborted) override
+    internal::timeout::flag aborted) override
   {
     internal::BSGS::order_type ret = 1;
     for (auto const &subsystem : _subsystems)
@@ -53,10 +53,10 @@ private:
   }
 
   internal::PermGroup automorphisms_(AutomorphismOptions const *options,
-                                     internal::timeout::aborted_type aborted) override;
+                                     internal::timeout::flag aborted) override;
 
   void init_repr_(AutomorphismOptions const *options,
-                  internal::timeout::aborted_type aborted) override
+                  internal::timeout::flag aborted) override
   {
     for (auto const &subsystem : _subsystems) {
       if (!subsystem->repr_ready())
@@ -83,7 +83,7 @@ private:
   TaskMapping repr_(TaskMapping const &mapping,
                     ReprOptions const *options,
                     TaskOrbits *orbits,
-                    internal::timeout::aborted_type aborted) override;
+                    internal::timeout::flag aborted) override;
 
   std::vector<std::shared_ptr<ArchGraphSystem>> _subsystems;
 };
