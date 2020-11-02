@@ -228,9 +228,6 @@ private:
                                  unsigned task_max,
                                  ReprOptions const *options);
 
-  TaskMapping random_task_mapping(unsigned num_tasks, bool unique_tasks);
-  std::unordered_set<TaskMapping> task_mapping_orbit(TaskMapping const &tasks);
-
   internal::PermGroup _automorphisms;
   bool _automorphisms_valid = false;
 
