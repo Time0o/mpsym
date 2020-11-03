@@ -41,11 +41,7 @@ if [[ "$BUILDWHEELS_SKIP_CHECK_VERSION" != "y" ]]; then
     # overly complicated manner (due to the fact that pip will not simply spit out
     # this information in a sane way)
 
-    if [[ "$PIP_TESTPYPI" = "y" ]]; then
-      PIP_INDEX_URL="https://test.pypi.org/simple/"
-    else
-      PIP_INDEX_URL="https://pypi.org/simple/"
-    fi
+    PIP_INDEX_URL="https://pypi.org/simple/"
 
     PYPI_PACKAGE_VERSIONS="$(
       "$BIN/pip" install --index-url "$PIP_INDEX_URL" "$PACKAGE_NAME==" 2>&1 1>/dev/null | \
