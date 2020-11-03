@@ -375,29 +375,41 @@ function append_processors(old_processors, new_processors)
   return new_processors_shifted
 end
 
-function linear_channels(processors, ctype)
+function insert_channel(channels, from, to, chtype, directed)
+  if directed == nil then
+    directed = true
+  end
+
+  table.insert(channels, {from, to, chtype})
+
+  if not directed then
+    table.insert(channels, {to, from, chtype})
+  end
+end
+
+function linear_channels(processors, ctype, directed)
   local channels = {}
 
   for i = 1, #processors - 1 do
-    table.insert(channels, {processors[i][1], processors[i + 1][1], ctype})
+    insert_channel(channels, processors[i][1], processors[i + 1][1], ctype, directed)
   end
 
   return channels
 end
 
-function cyclic_channels(processors, ctype)
+function cyclic_channels(processors, ctype, directed)
   local channels = linear_channels(processors, ctype)
 
-  table.insert(channels, {processors[#processors][1], processors[1][1], ctype})
+  insert_channel(channels, processors[#processors][1], processors[1][1], ctype, directed)
 
   return channels
 end
 
-function self_connected_channels(processors, ctype)
+function self_connected_channels(processors, ctype, directed)
   local channels = {}
 
   for i = 1,#processors do
-    table.insert(channels, {processors[i][1], processors[i][1], ctype})
+    insert_channel(channels, processors[i][1], processors[i][1], ctype, directed)
   end
 
   return channels
@@ -408,7 +420,7 @@ function fully_connected_channels(processors, ctype)
 
   for i = 1,#processors do
     for j = i + 1,#processors do
-      table.insert(channels, {processors[i][1], processors[j][1], ctype})
+      insert_channel(channels, processors[i][1], processors[j][1], ctype)
     end
   end
 
@@ -420,14 +432,14 @@ function fully_cross_connected_channels(processors1, processors2, ctype)
 
   for i = 1,#processors1 do
     for j = 1,#processors2 do
-      table.insert(channels, {processors1[i][1], processors2[j][1], ctype})
+      insert_channel(channels, processors1[i][1], processors2[j][1], ctype)
     end
   end
 
   return channels
 end
 
-function grid_channels(processors, ctype, height, width)
+function grid_channels(processors, ctype, height, width, directed)
   local channels = {}
 
   if width == nil and height == nil then
@@ -463,12 +475,12 @@ function grid_channels(processors, ctype, height, width)
 
       -- horizontal channels
       if j < width then
-        table.insert(channels, {processors[k][1], processors[k + 1][1], ctype})
+        insert_channel(channels, processors[k][1], processors[k + 1][1], ctype, directed)
       end
 
       -- vertical channels
       if i < height then
-        table.insert(channels, {processors[k][1], processors[k + width][1], ctype})
+        insert_channel(channels, processors[k][1], processors[k + width][1], ctype, directed)
       end
     end
   end
