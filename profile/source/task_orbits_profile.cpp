@@ -313,7 +313,7 @@ mpsym::TaskOrbits map_tasks_mpsym(
     if (options.verbosity > 0)
       debug_progress("Mapping task", i + 1u, "of", task_mappings.size());
 
-    ags->repr(task_mappings[i], &task_orbits, &repr_options);
+    ags->repr(task_mappings[i], task_orbits, &repr_options);
   }
 
   return task_orbits;
