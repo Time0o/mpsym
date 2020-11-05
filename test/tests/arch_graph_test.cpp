@@ -55,8 +55,9 @@ static void expect_generates_orbits(
 
     std::stringstream ss;
     ss << "{ " << representative[0];
-    for (auto i = 0u; i < representative.size(); ++i)
-      ss << representative[i] << ", " << representative[i];
+    for (auto i = 1u; i < representative.size(); ++i)
+      ss << ", " << representative[i];
+    ss << " }";
 
     bool found_orbit = false;
 
