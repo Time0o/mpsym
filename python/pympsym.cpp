@@ -355,22 +355,31 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          },
          "mapping"_a, "representatives"_a, "timeout"_a = 0.0)
     .def("orbit",
-         [&](ArchGraphSystem &self, Sequence<> const &mapping, bool sorted)
+         [&](ArchGraphSystem &self,
+             Sequence<> const &mapping,
+             bool sorted,
+             double timeout)
          {
-           auto orbit(sequence_multiplex_apply(
+           auto orb(sequence_multiplex_apply(
              mapping,
              [&](Sequence<> const &mapping)
-             { return self.orbit(mapping); }));
+             {
+               return run_abortable_with_timeout(
+                 "orbit",
+                 std::chrono::duration<double>(timeout),
+                 [&](flag aborted)
+                 { return self.orbit(mapping, aborted); });
+             }));
 
            if (sorted)
-             std::sort(orbit.begin(), orbit.end());
+             std::sort(orb.begin(), orb.end());
 
            return transform_sequence<py::tuple>(
-             orbit,
+             orb,
              [](Sequence<> const &mapping)
              { return sequence_to_tuple(mapping); });
          },
-         "mapping"_a, "sorted"_a = true);
+         "mapping"_a, "sorted"_a = true, "timeout"_a = 0.0);
 
   // ArchGraphAutomorphisms
   py::class_<ArchGraphAutomorphisms,

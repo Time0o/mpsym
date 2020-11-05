@@ -69,15 +69,19 @@ std::shared_ptr<ArchGraphSystem> ArchGraphSystem::expand_automorphisms() const
   throw std::logic_error("unreachable");
 }
 
-std::vector<TaskMapping> ArchGraphSystem::orbit(TaskMapping const &mapping)
+std::vector<TaskMapping> ArchGraphSystem::orbit(TaskMapping const &mapping,
+                                                timeout::flag aborted)
 {
-  automorphisms();
+  automorphisms(nullptr, aborted);
 
   std::unordered_set<TaskMapping> unprocessed, processed;
 
   unprocessed.insert(mapping);
 
   while (!unprocessed.empty()) {
+    if (timeout::is_set(aborted))
+      throw timeout::AbortedError("orbit");
+
     auto it(unprocessed.begin());
     TaskMapping current(*it);
     unprocessed.erase(it);

@@ -153,7 +153,9 @@ public:
     return std::make_tuple(representative, ins.first, ins.second);
   }
 
-  std::vector<TaskMapping> orbit(TaskMapping const &mapping);
+  std::vector<TaskMapping> orbit(
+    TaskMapping const &mapping,
+    internal::timeout::flag aborted = internal::timeout::unset());
 
 private:
   virtual internal::BSGS::order_type num_automorphisms_(
