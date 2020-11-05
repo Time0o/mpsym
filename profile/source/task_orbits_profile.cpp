@@ -201,6 +201,9 @@ std::string map_tasks_gap(ProfileOptions const &options)
   if (options.verbosity > 0)
     ss << "  Print(\"DEBUG: Constructing BSGS\\n\");\n";
   ss << "  StabChain(automorphisms);\n";
+  if (options.verbosity > 0)
+    ss << "  Print(\"DEBUG: Automorphism group has size \", "
+          "        Size(automorphisms), \"\\n\");\n";
   ss << "fi;\n";
 
   ss << "orbit_representatives:=[];\n";
@@ -310,6 +313,9 @@ mpsym::TaskOrbits map_tasks_mpsym(
     debug("Constructing BSGS");
 
   ags->init_repr();
+
+  if (options.verbosity > 0)
+    debug("Automorphism group has size", ags->num_automorphisms());
 
   TaskOrbits task_orbits;
   for (auto i = 0u; i < task_mappings.size(); ++i) {
