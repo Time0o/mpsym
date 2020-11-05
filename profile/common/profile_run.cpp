@@ -87,6 +87,11 @@ end;
 
 ReduceGroup:=function(G, n)
   local gens_, gens;
+
+  if IsTrivial(G) then
+    return G;
+  fi;
+
   gens_:=GeneratorsOfGroup(G);
   gens:=ShallowCopy(gens_);
   Apply(gens, function(g) return RestrictedPerm(g, [1..n]); end);
