@@ -195,10 +195,13 @@ std::string map_tasks_gap(ProfileOptions const &options)
 {
   std::stringstream ss;
 
+  ss << "if IsTrivial(automorphisms) then\n";
+  ss << "  Print(\"WARNING: Automorphism group is trivial!\\n\");\n";
+  ss << "else\n";
   if (options.verbosity > 0)
-    ss << "Print(\"DEBUG: Constructing BSGS\\n\");\n";
-
-  ss << "StabChain(automorphisms);\n";
+    ss << "  Print(\"DEBUG: Constructing BSGS\\n\");\n";
+  ss << "  StabChain(automorphisms);\n";
+  ss << "fi;\n";
 
   ss << "orbit_representatives:=[];\n";
   ss << "orbit_representatives_hash:=HTCreate([1,2,3]);\n";
