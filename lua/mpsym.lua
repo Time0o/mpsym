@@ -419,7 +419,7 @@ function fully_connected_channels(processors, ctype)
   local channels = {}
 
   for i = 1,#processors do
-    for j = i + 1,#processors do
+    for j = 1,#processors do
       insert_channel(channels, processors[i][1], processors[j][1], ctype)
     end
   end

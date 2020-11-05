@@ -208,9 +208,6 @@ std::shared_ptr<mpsym::ArchGraph> lua_make_arch_graph(lua_State *L)
 #ifndef NDEBUG
   lua_getfield(L, -1, "_num_processors");
   assert(ag->num_processors() == lua_get_and_pop<unsigned>(L));
-
-  lua_getfield(L, -1, "_num_channels");
-  assert(ag->num_channels() == lua_get_and_pop<unsigned>(L));
 #endif
 
   return ag;
