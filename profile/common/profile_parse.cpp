@@ -264,7 +264,7 @@ gap::TaskMappingVector parse_task_mappings_gap(
 
   std::stringstream ss;
   for (auto const &task_mapping : std::get<2>(task_mappings))
-    ss << DUMP(task_mapping) << ",\n";
+    ss << TRANSFORM_AND_DUMP(task_mapping, [](int pe){ return pe + 1u; }) << ",\n";
 
   return ss.str();
 }
@@ -284,7 +284,16 @@ mpsym::TaskMappingVector parse_task_mappings_gap_to_mpsym(
   auto task_mappings(split_task_mappings(
     mpsym::util::join(gap_output, "\n"), R"(.*\[(\d+(?:,\d+)*)\])", ','));
 
-  return std::get<2>(task_mappings);
+  auto mappings(std::get<2>(task_mappings));
+
+  for (auto &mapping : mappings) {
+    std::transform(mapping.begin(),
+                   mapping.end(),
+                   mapping.begin(),
+                   [](unsigned pe){ return pe - 1u; });
+  }
+
+  return mappings;
 }
 
 } // namespace profile
