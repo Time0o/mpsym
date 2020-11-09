@@ -149,9 +149,6 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
   lhs.assert_not_empty();
   rhs.assert_not_empty();
 
-  lhs.minimize_degree();
-  rhs.minimize_degree();
-
   // degree of wreath product
   unsigned wp_degree = lhs.degree() * rhs.degree();
 
