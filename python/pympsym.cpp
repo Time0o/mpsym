@@ -553,8 +553,22 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
              return parse_perm(degree, cycles);
            }),
            "degree"_a, "cycles"_a)
-    .def(py::self == py::self)
-    .def(py::self != py::self)
+    .def("__eq__",
+         [](Perm const &self, Perm const &other)
+         {
+           if (self.degree() != other.degree())
+             throw std::invalid_argument("can only compare permutations of equal degree");
+
+           return self == other;
+         })
+    .def("__ne__",
+         [](Perm const &self, Perm const &other)
+         {
+           if (self.degree() != other.degree())
+             throw std::invalid_argument("can only compare permutations of equal degree");
+
+           return self != other;
+         })
     .def(hash(py::self))
     .def("__getitem__",
          [](Perm const &self, unsigned x)
@@ -629,8 +643,22 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                 [](PermGroup const &lhs, PermGroup const &rhs)
                 { return PermGroup::wreath_product(lhs, rhs); },
                 "lhs"_a, "rhs"_a)
-    .def(py::self == py::self)
-    .def(py::self != py::self)
+    .def("__eq__",
+         [](PermGroup const &self, PermGroup const &other)
+         {
+           if (self.degree() != other.degree())
+             throw std::invalid_argument("can only compare permutation groups of equal degree");
+
+           return self == other;
+         })
+    .def("__ne__",
+         [](PermGroup const &self, PermGroup const &other)
+         {
+           if (self.degree() != other.degree())
+             throw std::invalid_argument("can only compare permutation groups of equal degree");
+
+           return self != other;
+         })
     .def("__len__", &PermGroup::order)
     .def("__iter__",
          [](PermGroup const &self)
