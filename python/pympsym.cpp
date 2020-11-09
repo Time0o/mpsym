@@ -614,6 +614,21 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
              return PermGroup(degree, generators);
            }),
          "generators"_a)
+    .def_static("symmetric", PermGroup::symmetric, "degree"_a)
+    .def_static("cyclic", PermGroup::cyclic, "degree"_a)
+    .def_static("dihedral", PermGroup::dihedral, "degree"_a)
+    .def_static("direct_product",
+                [](py::iterable it)
+                {
+                  auto groups(to_sequence<PermGroup>(py::make_iterator(it)));
+
+                  return PermGroup::direct_product(groups.begin(), groups.end());
+                },
+                "groups"_a)
+    .def_static("wreath_product",
+                [](PermGroup const &lhs, PermGroup const &rhs)
+                { return PermGroup::wreath_product(lhs, rhs); },
+                "lhs"_a, "rhs"_a)
     .def(py::self == py::self)
     .def(py::self != py::self)
     .def("__len__", &PermGroup::order)
