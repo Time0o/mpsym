@@ -3,12 +3,14 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <regex>
 #include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <tuple>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -25,6 +27,7 @@
 #include "arch_graph_system.hpp"
 #include "arch_uniform_super_graph.hpp"
 #include "nauty_graph.hpp"
+#include "parse.hpp"
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"
@@ -55,6 +58,7 @@ using mpsym::internal::Perm;
 using mpsym::internal::PermGroup;
 using mpsym::internal::PermSet;
 
+using mpsym::util::parse_perm;
 using mpsym::util::stream;
 
 using mpsym::internal::timeout::flag;
@@ -519,6 +523,34 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
              return Perm(inc_sequence(v));
            }),
          "perm"_a)
+    .def(py::init(
+           [](unsigned degree, Sequence<Sequence<>> const &cycles)
+           {
+             std::unordered_set<unsigned> cycles_flattened;
+
+             for (auto const &cycle : cycles) {
+                for (unsigned x : cycle) {
+                  if (x > degree || !cycles_flattened.insert(x).second)
+                    throw std::invalid_argument("invalid permutation");
+                }
+             }
+
+             return Perm(degree, cycles);
+           }),
+           "degree"_a, "cycles"_a)
+    .def(py::init(
+           [](unsigned degree, std::string cycles)
+           {
+             static std::regex re_perm(R"((\(\)|(\(( *\d+,)+ *\d+ *\))+))");
+
+             cycles.erase(std::remove(cycles.begin(), cycles.end(), ' ' ), cycles.end());
+
+             if (!std::regex_match(cycles, re_perm))
+               throw std::invalid_argument("invalid permutation string");
+
+             return parse_perm(degree, cycles);
+           }),
+           "degree"_a, "cycles"_a)
     .def(py::self == py::self)
     .def(py::self != py::self)
     .def(hash(py::self))

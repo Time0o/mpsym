@@ -1,6 +1,7 @@
 #ifndef GUARD_PARSE_H
 #define GUARD_PARSE_H
 
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -19,6 +20,8 @@ inline internal::Perm parse_perm(unsigned degree, std::string const &str)
   std::vector<unsigned> cycle;
   std::vector<std::vector<unsigned>> cycles;
 
+  std::unordered_set<unsigned> seen;
+
   int n_beg = -1;
   for (int i = 0; i < static_cast<int>(str.size()); ++i) {
     char c = str[i];
@@ -30,7 +33,13 @@ inline internal::Perm parse_perm(unsigned degree, std::string const &str)
     case ',':
     case ')':
       {
-        int n = stox<int>(str.substr(n_beg, i - n_beg));
+        unsigned n = stox<unsigned>(str.substr(n_beg, i - n_beg));
+
+        if (n > degree)
+          throw std::invalid_argument("invalid permutation string");
+
+        if (!seen.insert(n).second)
+          throw std::invalid_argument("invalid permutation string");
 
         cycle.push_back(n);
         if (c == ')')
