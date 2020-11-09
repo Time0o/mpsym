@@ -123,8 +123,10 @@ public:
   void fully_connect(T ct)
   {
     for (unsigned pe1 = 0u; pe1 < num_processors(); ++pe1) {
-      for (unsigned pe2 = (directed() ? 0u : pe1); pe2 < num_processors(); ++pe2)
-        add_channel(pe1, pe2, ct);
+      for (unsigned pe2 = (directed() ? 0u : pe1 + 1u); pe2 < num_processors(); ++pe2) {
+        if (pe1 != pe2)
+          add_channel(pe1, pe2, ct);
+      }
     }
   }
 

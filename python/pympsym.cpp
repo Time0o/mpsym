@@ -434,8 +434,10 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
            auto processors(to_sequence<>(py::make_iterator(it)));
 
            for (unsigned pe1 : processors) {
-             for (unsigned pe2 : processors)
-               self.add_channel(pe1, pe2, cl);
+             for (unsigned pe2 : processors) {
+               if (pe1 != pe2)
+                 self.add_channel(pe1, pe2, cl);
+             }
            }
          },
          "processors"_a, "cl"_a)
