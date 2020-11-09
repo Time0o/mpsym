@@ -71,8 +71,7 @@ std::shared_ptr<ArchGraphSystem> ArchGraphSystem::expand_automorphisms() const
 
 std::vector<TaskMapping> ArchGraphSystem::orbit(TaskMapping const &mapping)
 {
-  auto automs(automorphisms());
-  auto gens(automs.generators());
+  automorphisms();
 
   std::unordered_set<TaskMapping> unprocessed, processed;
 
@@ -85,7 +84,7 @@ std::vector<TaskMapping> ArchGraphSystem::orbit(TaskMapping const &mapping)
 
     processed.insert(current);
 
-    for (Perm const &gen : gens) {
+    for (Perm const &gen : _automorphism_generators) {
       TaskMapping next(current.permuted(gen));
 
       if (processed.find(next) == processed.end())
@@ -98,17 +97,14 @@ std::vector<TaskMapping> ArchGraphSystem::orbit(TaskMapping const &mapping)
 
 bool ArchGraphSystem::automorphisms_symmetric(ReprOptions const *options)
 {
-  auto automs(automorphisms());
-  auto gens(automs.generators());
-
   TaskMapping representative;
 
   if (options->optimize_symmetric && !_automorphisms_is_shifted_symmetric_valid) {
-    _automorphisms_is_shifted_symmetric = automs.is_shifted_symmetric();
+    _automorphisms_is_shifted_symmetric = _automorphisms.is_shifted_symmetric();
 
     if (_automorphisms_is_shifted_symmetric) {
-      _automorphisms_smp = gens.smallest_moved_point();
-      _automorphisms_lmp = gens.largest_moved_point();
+      _automorphisms_smp = _automorphism_generators.smallest_moved_point();
+      _automorphisms_lmp = _automorphism_generators.largest_moved_point();
     }
 
     _automorphisms_is_shifted_symmetric_valid = true;
@@ -117,29 +113,17 @@ bool ArchGraphSystem::automorphisms_symmetric(ReprOptions const *options)
   return options->optimize_symmetric && _automorphisms_is_shifted_symmetric;
 }
 
-TaskMapping ArchGraphSystem::repr_symmetric(TaskMapping const &mapping,
-                                            ReprOptions const *options)
-{
-  unsigned task_min = _automorphisms_smp + options->offset;
-  unsigned task_max = _automorphisms_lmp + options->offset;
-
-  return min_elem_symmetric(mapping, task_min, task_max, options);
-}
-
 TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
                                    ReprOptions const *options_,
                                    TaskOrbits *orbits,
                                    timeout::flag aborted)
 {
+  automorphisms();
+
   auto options(ReprOptions::fill_defaults(options_));
 
   if (automorphisms_symmetric(&options))
-    return repr_symmetric(mapping, &options);
-
-  auto automs(automorphisms());
-
-  unsigned task_min = 1u + options.offset;
-  unsigned task_max = automs.degree() + options.offset;
+    return min_elem_symmetric(mapping, &options);
 
   return options.method == ReprOptions::Method::ITERATE ?
            min_elem_iterate(mapping, &options, orbits, aborted) :
@@ -147,7 +131,7 @@ TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
            min_elem_orbits(mapping, &options, orbits, aborted) :
          options.method == ReprOptions::Method::LOCAL_SEARCH ?
            options.variant == ReprOptions::Variant::LOCAL_SEARCH_SA_LINEAR ?
-             min_elem_local_search_sa(mapping, task_min, task_max, &options) :
+             min_elem_local_search_sa(mapping, &options) :
              min_elem_local_search(mapping, &options) :
          throw std::logic_error("unreachable");
 }
@@ -155,13 +139,11 @@ TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
 TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
                                               ReprOptions const *options,
                                               TaskOrbits *orbits,
-                                              timeout::flag aborted)
+                                              timeout::flag aborted) const
 {
-  auto automs(automorphisms());
-
   TaskMapping representative(tasks);
 
-  for (auto it = automs.begin(); it != automs.end(); ++it) {
+  for (auto it = _automorphisms.begin(); it != _automorphisms.end(); ++it) {
     if (timeout::is_set(aborted))
       throw timeout::AbortedError("min_elem_iterate");
 
@@ -181,11 +163,8 @@ TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
 TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
                                              ReprOptions const *options,
                                              TaskOrbits *orbits,
-                                             timeout::flag aborted)
+                                             timeout::flag aborted) const
 {
-  auto automs(automorphisms());
-  auto gens(automs.generators());
-
   TaskMapping representative(tasks);
 
   std::unordered_set<TaskMapping> unprocessed, processed;
@@ -205,7 +184,7 @@ TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
     if (current.less_than(representative))
       representative = current;
 
-    for (Perm const &gen : gens) {
+    for (Perm const &gen : _automorphism_generators) {
       TaskMapping next(current.permuted(gen, options->offset));
 
       if (is_repr(next, options, orbits))
@@ -218,21 +197,21 @@ TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
   return representative;
 }
 
-TaskMapping ArchGraphSystem::min_elem_local_search(TaskMapping const &tasks,
-                                                   ReprOptions const *options)
+TaskMapping ArchGraphSystem::min_elem_local_search(
+  TaskMapping const &tasks,
+  ReprOptions const *options) const
 {
-  auto automs(automorphisms());
-  auto gens(local_search_augment_gens(automs, options));
+  auto generators(local_search_augment_gens(options));
 
   TaskMapping representative(tasks);
 
   std::vector<TaskMapping> possible_representatives;
-  possible_representatives.reserve(gens.size());
+  possible_representatives.reserve(generators.size());
 
   for (;;) {
     bool stationary = true;
 
-    for (Perm const &gen : gens) {
+    for (Perm const &gen : generators) {
       if (representative.less_than(representative, gen, options->offset)) {
         if (options->variant == ReprOptions::Variant::LOCAL_SEARCH_BFS) {
           possible_representatives.push_back(
@@ -263,33 +242,28 @@ TaskMapping ArchGraphSystem::min_elem_local_search(TaskMapping const &tasks,
 }
 
 PermSet ArchGraphSystem::local_search_augment_gens(
-  PermGroup const &automs,
-  ReprOptions const *options)
+  ReprOptions const *options) const
 {
-  auto gens(automs.generators());
+  auto generators(_automorphism_generators);
 
   // append inverse generators
   if (options->local_search_invert_generators) {
-    for (auto const &gen : automs.generators())
-      gens.insert(~gen);
+    for (auto const &gen : _automorphisms.generators())
+      generators.insert(~gen);
   }
 
   // append random generators
   for (unsigned i = 0u; i < options->local_search_append_generators; ++i)
-    gens.insert(automs.random_element());
+    generators.insert(_automorphisms.random_element());
 
-  return gens;
+  return generators;
 }
 
-TaskMapping ArchGraphSystem::min_elem_local_search_sa(TaskMapping const &tasks,
-                                                      unsigned task_min,
-                                                      unsigned task_max,
-                                                      ReprOptions const *options)
+TaskMapping ArchGraphSystem::min_elem_local_search_sa(
+  TaskMapping const &tasks,
+  ReprOptions const *options) const
 {
   using namespace std::placeholders;
-
-  auto automs(automorphisms());
-  auto gens(automs.generators());
 
   // probability distributions
   static auto re(util::random_engine());
@@ -297,12 +271,15 @@ TaskMapping ArchGraphSystem::min_elem_local_search_sa(TaskMapping const &tasks,
   std::uniform_real_distribution<> d_prob(0.0, 1.0);
 
   // value function
+  unsigned task_min = 1u + options->offset;
+  unsigned task_max = _automorphisms.degree() + options->offset;
+
   auto value(std::bind(local_search_sa_value, _1, task_min, task_max));
 
   TaskMapping representative(tasks);
   double representative_value = value(representative);
 
-  std::vector<unsigned> gen_indices(gens.size());
+  std::vector<unsigned> gen_indices(_automorphism_generators.size());
   std::iota(gen_indices.begin(), gen_indices.end(), 0u);
 
   for (unsigned i = 0u; i < options->local_search_sa_iterations; ++i) {
@@ -316,7 +293,7 @@ TaskMapping ArchGraphSystem::min_elem_local_search_sa(TaskMapping const &tasks,
     std::shuffle(gen_queue.begin(), gen_queue.end(), re);
 
     while (!gen_queue.empty()) {
-      Perm random_gen(gens[gen_queue.back()]);
+      Perm random_gen(_automorphism_generators[gen_queue.back()]);
       gen_queue.pop_back();
 
       bool next_valid = false;
@@ -374,12 +351,14 @@ double ArchGraphSystem::local_search_sa_value(TaskMapping const &representative,
   return std::log(ret - (task_max - task_min)) / num_tasks;
 }
 
-TaskMapping ArchGraphSystem::min_elem_symmetric(TaskMapping const &tasks,
-                                                unsigned task_min,
-                                                unsigned task_max,
-                                                ReprOptions const *)
+TaskMapping ArchGraphSystem::min_elem_symmetric(
+  TaskMapping const &tasks,
+  ReprOptions const *options) const
 {
   TaskMapping representative(tasks);
+
+  unsigned task_min = _automorphisms_smp + options->offset;
+  unsigned task_max = _automorphisms_lmp + options->offset;
 
   std::vector<unsigned> perm(task_max - task_min + 1u);
   unsigned perm_next = task_min;

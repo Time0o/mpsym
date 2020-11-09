@@ -105,6 +105,7 @@ public:
   {
     if (!automorphisms_ready()) {
       _automorphisms = automorphisms_(options, aborted);
+      _automorphism_generators = _automorphisms.generators();
       _automorphisms_valid = true;
     }
 
@@ -164,14 +165,11 @@ private:
     AutomorphismOptions const *options,
     internal::timeout::flag aborted) = 0;
 
+  bool automorphisms_symmetric(ReprOptions const *options);
+
   virtual void init_repr_(AutomorphismOptions const *,
                           internal::timeout::flag )
   {}
-
-  virtual TaskMapping repr_(TaskMapping const &mapping,
-                            ReprOptions const *options,
-                            TaskOrbits *orbits,
-                            internal::timeout::flag aborted);
 
   virtual bool repr_ready_() const
   { return automorphisms_ready(); }
@@ -179,10 +177,10 @@ private:
   virtual void reset_repr_()
   { reset_automorphisms(); }
 
-  bool automorphisms_symmetric(ReprOptions const *options);
-
-  TaskMapping repr_symmetric(TaskMapping const &mapping,
-                             ReprOptions const *options);
+  virtual TaskMapping repr_(TaskMapping const &mapping,
+                            ReprOptions const *options,
+                            TaskOrbits *orbits,
+                            internal::timeout::flag aborted);
 
   static bool is_repr(TaskMapping const &tasks,
                       ReprOptions const *options,
@@ -197,24 +195,20 @@ private:
   TaskMapping min_elem_iterate(TaskMapping const &tasks,
                                ReprOptions const *options,
                                TaskOrbits *orbits,
-                               internal::timeout::flag aborted);
+                               internal::timeout::flag aborted) const;
 
   TaskMapping min_elem_orbits(TaskMapping const &tasks,
                               ReprOptions const *options,
                               TaskOrbits *orbits,
-                              internal::timeout::flag aborted);
+                              internal::timeout::flag aborted) const;
 
   TaskMapping min_elem_local_search(TaskMapping const &tasks,
-                                    ReprOptions const *options);
+                                    ReprOptions const *options) const;
 
-  static internal::PermSet local_search_augment_gens(
-    internal::PermGroup const &automorphisms,
-    ReprOptions const *options);
+  internal::PermSet local_search_augment_gens(ReprOptions const *options) const;
 
   TaskMapping min_elem_local_search_sa(TaskMapping const &tasks,
-                                       unsigned task_min,
-                                       unsigned task_max,
-                                       ReprOptions const *options);
+                                       ReprOptions const *options) const;
 
   static double local_search_sa_schedule_T(unsigned i,
                                            ReprOptions const *options);
@@ -224,11 +218,11 @@ private:
                                       unsigned task_max);
 
   TaskMapping min_elem_symmetric(TaskMapping const &tasks,
-                                 unsigned task_min,
-                                 unsigned task_max,
-                                 ReprOptions const *options);
+                                 ReprOptions const *options) const;
 
   internal::PermGroup _automorphisms;
+  internal::PermSet _automorphism_generators;
+
   bool _automorphisms_valid = false;
 
   bool _automorphisms_is_shifted_symmetric;
