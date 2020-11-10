@@ -48,6 +48,7 @@ using mpsym::ArchGraph;
 using mpsym::ArchGraphCluster;
 using mpsym::ArchGraphSystem;
 using mpsym::ArchUniformSuperGraph;
+using mpsym::ReprOptions;
 using mpsym::TaskMapping;
 using mpsym::TaskOrbits;
 
@@ -155,19 +156,20 @@ T arch_graph_json_cast(ArchGraphSystem const &self, std::string const &key)
   return ret;
 }
 
-#define AGS_TIMEOUT(what, method) \
-  run_abortable_with_timeout( \
-    what, \
-    std::chrono::duration<double>(timeout), \
-    [&](flag aborted) \
-    { return self.method(nullptr, aborted); })
-
-#define AGS_TIMEOUT_WITH_ARGS(what, method, ...) \
-  run_abortable_with_timeout( \
-    what, \
-    std::chrono::duration<double>(timeout), \
-    [&](flag aborted) \
-    { return self.method(__VA_ARGS__, nullptr, aborted); })
+template<typename FUNC, typename ...ARGS>
+typename std::result_of<FUNC(ArchGraphSystem *, ARGS..., flag)>::type
+arch_graph_timeout(std::string const &what,
+                   double timeout,
+                   ArchGraphSystem &self,
+                   FUNC f,
+                   ARGS &&...args)
+{
+  return run_abortable_with_timeout(
+    what,
+    std::chrono::duration<double>(timeout),
+    [&](flag aborted)
+    { return (self.*f)(std::forward<ARGS>(args)..., aborted); });
+}
 
 } // anonymous namespace
 
@@ -311,23 +313,48 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
     .def("num_channels", &ArchGraphSystem::num_channels)
     .def("initialize",
          [&](ArchGraphSystem &self, double timeout)
-         { return AGS_TIMEOUT("initialize", init_repr); },
+         {
+           arch_graph_timeout("initialize",
+                              timeout,
+                              self,
+                              &ArchGraphSystem::init_repr,
+                              nullptr);
+         },
          "timeout"_a = 0.0)
     .def("num_automorphisms",
          [](ArchGraphSystem &self, double timeout)
-         { return AGS_TIMEOUT("num_automorphisms", num_automorphisms); },
+         {
+           return arch_graph_timeout("num_automorphisms",
+                                     timeout,
+                                     self,
+                                     &ArchGraphSystem::num_automorphisms,
+                                     nullptr);
+         },
          "timeout"_a = 0.0)
     .def("automorphisms",
          [](ArchGraphSystem &self, double timeout)
-         { return AGS_TIMEOUT("automorphisms", automorphisms); },
+         {
+           return arch_graph_timeout("automorphisms",
+                                     timeout,
+                                     self,
+                                     &ArchGraphSystem::automorphisms,
+                                     nullptr);
+         },
          "timeout"_a = 0.0)
     .def("expand_automorphisms", &ArchGraphSystem::expand_automorphisms)
     .def("representative",
          [&](ArchGraphSystem &self, Sequence<> const &mapping, double timeout)
          {
-           auto repr(AGS_TIMEOUT_WITH_ARGS("representative",
-                                           repr,
-                                           inc_sequence(mapping)));
+           using T = TaskMapping(ArchGraphSystem::*)(TaskMapping const &,
+                                                     ReprOptions const *,
+                                                     flag);
+
+           auto repr(arch_graph_timeout("representative",
+                                        timeout,
+                                        self,
+                                        (T)&ArchGraphSystem::repr,
+                                        inc_sequence(mapping),
+                                        nullptr));
 
            return sequence_to_tuple(dec_sequence(to_sequence(repr)));
          },
@@ -338,15 +365,24 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
              TaskOrbits &representatives,
              double timeout)
          {
+           using T = std::tuple<TaskMapping, bool, unsigned>
+                     (ArchGraphSystem::*)(TaskMapping const &,
+                                          TaskOrbits &,
+                                          ReprOptions const *,
+                                          flag);
+
            TaskMapping repr;
            bool orbit_new;
            unsigned orbit_index;
 
            std::tie(repr, orbit_new, orbit_index) =
-             AGS_TIMEOUT_WITH_ARGS("representative",
-                                   repr,
-                                   inc_sequence(mapping),
-                                   representatives);
+             arch_graph_timeout("representative",
+                                timeout,
+                                self,
+                                (T)&ArchGraphSystem::repr,
+                                inc_sequence(mapping),
+                                representatives,
+                                nullptr);
 
            return std::make_tuple(
              sequence_to_tuple(dec_sequence(to_sequence(repr))),
