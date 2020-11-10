@@ -157,7 +157,7 @@ private:
 
   void init_repr_(AutomorphismOptions const *options,
                   internal::timeout::flag aborted) override
-  { automorphisms_nauty(options, aborted); }
+  { automorphisms(options, aborted); }
 
   // Convenience functions
 
