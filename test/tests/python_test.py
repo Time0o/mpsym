@@ -197,8 +197,7 @@ class ArchGraphSystemTest(unittest.TestCase):
         self.assertEqual(self.ag.num_channels(), 864)
 
     def test_automorphisms(self):
-        autom = self.ag.automorphisms()
-        self.assertEqual(len(autom), 8192)
+        self.assertTrue(self.ag.num_automorphisms() == len(self.ag.automorphisms()) == 8192)
 
     def test_representative(self):
         for orbit in [self.ag_orbit1, self.ag_orbit2]:
