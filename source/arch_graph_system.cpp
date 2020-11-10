@@ -122,6 +122,9 @@ TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
 
   auto options(ReprOptions::fill_defaults(options_));
 
+  if (_automorphisms.is_trivial())
+    return mapping;
+
   if (automorphisms_symmetric(&options))
     return min_elem_symmetric(mapping, &options);
 
