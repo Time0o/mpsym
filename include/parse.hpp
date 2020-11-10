@@ -17,6 +17,9 @@ namespace util
 
 inline internal::Perm parse_perm(unsigned degree, std::string const &str)
 {
+  if (str == "()")
+    return internal::Perm(degree);
+
   std::vector<unsigned> cycle;
   std::vector<std::vector<unsigned>> cycles;
 
