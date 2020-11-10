@@ -106,6 +106,12 @@ public:
     _perms.insert(_perms.end(), b, e);
   }
 
+  void resize(size_type n)
+  { _perms.resize(n); }
+
+  void resize(size_type n, value_type const &value)
+  { _perms.resize(n, value); }
+
   template<typename ...ARGS>
   void emplace(ARGS &&...args)
   {

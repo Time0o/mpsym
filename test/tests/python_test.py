@@ -422,6 +422,31 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
                                  ring(partial=True)],
                                 8 * factorial(4))
 
+    def test_super_graph_architectures(self):
+        # trivial proto or super graph
+        ag1 = mp.ArchGraph(directed=False)
+        ag1.add_processor('p1')
+        ag1.add_processor('p2')
+
+        ag2 = mp.ArchGraph(directed=False)
+        ag2.add_processors(2, 'p1')
+        ag2.fully_connect('c')
+
+        ag3 = mp.ArchGraph(directed=False)
+        ag3.add_processors(2, 'p1')
+        ag3.add_processor('p2')
+        ag3.fully_connect('c')
+
+        self._test_super_graph(ag1, ag1, ['()'])
+        self._test_super_graph(ag1, ag2, ['(1,2)(3,4)'])
+        self._test_super_graph(ag1, ag3, ['(1,2)(4,5)'])
+        self._test_super_graph(ag2, ag1, ['(1,3)(2,4)'])
+        self._test_super_graph(ag2, ag2, ['(1,3)(2,4)', '(1,2)'])
+        self._test_super_graph(ag2, ag3, ['(1,4)(2,5)(3,6)','(4,5)'])
+        self._test_super_graph(ag3, ag1, ['(1,3)(2,4)'])
+        self._test_super_graph(ag3, ag2, ['(1,3)(2,4)', '(1,2)', '(5,6)'])
+        self._test_super_graph(ag3, ag3, ['(1,4)(2,5)(3,6)', '(1,2)', '(7,8)'])
+
     def _test_ag_generator(self, make_ag, connections, num_automorphisms):
         for fs in permutations(connections):
             ag = make_ag()
@@ -437,6 +462,39 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
                                  "(permutation {})".format(p))
 
                 p += 1
+
+    def _test_super_graph(self, super_graph, proto, automorphism_generators):
+        assert not super_graph.directed()
+        assert not proto.directed()
+
+        # graph properties
+        ag = mp.ArchUniformSuperGraph(super_graph, proto)
+
+        self.assertEqual(ag.num_processors(),
+                         proto.num_processors() * super_graph.num_processors())
+
+        self.assertEqual(ag.num_channels(),
+                         proto.num_channels() * super_graph.num_processors() + \
+                         super_graph.num_channels() * (proto.num_processors()**2))
+
+        # automorphism properties
+        ag_automs = ag.automorphisms()
+
+        expected_automs = mp.PermGroup([mp.Perm(ag.num_processors(), gen)
+                                        for gen in automorphism_generators])
+
+        self.assertEqual(ag_automs, expected_automs)
+        self.assertEqual(ag_automs.degree(), ag.num_processors())
+        self.assertEqual(len(ag_automs), ag.num_automorphisms())
+
+        # representatives
+        ag_automs_graph = mp.ArchGraphAutomorphisms(ag_automs)
+
+        id_mapping = tuple(i for i in range(min(ag.num_processors(), 5)))
+
+        for mapping in permutations(id_mapping):
+            self.assertEqual(ag.representative(mapping),
+                             ag_automs_graph.representative(mapping))
 
 
 if __name__ == '__main__':

@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "arch_graph_automorphisms.hpp"
 #include "arch_graph_system.hpp"
 #include "bsgs.hpp"
 #include "perm_group.hpp"
@@ -15,8 +16,6 @@ namespace mpsym
 
 class TaskMapping;
 class TaskOrbits;
-
-namespace internal { class ArchGraphAutomorphisms; }
 
 class ArchUniformSuperGraph : public ArchGraphSystem
 {
@@ -53,26 +52,11 @@ private:
     internal::timeout::flag aborted) override;
 
   void init_repr_(AutomorphismOptions const *options,
-                  internal::timeout::flag aborted) override
-  {
-    _sigma_super_graph = wreath_product_action_super_graph(options, aborted);
-    _sigmas_proto = wreath_product_action_proto(options, aborted);
-    _sigmas_valid = true;
-  }
+                  internal::timeout::flag aborted) override;
 
-  bool repr_ready_() const override
-  {
-    return _subsystem_super_graph->automorphisms_ready() &&
-           _subsystem_proto->automorphisms_ready() &&
-           _sigmas_valid;
-  }
+  bool repr_ready_() const override;
 
-  void reset_repr_() override
-  {
-    _subsystem_super_graph->reset_automorphisms();
-    _subsystem_proto->reset_automorphisms();
-    _sigmas_valid = false;
-  }
+  void reset_repr_() override;
 
   TaskMapping repr_(TaskMapping const &mapping_,
                     ReprOptions const *options,
@@ -80,9 +64,8 @@ private:
                     internal::timeout::flag aborted) override;
 
   std::shared_ptr<internal::ArchGraphAutomorphisms>
-  wreath_product_action_super_graph(
-    AutomorphismOptions const *options,
-    internal::timeout::flag aborted) const;
+  wreath_product_action_super_graph(AutomorphismOptions const *options,
+                                    internal::timeout::flag aborted) const;
 
   std::vector<std::shared_ptr<internal::ArchGraphAutomorphisms>>
   wreath_product_action_proto(AutomorphismOptions const *options,
@@ -91,6 +74,10 @@ private:
   std::shared_ptr<ArchGraphSystem> _subsystem_super_graph;
   std::shared_ptr<ArchGraphSystem> _subsystem_proto;
 
+  bool _super_graph_trivial = false;
+  bool _proto_trivial = false;
+
+  std::shared_ptr<internal::ArchGraphAutomorphisms> _sigma_total;
   std::shared_ptr<internal::ArchGraphAutomorphisms> _sigma_super_graph;
   std::vector<std::shared_ptr<internal::ArchGraphAutomorphisms>> _sigmas_proto;
   bool _sigmas_valid = false;

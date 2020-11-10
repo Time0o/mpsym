@@ -133,57 +133,61 @@ PermGroup PermGroup::dihedral(unsigned degree)
   return PermGroup(degree / 2u, {Perm(rotation), Perm(reflection)});
 }
 
-PermGroup PermGroup::wreath_product(PermGroup const &lhs_,
-                                    PermGroup const &rhs_,
+PermGroup PermGroup::wreath_product(PermGroup const &lhs,
+                                    PermGroup const &rhs,
                                     BSGSOptions const *bsgs_options_)
 {
-  if (lhs_.is_trivial())
-    return rhs_;
-
-  if (rhs_.is_trivial())
-    return lhs_;
-
-  auto lhs(lhs_.generators());
-  auto rhs(rhs_.generators());
-
-  lhs.assert_not_empty();
-  rhs.assert_not_empty();
-
   // degree of wreath product
   unsigned wp_degree = lhs.degree() * rhs.degree();
 
   // order of wreath product
-  auto wp_order(wreath_product_order(lhs_, rhs_));
+  auto wp_order(wreath_product_order(lhs, rhs));
 
   // determine generators of wreath product
+  auto lhs_gens(lhs.generators());
+  auto rhs_gens(rhs.generators());
+
   PermSet wp_generators;
 
-  for (unsigned i = 0u; i < rhs.degree(); ++i) {
-    for (Perm const &perm : lhs)
-      wp_generators.insert(perm.shifted(lhs.degree() * i).extended(wp_degree));
-  }
+  if (lhs.is_trivial() && rhs.is_trivial()) {
+    return PermGroup(wp_degree);
 
-  for (Perm const &gen_rhs : rhs) {
-    std::vector<std::vector<unsigned>> cycles {gen_rhs.cycles()};
-    for (auto &cycle : cycles) {
-      for (unsigned &x : cycle)
-        x = (x - 1u) * lhs.degree() + 1u;
+  } else if (rhs.is_trivial()) {
+    wp_generators.resize(lhs_gens.size(), Perm(wp_degree));
+
+    for (unsigned i = 0u; i < rhs.degree(); ++i) {
+      for (auto j = 0u; j < lhs_gens.size(); ++j)
+        wp_generators[j] *= lhs_gens[j].shifted(lhs.degree() * i).extended(wp_degree);
     }
 
-    std::vector<std::vector<unsigned>> shifted_cycles {cycles};
+  } else {
+    for (unsigned i = 0u; i < rhs.degree(); ++i) {
+      for (Perm const &perm : lhs_gens)
+        wp_generators.insert(perm.shifted(lhs.degree() * i).extended(wp_degree));
+    }
 
-    for (unsigned i = 1u; i < lhs.degree(); ++i) {
-      for (auto const &cycle : cycles) {
-        std::vector<unsigned> shifted_cycle(cycle);
-
-        for (unsigned &x : shifted_cycle)
-          x += i;
-
-        shifted_cycles.push_back(shifted_cycle);
+    for (Perm const &gen : rhs_gens) {
+      std::vector<std::vector<unsigned>> cycles {gen.cycles()};
+      for (auto &cycle : cycles) {
+        for (unsigned &x : cycle)
+          x = (x - 1u) * lhs.degree() + 1u;
       }
-    }
 
-    wp_generators.emplace(wp_degree, shifted_cycles);
+      std::vector<std::vector<unsigned>> shifted_cycles {cycles};
+
+      for (unsigned i = 1u; i < lhs.degree(); ++i) {
+        for (auto const &cycle : cycles) {
+          std::vector<unsigned> shifted_cycle(cycle);
+
+          for (unsigned &x : shifted_cycle)
+            x += i;
+
+          shifted_cycles.push_back(shifted_cycle);
+        }
+      }
+
+      wp_generators.emplace(wp_degree, shifted_cycles);
+    }
   }
 
   // construct wreath product
@@ -207,9 +211,7 @@ BSGS::order_type PermGroup::wreath_product_order(PermGroup const &lhs,
   if (rhs.is_trivial())
     return lhs_order;
 
-  unsigned rhs_lmp = rhs.largest_moved_point();
-
-  return pow(lhs_order, rhs_lmp) * rhs_order;
+  return pow(lhs_order, rhs.degree()) * rhs_order;
 }
 
 bool PermGroup::is_symmetric() const
