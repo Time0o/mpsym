@@ -213,7 +213,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                 {
                   // validate number of vertices
                   if (vertices <= 0)
-                    throw std::logic_error("number of vertices must be non-negative");
+                    throw std::invalid_argument("number of vertices must be non-negative");
 
                   // validate adjacencies
                   std::set<std::pair<int, int>> edges;
@@ -223,17 +223,17 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                     int from = p.first;
 
                     if (from >= vertices)
-                      throw std::logic_error("vertex index out of range");
+                      throw std::invalid_argument("vertex index out of range");
 
                     for (int to : p.second) {
                       if (to >= vertices)
-                        throw std::logic_error("vertex index out of range");
+                        throw std::invalid_argument("vertex index out of range");
 
                       auto edge(std::make_pair(from, to));
                       auto reverse_edge(std::make_pair(to, from));
 
                       if (!edges.insert(edge).second)
-                        throw std::logic_error("duplicate edges");
+                        throw std::invalid_argument("duplicate edges");
                     }
                   }
 
@@ -247,7 +247,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                         || *tmp.begin() != 0
                         || *tmp.rbegin() != vertices - 1) {
 
-                      throw std::logic_error("invalid coloring");
+                      throw std::invalid_argument("invalid coloring");
                     }
                   }
 
@@ -521,15 +521,15 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
            [](Sequence<> const &v)
            {
              if (v.empty())
-                throw std::logic_error("invalid permutation");
+                throw std::invalid_argument("invalid permutation");
 
              auto max = *std::max_element(v.begin(), v.end());
              if (v.size() != max + 1)
-               throw std::logic_error("invalid permutation");
+               throw std::invalid_argument("invalid permutation");
 
              Set<> s(v.begin(), v.end());
              if (s.size() != max + 1 || *s.begin() != 0)
-               throw std::logic_error("invalid permutation");
+               throw std::invalid_argument("invalid permutation");
 
              return Perm(inc_sequence(v));
            }),
@@ -593,7 +593,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          [](Perm const &self, Perm const &other)
          {
            if (self.degree() != other.degree())
-             throw std::logic_error("permutation degrees do not match");
+             throw std::invalid_argument("permutation degrees do not match");
 
            return self * other;
          },
@@ -602,7 +602,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          [](Perm const &self, Perm const &other)
          {
            if (self.degree() != other.degree())
-             throw std::logic_error("permutation degrees do not match");
+             throw std::invalid_argument("permutation degrees do not match");
 
            return other * self;
          },
@@ -624,12 +624,12 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
            [](Sequence<Perm> const &generators_)
            {
              if (generators_.empty())
-               throw std::logic_error("generating set must not be empty");
+               throw std::invalid_argument("generating set must not be empty");
 
              unsigned degree = generators_[0].degree();
              for (std::size_t i = 1; i < generators_.size(); ++i) {
                 if (generators_[i].degree() != degree)
-                  throw std::logic_error("mismatched generator degrees");
+                  throw std::invalid_argument("mismatched generator degrees");
              }
 
              PermSet generators(generators_.begin(), generators_.end());
@@ -677,7 +677,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          [](PermGroup const &self, Perm const &p)
          {
            if (p.degree() != self.degree())
-             throw std::logic_error("mismatched degrees");
+             throw std::invalid_argument("mismatched degrees");
 
            return self.contains_element(p);
          },
