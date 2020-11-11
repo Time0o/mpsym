@@ -78,25 +78,6 @@ PermGroup PermGroup::cyclic(unsigned degree)
   return PermGroup(degree, {Perm(degree, {gen})});
 }
 
-PermGroup PermGroup::alternating(unsigned degree)
-{
-  // TODO: explicit BSGS
-
-  assert(degree > 0u);
-
-  if (degree == 1u)
-    return PermGroup(1, {});
-
-  if (degree == 2u)
-    return PermGroup(2, {});
-
-  PermSet gens;
-  for (unsigned i = 3u; i <= degree; ++i)
-    gens.emplace(Perm(degree, {{1, 2, i}}));
-
-  return PermGroup(degree, gens);
-}
-
 PermGroup PermGroup::dihedral(unsigned degree)
 {
   // TODO: explicit BSGS
@@ -227,27 +208,6 @@ bool PermGroup::is_shifted_symmetric() const
   unsigned degree_ = largest_moved_point() - smallest_moved_point() + 1u;
 
   return _order == symmetric_order(degree_);
-}
-
-bool PermGroup::is_alternating() const
-{
-  if (_bsgs.is_alternating())
-    return true;
-
-  if (degree() == 1u)
-    return false;
-
-  if (degree() == 2u)
-    return _order == 1u;
-
-  return _order == alternating_order(degree());
-}
-
-bool PermGroup::is_shifted_alternating() const
-{
-  unsigned degree_ = largest_moved_point() - smallest_moved_point() + 1u;
-
-  return _order == alternating_order(degree_);
 }
 
 bool PermGroup::is_transitive() const

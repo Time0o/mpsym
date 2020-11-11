@@ -69,7 +69,6 @@ public:
 
   static PermGroup symmetric(unsigned degree);
   static PermGroup cyclic(unsigned degree);
-  static PermGroup alternating(unsigned degree);
   static PermGroup dihedral(unsigned degree);
 
   template<typename IT>
@@ -147,8 +146,6 @@ public:
   bool is_trivial() const { return _bsgs.base_empty(); }
   bool is_symmetric() const;
   bool is_shifted_symmetric() const;
-  bool is_alternating() const;
-  bool is_shifted_alternating() const;
   bool is_transitive() const;
 
   bool contains_element(Perm const &perm) const;
@@ -164,15 +161,6 @@ private:
   {
     boost::multiprecision::cpp_int ret(1);
     for (unsigned i = deg; i > 0u; --i)
-      ret *= i;
-
-    return ret;
-  }
-
-  static boost::multiprecision::cpp_int alternating_order(unsigned deg)
-  {
-    boost::multiprecision::cpp_int ret(1);
-    for (unsigned i = deg; i > 2u; --i)
       ret *= i;
 
     return ret;

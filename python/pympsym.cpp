@@ -746,7 +746,6 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          },
          "sorted"_a = true)
     .def("is_symmetric", &PermGroup::is_symmetric)
-    .def("is_alternating", &PermGroup::is_alternating)
     .def("is_transitive", &PermGroup::is_transitive);
 
   py::implicitly_convertible<Sequence<Perm>, PermGroup>();
