@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
+#include <set>
 #include <unordered_set>
 #include <vector>
 
@@ -31,10 +32,21 @@ Orbit Orbit::generate(unsigned x,
   return orbit;
 }
 
+bool Orbit::operator==(Orbit const &other) const
+{
+  if (size() != other.size())
+    return false;
+
+  std::set<unsigned> this_set(begin(), end());
+  std::set<unsigned> other_set(begin(), end());
+
+  return this_set == other_set;
+}
+
 bool Orbit::generated_by(unsigned x, PermSet const &generators) const
 {
   if (generators.trivial())
-    return size() == 1u && (*this)[0] == x;
+    return size() == 1u && _elements[0] == x;
 
   // this orbit
   std::unordered_set<unsigned> this_orbit;
@@ -115,7 +127,7 @@ void Orbit::update(PermSet const &generators_old,
     }
   }
 
-  insert(end(), stack.begin(), stack.end());
+  _elements.insert(end(), stack.begin(), stack.end());
 
   extend(generators, stack, done, ss);
 }
@@ -136,7 +148,7 @@ void Orbit::extend(PermSet const &generators,
         done.insert(y);
         stack.push_back(y);
 
-        push_back(y);
+        _elements.push_back(y);
 
         if (ss)
           ss->create_edge(y, x, i);
@@ -269,7 +281,7 @@ void OrbitPartition::add_to_partition(unsigned x, int i)
   if (i >= static_cast<int>(_partitions.size()) - 1)
     _partitions.resize(i + 1);
 
-  _partitions[i].push_back(x);
+  _partitions[i].insert(x);
 }
 
 void OrbitPartition::update_partitions()

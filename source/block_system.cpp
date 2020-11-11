@@ -391,11 +391,12 @@ std::vector<BlockSystem> BlockSystem::non_trivial_transitive(
 
   // iterate over orbit partition of stabilizer subgroup
   for (auto const &orbit : OrbitPartition(stab.degree(), stab)) {
-    if (orbit[0] == first_base_elem)
+    if (*orbit.begin() == first_base_elem)
       continue;
 
     // find minimal blocksystem corresponding to orbit
-    auto bs(BlockSystem::minimal(pg.generators(), {first_base_elem, orbit[0]}));
+    auto bs(BlockSystem::minimal(pg.generators(),
+                                 {first_base_elem, *orbit.begin()}));
 
     if (!bs.trivial()) {
       DBG(TRACE) << "Found blocksystem:";

@@ -230,9 +230,11 @@ Perm PermGroup::random_element() const
 
   Perm result(degree());
   for (unsigned i = 0u; i < _bsgs.base_size(); ++i) {
-    std::vector<unsigned> orbit = _bsgs.orbit(i);
+    auto orbit(_bsgs.orbit(i));
+
     std::uniform_int_distribution<> d(0u, orbit.size() - 1u);
-    result *= _bsgs.transversal(i, orbit[d(re)]);
+
+    result *= _bsgs.transversal(i, *(orbit.begin() + d(re)));
   }
 
   return result;
