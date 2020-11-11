@@ -99,7 +99,7 @@ public:
   }
 
   std::vector<unsigned> vect() const
-  { return std::vector<unsigned>(_perm.begin() + 1, _perm.end()); }
+  { return std::vector<unsigned>(_perm.begin(), _perm.end()); }
 
   std::vector<std::vector<unsigned>> cycles() const;
 

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iterator>
+#include <numeric>
 #include <ostream>
 #include <set>
 #include <vector>
@@ -17,64 +18,53 @@ namespace internal
 
 Perm::Perm(unsigned deg)
 : _degree(deg),
-  _perm(deg + 1u)
-{
-  assert(degree() > 0u && "permutation degree > 0");
-
-  for (unsigned i = 1u; i <= degree(); ++i)
-    _perm[i] = i;
-}
-
-Perm::Perm(std::vector<unsigned> const &perm)
-: _degree(*std::max_element(perm.begin(), perm.end())),
-  _perm(perm.size() + 1u)
-{
-  assert(perm.size() == degree() &&
-    "explicit permutation description has correct length");
-
-#ifndef NDEBUG
-  if (degree() == 0u)
-    return;
-
-  std::set<unsigned> tmp(perm.begin(), perm.end());
-  bool full_range = (*tmp.begin() == 1u) && (*tmp.rbegin() == degree());
-#endif
-
-  assert(tmp.size() == degree() &&
-    "explicit permutation description does not contain duplicate elements");
-
-  assert(full_range &&
-    "explicit permutation description contains all elements from 1 to N");
-
-  std::copy(perm.begin(), perm.end(), _perm.begin() + 1u);
-}
-
-Perm::Perm(unsigned n, std::vector<std::vector<unsigned>> const &cycles)
-: Perm(n)
+  _perm(deg)
 {
   assert(degree() > 0u);
 
+  std::iota(_perm.begin(), _perm.end(), 0u);
+}
+
+Perm::Perm(std::vector<unsigned> const &perm)
+{
+  _perm = perm;
+
+  assert(!_perm.empty());
+
+  _degree = *std::max_element(_perm.begin(), _perm.end()) + 1u;
+
+  assert(_perm.size() == degree());
+
+#ifndef NDEBUG
+  std::set<unsigned> domain(_perm.begin(), _perm.end());
+
+  assert(domain.size() == degree());
+  assert(*domain.begin() == 0u);
+  assert(*domain.rbegin() == degree() - 1u);
+#endif
+}
+
+Perm::Perm(unsigned deg, std::vector<std::vector<unsigned>> const &cycles)
+: Perm(deg)
+{
   if (cycles.size() == 0u)
     return;
 
   if (cycles.size() == 1u) {
     std::vector<unsigned> const &cycle = cycles[0];
 
-    assert(cycle.size() <= degree() && "cycle has plausible length");
+    assert(cycle.size() <= degree());
 
 #ifndef NDEBUG
-    std::set<unsigned> tmp(cycle.begin(), cycle.end());
+    std::set<unsigned> cycle_domain(cycle.begin(), cycle.end());
+
+    assert(*cycle_domain.rbegin() < degree());
+    assert(cycle_domain.size() == cycle.size());
 #endif
 
-    assert(*tmp.rbegin() <= degree() &&
-      "cycle does not contain elements > N");
-    assert(tmp.size() == cycle.size() &&
-      "cycle does not contain duplicate elements");
-
     for (auto i = 1u; i < cycle.size(); ++i) {
-      unsigned tmp = cycle[i];
-      assert(tmp <= degree() && "cycle element <= N");
-      _perm[cycle[i - 1u]] = tmp;
+      assert(cycle[i] < degree());
+      _perm[cycle[i - 1u]] = cycle[i];
     }
 
     _perm[cycle.back()] = cycle[0];
@@ -85,9 +75,9 @@ Perm::Perm(unsigned n, std::vector<std::vector<unsigned>> const &cycles)
   }
 }
 
-unsigned const& Perm::operator[](unsigned const i) const
+unsigned const& Perm::operator[](unsigned i) const
 {
-  assert(i > 0u && i <= degree() && "permutation index valid");
+  assert(i < degree());
   return _perm[i];
 }
 
@@ -95,8 +85,8 @@ Perm Perm::operator~() const
 {
   std::vector<unsigned> inverse(degree());
 
-  for (unsigned i = 1u; i <= degree(); ++i)
-    inverse[(*this)[i] - 1u] = i;
+  for (unsigned i = 0u; i < degree(); ++i)
+    inverse[(*this)[i]] = i;
 
   return Perm(inverse);
 }
@@ -115,9 +105,9 @@ std::ostream &operator<<(std::ostream &os, const Perm &perm)
 
 bool Perm::operator==(Perm const &rhs) const
 {
-  assert(rhs.degree() == degree() && "comparing permutations of equal degree");
+  assert(rhs.degree() == degree());
 
-  for (unsigned i = 1u; i <= degree(); ++i) {
+  for (unsigned i = 0u; i < degree(); ++i) {
     if ((*this)[i] != rhs[i])
       return false;
   }
@@ -130,9 +120,9 @@ bool Perm::operator<(Perm const &rhs) const
 
 Perm& Perm::operator*=(Perm const &rhs)
 {
-  assert(rhs.degree() == degree() && "multiplying permutations of equal degree");
+  assert(rhs.degree() == degree());
 
-  for (unsigned i = 1u; i <= rhs.degree(); ++i)
+  for (unsigned i = 0u; i < rhs.degree(); ++i)
     _perm[i] = rhs[(*this)[i]];
 
   return *this;
@@ -140,7 +130,7 @@ Perm& Perm::operator*=(Perm const &rhs)
 
 bool Perm::id() const
 {
-  for (unsigned i = 1u; i <= degree(); ++i) {
+  for (unsigned i = 0u; i < degree(); ++i) {
     if ((*this)[i] != i)
       return false;
   }
@@ -168,7 +158,7 @@ std::vector<std::vector<unsigned>> Perm::cycles() const
   std::set<unsigned> done;
 
   unsigned first, current;
-  first = current = 1u;
+  first = current = 0u;
 
   for (;;) {
     done.insert(current);
@@ -185,7 +175,7 @@ std::vector<std::vector<unsigned>> Perm::cycles() const
       if (done.size() == degree())
         return result;
 
-      for (unsigned i = 1u; i <= degree(); ++i) {
+      for (unsigned i = 0u; i < degree(); ++i) {
         if (done.find(i) == done.end()) {
           first = i;
           current = i;
@@ -206,10 +196,10 @@ Perm Perm::extended(unsigned deg) const
   std::vector<unsigned> perm(deg);
 
   for (unsigned i = 0u; i < degree(); ++i)
-    perm[i] = (*this)[i + 1u];
+    perm[i] = (*this)[i];
 
-  for (unsigned i = degree() + 1u; i <= deg; ++i)
-    perm[i - 1u] = i;
+  for (unsigned i = degree(); i < deg; ++i)
+    perm[i] = i;
 
   return Perm(perm);
 }
@@ -219,23 +209,23 @@ Perm Perm::normalized(unsigned low, unsigned high) const
   std::vector<unsigned> perm_normalized(high - low + 1u);
 
   for (auto i = low; i <= high; ++i)
-    perm_normalized[i - low] = (*this)[i] - low + 1u;
+    perm_normalized[i - low] = (*this)[i] - low;
 
   return Perm(perm_normalized);
 }
 
 Perm Perm::shifted(unsigned shift) const
 {
-  if (shift == 0 || degree() == 0u)
+  if (shift == 0)
     return *this;
 
   std::vector<unsigned> perm_shifted(degree() + shift);
 
-  for (unsigned i = 1u; i <= shift; ++i)
-    perm_shifted[i - 1u] = i;
+  for (unsigned i = 0u; i < shift; ++i)
+    perm_shifted[i] = i;
 
-  for (unsigned i = 1u; i <= degree(); ++i)
-    perm_shifted[i + shift - 1u] = (*this)[i] + shift;
+  for (unsigned i = 0u; i < degree(); ++i)
+    perm_shifted[i + shift] = (*this)[i] + shift;
 
   return Perm(perm_shifted);
 }
