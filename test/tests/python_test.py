@@ -123,8 +123,6 @@ class PermGroupTest(unittest.TestCase):
 
     def test_properties(self):
         self.assertFalse(self.pg.is_symmetric())
-        self.assertTrue(self.pg.is_alternating())
-        self.assertFalse(self.pg.is_symmetric())
 
 
 class ArchGraphSystemTest(unittest.TestCase):

@@ -89,8 +89,6 @@ BSGS::BSGS(unsigned degree,
 
     if (pr.test_symmetric()) {
       construct_symmetric();
-    } else if (pr.test_alternating()) {
-      construct_alternating();
     } else {
       construct_unknown(generators, &options, aborted);
     }
@@ -244,31 +242,6 @@ void BSGS::construct_symmetric()
   }
 
   _is_symmetric = true;
-}
-
-void BSGS::construct_alternating()
-{
-  DBG(DEBUG) << "Group is alternating";
-
-  if (_degree < 2u)
-    return;
-
-  _base.resize(_degree - 2u);
-  std::iota(_base.begin(), _base.end(), 1u);
-
-  for (unsigned i = _degree - 2u; i > 0u; --i)
-    _strong_generators.insert(Perm(_degree, {{i, _degree - 1u, _degree}}));
-
-  _strong_generators.insert_inverses();
-
-  for (unsigned i = 0u; i < _base.size(); ++i) {
-    PermSet tmp(_strong_generators.subset(0, _degree - i - 2u));
-    tmp.insert_inverses();
-
-    update_schreier_structure(i, tmp);
-  }
-
-  _is_alternating = true;
 }
 
 void BSGS::construct_unknown(PermSet const &generators,

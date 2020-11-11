@@ -74,11 +74,6 @@ TEST(PermGroupTest, CanObtainOrder)
     EXPECT_EQ(i, PermGroup::cyclic(i).order())
       << "Order set correctly for cyclic group Z" << i;
   }
-
-  for (unsigned i = 3u; i <= 10u; ++i) {
-    EXPECT_EQ(util::factorial(i) / 2, PermGroup::alternating(i).order())
-      << "Order set correctly for alternating group A" << i;
-  }
 }
 
 TEST(PermGroupTest, CanCheckForSymmetricGroup)
@@ -86,14 +81,6 @@ TEST(PermGroupTest, CanCheckForSymmetricGroup)
   for (unsigned i = 1u; i < 10; ++i) {
     EXPECT_TRUE(PermGroup::symmetric(i).is_symmetric())
       << "Symmetric group correctly identified as such";
-  }
-}
-
-TEST(PermGroupTest, CanCheckForAlternatingGroup)
-{
-  for (unsigned i = 3u; i < 10; ++i) {
-    EXPECT_TRUE(PermGroup::alternating(i).is_alternating())
-      << "Alternating group correctly identified as such";
   }
 }
 
@@ -130,7 +117,7 @@ TEST(PermGroupTest, CanDetermineTrasitivity)
 
 TEST(PermGroupTest, CanTestMembership)
 {
-  PermGroup a4 = PermGroup::alternating(4);
+  PermGroup a4(verified_perm_group(A4));
 
   std::vector<Perm> expected_members {
     Perm(4),
@@ -175,7 +162,7 @@ TEST(PermGroupTest, CanTestMembership)
 
 TEST(PermGroupTest, CanGenerateRandomElement)
 {
-  PermGroup a4 = PermGroup::alternating(4);
+  PermGroup a4(verified_perm_group(A4));
 
   for (unsigned i = 0u; i < 1000u; ++i) {
     EXPECT_TRUE(a4.contains_element(a4.random_element()))
@@ -240,7 +227,7 @@ TEST(PermGroupTest, CanIterateSimplestNonTrivialGroup)
 
 TEST(PermGroupTest, CanIterateElements)
 {
-  PermGroup a4 = PermGroup::alternating(4);
+  PermGroup a4(verified_perm_group(A4));
 
   std::vector<Perm> expected_members {
     Perm(4),
@@ -752,29 +739,6 @@ TEST(SpecialPermGroupTest, CanConstructCyclicGroup)
   EXPECT_TRUE(perm_group_equal(verified_perm_group(C5),
                                PermGroup::cyclic(5)))
     << "Can construct cyclic group C_5.";
-}
-
-TEST(SpecialPermGroupTest, CanConstructAlternatingGroup)
-{
-  EXPECT_TRUE(perm_group_equal(verified_perm_group(A1),
-                               PermGroup::alternating(1)))
-    << "Can construct alternating group A_1.";
-
-  EXPECT_TRUE(perm_group_equal(verified_perm_group(A2),
-                               PermGroup::alternating(2)))
-    << "Can construct alternating group A_2.";
-
-  EXPECT_TRUE(perm_group_equal(verified_perm_group(A3),
-                               PermGroup::alternating(3)))
-    << "Can construct alternating group A_3.";
-
-  EXPECT_TRUE(perm_group_equal(verified_perm_group(A4),
-                               PermGroup::alternating(4)))
-    << "Can construct alternating group A_4.";
-
-  EXPECT_TRUE(perm_group_equal(verified_perm_group(A5),
-                               PermGroup::alternating(5)))
-    << "Can construct alternating group A_5.";
 }
 
 TEST(SpecialPermGroupTest, CanConstructDihedralGroup)

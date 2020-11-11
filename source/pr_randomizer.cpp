@@ -80,14 +80,6 @@ bool PrRandomizer::test_symmetric(double epsilon)
   return !generators_even();
 }
 
-bool PrRandomizer::test_alternating(double epsilon)
-{
-  if (!test_altsym(epsilon))
-    return false;
-
-  return generators_even();
-}
-
 bool PrRandomizer::test_altsym(double epsilon)
 {
   assert(epsilon > 0.0);

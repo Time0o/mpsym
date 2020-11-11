@@ -21,7 +21,6 @@ public:
   Perm next();
 
   bool test_symmetric(double epsilon = 1e-6);
-  bool test_alternating(double epsilon = 1e-6);
 
 private:
   bool test_altsym(double epsilon);

@@ -97,7 +97,6 @@ public:
   order_type order() const;
 
   bool is_symmetric() const { return _is_symmetric; }
-  bool is_alternating() const { return _is_alternating; }
 
   Base base() const { return _base; }
   bool base_empty() const { return _base.empty(); }

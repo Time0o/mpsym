@@ -112,11 +112,5 @@ TEST_F(PRRandomizerTest, CanTestForAltSym)
 
     EXPECT_FALSE(pr_alternating.test_symmetric())
       << "Can identify non-symmetric generating sets.";
-
-    EXPECT_TRUE(pr_alternating.test_alternating())
-      << "Can identify alternating generating sets.";
-
-    EXPECT_FALSE(pr_symmetric.test_alternating())
-      << "Can identify non-alternating generating sets.";
   }
 }
