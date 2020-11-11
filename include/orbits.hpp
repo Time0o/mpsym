@@ -19,29 +19,36 @@ namespace internal
 class PermSet;
 class SchreierStructure;
 
-class Orbit : public std::vector<unsigned>
+class Orbit
 {
   friend std::ostream &operator<<(std::ostream &os, Orbit const &o);
 
 public:
+  using value_type = unsigned;
+  using size_type = std::vector<unsigned>::size_type;
+
   using const_iterator = std::vector<unsigned>::const_iterator;
 
   Orbit()
-  : std::vector<unsigned>()
   {}
 
-  Orbit(std::initializer_list<unsigned> orbit)
-  : std::vector<unsigned>(orbit)
+  Orbit(std::initializer_list<unsigned> elements)
+  : _elements(elements)
   {}
 
   template<typename IT>
   Orbit(IT first, IT last)
-  : std::vector<unsigned>(first, last)
+  : _elements(first, last)
   {}
 
   static Orbit generate(unsigned x,
                         PermSet const &generators,
                         std::shared_ptr<SchreierStructure> ss = nullptr);
+
+  bool operator==(Orbit const &other) const;
+
+  bool operator!=(Orbit const &other) const
+  { return !(*this == other); }
 
   bool generated_by(unsigned x,
                     PermSet const &generators) const;
@@ -49,6 +56,38 @@ public:
   void update(PermSet const &generators_old,
               PermSet const &generators_new,
               std::shared_ptr<SchreierStructure> ss = nullptr);
+
+  void insert(unsigned x)
+  { _elements.push_back(x); }
+
+  template<typename IT>
+  bool erase(unsigned x)
+  {
+    for (auto it = begin(); it != end(); ++it) {
+      if (*it == x) {
+        erase(it);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  template<typename IT>
+  IT erase(IT it)
+  { return _elements.erase(it); }
+
+  bool empty() const
+  { return _elements.empty(); }
+
+  size_type size() const
+  { return _elements.size(); }
+
+  const_iterator begin() const
+  { return _elements.begin(); }
+
+  const_iterator end() const
+  { return _elements.end(); }
 
   bool contains(unsigned x) const
   { return std::find(begin(), end(), x) != end(); }
@@ -58,11 +97,13 @@ private:
               std::vector<unsigned> stack,
               std::unordered_set<unsigned> done,
               std::shared_ptr<SchreierStructure> ss);
+
+  std::vector<unsigned> _elements;
 };
 
-inline std::ostream &operator<<(std::ostream &os, Orbit const &o)
+inline std::ostream &operator<<(std::ostream &os, Orbit const &orbit)
 {
-  os << DUMP_CUSTOM(static_cast<std::vector<unsigned> const &>(o), "{}");
+  os << DUMP_CUSTOM(orbit._elements);
   return os;
 }
 
