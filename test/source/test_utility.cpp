@@ -33,11 +33,11 @@ static testing::AssertionResult _perm_equal(
   err << "Permutation differs:\n";
 
   for (unsigned i = 0u; i < perm.degree(); ++i) {
-    if (perm[i + 1u] != expected[i]) {
+    if (perm[i] != expected[i]) {
       success = false;
-      err << "@ index " << i + 1u << ":"
+      err << "@ index " << i << ":"
           << " expected " << expected[i]
-          << " but got " << perm[i + 1u] << '\n';
+          << " but got " << perm[i] << '\n';
     }
   }
 
