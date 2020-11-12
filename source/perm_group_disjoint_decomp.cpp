@@ -76,7 +76,7 @@ void PermGroup::disjoint_decomp_generate_dependency_classes(
     }
 
     // merge orbits
-    for (unsigned x = 1u; x <= degree(); ++x) {
+    for (unsigned x = 0u; x < degree(); ++x) {
       if (merge.find(orbits.partition_index(x)) != merge.end())
         orbits.change_partition(x, num_dependency_classes);
     }
@@ -152,7 +152,7 @@ std::vector<PermGroup> PermGroup::disjoint_decomp_complete_recursive(
   for (auto part = 1ULL; !(part & (1ULL << (orbits.num_partitions() - 1u))); ++part) {
     OrbitPartition orbit_split(perm_group.degree());
 
-    for (unsigned x = 1u; x <= perm_group.degree(); ++x) {
+    for (unsigned x = 0u; x < perm_group.degree(); ++x) {
       if (orbits.partition_index(x) == -1)
         continue;
 
@@ -225,7 +225,7 @@ void
 PermGroup::MovedSet::init(Perm const &perm)
 {
   clear();
-  for (unsigned i = 1u; i <= perm.degree(); ++i) {
+  for (unsigned i = 0u; i < perm.degree(); ++i) {
     if (perm[i] != i)
       push_back(i);
   }

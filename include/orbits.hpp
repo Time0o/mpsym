@@ -134,7 +134,7 @@ public:
   { return static_cast<unsigned>(_partitions.size()); }
 
   int partition_index(unsigned x) const
-  { return _partition_indices[x - 1u]; }
+  { return _partition_indices[x]; }
 
   void remove_from_partition(unsigned x);
 

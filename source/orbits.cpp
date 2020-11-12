@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
-#include <set>
 #include <unordered_set>
 #include <vector>
 
@@ -25,6 +24,8 @@ Orbit Orbit::generate(unsigned x,
   if (generators.trivial())
     return orbit;
 
+  assert(x < generators.degree());
+
   generators.assert_inverses();
 
   orbit.extend(generators, {x}, {x}, ss);
@@ -47,6 +48,8 @@ bool Orbit::generated_by(unsigned x, PermSet const &generators) const
 {
   if (generators.trivial())
     return size() == 1u && _elements[0] == x;
+
+  assert(x < generators.degree());
 
   // this orbit
   std::unordered_set<unsigned> this_orbit;
@@ -101,6 +104,11 @@ void Orbit::update(PermSet const &generators_old,
   if (generators_new.trivial())
     return;
 
+#ifndef NDEBUG
+  if (!generators_old.trivial())
+    assert(generators_new.degree() == generators_old.degree());
+#endif
+
   generators_old.assert_inverses();
   generators_new.assert_inverses();
 
@@ -143,6 +151,8 @@ void Orbit::extend(PermSet const &generators,
     unsigned x = stack.back();
     stack.pop_back();
 
+    assert(x < generators.degree());
+
     for (auto i = 0u; i < generators.size(); ++i) {
       unsigned y = generators[i][x];
 
@@ -167,7 +177,16 @@ OrbitPartition::OrbitPartition(unsigned degree,
                                std::vector<Orbit> const &partitions)
 : _partitions(partitions),
   _partition_indices(degree, -1)
-{ update_partition_indices(); }
+{
+#ifndef NDEBUG
+  for (auto const &part : partitions) {
+    for (unsigned x : part)
+      assert(x < degree);
+  }
+#endif
+
+  update_partition_indices();
+}
 
 OrbitPartition::OrbitPartition(unsigned degree,
                                std::vector<int> const &partition_indices)
@@ -188,10 +207,12 @@ OrbitPartition::OrbitPartition(unsigned degree, PermSet const &generators)
   if (generators.trivial())
     return;
 
-  std::vector<int> processed(generators.degree() + 1u, 0);
+  assert(generators.degree() == degree);
+
+  std::vector<int> processed(generators.degree(), 0);
   unsigned num_processed = 0u;
 
-  unsigned x = 1u;
+  unsigned x = 0u;
 
   for (;;) {
     auto orbit(Orbit::generate(x, generators.with_inverses()));
@@ -223,14 +244,14 @@ std::vector<OrbitPartition> OrbitPartition::split(
   for (auto &partition_indices : split_partition_indices)
     partition_indices.resize(_partition_indices.size());
 
-  for (unsigned x = 1u; x <= _partition_indices.size(); ++x) {
+  for (unsigned x = 0u; x < _partition_indices.size(); ++x) {
     int i = split.partition_index(x);
     int j = partition_index(x);
 
     if (new_partition_indices[j] == -1)
       new_partition_indices[j] = current_partitions_indices[i]++;
 
-    split_partition_indices[i][x - 1u] = new_partition_indices[j];
+    split_partition_indices[i][x] = new_partition_indices[j];
   }
 
   std::vector<OrbitPartition> res;
@@ -242,7 +263,9 @@ std::vector<OrbitPartition> OrbitPartition::split(
 
 void OrbitPartition::remove_from_partition(unsigned x)
 {
-  int i = _partition_indices[x - 1u];
+  assert(x < _partition_indices.size());
+
+  int i = _partition_indices[x];
 
   if (i == -1)
     return;
@@ -250,17 +273,19 @@ void OrbitPartition::remove_from_partition(unsigned x)
   _partitions[i].erase(
     std::find(_partitions[i].begin(), _partitions[i].end(), x));
 
-  _partition_indices[x - 1u] = -1;
+  _partition_indices[x] = -1;
 }
 
 void OrbitPartition::change_partition(unsigned x, int i)
 {
+  assert(x < _partition_indices.size());
+
   if (i < 0) {
     remove_from_partition(x);
     return;
   }
 
-  _partition_indices[x - 1u] = i;
+  _partition_indices[x] = i;
 
   for (auto p_it = _partitions.begin(); p_it != _partitions.end(); ++p_it) {
     auto e_it = std::find(p_it->begin(), p_it->end(), x);
@@ -288,7 +313,7 @@ void OrbitPartition::add_to_partition(unsigned x, int i)
 
 void OrbitPartition::update_partitions()
 {
-  for (unsigned x = 1u; x <= _partition_indices.size(); ++x) {
+  for (unsigned x = 0u; x < _partition_indices.size(); ++x) {
     int i = partition_index(x);
 
     if (i == -1)
@@ -302,7 +327,7 @@ void OrbitPartition::update_partition_indices()
 {
   for (int i = 0; i < static_cast<int>(_partitions.size()); ++i) {
     for (unsigned x : _partitions[i])
-      _partition_indices[x - 1u] = i;
+      _partition_indices[x] = i;
   }
 }
 
