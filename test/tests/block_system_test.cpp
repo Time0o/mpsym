@@ -74,16 +74,16 @@ TEST(BlockSystemTest, CanFindMinimalBlockSystem)
 {
   std::vector<PermSet> generators {
     {
-       Perm(6, {{1, 2, 3, 4, 5, 6}}),
-       Perm(6, {{2, 6}, {3, 5}})
+       Perm(6, {{0, 1, 2, 3, 4, 5}}),
+       Perm(6, {{1, 5}, {2, 4}})
     },
     {
-      Perm(9, {{1, 3}}),
-      Perm(9, {{1, 4}, {2, 5}, {3, 6}}),
-      Perm(9, {{4, 6}}),
-      Perm(9, {{4, 7}, {5, 8}, {6, 9}}),
-      Perm(9, {{7, 8}}),
-      Perm(9, {{8, 9}})
+      Perm(9, {{0, 2}}),
+      Perm(9, {{0, 3}, {1, 4}, {2, 5}}),
+      Perm(9, {{3, 5}}),
+      Perm(9, {{3, 6}, {4, 7}, {5, 8}}),
+      Perm(9, {{6, 7}}),
+      Perm(9, {{7, 8}})
     }
   };
 
@@ -93,8 +93,8 @@ TEST(BlockSystemTest, CanFindMinimalBlockSystem)
   };
 
   std::vector<std::vector<BlockSystem::Block>> expected_block_systems {
-    {{1, 3, 5}, {2, 4, 6}},
-    {{1, 2, 3, 4, 5, 6, 7, 8, 9}}
+    {{0, 2, 4}, {1, 3, 5}},
+    {{0, 1, 2, 3, 4, 5, 6, 7, 8}}
   };
 
   for (auto i = 0u; i < generators.size(); ++i) {
@@ -107,19 +107,19 @@ TEST(BlockSystemTest, CanFindMinimalBlockSystem)
 
 TEST(BlockSystemTest, CanFindAllNonTrivialBlockSystemsForTransientGroup)
 {
-  PermGroup pg(9,
+  PermGroup pg(
     {
+      Perm(9, {{0, 1}}),
+      Perm(9, {{0, 2}}),
+      Perm(9, {{0, 3}, {1, 4}, {2, 5}}),
+      Perm(9, {{0, 6}, {1, 7}, {2, 8}}),
       Perm(9, {{1, 2}}),
-      Perm(9, {{1, 3}}),
-      Perm(9, {{1, 4}, {2, 5}, {3, 6}}),
-      Perm(9, {{1, 7}, {2, 8}, {3, 9}}),
-      Perm(9, {{2, 3}}),
+      Perm(9, {{3, 4}}),
+      Perm(9, {{3, 6}, {4, 7}, {5, 8}}),
       Perm(9, {{4, 5}}),
-      Perm(9, {{4, 7}, {5, 8}, {6, 9}}),
-      Perm(9, {{5, 6}}),
-      Perm(9, {{7, 8}}),
-      Perm(9, {{7, 9}}),
-      Perm(9, {{8, 9}})
+      Perm(9, {{6, 7}}),
+      Perm(9, {{6, 8}}),
+      Perm(9, {{7, 8}})
     }
   );
 
@@ -131,23 +131,23 @@ TEST(BlockSystemTest, CanFindAllNonTrivialBlockSystemsForTransientGroup)
   ASSERT_EQ(1u, block_systems.size())
     << "Correct number of block systems found.";
 
-  EXPECT_TRUE(block_system_equal({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}},
+  EXPECT_TRUE(block_system_equal({{0, 1, 2}, {3, 4, 5}, {6, 7, 8}},
               block_systems[0]))
     << "Correct block systems determined.";
 }
 
 TEST(BlockSystemTest, CanFindAllNonTrivialBlockSystemsForNonTransientGroup)
 {
-  PermGroup pg(12,
+  PermGroup pg(
     {
+      Perm(12, {{0, 1}}),
       Perm(12, {{1, 2}}),
-      Perm(12, {{2, 3}}),
+      Perm(12, {{3, 4}}),
       Perm(12, {{4, 5}}),
-      Perm(12, {{5, 6}}),
+      Perm(12, {{6, 7}}),
       Perm(12, {{7, 8}}),
-      Perm(12, {{8, 9}}),
-      Perm(12, {{1, 4}, {2, 5}, {3, 6}, {10, 11}}),
-      Perm(12, {{4, 7}, {5, 8}, {6, 9}, {11, 12}})
+      Perm(12, {{0, 3}, {1, 4}, {2, 5}, {9, 10}}),
+      Perm(12, {{3, 6}, {4, 7}, {5, 8}, {10, 11}})
     }
   );
 
@@ -159,7 +159,7 @@ TEST(BlockSystemTest, CanFindAllNonTrivialBlockSystemsForNonTransientGroup)
   ASSERT_EQ(1u, block_systems.size())
     << "Correct number of block systems found.";
 
-  EXPECT_TRUE(block_system_equal({{1, 2, 3, 10}, {4, 5, 6, 11}, {7, 8, 9, 12}},
+  EXPECT_TRUE(block_system_equal({{0, 1, 2, 9}, {3, 4, 5, 10}, {6, 7, 8, 11}},
               block_systems[0]))
     << "Correct block systems determined.";
 }
