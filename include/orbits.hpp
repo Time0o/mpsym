@@ -122,6 +122,12 @@ public:
 
   OrbitPartition(unsigned degree, PermSet const &generators);
 
+  bool operator==(OrbitPartition const &other) const
+  { return _partition_indices == other._partition_indices; }
+
+  bool operator!=(OrbitPartition const &other) const
+  { return !(*this == other); }
+
   std::vector<OrbitPartition> split(OrbitPartition const &split) const;
 
   unsigned num_partitions() const
