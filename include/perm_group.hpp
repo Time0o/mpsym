@@ -66,6 +66,10 @@ public:
     _order(bsgs.order())
   {}
 
+  PermGroup(PermSet const &generators)
+  : PermGroup(generators.degree(), generators)
+  {}
+
   PermGroup(unsigned degree, PermSet const &generators);
 
   static PermGroup symmetric(unsigned degree);
