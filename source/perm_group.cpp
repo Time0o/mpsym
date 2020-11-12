@@ -59,10 +59,10 @@ PermGroup PermGroup::symmetric(unsigned degree)
     return PermGroup(1u, {Perm(1u)});
 
   std::vector<unsigned> gen;
-  for (unsigned i = 1u; i <= degree; ++i)
+  for (unsigned i = 0u; i < degree; ++i)
     gen.push_back(i);
 
-  return PermGroup(degree, {Perm(degree, {{1, 2}}), Perm(degree, {gen})});
+  return PermGroup(degree, {Perm(degree, {{0, 1}}), Perm(degree, {gen})});
 }
 
 PermGroup PermGroup::cyclic(unsigned degree)
@@ -72,7 +72,7 @@ PermGroup PermGroup::cyclic(unsigned degree)
   assert(degree > 0u);
 
   std::vector<unsigned> gen;
-  for (unsigned i = 1u; i <= degree; ++i)
+  for (unsigned i = 0u; i < degree; ++i)
     gen.push_back(i);
 
   return PermGroup(degree, {Perm(degree, {gen})});
@@ -85,31 +85,31 @@ PermGroup PermGroup::dihedral(unsigned degree)
   assert(degree > 0u && degree % 2 == 0);
 
   if (degree == 2u)
-    return PermGroup(2, {Perm({2, 1})});
+    return PermGroup(2, {Perm({1, 0})});
 
   if (degree == 4u)
-    return PermGroup(4, {Perm({2, 1, 3, 4}), Perm({1, 2, 4, 3})});
+    return PermGroup(4, {Perm({1, 0, 2, 3}), Perm({0, 1, 3, 2})});
 
   std::vector<unsigned> rotation(degree / 2u);
 
   // rotation
   for (unsigned i = 0u; i < degree / 2u - 1u; ++i)
-    rotation[i] = i + 2u;
+    rotation[i] = i + 1u;
 
-  rotation[degree / 2u - 1u] = 1u;
+  rotation[degree / 2u - 1u] = 0u;
 
   // reflection
   std::vector<unsigned> reflection(degree / 2u);
 
-  reflection[0] = 1u;
+  reflection[0] = 0u;
 
   for (unsigned i = 1u; i < (degree / 2u + 1u) / 2u; ++i) {
-    reflection[i] = degree / 2u - i + 1u;
-    reflection[degree / 2u - i] = i + 1u;
+    reflection[i] = degree / 2u - i;
+    reflection[degree / 2u - i] = i;
   }
 
   if ((degree / 2u) % 2 == 0)
-    reflection[degree / 4u] = degree / 4u + 1u;
+    reflection[degree / 4u] = degree / 4u;
 
   return PermGroup(degree / 2u, {Perm(rotation), Perm(reflection)});
 }
@@ -152,7 +152,7 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs,
       std::vector<std::vector<unsigned>> cycles {gen.cycles()};
       for (auto &cycle : cycles) {
         for (unsigned &x : cycle)
-          x = (x - 1u) * lhs.degree() + 1u;
+          x = x * lhs.degree();
       }
 
       std::vector<std::vector<unsigned>> shifted_cycles {cycles};
