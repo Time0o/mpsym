@@ -83,6 +83,12 @@ public:
 
   explicit BSGS(unsigned degree = 1);
 
+  BSGS(PermSet const &generators,
+       BSGSOptions const *options = nullptr,
+       timeout::flag aborted = timeout::unset())
+  : BSGS(generators.degree(), generators, options, aborted)
+  {}
+
   BSGS(unsigned degree,
        PermSet const &generators,
        BSGSOptions const *options = nullptr,
