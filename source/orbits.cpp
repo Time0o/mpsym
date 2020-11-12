@@ -107,8 +107,10 @@ void Orbit::update(PermSet const &generators_old,
   auto generators(generators_old);
   generators.insert(generators_new.begin(), generators_new.end());
 
-  for (Perm const &gen_new : generators_new)
-    ss->add_label(gen_new);
+  if (ss) {
+    for (Perm const &gen_new : generators_new)
+      ss->add_label(gen_new);
+  }
 
   std::vector<unsigned> stack;
   std::unordered_set<unsigned> done(begin(), end());
