@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
+#include <numeric>
 #include <queue>
 #include <stdexcept>
 #include <unordered_set>
@@ -19,7 +20,7 @@ unsigned PermSet::smallest_moved_point() const
 {
   assert(!trivial());
 
-  for (unsigned smp = 1u; smp <= degree(); ++smp) {
+  for (unsigned smp = 0u; smp < degree(); ++smp) {
     for (auto const &perm : *this) {
       if (perm[smp] != smp)
         return smp;
@@ -33,7 +34,7 @@ unsigned PermSet::largest_moved_point() const
 {
   assert(!trivial());
 
-  for (unsigned lmp = degree(); lmp >= 1u; --lmp) {
+  for (int lmp = static_cast<int>(degree() - 1u); lmp >= 0; --lmp) {
     for (auto const &perm : *this) {
       if (perm[lmp] != lmp)
         return lmp;
@@ -79,14 +80,14 @@ void PermSet::minimize_degree()
   std::vector<std::vector<unsigned>> moved_sets(size());
 
   std::vector<unsigned> compression_mapping(degree());
-  for (unsigned i = 1u; i <= degree(); ++i)
-    compression_mapping[i - 1u] = i;
+  for (unsigned i = 0u; i < degree(); ++i)
+    compression_mapping[i] = i;
 
   std::queue<unsigned> non_moved_queue;
 
   unsigned new_degree = 1u;
 
-  for (unsigned i = 1u; i <= degree(); ++i) {
+  for (unsigned i = 0u; i < degree(); ++i) {
     bool moved = false;
     for (auto j = 0u; j < _perms.size(); ++j) {
       if (_perms[j][i] != i) {
@@ -98,13 +99,13 @@ void PermSet::minimize_degree()
     if (moved) {
       if (!non_moved_queue.empty()) {
         unsigned compress_to = non_moved_queue.front();
-        compression_mapping[i - 1u] = compress_to;
-        new_degree = compress_to;
+        compression_mapping[i] = compress_to;
+        new_degree = compress_to + 1u;
 
         non_moved_queue.pop();
         non_moved_queue.push(i);
       } else {
-        new_degree = i;
+        new_degree = i + 1u;
       }
     } else {
       non_moved_queue.push(i);
@@ -112,8 +113,7 @@ void PermSet::minimize_degree()
   }
 
   std::vector<unsigned> id(new_degree);
-  for (unsigned i = 1u; i <= new_degree; ++i)
-    id[i - 1u] = i;
+  std::iota(id.begin(), id.end(), 0u);
 
   for (unsigned i = 0u; i < _perms.size(); ++i) {
     auto gen(id);
@@ -121,7 +121,7 @@ void PermSet::minimize_degree()
       unsigned x = moved_sets[i][j];
       unsigned y = _perms[i][x];
 
-      gen[compression_mapping[x - 1u] - 1u] = compression_mapping[y - 1u];
+      gen[compression_mapping[x]] = compression_mapping[y];
     }
 
     _perms[i] = Perm(gen);
