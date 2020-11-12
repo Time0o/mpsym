@@ -10,13 +10,7 @@
 #include "perm_group.hpp"
 #include "perm_set.hpp"
 
-enum VerifiedGroup {
-  S1, S2, S3, S4, S5,
-  C1, C2, C3, C4, C5,
-  A1, A2, A3, A4, A5,
-  D2, D4, D6, D8, D10,
-  D12
-};
+enum VerifiedGroup { A1, A2, A3, A4, A5 };
 
 testing::AssertionResult perm_equal(std::vector<unsigned> const &expected,
   mpsym::internal::Perm const &perm);
