@@ -13,6 +13,7 @@
 #include "iterator.hpp"
 #include "perm.hpp"
 #include "perm_set.hpp"
+#include "timeout.hpp"
 
 namespace mpsym
 {
@@ -74,7 +75,8 @@ public:
   template<typename IT>
   static PermGroup direct_product(IT first,
                                   IT last,
-                                  BSGSOptions const *bsgs_options_ = nullptr)
+                                  BSGSOptions const *bsgs_options_ = nullptr,
+                                  timeout::flag aborted = timeout::unset())
   {
     assert(std::distance(first, last) > 0);
 
@@ -102,7 +104,7 @@ public:
     auto bsgs_options(BSGSOptions::fill_defaults(bsgs_options_));
     bsgs_options.schreier_sims_random_known_order = dp_order;
 
-    return PermGroup(BSGS(dp_degree, dp_generators, &bsgs_options));
+    return PermGroup(BSGS(dp_degree, dp_generators, &bsgs_options, aborted));
   }
 
   template<typename IT>
@@ -118,7 +120,8 @@ public:
 
   static PermGroup wreath_product(PermGroup const &lhs,
                                   PermGroup const &rhs,
-                                  BSGSOptions const *bsgs_options = nullptr);
+                                  BSGSOptions const *bsgs_options = nullptr,
+                                  timeout::flag aborted = timeout::unset());
 
   static BSGS::order_type wreath_product_order(PermGroup const &lhs,
                                                PermGroup const &rhs);

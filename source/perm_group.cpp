@@ -116,7 +116,8 @@ PermGroup PermGroup::dihedral(unsigned degree)
 
 PermGroup PermGroup::wreath_product(PermGroup const &lhs,
                                     PermGroup const &rhs,
-                                    BSGSOptions const *bsgs_options_)
+                                    BSGSOptions const *bsgs_options_,
+                                    timeout::flag aborted)
 {
   // degree of wreath product
   unsigned wp_degree = lhs.degree() * rhs.degree();
@@ -175,7 +176,7 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs,
   auto bsgs_options(BSGSOptions::fill_defaults(bsgs_options_));
   bsgs_options.schreier_sims_random_known_order = wp_order;
 
-  return PermGroup(BSGS(wp_degree, wp_generators, &bsgs_options));
+  return PermGroup(BSGS(wp_degree, wp_generators, &bsgs_options, aborted));
 }
 
 BSGS::order_type PermGroup::wreath_product_order(PermGroup const &lhs,

@@ -148,7 +148,8 @@ ArchUniformSuperGraph::automorphisms_(AutomorphismOptions const *options,
   return PermGroup::wreath_product(
     _subsystem_proto->automorphisms(options, aborted),
     _subsystem_super_graph->automorphisms(options, aborted),
-    options);
+    options,
+    aborted);
 }
 
 void
