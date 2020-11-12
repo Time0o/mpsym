@@ -126,7 +126,7 @@ private:
   {
     for (auto i = 0u; i < size(); ++i) {
       unsigned task = (*this)[i];
-      if (task <= offset || task > degree + offset)
+      if (task < offset || task >= degree + offset)
         continue;
 
       unsigned task_permuted = perm(task - offset) + offset;

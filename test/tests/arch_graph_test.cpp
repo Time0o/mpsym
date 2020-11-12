@@ -32,8 +32,8 @@ static void expect_generates_orbits(
 {
   std::unordered_map<TaskMapping, std::vector<TaskMapping>> orbits;
 
-  for (auto i = 1u; i <= ag->num_processors(); ++i) {
-    for (auto j = 1u; j <= ag->num_processors(); ++j) {
+  for (auto i = 0u; i < ag->num_processors(); ++i) {
+    for (auto j = 0u; j < ag->num_processors(); ++j) {
       TaskMapping mapping({i, j});
 
       ReprOptions options;
@@ -278,42 +278,42 @@ class ArchGraphTest : public ArchGraphTestBase<testing::Test>{};
 TEST_F(ArchGraphTest, CanObtainAutomorphisms)
 {
   EXPECT_TRUE(perm_group_equal({
-      Perm(4, {{1, 2, 3, 4}}),
-      Perm(4, {{1, 3}, {2, 4}}),
-      Perm(4, {{1, 4, 3, 2}}),
-      Perm(4, {{1, 4}, {2, 3}}),
-      Perm(4, {{1, 2}, {3, 4}}),
-      Perm(4, {{1, 3}}),
-      Perm(4, {{2, 4}})
+      Perm(4, {{0, 1, 2, 3}}),
+      Perm(4, {{0, 2}, {1, 3}}),
+      Perm(4, {{0, 3, 2, 1}}),
+      Perm(4, {{0, 3}, {1, 2}}),
+      Perm(4, {{0, 1}, {2, 3}}),
+      Perm(4, {{0, 2}}),
+      Perm(4, {{1, 3}})
     }, ag_nocol().automorphisms()))
     << "Automorphisms of uncolored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
-      Perm(4, {{1, 3}, {2, 4}}),
-      Perm(4, {{1, 3}}),
-      Perm(4, {{2, 4}})
+      Perm(4, {{0, 2}, {1, 3}}),
+      Perm(4, {{0, 2}}),
+      Perm(4, {{1, 3}})
     }, ag_vcol().automorphisms()))
     << "Automorphisms of processor colored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
-      Perm(4, {{1, 3}, {2, 4}}),
-      Perm(4, {{1, 4}, {2, 3}}),
-      Perm(4, {{1, 2}, {3, 4}})
+      Perm(4, {{0, 2}, {1, 3}}),
+      Perm(4, {{0, 3}, {1, 2}}),
+      Perm(4, {{0, 1}, {2, 3}})
     },
     ag_ecol().automorphisms()))
     << "Automorphisms of channel colored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
-      Perm(4, {{1, 3}, {2, 4}})
+      Perm(4, {{0, 2}, {1, 3}})
     }, ag_tcol().automorphisms()))
     << "Automorphisms of totally colored architecture graph correct.";
 
   EXPECT_TRUE(perm_group_equal({
-      Perm(3, {{1, 2, 3}}),
-      Perm(3, {{1, 2}}),
-      Perm(3, {{1, 3, 2}}),
-      Perm(3, {{1, 3}}),
-      Perm(3, {{2, 3}})
+      Perm(3, {{0, 1, 2}}),
+      Perm(3, {{0, 1}}),
+      Perm(3, {{0, 2, 1}}),
+      Perm(3, {{0, 2}}),
+      Perm(3, {{1, 2}})
     }, ag_tri().automorphisms()))
     << "Automorphisms of minimal triangular architecture graph correct.";
 }
@@ -333,33 +333,33 @@ TEST_P(ArchGraphReprVariantTest, CanTestReprEquivalence)
 
   std::vector<std::vector<orbit>> const expected_orbits {
     {
-      {{1, 1}, {2, 2}, {3, 3}, {4, 4}},
-      {{1, 2}, {1, 4}, {2, 1}, {2, 3}, {3, 2}, {3, 4}, {4, 1}, {4, 3}},
-      {{1, 3}, {2, 4}, {3, 1}, {4, 2}}
+      {{0, 0}, {1, 1}, {2, 2}, {3, 3}},
+      {{0, 1}, {0, 3}, {1, 0}, {1, 2}, {2, 1}, {2, 3}, {3, 0}, {3, 2}},
+      {{0, 2}, {1, 3}, {2, 0}, {3, 1}}
     },
     {
+      {{0, 0}, {2, 2}},
+      {{0, 1}, {0, 3}, {2, 1}, {2, 3}},
+      {{0, 2}, {2, 0}},
+      {{1, 0}, {1, 2}, {3, 0}, {3, 2}},
       {{1, 1}, {3, 3}},
-      {{1, 2}, {1, 4}, {3, 2}, {3, 4}},
-      {{1, 3}, {3, 1}},
-      {{2, 1}, {2, 3}, {4, 1}, {4, 3}},
-      {{2, 2}, {4, 4}},
-      {{2, 4}, {4, 2}}
+      {{1, 3}, {3, 1}}
     },
     {
-      {{1, 1}, {2, 2}, {3, 3}, {4, 4}},
-      {{1, 2}, {2, 1}, {3, 4}, {4, 3}},
-      {{1, 3}, {2, 4}, {3, 1}, {4, 2}},
-      {{1, 4}, {2, 3}, {3, 2}, {4, 1}}
+      {{0, 0}, {1, 1}, {2, 2}, {3, 3}},
+      {{0, 1}, {1, 0}, {2, 3}, {3, 2}},
+      {{0, 2}, {1, 3}, {2, 0}, {3, 1}},
+      {{0, 3}, {1, 2}, {2, 1}, {3, 0}}
     },
     {
+      {{0, 0}, {2, 2}},
+      {{0, 1}, {2, 3}},
+      {{0, 2}, {2, 0}},
+      {{0, 3}, {2, 1}},
+      {{1, 0}, {3, 2}},
       {{1, 1}, {3, 3}},
-      {{1, 2}, {3, 4}},
-      {{1, 3}, {3, 1}},
-      {{1, 4}, {3, 2}},
-      {{2, 1}, {4, 3}},
-      {{2, 2}, {4, 4}},
-      {{2, 3}, {4, 1}},
-      {{2, 4}, {4, 2}}
+      {{1, 2}, {3, 0}},
+      {{1, 3}, {3, 1}}
     },
   };
 
@@ -433,9 +433,9 @@ TEST_F(ArchGraphClusterTest, CanDetermineNumberOfChannels)
 TEST_F(ArchGraphClusterTest, CanObtainAutormorphisms)
 {
   EXPECT_TRUE(perm_group_equal({
-      Perm(4, {{1, 2}}),
-      Perm(4, {{3, 4}}),
-      Perm(4, {{1, 2}, {3, 4}})
+      Perm(4, {{0, 1}}),
+      Perm(4, {{2, 3}}),
+      Perm(4, {{0, 1}, {2, 3}})
     }, cluster_minimal->automorphisms()))
     << "Automorphisms of minimal architecture graph cluster correct.";
 }
@@ -450,12 +450,12 @@ TEST_P(ArchGraphClusterReprVariantTest, CanTestReprEquivalence)
 
   std::vector<std::vector<orbit>> const expected_orbits {
     {
-      {{1, 1}, {2, 2}},
-      {{1, 2}, {2, 1}},
-      {{1, 3}, {1, 4}, {2, 3}, {2, 4}},
-      {{3, 1}, {3, 2}, {4, 1}, {4, 2}},
-      {{3, 3}, {4, 4}},
-      {{3, 4}, {4, 3}}
+      {{0, 0}, {1, 1}},
+      {{0, 1}, {1, 0}},
+      {{0, 2}, {0, 3}, {1, 2}, {1, 3}},
+      {{2, 0}, {2, 1}, {3, 0}, {3, 1}},
+      {{2, 2}, {3, 3}},
+      {{2, 3}, {3, 2}}
     }
   };
 
@@ -536,16 +536,16 @@ TEST_F(ArchUniformSuperGraphTest, CanObtainAutormorphisms)
 {
   PermGroup expected_automorphisms(12,
     {
-      Perm(12, {{1, 2}}),
-      Perm(12, {{1, 4, 7, 10}, {2, 5, 8, 11}, {3, 6, 9, 12}}),
+      Perm(12, {{0, 1}}),
+      Perm(12, {{0, 3, 6, 9}, {1, 4, 7, 10}, {2, 5, 8, 11}}),
+      Perm(12, {{9, 10}}),
       Perm(12, {{10, 11}}),
-      Perm(12, {{11, 12}}),
-      Perm(12, {{2, 3}}),
-      Perm(12, {{4, 10}, {5, 11}, {6, 12}}),
+      Perm(12, {{1, 2}}),
+      Perm(12, {{3, 9}, {4, 10}, {5, 11}}),
+      Perm(12, {{3, 4}}),
       Perm(12, {{4, 5}}),
-      Perm(12, {{5, 6}}),
-      Perm(12, {{7, 8}}),
-      Perm(12, {{8, 9}})
+      Perm(12, {{6, 7}}),
+      Perm(12, {{7, 8}})
     }
   );
 
