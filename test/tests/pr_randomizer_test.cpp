@@ -20,19 +20,19 @@ class PRRandomizerTest : public testing::Test
 {
 protected:
   std::vector<PrRandomizer> pr_randomizers {
-    PrRandomizer({Perm(4, {{2, 4}}), Perm(4, {{1, 2}, {3, 4}})})
+    PrRandomizer({Perm(4, {{1, 3}}), Perm(4, {{0, 1}, {2, 3}})})
   };
 
   std::vector<std::vector<Perm>> pr_expected {
     std::vector<Perm> {
       Perm(4),
-      Perm(4, {{1, 2, 3, 4}}),
-      Perm(4, {{1, 3}, {2, 4}}),
-      Perm(4, {{1, 4, 3, 2}}),
-      Perm(4, {{1, 4}, {2, 3}}),
-      Perm(4, {{1, 2}, {3, 4}}),
-      Perm(4, {{1, 3}}),
-      Perm(4, {{2, 4}})
+      Perm(4, {{0, 1, 2, 3}}),
+      Perm(4, {{0, 2}, {1, 3}}),
+      Perm(4, {{0, 3, 2, 1}}),
+      Perm(4, {{0, 3}, {1, 2}}),
+      Perm(4, {{0, 1}, {2, 3}}),
+      Perm(4, {{0, 2}}),
+      Perm(4, {{1, 3}})
     }
   };
 };
@@ -86,16 +86,16 @@ TEST_F(PRRandomizerTest, CanTestForAltSym)
       return PermSet {Perm(1u)};
 
     std::vector<unsigned> chain;
-    for (unsigned i = 1u; i <= n; ++i)
+    for (unsigned i = 0u; i < n; ++i)
       chain.push_back(i);
 
-    return PermSet {Perm(n, {{1, 2}}), Perm(n, {chain})};
+    return PermSet {Perm(n, {{0, 1}}), Perm(n, {chain})};
   };
 
   auto alternating_generators = [](unsigned n) {
     PermSet gens;
-    for (unsigned i = 3u; i <= n; ++i)
-      gens.emplace(Perm(n, {{1, 2, i}}));
+    for (unsigned i = 2u; i < n; ++i)
+      gens.emplace(Perm(n, {{0, 1, i}}));
 
     return gens;
   };
