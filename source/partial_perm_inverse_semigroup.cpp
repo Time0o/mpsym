@@ -1,3 +1,4 @@
+#if 0
 #include <algorithm>
 #include <memory>
 #include <ostream>
@@ -332,3 +333,4 @@ std::ostream &operator<<(std::ostream &os,
 } // namespace internal
 
 } // namespace mpsym
+#endif
