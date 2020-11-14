@@ -98,38 +98,6 @@ Sequence<T> to_sequence(py::iterator it)
   return seq;
 }
 
-template<typename T = unsigned>
-Sequence<T> inc_sequence(Sequence<T> seq)
-{
-  std::transform(seq.begin(), seq.end(), seq.begin(),
-                 [](T x){ return x + 1; });
-
-  return seq;
-}
-
-template<typename T = unsigned>
-Sequence<T> dec_sequence(Sequence<T> seq)
-{
-  std::transform(seq.begin(), seq.end(), seq.begin(),
-                 [](T x){ return x - 1; });
-
-  return seq;
-}
-
-template<typename T, typename FUNC>
-Sequence<T> sequence_apply(Sequence<T> const &seq, FUNC &&f)
-{ return dec_sequence(to_sequence(f(inc_sequence(seq)))); }
-
-template<typename T, typename FUNC>
-Sequence<Sequence<T>> sequence_multiplex_apply(Sequence<T> const &seq, FUNC &&f)
-{
-  Sequence<Sequence<T>> seqs;
-  for (auto const &seq_ : f(inc_sequence(seq)))
-    seqs.push_back(dec_sequence(to_sequence(seq_)));
-
-  return seqs;
-}
-
 template<typename U, typename T, typename FUNC>
 Sequence<U> transform_sequence(Sequence<T> const &seq, FUNC &&f)
 {
@@ -353,10 +321,10 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                                         timeout,
                                         self,
                                         (T)&ArchGraphSystem::repr,
-                                        inc_sequence(mapping),
+                                        mapping,
                                         nullptr));
 
-           return sequence_to_tuple(dec_sequence(to_sequence(repr)));
+           return sequence_to_tuple(to_sequence(repr));
          },
          "mapping"_a, "timeout"_a = 0.0)
     .def("representative",
@@ -380,12 +348,12 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                                 timeout,
                                 self,
                                 (T)&ArchGraphSystem::repr,
-                                inc_sequence(mapping),
+                                mapping,
                                 representatives,
                                 nullptr);
 
            return std::make_tuple(
-             sequence_to_tuple(dec_sequence(to_sequence(repr))),
+             sequence_to_tuple(to_sequence(repr)),
              orbit_new,
              orbit_index);
          },
@@ -396,22 +364,17 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
              bool sorted,
              double timeout)
          {
-           auto orb(sequence_multiplex_apply(
-             mapping,
-             [&](Sequence<> const &mapping)
-             {
-               return run_abortable_with_timeout(
-                 "orbit",
-                 std::chrono::duration<double>(timeout),
-                 [&](flag aborted)
-                 { return self.orbit(mapping, aborted); });
-             }));
+           auto orbit(arch_graph_timeout("orbit",
+                                         timeout,
+                                         self,
+                                         &ArchGraphSystem::orbit,
+                                         mapping));
 
            if (sorted)
-             std::sort(orb.begin(), orb.end());
+             std::sort(orbit.begin(), orbit.end());
 
            return transform_sequence<py::tuple>(
-             orb,
+             orbit,
              [](Sequence<> const &mapping)
              { return sequence_to_tuple(mapping); });
          },
@@ -547,7 +510,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          { return py::make_iterator(orbits.begin(), orbits.end()); })
     .def("__contains__",
          [](TaskOrbits const &orbits, Sequence<> const &mapping)
-         { return orbits.is_repr(inc_sequence(mapping)); },
+         { return orbits.is_repr(mapping); },
          "mapping"_a);
 
   // Perm
@@ -567,7 +530,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
              if (s.size() != max + 1 || *s.begin() != 0)
                throw std::invalid_argument("invalid permutation");
 
-             return Perm(inc_sequence(v));
+             return Perm(v);
            }),
          "perm"_a)
     .def(py::init(
@@ -621,7 +584,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
            if (x > self.degree() - 1)
              throw std::out_of_range("not in domain");
 
-           return self[x + 1] - 1;
+           return self[x];
          },
          "x"_a)
     .def("__invert__", &Perm::operator~)

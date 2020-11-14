@@ -34,7 +34,7 @@ class PermTest(unittest.TestCase):
         self.p = mp.Perm([1,0,3,2])
         self.q = mp.Perm([1,2,0,3])
 
-    def test_euqality(self):
+    def test_equality(self):
         self.assertEqual(self.p, self.p)
         self.assertEqual(self.q, self.q)
         self.assertNotEqual(self.p, self.q)
@@ -436,14 +436,14 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
         ag3.fully_connect('c')
 
         self._test_super_graph(ag1, ag1, ['()'])
-        self._test_super_graph(ag1, ag2, ['(1,2)(3,4)'])
-        self._test_super_graph(ag1, ag3, ['(1,2)(4,5)'])
-        self._test_super_graph(ag2, ag1, ['(1,3)(2,4)'])
-        self._test_super_graph(ag2, ag2, ['(1,3)(2,4)', '(1,2)'])
-        self._test_super_graph(ag2, ag3, ['(1,4)(2,5)(3,6)','(4,5)'])
-        self._test_super_graph(ag3, ag1, ['(1,3)(2,4)'])
-        self._test_super_graph(ag3, ag2, ['(1,3)(2,4)', '(1,2)', '(5,6)'])
-        self._test_super_graph(ag3, ag3, ['(1,4)(2,5)(3,6)', '(1,2)', '(7,8)'])
+        self._test_super_graph(ag1, ag2, ['(0,1)(2,3)'])
+        self._test_super_graph(ag1, ag3, ['(0,1)(3,4)'])
+        self._test_super_graph(ag2, ag1, ['(0,2)(1,3)'])
+        self._test_super_graph(ag2, ag2, ['(0,2)(1,3)', '(0,1)'])
+        self._test_super_graph(ag2, ag3, ['(0,3)(1,4)(2,5)','(3,4)'])
+        self._test_super_graph(ag3, ag1, ['(0,2)(1,3)'])
+        self._test_super_graph(ag3, ag2, ['(0,2)(1,3)', '(0,1)', '(4,5)'])
+        self._test_super_graph(ag3, ag3, ['(0,3)(1,4)(2,5)', '(0,1)', '(6,7)'])
 
     def _test_ag_generator(self, make_ag, connections, num_automorphisms):
         for fs in permutations(connections):
