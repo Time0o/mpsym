@@ -20,9 +20,9 @@ TEST(PartialPermTest, CanConstructPartialPerm)
   struct ConstructionTest
   {
     ConstructionTest(PartialPerm pperm,
-                     std::vector<unsigned> const &expected_mapping = {},
-                     std::vector<unsigned> const &expected_dom = {},
-                     std::vector<unsigned> const &expected_im = {})
+                     std::vector<int> const &expected_mapping = {},
+                     std::vector<int> const &expected_dom = {},
+                     std::vector<int> const &expected_im = {})
     : pperm(pperm),
       expected_mapping(expected_mapping),
       expected_dom(expected_dom),
@@ -30,7 +30,7 @@ TEST(PartialPermTest, CanConstructPartialPerm)
     {}
 
     PartialPerm pperm;
-    std::vector<unsigned> expected_mapping, expected_dom, expected_im;
+    std::vector<int> expected_mapping, expected_dom, expected_im;
   };
 
   std::vector<ConstructionTest> tests {
@@ -42,34 +42,34 @@ TEST(PartialPermTest, CanConstructPartialPerm)
       PartialPerm({}, {})),
     ConstructionTest(
       PartialPerm(5),
-      {1, 2, 3, 4, 5},
-      {1, 2, 3, 4, 5},
-      {1, 2, 3, 4, 5}),
+      {0, 1, 2, 3, 4},
+      {0, 1, 2, 3, 4},
+      {0, 1, 2, 3, 4}),
     ConstructionTest(
-      PartialPerm({0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11}),
-      {0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11},
-      {2, 4, 6, 7, 9, 11},
-      {3, 4, 6, 7, 9, 11}),
+      PartialPerm({-1, 3, -1, 2, -1, 8, 5, -1, 6, -1, 10}),
+      {-1, 3, -1, 2, -1, 8, 5, -1, 6, -1, 10},
+      {1, 3, 5, 6, 8, 10},
+      {2, 3, 5, 6, 8, 10}),
     ConstructionTest(
-      PartialPerm({2, 4, 6, 7, 9, 11}, {4, 3, 9, 6, 7, 11}),
-      {0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11},
-      {2, 4, 6, 7, 9, 11},
-      {3, 4, 6, 7, 9, 11}),
+      PartialPerm({1, 3, 5, 6, 8, 10}, {3, 2, 8, 5, 6, 10}),
+      {-1, 3, -1, 2, -1, 8, 5, -1, 6, -1, 10},
+      {1, 3, 5, 6, 8, 10},
+      {2, 3, 5, 6, 8, 10}),
     ConstructionTest(
-      PartialPerm({5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3}),
-      {5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3},
-      {1, 2, 3, 4, 10, 11, 12},
-      {3, 4, 5, 9, 10, 11, 12}),
+      PartialPerm({4, 8, 9, 10, -1, -1, -1, -1, -1, 11, 3, 2}),
+      {4, 8, 9, 10, -1, -1, -1, -1, -1, 11, 3, 2},
+      {0, 1, 2, 3, 9, 10, 11},
+      {2, 3, 4, 8, 9, 10, 11}),
     ConstructionTest(
-      PartialPerm({12, 11, 1, 2, 3, 4, 10}, {3, 4, 5, 9, 10, 11, 12}),
-      {5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3},
-      {1, 2, 3, 4, 10, 11, 12},
-      {3, 4, 5, 9, 10, 11, 12})
+      PartialPerm({11, 10, 0, 1, 2, 3, 9}, {2, 3, 4, 8, 9, 10, 11}),
+      {4, 8, 9, 10, -1, -1, -1, -1, -1, 11, 3, 2},
+      {0, 1, 2, 3, 9, 10, 11},
+      {2, 3, 4, 8, 9, 10, 11})
   };
 
   for (auto const &test : tests) {
     for (auto i = 0u; i < test.expected_mapping.size(); ++i) {
-      EXPECT_EQ(test.expected_mapping[i], test.pperm[i + 1u])
+      EXPECT_EQ(test.expected_mapping[i], test.pperm[i])
         << "Can apply partial permutation.";
     }
 
@@ -77,10 +77,10 @@ TEST(PartialPermTest, CanConstructPartialPerm)
       << "Partial permutation domain constructed correct.";
 
     if (test.expected_dom.empty()) {
-      EXPECT_EQ(0u, test.pperm.dom_min())
+      EXPECT_EQ(-1, test.pperm.dom_min())
         << "Partial permutation domain lower limit correct.";
 
-      EXPECT_EQ(0u, test.pperm.dom_max())
+      EXPECT_EQ(-1, test.pperm.dom_max())
         << "Partial permutation domain uppter limit correct.";
 
     } else {
@@ -99,10 +99,10 @@ TEST(PartialPermTest, CanConstructPartialPerm)
       << "Partial permutation image constructed correct.";
 
     if (test.expected_im.empty()) {
-      EXPECT_EQ(0u, test.pperm.im_min())
+      EXPECT_EQ(-1, test.pperm.im_min())
         << "Partial permutation domain lower limit correct.";
 
-      EXPECT_EQ(0u, test.pperm.im_max())
+      EXPECT_EQ(-1, test.pperm.im_max())
         << "Partial permutation domain uppter limit correct.";
 
     } else {
@@ -121,8 +121,8 @@ TEST(PartialPermTest, CanConstructPartialPerm)
 
 TEST(PartialPermTest, CanInvertPartialPerm)
 {
-  PartialPerm inv(~PartialPerm({0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11}));
-  PartialPerm expected({0, 0, 4, 2, 0, 7, 9, 0, 6, 0, 11});
+  PartialPerm inv(~PartialPerm({-1, 3, -1, 2, -1, 8, 5, -1, 6, -1, 10}));
+  PartialPerm expected({-1, -1, 3, 1, -1, 6, 8, -1, 5, -1, 10});
 
   EXPECT_EQ(expected, inv)
     << "Inverting partial permutation produces correct result.";
@@ -147,18 +147,18 @@ TEST(PartialPermTest, CanMultiplyPartialPerms)
   std::tuple<PartialPerm, PartialPerm, PartialPerm> const multiplications[] = {
     std::make_tuple(
       PartialPerm(),
-      PartialPerm({5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3}),
+      PartialPerm({4, 8, 9, 10, -1, -1, -1, -1, -1, 11, 3, 2}),
       PartialPerm()
     ),
     std::make_tuple(
-      PartialPerm({5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3}),
+      PartialPerm({4, 8, 9, 10, -1, -1, -1, -1, -1, 11, 3, 2}),
       PartialPerm(),
       PartialPerm()
     ),
     std::make_tuple(
-      PartialPerm({0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11}),
-      PartialPerm({5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3}),
-      PartialPerm({0, 11, 0, 10, 0, 0, 0, 0, 0, 0, 4})
+      PartialPerm({-1, 3, -1, 2, -1, 8, 5, -1, 6, -1, 10}),
+      PartialPerm({4, 8, 9, 10, -1, -1, -1, -1, -1, 11, 3, 2}),
+      PartialPerm({-1, 10, -1, 9, -1, -1, -1, -1, -1, -1, 3})
     )
   };
 
@@ -208,18 +208,18 @@ TEST(PartialPermTest, PartialPermStringRepresentation)
   PPermStrRepr pperm_str_reprs[] = {
     PPermStrRepr(PartialPerm(),
                  "()"),
-    PPermStrRepr(PartialPerm({1, 0, 3}),
-                 "(1)(3)"),
-    PPermStrRepr(PartialPerm({0, 2, 0}),
-                 "(2)"),
-    PPermStrRepr(PartialPerm({2, 0, 0, 1}),
-                 "[4 1 2]"),
-    PPermStrRepr(PartialPerm({0, 1, 5, 0, 2}),
-                 "[3 5 2 1]"),
-    PPermStrRepr(PartialPerm({0, 0, 3, 4, 1, 0}),
-                 "[5 1](3)(4)"),
-    PPermStrRepr(PartialPerm({6, 9, 7, 1, 0, 5, 3, 10, 0, 11, 8}),
-                 "[2 9][4 1 6 5](3 7)(8 10 11)")
+    PPermStrRepr(PartialPerm({0, -1, 2}),
+                 "(0)(2)"),
+    PPermStrRepr(PartialPerm({-1, 1, -1}),
+                 "(1)"),
+    PPermStrRepr(PartialPerm({1, -1, -1, 0}),
+                 "[3, 0, 1]"),
+    PPermStrRepr(PartialPerm({-1, 0, 4, -1, 1}),
+                 "[2, 4, 1, 0]"),
+    PPermStrRepr(PartialPerm({-1, -1, 2, 3, 0, -1}),
+                 "[4, 0](2)(3)"),
+    PPermStrRepr(PartialPerm({5, 8, 6, 0, -1, 4, 2, 9, -1, 10, 7}),
+                 "[1, 8][3, 0, 5, 4](2, 6)(7, 9, 10)")
   };
 
   for (auto const &pperm_str_repr : pperm_str_reprs) {
@@ -246,8 +246,7 @@ TEST(PartialPermTest, CanCheckIfPartialPermEmpty)
 
   std::vector<PartialPerm> non_empty_pperms {
     PartialPerm(1),
-    PartialPerm{1},
-    PartialPerm({1}, {1})
+    PartialPerm({0}, {0})
   };
 
   for (auto const &pperm : non_empty_pperms) {
@@ -263,12 +262,11 @@ TEST(PartialPermTest, CanCheckIfPartialPermIsId)
     PartialPerm({}),
     PartialPerm({}, {}),
     PartialPerm(1),
-    PartialPerm{1},
-    PartialPerm({1}, {1}),
+    PartialPerm({0}, {0}),
     PartialPerm(7),
-    PartialPerm({0, 2, 0, 4, 5, 0, 7}),
-    PartialPerm({3, 8, 9}, {3, 8, 9}),
-    PartialPerm({1, 2, 3}, {3, 4, 1}) * PartialPerm({1, 4, 3}, {3, 2, 1})
+    PartialPerm({-1, 1, -1, 3, 4, -1, 6}),
+    PartialPerm({2, 7, 8}, {2, 7, 8}),
+    PartialPerm({0, 1, 2}, {2, 3, 0}) * PartialPerm({0, 3, 2}, {2, 1, 0})
   };
 
   for (auto const &pperm : id_pperms) {
@@ -277,13 +275,13 @@ TEST(PartialPermTest, CanCheckIfPartialPermIsId)
   }
 
   std::vector<PartialPerm> non_id_pperms {
-    PartialPerm({0, 1}),
-    PartialPerm({1, 3}),
-    PartialPerm({1, 0, 2}),
-    PartialPerm({1}, {2}),
-    PartialPerm({1, 2}, {1, 3}),
-    PartialPerm(3) * PartialPerm({1, 2, 3}, {3, 2, 1}),
-    PartialPerm({1, 2, 3}, {3, 2, 1}) * PartialPerm(3)
+    PartialPerm({-1, 0}),
+    PartialPerm({0, 2}),
+    PartialPerm({0, -1, 1}),
+    PartialPerm({0}, {1}),
+    PartialPerm({0, 1}, {0, 2}),
+    PartialPerm(3) * PartialPerm({0, 1, 2}, {2, 1, 0}),
+    PartialPerm({0, 1, 2}, {2, 1, 0}) * PartialPerm(2)
   };
 
   for (auto const &pperm : non_id_pperms) {
@@ -308,13 +306,13 @@ TEST(PartialPermTest, CanRestrictPartialPerm)
 
   RestrictionTest tests[] = {
     RestrictionTest(
-      PartialPerm({0, 4, 0, 3, 0, 9, 6, 0, 7, 0, 11}),
-      {4, 5, 6, 9, 10},
-      PartialPerm({0, 0, 0, 3, 0, 9, 0, 0, 7})),
+      PartialPerm({-1, 3, -1, 2, -1, 8, 5, -1, 6, -1, 10}),
+      {3, 4, 5, 8, 9},
+      PartialPerm({-1, -1, -1, 2, -1, 8, -1, -1, 6})),
     RestrictionTest(
-      PartialPerm({5, 9, 10, 11, 0, 0, 0, 0, 0, 12, 4, 3}),
-      {1, 2, 3, 8, 9},
-      PartialPerm({5, 9, 10}))
+      PartialPerm({4, 8, 9, 10, -1, -1, -1, -1, -1, 11, 3, 2}),
+      {0, 1, 2, 7, 8},
+      PartialPerm({4, 8, 9}))
   };
 
   for (auto &test : tests) {
@@ -349,16 +347,16 @@ TEST(PartialPermTest, CanConvertPartialPermToPerm)
       Perm(10, {})
     },
     {
-      PartialPerm({1, 2}, {2, 1}),
-      Perm(3, {{1, 2}})
+      PartialPerm({0, 1}, {1, 0}),
+      Perm(3, {{0, 1}})
     },
     {
-      PartialPerm({2, 3, 5}, {3, 2, 5}),
-      Perm(6, {{2, 3}})
+      PartialPerm({1, 2, 4}, {2, 1, 4}),
+      Perm(6, {{1, 2}})
     },
     {
-      PartialPerm({4, 5, 6, 7, 8, 9}, {4, 7, 8, 5, 9, 6}),
-      Perm(10, {{5, 7}, {6, 8, 9}})
+      PartialPerm({3, 4, 5, 6, 7, 8}, {3, 6, 7, 4, 8, 5}),
+      Perm(10, {{4, 6}, {5, 7, 8}})
     }
   };
 
