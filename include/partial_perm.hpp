@@ -43,11 +43,11 @@ friend std::size_t std::hash<PartialPerm>::operator()(
 
 public:
   PartialPerm(unsigned degree = 0u);
-  PartialPerm(std::vector<unsigned> const &dom,
-              std::vector<unsigned> const &im);
-  PartialPerm(std::vector<unsigned> const &pperm);
+  PartialPerm(std::vector<int> const &dom,
+              std::vector<int> const &im);
+  PartialPerm(std::vector<int> const &pperm);
 
-  unsigned operator[](unsigned const i) const;
+  int operator[](int i) const;
   PartialPerm operator~() const;
   bool operator==(PartialPerm const &rhs) const;
   bool operator!=(PartialPerm const &rhs) const;
@@ -56,23 +56,23 @@ public:
   static PartialPerm from_perm(Perm const &perm);
   Perm to_perm(unsigned degree) const;
 
-  std::vector<unsigned> dom() const
+  std::vector<int> dom() const
   { return _dom; }
 
-  unsigned dom_min() const
-  { return _dom.empty() ? 0u : _dom[0]; }
+  int dom_min() const
+  { return _dom.empty() ? -1 : _dom[0]; }
 
-  unsigned dom_max() const
-  { return _dom.empty() ? 0u : _dom.back(); }
+  int dom_max() const
+  { return _dom.empty() ? -1 : _dom.back(); }
 
-  std::vector<unsigned> im() const
+  std::vector<int> im() const
   { return _im; }
 
-  unsigned im_min() const
-  { return _im.empty() ? 0u : _im[0]; }
+  int im_min() const
+  { return _im.empty() ? -1 : _im[0]; }
 
-  unsigned im_max() const
-  { return _im.empty() ? 0u : _im.back(); }
+  int im_max() const
+  { return _im.empty() ? -1 : _im.back(); }
 
   bool empty() const
   { return _pperm.empty(); }
@@ -86,10 +86,10 @@ public:
     if (first == last)
       return PartialPerm();
 
-    std::vector<unsigned> pperm_restricted(dom_max(), 0u);
+    std::vector<int> pperm_restricted(dom_max(), -1);
 
     for (IT it = first; it != last; ++it) {
-      unsigned x = *it;
+      int x = *it;
 
       if (x < dom_min() || x > dom_max())
         continue;
@@ -97,13 +97,13 @@ public:
       unsigned y = (*this)[x];
 
       if (y != 0u)
-        pperm_restricted[x - 1u] = y;
+        pperm_restricted[x] = y;
     }
 
     if (!pperm_restricted.empty()) {
-      unsigned dom_max_restricted = dom_max();
+      int dom_max_restricted = dom_max();
 
-      while (pperm_restricted[dom_max_restricted - 1u] == 0u)
+      while (pperm_restricted[dom_max_restricted - 1] == -1)
         --dom_max_restricted;
 
       pperm_restricted.resize(dom_max_restricted);
@@ -115,25 +115,25 @@ public:
   template<template<typename ...> class T, typename IT>
   T<unsigned> image(IT first, IT last) const
   {
-    std::set<unsigned> res;
+    std::set<int> pperm_image;
 
     for (IT it = first; it != last; ++it) {
-      unsigned x = *it;
+      int x = *it;
 
       if (x < dom_min() || x > dom_max())
         continue;
 
-      unsigned y = _pperm[x - 1u];
+      int y = _pperm[x];
 
-      if (y != 0u)
-        res.insert(y);
+      if (y != -1)
+        pperm_image.insert(y);
     }
 
-    return T<unsigned>(res.begin(), res.end());
+    return T<int>(pperm_image.begin(), pperm_image.end());
   }
 
 private:
-  std::vector<unsigned> _pperm, _dom, _im;
+  std::vector<int> _pperm, _dom, _im;
   bool _id;
 };
 

@@ -5,6 +5,7 @@
 #include <set>
 #include <vector>
 
+#include "dump.hpp"
 #include "partial_perm.hpp"
 #include "perm.hpp"
 #include "util.hpp"
@@ -19,37 +20,38 @@ PartialPerm::PartialPerm(unsigned degree)
 : _pperm(degree),
   _id(true)
 {
-  std::iota(_pperm.begin(), _pperm.end(), 1u);
+  std::iota(_pperm.begin(), _pperm.end(), 0);
 
   _dom = _pperm;
   _im = _pperm;
 }
 
-PartialPerm::PartialPerm(std::vector<unsigned> const &dom,
-                         std::vector<unsigned> const &im)
+PartialPerm::PartialPerm(std::vector<int> const &dom,
+                         std::vector<int> const &im)
 : _dom(dom),
   _im(im),
   _id(true)
 {
-  assert(dom.size() == im.size() &&
+  assert(_dom.size() == _im.size() &&
          "partial permutation domain and image have same dimension");
 
-  if (dom.empty())
+  if (_dom.empty())
     return;
 
-  _pperm = std::vector<unsigned>(*std::max_element(_dom.begin(), _dom.end()), 0u);
+  int degree = *std::max_element(_dom.begin(), _dom.end()) + 1;
+
+  assert(degree > 0);
+
+  _pperm = std::vector<int>(degree, -1);
 
   for (auto i = 0u; i < _dom.size(); ++i) {
-    unsigned x = _dom[i];
-    unsigned y = _im[i];
-
-    assert(x != 0u && y != 0u
-           && "partial permutation domain and image do not contain 0 elements");
+    int x = _dom[i];
+    int y = _im[i];
 
     if (_id && y != x)
       _id = false;
 
-    _pperm[x - 1u] = y;
+    _pperm[x] = y;
   }
 
   std::sort(_dom.begin(), _dom.end());
@@ -62,22 +64,24 @@ PartialPerm::PartialPerm(std::vector<unsigned> const &dom,
          "partial permutation image does not contain duplicate elements");
 }
 
-PartialPerm::PartialPerm(std::vector<unsigned> const &pperm)
+PartialPerm::PartialPerm(std::vector<int> const &pperm)
 : _pperm(pperm),
   _id(true)
 {
   if (pperm.empty())
     return;
 
-  for (auto i = 1u; i <= _pperm.size(); ++i) {
-    unsigned im = _pperm[i - 1u];
+  for (int x = 0; x < static_cast<int>(_pperm.size()); ++x) {
+    int y = _pperm[x];
 
-    if (_id && im != 0u && im != i)
-      _id = false;
+    assert(y >= -1);
 
-    if (im != 0u) {
-      _dom.push_back(i);
-      _im.push_back(im);
+    if (y != -1) {
+      _dom.push_back(x);
+      _im.push_back(y);
+
+      if (_id && y != x)
+        _id = false;
     }
   }
 
@@ -87,20 +91,20 @@ PartialPerm::PartialPerm(std::vector<unsigned> const &pperm)
     "partial permutation image does not contain duplicates");
 }
 
-unsigned PartialPerm::operator[](unsigned const i) const
+int PartialPerm::operator[](int i) const
 {
-  assert(i > 0u && i <= _pperm.size() && "partial permutation index valid");
-  return _pperm[i - 1u];
+  assert(i < _pperm.size());
+  return _pperm[i];
 }
 
 PartialPerm PartialPerm::operator~() const
 {
   PartialPerm res;
 
-  std::vector<unsigned> inverse(im_max(), 0u);
-  for (unsigned x : _dom) {
-    unsigned y = (*this)[x];
-    inverse[y - 1u] = x;
+  std::vector<int> inverse(im_max() + 1, -1);
+  for (int x : _dom) {
+    int y = (*this)[x];
+    inverse[y] = x;
   }
 
   res._pperm = inverse;
@@ -123,14 +127,14 @@ std::ostream &operator<<(std::ostream &os, PartialPerm const &pperm)
     return os;
   }
 
-  std::vector<std::vector<unsigned>> chains;
-  std::vector<std::vector<unsigned>> cycles;
+  std::vector<std::vector<int>> chains;
+  std::vector<std::vector<int>> cycles;
 
-  unsigned first, current;
+  int first, current;
   first = current = pperm.dom_min();
 
-  std::set<unsigned> done;
-  std::vector<unsigned> current_chain;
+  std::set<int> done;
+  std::vector<int> current_chain;
 
   for (;;) {
     done.insert(current);
@@ -138,14 +142,14 @@ std::ostream &operator<<(std::ostream &os, PartialPerm const &pperm)
 
     current = pperm[current];
 
-    bool end_of_chain = current == 0u || current > pperm.dom_max();
+    bool end_of_chain = current == -1 || current > pperm.dom_max();
     bool end_of_cycle = current == first;
 
-    if (!(end_of_chain || end_of_cycle))
+    if (!end_of_chain && !end_of_cycle)
       continue;
 
     if (end_of_chain) {
-      if (current != 0u)
+      if (current != -1)
         current_chain.push_back(current);
 
       if (current_chain.size() > 1u)
@@ -157,27 +161,29 @@ std::ostream &operator<<(std::ostream &os, PartialPerm const &pperm)
     current_chain.clear();
 
     bool next = false;
-    for (unsigned i = pperm.dom_min(); i <= pperm.dom_max(); ++i) {
-      if (done.find(i) == done.end()) {
-        next = true;
-        first = i;
-        current = i;
-        break;
-      }
+    for (int x = pperm.dom_min(); x <= pperm.dom_max(); ++x) {
+      if (done.find(x) != done.end())
+        continue;
+
+      next = true;
+
+      first = current = x;
+
+      break;
     }
 
     if (!next)
       break;
   }
 
-  auto sort_pred_size = [](std::vector<unsigned> const &a,
-                           std::vector<unsigned> const &b) {
+  auto sort_pred_size = [](std::vector<int> const &a,
+                           std::vector<int> const &b) {
     return a.size() > b.size();
   };
 
   std::sort(chains.begin(), chains.end(), sort_pred_size);
 
-  std::vector<std::vector<unsigned>> unique_chains;
+  std::vector<std::vector<int>> unique_chains;
 
   for (auto const &chain : chains) {
     bool superfluous = false;
@@ -198,26 +204,18 @@ std::ostream &operator<<(std::ostream &os, PartialPerm const &pperm)
       unique_chains.push_back(chain);
   }
 
-  auto sort_pred_init_elem = [](std::vector<unsigned> const &a,
-                                std::vector<unsigned> const &b) {
+  auto sort_pred_init_elem = [](std::vector<int> const &a,
+                                std::vector<int> const &b) {
     return a[0] < b[0];
   };
 
   std::sort(unique_chains.begin(), unique_chains.end(), sort_pred_init_elem);
 
-  for (auto const &chain : unique_chains) {
-     os << '[' << chain[0];
-     for (auto i = 1u; i < chain.size(); ++i)
-       os << ' ' << chain[i];
-     os << ']';
-  }
+  for (auto const &chain : unique_chains)
+    os << DUMP_CUSTOM(chain, "[]");
 
-  for (auto const &cycle : cycles) {
-    os << '(' << cycle[0];
-    for (auto i = 1u; i < cycle.size(); ++i)
-      os << ' ' << cycle[i];
-    os << ')';
-  }
+  for (auto const &cycle : cycles)
+    os << DUMP_CUSTOM(cycle, "()");
 
   return os;
 }
@@ -248,29 +246,30 @@ PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
     return *this;
   }
 
-  std::vector<unsigned> dom_new;
-  std::vector<unsigned> im_new;
+  std::vector<int> dom_new;
+  std::vector<int> im_new;
 
   _id = true;
 
-  for (unsigned x : _dom) {
-    unsigned y = (*this)[x];
+  for (int x : _dom) {
+    int y = (*this)[x];
 
-    unsigned z;
-    if (y < rhs.dom_min() || y > rhs.dom_max())
-      z = 0u;
-    else
+    int z;
+    if (y == -1 || y < rhs.dom_min() || y > rhs.dom_max()) {
+      z = -1;
+    } else {
       z = rhs[y];
-
-    if (z != 0u) {
-      dom_new.push_back(x);
-      im_new.push_back(z);
     }
 
-    _pperm[x - 1u] = z;
+    if (z != -1) {
+      dom_new.push_back(x);
+      im_new.push_back(z);
 
-    if (_id && x != z)
-      _id = false;
+      if (_id && z != x)
+        _id = false;
+    }
+
+    _pperm[x] = z;
   }
 
   _dom = dom_new;
@@ -280,7 +279,7 @@ PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
 
   decltype(_pperm.size()) reduce = 0u;
   for (auto i = _pperm.size() - 1u; i > 0u; --i) {
-    if (_pperm[i] != 0u)
+    if (_pperm[i] != -1)
       break;
 
     ++reduce;
@@ -293,42 +292,39 @@ PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
 
 PartialPerm PartialPerm::from_perm(Perm const &perm)
 {
-  std::vector<unsigned> pperm(perm.degree());
+  std::vector<int> pperm(perm.degree());
 
-  for (unsigned i = 1u; i <= perm.degree(); ++i)
-    pperm[i - 1u] = perm[i];
+  for (unsigned i = 0u; i < perm.degree(); ++i)
+    pperm[i] = static_cast<int>(perm[i]);
 
   return PartialPerm(pperm);
 }
 
 Perm PartialPerm::to_perm(unsigned degree) const
 {
+  if (_dom.empty())
+    return Perm(degree);
+
   std::vector<unsigned> perm(degree);
 
-  unsigned i;
-  for (i = 1u; i <= degree; ++i) {
-    if (i < dom_min()) {
-      perm[i - 1u] = i;
-    } else if (i > dom_max()) {
+  unsigned x;
+  for (x = 0u; x < degree; ++x) {
+    if (x < static_cast<unsigned>(dom_min())) {
+      perm[x] = x;
+    } else if (x > static_cast<unsigned>(dom_max())) {
       break;
     } else {
-      unsigned im = _pperm[i - 1u];
-      if (im == 0u)
-        perm[i - 1u] = i;
-      else if (i > 0u) {
-#ifndef NDEBUG
-        auto it = std::find(perm.begin(), perm.begin() + i, im);
-        assert(it == perm.begin() + i &&
-               "partial permutation does not contain chain within domain");
-#endif
-        perm[i - 1u] = im;
-      }
+      int y = _pperm[x];
+      if (y == -1)
+        perm[x] = x;
+      else
+        perm[x] = y;
     }
   }
 
-  while (i <= degree) {
-    perm[i - 1u] = i;
-    ++i;
+  while (x < degree) {
+    perm[x] = x;
+    ++x;
   }
 
   return Perm(perm);
