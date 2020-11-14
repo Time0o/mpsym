@@ -1,3 +1,4 @@
+#if 0
 #include <algorithm>
 #include <cassert>
 #include <climits>
@@ -486,3 +487,4 @@ std::ostream &operator<<(std::ostream &os, eemp::OrbitGraph const &orbit_graph)
 } // namespace internal
 
 } // namespace mpsym
+#endif

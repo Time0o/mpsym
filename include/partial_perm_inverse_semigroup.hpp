@@ -1,3 +1,4 @@
+#if 0
 #ifndef GUARD_PARTIAL_PERM_INVERSE_SEMIGROUP_H
 #define GUARD_PARTIAL_PERM_INVERSE_SEMIGROUP_H
 
@@ -83,3 +84,4 @@ std::ostream &operator<<(std::ostream &os,
 } // namespace mpsym
 
 #endif // GUARD_PARTIAL_PERM_INVERSE_SEMIGROUP_H
+#endif
