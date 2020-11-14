@@ -38,7 +38,7 @@ inline internal::Perm parse_perm(unsigned degree, std::string const &str)
       {
         unsigned n = stox<unsigned>(str.substr(n_beg, i - n_beg));
 
-        if (n > degree)
+        if (n >= degree)
           throw std::invalid_argument("invalid permutation string");
 
         if (!seen.insert(n).second)
