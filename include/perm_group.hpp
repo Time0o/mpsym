@@ -150,6 +150,9 @@ public:
   unsigned largest_moved_point() const
   { return generators().largest_moved_point(); }
 
+  std::vector<unsigned> support() const
+  { return generators().support(); }
+
   bool is_trivial() const { return _bsgs.base_empty(); }
   bool is_symmetric() const;
   bool is_shifted_symmetric() const;

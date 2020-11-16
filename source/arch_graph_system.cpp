@@ -9,6 +9,7 @@
 #include <queue>
 #include <random>
 #include <stdexcept>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -103,18 +104,18 @@ bool ArchGraphSystem::automorphisms_symmetric(ReprOptions const *options)
 {
   TaskMapping representative;
 
-  if (options->optimize_symmetric && !_automorphisms_is_shifted_symmetric_valid) {
-    _automorphisms_is_shifted_symmetric = _automorphisms.is_shifted_symmetric();
+  if (options->optimize_symmetric && !_automorphisms_is_symmetric_valid) {
+    _automorphisms_is_symmetric = _automorphisms.is_symmetric();
 
-    if (_automorphisms_is_shifted_symmetric) {
+    if (_automorphisms_is_symmetric) {
       _automorphisms_smp = _automorphism_generators.smallest_moved_point();
       _automorphisms_lmp = _automorphism_generators.largest_moved_point();
     }
 
-    _automorphisms_is_shifted_symmetric_valid = true;
+    _automorphisms_is_symmetric_valid = true;
   }
 
-  return options->optimize_symmetric && _automorphisms_is_shifted_symmetric;
+  return options->optimize_symmetric && _automorphisms_is_symmetric;
 }
 
 TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
@@ -364,23 +365,29 @@ TaskMapping ArchGraphSystem::min_elem_symmetric(
 {
   TaskMapping representative(tasks);
 
-  unsigned task_min = _automorphisms_smp + options->offset;
-  unsigned task_max = _automorphisms_lmp + options->offset;
+  auto support(_automorphisms.support());
+  decltype(support.size()) support_next = 0u;
 
-  std::vector<int> perm(task_max - task_min + 1u, -1);
-  unsigned perm_next = task_min;
+  std::unordered_set<unsigned> support_task_set;
+  for (unsigned x : support)
+    support_task_set.insert(x + options->offset);
+
+  std::unordered_map<unsigned, unsigned> support_task_map;
 
   for (auto i = 0u; i < tasks.size(); ++i) {
     unsigned task = tasks[i];
-    if (task < task_min || task > task_max)
+    if (support_task_set.find(task) == support_task_set.end())
       continue;
 
-    auto j = task - task_min;
+    auto it(support_task_map.find(task));
 
-    if (perm[j] == -1)
-      perm[j] = perm_next++;
-
-    representative[i] = perm[j];
+    if (it == support_task_map.end()) {
+      unsigned r = support[support_next++] + options->offset;
+      representative[i] = r;
+      support_task_map[task] = r;
+    } else {
+      representative[i] = it->second;
+    }
   }
 
   return representative;

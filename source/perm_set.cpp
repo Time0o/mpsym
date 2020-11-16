@@ -44,6 +44,26 @@ unsigned PermSet::largest_moved_point() const
   throw std::logic_error("unreachable");
 }
 
+std::vector<unsigned> PermSet::support() const
+{
+  std::vector<unsigned> sup;
+
+  for (unsigned x = 0u; x < degree(); ++x) {
+    bool moved = false;
+    for (auto const &perm : *this) {
+      if (perm[x] != x) {
+        moved = true;
+        break;
+      }
+    }
+
+    if (moved)
+      sup.push_back(x);
+  }
+
+  return sup;
+}
+
 void PermSet::make_unique()
 {
   std::vector<Perm> unique_perms;
