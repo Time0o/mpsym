@@ -195,10 +195,16 @@ std::string map_tasks_gap(ProfileOptions const &options)
 {
   std::stringstream ss;
 
+  ss << "if IsTrivial(automorphisms) then\n";
+  ss << "  Print(\"WARNING: Automorphism group is trivial!\\n\");\n";
+  ss << "else\n";
   if (options.verbosity > 0)
-    ss << "Print(\"DEBUG: Constructing BSGS\\n\");\n";
-
-  ss << "StabChain(automorphisms);\n";
+    ss << "  Print(\"DEBUG: Constructing BSGS\\n\");\n";
+  ss << "  StabChain(automorphisms);\n";
+  if (options.verbosity > 0)
+    ss << "  Print(\"DEBUG: Automorphism group has size \", "
+          "        Size(automorphisms), \"\\n\");\n";
+  ss << "fi;\n";
 
   ss << "orbit_representatives:=[];\n";
   ss << "orbit_representatives_hash:=HTCreate([1,2,3]);\n";
@@ -308,12 +314,15 @@ mpsym::TaskOrbits map_tasks_mpsym(
 
   ags->init_repr();
 
+  if (options.verbosity > 0)
+    debug("Automorphism group has size", ags->num_automorphisms());
+
   TaskOrbits task_orbits;
   for (auto i = 0u; i < task_mappings.size(); ++i) {
     if (options.verbosity > 0)
       debug_progress("Mapping task", i + 1u, "of", task_mappings.size());
 
-    ags->repr(task_mappings[i], &task_orbits, &repr_options);
+    ags->repr(task_mappings[i], task_orbits, &repr_options);
   }
 
   return task_orbits;

@@ -79,9 +79,6 @@ NautyGraph::~NautyGraph()
 
 std::string NautyGraph::to_gap() const
 {
-  throw std::logic_error("TODO: need to consider loops");
-
-#if 0
   std::stringstream ss;
 
   ss << "ReduceGroup(GraphAutoms([";
@@ -91,8 +88,7 @@ std::string NautyGraph::to_gap() const
     int source = edge.first + 1;
     int target = edge.second + 1;
 
-    if (source != target)
-      ss << "[" << source << "," << target << "],";
+    ss << "[" << source << "," << target << "],";
   }
 
   ss << "],";
@@ -113,7 +109,6 @@ std::string NautyGraph::to_gap() const
   ss << _n_reduced << ")";
 
   return ss.str();
-#endif
 }
 
 void NautyGraph::add_edge(int from, int to)
