@@ -213,7 +213,7 @@ bool PermGroup::is_shifted_symmetric() const
 
 bool PermGroup::is_transitive() const
 {
-  auto orbit(Orbit::generate(1u, generators().with_inverses()));
+  auto orbit(Orbit::generate(0u, generators().with_inverses()));
 
   return orbit.size() == degree();
 }
