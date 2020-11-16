@@ -93,12 +93,20 @@ std::pair<gen_type, unsigned> parse_generators(
 }
 
 mpsym::internal::PermSet convert_generators_mpsym(unsigned degree,
-                                                  gen_type const &gens)
+                                                  gen_type gens)
 {
   mpsym::internal::PermSet gens_conv;
 
-  for (auto const &gen : gens)
+  for (auto &gen : gens) {
+    for (auto &perm : gen) {
+      std::transform(perm.begin(),
+                     perm.end(),
+                     perm.begin(),
+                     [](unsigned x){ return x - 1u; });
+    }
+
     gens_conv.emplace(degree, gen);
+  }
 
   return gens_conv;
 }
