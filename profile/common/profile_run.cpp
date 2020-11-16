@@ -97,6 +97,14 @@ ReduceGroup:=function(G, n)
   Apply(gens, function(g) return RestrictedPerm(g, [1..n]); end);
   return Group(gens);
 end;
+
+FixedPointWreathProduct:=function(G, nG, H, nH)
+  if LargestMovedPoint(G) <> nG or LargestMovedPoint(H) <> nH then
+    Error("TODO: consider fixed points");
+  fi;
+
+  return WreathProduct(G, H);
+end;
 )" + 1;
 }
 

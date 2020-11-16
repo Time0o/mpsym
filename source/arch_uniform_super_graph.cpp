@@ -28,10 +28,11 @@ ArchUniformSuperGraph::ArchUniformSuperGraph(
 std::string
 ArchUniformSuperGraph::to_gap() const
 {
-  throw std::logic_error("TODO: need to consider fixed points");
-
-//  return "WreathProduct("
-//    + _subsystem_proto->to_gap() + "," + _subsystem_super_graph->to_gap() + ")";
+  return "FixedPointWreathProduct("
+    + _subsystem_proto->to_gap() + ","
+    + std::to_string(_subsystem_proto->num_processors()) + ","
+    + _subsystem_super_graph->to_gap() + ","
+    + std::to_string(_subsystem_super_graph->num_processors()) + ")";
 }
 
 std::string
