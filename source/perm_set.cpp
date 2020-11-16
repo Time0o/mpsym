@@ -100,7 +100,7 @@ void PermSet::minimize_degree()
       if (!non_moved_queue.empty()) {
         unsigned compress_to = non_moved_queue.front();
         compression_mapping[i] = compress_to;
-        new_degree = compress_to;
+        new_degree = compress_to + 1;
 
         non_moved_queue.pop();
         non_moved_queue.push(i);
