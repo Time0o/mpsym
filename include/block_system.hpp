@@ -94,16 +94,16 @@ private:
   BlockSystem(IT first, IT last)
   : _blocks(first, last)
   {
-    _degree = 0u;
+    _degree = 1u;
     for (IT it = first; it != last; ++it) {
       for (unsigned x : *it)
-        _degree = std::max(_degree, x);
+        _degree = std::max(_degree, x + 1u);
     }
 
     _block_indices = std::vector<unsigned>(_degree);
     for (unsigned i = 0u; i < size(); ++i) {
       for (unsigned x : (*this)[i])
-        _block_indices[x - 1u] = i;
+        _block_indices[x] = i;
     }
 
     assert_blocks();

@@ -227,10 +227,10 @@ void BSGS::construct_symmetric()
     return;
 
   _base.resize(_degree - 1u);
-  std::iota(_base.begin(), _base.end(), 1u);
+  std::iota(_base.begin(), _base.end(), 0u);
 
   for (unsigned i = _degree - 1u; i > 0u; --i)
-    _strong_generators.insert(Perm(_degree, {{i, _degree}}));
+    _strong_generators.insert(Perm(_degree, {{i - 1u, _degree - 1u}}));
 
   _strong_generators.make_unique();
 

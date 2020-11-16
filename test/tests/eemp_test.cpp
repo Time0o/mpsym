@@ -1,3 +1,4 @@
+#if 0
 #include <sstream>
 #include <utility>
 #include <vector>
@@ -227,3 +228,4 @@ TEST_F(EEMPTest, CanObtainRClassRepresentatives)
   EXPECT_THAT(r_class_repr, UnorderedElementsAreArray(expected_r_class_repr))
     << "R class representatives determined correctly.";
 }
+#endif

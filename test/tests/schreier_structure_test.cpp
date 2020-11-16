@@ -30,28 +30,26 @@ TYPED_TEST(SchreierStructureTest, CanConstructSchreierStructures)
   unsigned n = 8;
 
   PermSet generators {
-    Perm(n, {{1, 2, 3}}),
-    Perm(n, {{1, 3}}),
-    Perm(n, {{4, 6, 5}}),
-    Perm(n, {{5, 6}, {7, 8}})
+    Perm(n, {{0, 1, 2}}),
+    Perm(n, {{0, 2}}),
+    Perm(n, {{3, 5, 4}}),
+    Perm(n, {{4, 5}, {6, 7}})
   };
 
   generators.insert_inverses();
 
   std::vector<unsigned> expected_orbits[] = {
-    {1, 2, 3},
-    {1, 2, 3},
-    {1, 2, 3},
-    {4, 5, 6},
-    {4, 5, 6},
-    {4, 5, 6},
-    {7, 8},
-    {7, 8}
+    {0, 1, 2},
+    {0, 1, 2},
+    {0, 1, 2},
+    {3, 4, 5},
+    {3, 4, 5},
+    {3, 4, 5},
+    {6, 7},
+    {6, 7}
   };
 
-  for (unsigned i = 0u; i < n; ++i) {
-    unsigned root = i + 1u;
-
+  for (unsigned root = 0u; root < n; ++root) {
     auto schreier_structure(std::make_shared<TypeParam>(n, root, generators));
 
     Orbit::generate(root, generators, schreier_structure);
@@ -59,14 +57,15 @@ TYPED_TEST(SchreierStructureTest, CanConstructSchreierStructures)
     EXPECT_EQ(root, schreier_structure->root())
       << "Root correct";
 
-    EXPECT_THAT(expected_orbits[i],
-                UnorderedElementsAreArray(schreier_structure->nodes()))
+    auto const &orbit(expected_orbits[root]);
+
+    EXPECT_THAT(orbit, UnorderedElementsAreArray(schreier_structure->nodes()))
       << "Node (orbit) correct "
       << "(root is " << root << ").";
 
     for (unsigned x = 1u; x < n; ++x) {
-      auto it(std::find(expected_orbits[i].begin(), expected_orbits[i].end(), x));
-      bool contained = it != expected_orbits[i].end();
+      auto it(std::find(orbit.begin(), orbit.end(), x));
+      bool contained = it != orbit.end();
 
       EXPECT_EQ(contained, schreier_structure->contains(x))
         << "Can identify contained elements "
@@ -82,8 +81,8 @@ TYPED_TEST(SchreierStructureTest, CanConstructSchreierStructures)
       << "Edge labels correct "
       << "(root is " << root << ").";
 
-    for (unsigned j = 0u; j < expected_orbits[i].size(); ++j) {
-      unsigned origin = expected_orbits[i][j];
+    for (unsigned j = 0u; j < orbit.size(); ++j) {
+      unsigned origin = orbit[j];
 
       Perm transv(schreier_structure->transversal(origin));
 

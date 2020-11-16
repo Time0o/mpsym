@@ -39,7 +39,7 @@ void _save_gens(int, int *perm, int *, int, int, int)
 {
   std::vector<unsigned> tmp(_gen_degree);
   for (int i = 0; i < _gen_degree; ++i)
-    tmp[i] = perm[i] + 1;
+    tmp[i] = perm[i];
 
   _gens.emplace(tmp);
 }

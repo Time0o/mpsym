@@ -84,13 +84,11 @@ ArchUniformSuperGraph::wreath_product_action_super_graph(
   for (auto const &gen_ : automs_super_graph.generators()) {
     std::vector<unsigned> gen(degree);
 
-    for (unsigned i = 1u; i <= gen.size(); ++i) {
-      unsigned block_from = (i - 1u) / degree_proto + 1u;
-      unsigned block_offs = (i - 1u) % degree_proto;
+    for (unsigned i = 0u; i < gen.size(); ++i) {
+      unsigned block_from = i / degree_proto;
+      unsigned block_offs = i % degree_proto;
 
-      unsigned block_to = gen_[block_from];
-
-      gen[i - 1u] = (block_to - 1u) * degree_proto + 1u + block_offs;
+      gen[i] = gen_[block_from] * degree_proto + block_offs;
     }
 
     sigma_super_graph_gens.insert(Perm(gen));
@@ -117,21 +115,19 @@ ArchUniformSuperGraph::wreath_product_action_proto(
   for (auto const &gen_ : automs_proto.generators()) {
     for (unsigned b = 0u; b < sigmas_proto_gens.size(); ++b) {
       std::vector<unsigned> gen(degree);
-      std::iota(gen.begin(), gen.end(), 1u);
+      std::iota(gen.begin(), gen.end(), 0u);
 
       unsigned block_end = (b + 1u) * degree_proto;
       unsigned block_start = block_end - degree_proto + 1u;
 
-      for (unsigned j = block_start; j <= block_end; ++j) {
-        gen[j - 1u] = gen_[(j - 1u) % degree_proto + 1u] + block_start - 1u;
-      }
+      for (unsigned j = block_start; j <= block_end; ++j)
+        gen[j - 1u] = gen_[(j - 1u) % degree_proto] + block_start - 1u;
 
       sigmas_proto_gens[b].insert(Perm(gen));
     }
   }
 
   std::vector<std::shared_ptr<ArchGraphAutomorphisms>> sigmas_proto;
-
   for (auto const &gens : sigmas_proto_gens) {
     PermGroup pg(BSGS(degree, gens, options, aborted));
 

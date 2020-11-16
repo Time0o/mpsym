@@ -1,3 +1,4 @@
+#if 0
 #ifndef GUARD_EEMP_H
 #define GUARD_EEMP_H
 
@@ -66,3 +67,4 @@ std::ostream &operator<<(std::ostream &os, OrbitGraph const &orbit_graph);
 } // namespace mpsym
 
 #endif // GUARD_EEMP_H
+#endif

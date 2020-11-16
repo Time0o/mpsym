@@ -278,7 +278,7 @@ TaskMapping ArchGraphSystem::min_elem_local_search_sa(
   std::uniform_real_distribution<> d_prob(0.0, 1.0);
 
   // value function
-  unsigned task_min = 1u + options->offset;
+  unsigned task_min = 0u + options->offset;
   unsigned task_max = _automorphisms.degree() + options->offset;
 
   auto value(std::bind(local_search_sa_value, _1, task_min, task_max));
@@ -367,7 +367,7 @@ TaskMapping ArchGraphSystem::min_elem_symmetric(
   unsigned task_min = _automorphisms_smp + options->offset;
   unsigned task_max = _automorphisms_lmp + options->offset;
 
-  std::vector<unsigned> perm(task_max - task_min + 1u);
+  std::vector<int> perm(task_max - task_min + 1u, -1);
   unsigned perm_next = task_min;
 
   for (auto i = 0u; i < tasks.size(); ++i) {
@@ -377,14 +377,10 @@ TaskMapping ArchGraphSystem::min_elem_symmetric(
 
     auto j = task - task_min;
 
-    unsigned to = perm[j];
+    if (perm[j] == -1)
+      perm[j] = perm_next++;
 
-    if (to == 0u) {
-      to = perm[j] = perm_next;
-      ++perm_next;
-    }
-
-    representative[i] = to;
+    representative[i] = perm[j];
   }
 
   return representative;

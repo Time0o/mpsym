@@ -87,7 +87,7 @@ top:
           TIMER_START("extend base");
 
           // extend base
-          unsigned bp = 1u;
+          unsigned bp = 0u;
           for (;;) {
             auto it = std::find(_base.begin(), _base.end(), bp);
 
@@ -230,7 +230,7 @@ void BSGS::schreier_sims_random(std::vector<PermSet> &strong_generators,
       update_strong_generators = true;
 
       // extend base
-      for (unsigned bp = 1u; bp <= degree(); ++bp) {
+      for (unsigned bp = 0u; bp < degree(); ++bp) {
         if (strip_perm[bp] != bp) {
           extend_base(bp);
 
@@ -290,7 +290,7 @@ void BSGS::schreier_sims_init(PermSet const &generators,
 #ifndef NDEBUG
         bool extended_base = false;
 #endif
-        for (unsigned bp = 1u; bp <= degree(); ++bp) {
+        for (unsigned bp = 0u; bp < degree(); ++bp) {
           if (gen[bp] != bp) {
             extend_base(bp);
 #ifndef NDEBUG

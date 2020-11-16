@@ -37,7 +37,7 @@ BlockSystem::const_iterator BlockSystem::end() const
 { return _blocks.end(); }
 
 unsigned BlockSystem::block_index(unsigned x) const
-{ return _block_indices[x - 1u]; }
+{ return _block_indices[x]; }
 
 PermSet BlockSystem::block_permuter(PermSet const &generators_) const
 {
@@ -48,7 +48,7 @@ PermSet BlockSystem::block_permuter(PermSet const &generators_) const
     auto gen(generators[i]);
 
     for (unsigned j = 0u; j < size(); ++j)
-      perm[j] = block_index(gen[(*this)[j][0]]) + 1u;
+      perm[j] = block_index(gen[(*this)[j][0]]);
 
     generators[i] = Perm(perm);
   }
@@ -131,8 +131,8 @@ BlockSystem BlockSystem::minimal(PermSet const &generators,
     for (Perm const &gen : generators) {
       DBG(TRACE) << "Gen: " << gen;
 
-      unsigned c1 = gen[gamma + 1u] - 1u;
-      unsigned c2 = gen[minimal_find_rep(gamma, classpath) + 1u] - 1u;
+      unsigned c1 = gen[gamma];
+      unsigned c2 = gen[minimal_find_rep(gamma, classpath)];
 
       DBG(TRACE) << "Considering classes " << c1 << " and " << c2;
 
@@ -191,7 +191,7 @@ BlockSystem::BlockSystem(BlockIndices const &block_indices)
 : _degree(block_indices.size()),
   _block_indices(block_indices)
 {
-  for (auto i = 1u; i <= degree(); ++i) {
+  for (auto i = 0u; i < degree(); ++i) {
     unsigned j = block_index(i);
 
     if (j + 1u > size()) {
@@ -213,7 +213,7 @@ void BlockSystem::assert_blocks() const
 
   for (auto const &block : *this) {
     for (unsigned x : block)
-      assert(x > 0u && "blocks have valid elements");
+      assert(x < degree() && "blocks have valid elements");
   }
 
   for (auto const &block : *this)
@@ -270,7 +270,7 @@ BlockSystem BlockSystem::from_block(PermSet const &generators,
 
   std::vector<int> block_indices(generators.degree(), -1);
   for (unsigned x : block)
-    block_indices[x - 1u] = 0;
+    block_indices[x] = 0;
 
   unsigned current_block_idx = 0u;
   unsigned processed = block.size();
@@ -279,13 +279,13 @@ BlockSystem BlockSystem::from_block(PermSet const &generators,
     auto current_block(blocks[current_block_idx]);
 
     for (Perm const &gen : generators) {
-      if (block_indices[gen[current_block[0]] - 1u] != -1)
+      if (block_indices[gen[current_block[0]]] != -1)
         continue;
 
       blocks.push_back(current_block.permuted(gen));
 
       for (unsigned x : current_block)
-        block_indices[gen[x] - 1u] = blocks.size();
+        block_indices[gen[x]] = blocks.size();
 
       if ((processed += block.size()) == generators.degree())
         return BlockSystem(blocks.begin(), blocks.end());
@@ -432,7 +432,7 @@ std::vector<BlockSystem> BlockSystem::non_trivial_non_transitive(
     unsigned orbit_low = *std::get<0>(orbit_extremes);
     unsigned orbit_high = *std::get<1>(orbit_extremes);
 
-    domain_offsets[i] = orbit_low - 1u;
+    domain_offsets[i] = orbit_low;
 
     for (Perm const &gen : pg.generators()) {
       Perm perm(gen.restricted(orbits[i].begin(), orbits[i].end()));
