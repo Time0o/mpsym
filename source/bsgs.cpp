@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <iterator>
 #include <memory>
 #include <numeric>
 #include <ostream>
@@ -84,17 +85,24 @@ BSGS::BSGS(unsigned degree,
   DBG(DEBUG) << "Constructing BSGS";
   DBG(DEBUG) << "Generators: " << generators;
 
-  if (options.check_altsym && degree > 8u) {
-    PrRandomizer pr(generators);
+  bool construct_sym = false;
 
-    if (pr.test_symmetric()) {
-      construct_symmetric();
-    } else {
-      construct_unknown(generators, &options, aborted);
+  if (options.check_sym && degree > 8u) {
+    PermSet generators_minimized(generators);
+    generators_minimized.minimize_degree();
+
+    if (generators_minimized.degree() > 8u) {
+      PrRandomizer pr(generators_minimized);
+
+      if (pr.test_symmetric())
+        construct_sym = true;
     }
-  } else {
-    construct_unknown(generators, &options, aborted);
   }
+
+  if (construct_sym)
+    construct_symmetric(generators.support());
+  else
+    construct_unknown(generators, &options, aborted);
 
   DBG(DEBUG) << "=> B = " << _base;
   DBG(DEBUG) << "=> SGS = " << _strong_generators;
@@ -219,23 +227,22 @@ void BSGS::transversals_init(BSGSOptions const *options)
   }
 }
 
-void BSGS::construct_symmetric()
+void BSGS::construct_symmetric(std::vector<unsigned> const &support)
 {
   DBG(DEBUG) << "Group is symmetric";
 
   if (_degree == 1u)
     return;
 
-  _base.resize(_degree - 1u);
-  std::iota(_base.begin(), _base.end(), 0u);
+  _base = std::vector<unsigned>(support.begin(), std::prev(support.end()));
 
-  for (unsigned i = _degree - 1u; i > 0u; --i)
-    _strong_generators.insert(Perm(_degree, {{i - 1u, _degree - 1u}}));
+  for (auto it(_base.rbegin()); it != _base.rend(); ++it)
+    _strong_generators.insert(Perm(_degree, {{*it, support.back()}}));
 
   _strong_generators.make_unique();
 
   for (unsigned i = 0u; i < _base.size(); ++i) {
-    PermSet tmp(_strong_generators.subset(0, _degree - i - 1u));
+    PermSet tmp(_strong_generators.subset(0, support.size() - i - 1u));
     tmp.insert_inverses();
 
     update_schreier_structure(i, tmp);

@@ -161,6 +161,7 @@ public:
 
   unsigned smallest_moved_point() const;
   unsigned largest_moved_point() const;
+  std::vector<unsigned> support() const;
 
   void make_unique();
   void minimize_degree();

@@ -91,7 +91,7 @@ public:
   void reset_automorphisms()
   {
     _automorphisms_valid = false;
-    _automorphisms_is_shifted_symmetric_valid = false;
+    _automorphisms_is_symmetric_valid = false;
   }
 
   internal::BSGS::order_type num_automorphisms(
@@ -227,8 +227,8 @@ private:
 
   bool _automorphisms_valid = false;
 
-  bool _automorphisms_is_shifted_symmetric;
-  bool _automorphisms_is_shifted_symmetric_valid = false;
+  bool _automorphisms_is_symmetric;
+  bool _automorphisms_is_symmetric_valid = false;
 
   unsigned _automorphisms_smp;
   unsigned _automorphisms_lmp;

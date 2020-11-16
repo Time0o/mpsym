@@ -126,8 +126,8 @@ private:
   void transversals_init(BSGSOptions const *options);
 
   // construction
-  void construct_symmetric();
-  void construct_alternating();
+  void construct_symmetric(std::vector<unsigned> const &support);
+
   void construct_unknown(PermSet const &generators,
                          BSGSOptions const *options,
                          timeout::flag aborted);
@@ -247,7 +247,7 @@ struct BSGSOptions
   Construction construction = Construction::AUTO;
   Transversals transversals = Transversals::EXPLICIT;
 
-  bool check_altsym = true;
+  bool check_sym = true;
   bool reduce_gens = true;
 
   bool schreier_sims_random_guarantee = true;

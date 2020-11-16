@@ -445,6 +445,58 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
         self._test_super_graph(ag3, ag2, ['(0,2)(1,3)', '(0,1)', '(4,5)'])
         self._test_super_graph(ag3, ag3, ['(0,3)(1,4)(2,5)', '(0,1)', '(6,7)'])
 
+    def test_symmetric_graphs(self):
+        ag = mp.ArchGraph()
+        ag.add_processors(10, 'p')
+        ag.fully_connect('c')
+
+        self.assertEqual(ag.num_automorphisms(), factorial(10))
+
+        representatives = [
+            ((0, 1, 2, 3), (0, 1, 2, 3)),
+            ((1, 2, 3, 0), (0, 1, 2, 3)),
+            ((2, 3, 0, 1), (0, 1, 2, 3)),
+            ((3, 0, 1, 2), (0, 1, 2, 3)),
+            ((1, 1, 2, 2), (0, 0, 1, 1)),
+            ((2, 1, 2, 1), (0, 1, 0, 1)),
+            ((1, 2, 3, 3), (0, 1, 2, 2)),
+            ((3, 3, 3, 3), (0, 0, 0, 0)),
+            ((1, 1, 10, 10), (0, 0, 10, 10)),
+            ((10, 1, 10, 1), (10, 0, 10, 0)),
+            ((1, 2, 10, 10), (0, 1, 10, 10)),
+            ((10, 10, 10, 10), (10, 10, 10, 10))
+        ]
+
+        for mapping, representative in representatives:
+            self.assertEqual(ag.representative(mapping), representative)
+
+        ag = mp.ArchGraph()
+        ag.add_processors(3, 'p1')
+        ag.add_processor('p2')
+        ag.add_processors(3, 'p1')
+        ag.add_processor('p3')
+        ag.add_processors(4, 'p1')
+        ag.fully_connect('p1', 'c')
+
+        self.assertEqual(ag.num_automorphisms(), factorial(10))
+
+        representatives = [
+            ((0, 1, 2, 3), (0, 1, 2, 3)),
+            ((1, 2, 3, 0), (0, 1, 3, 2)),
+            ((2, 3, 0, 1), (0, 3, 1, 2)),
+            ((3, 0, 1, 2), (3, 0, 1, 2)),
+            ((1, 1, 2, 2), (0, 0, 1, 1)),
+            ((2, 1, 2, 1), (0, 1, 0, 1)),
+            ((1, 2, 3, 3), (0, 1, 3, 3)),
+            ((1, 1, 3, 7), (0, 0, 3, 7)),
+            ((3, 1, 7, 1), (3, 0, 7, 0)),
+            ((1, 2, 3, 7), (0, 1, 3, 7)),
+            ((3, 7, 3, 7), (3, 7, 3, 7))
+        ]
+
+        for mapping, representative in representatives:
+            self.assertEqual(ag.representative(mapping), representative)
+
     def _test_ag_generator(self, make_ag, connections, num_automorphisms):
         for fs in permutations(connections):
             ag = make_ag()
