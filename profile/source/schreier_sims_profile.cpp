@@ -45,7 +45,7 @@ void usage(std::ostream &s)
     "-i|--implementation  {gap|mpsym|permlib}",
     "[-s|--schreier-sims] {deterministic|random|random-no-guarantee}",
     "[-t|--transversals]  {explicit|schreier-trees|shallow-schreier-trees}",
-    "[--bsgs-options      {dont_check_altsym,",
+    "[--bsgs-options      {dont_check_sym,",
     "                      dont_reduce_gens,",
     "                      dont_use_known_order",
     "                      dont_reduce_arch_graph}]",
@@ -75,7 +75,7 @@ struct ProfileOptions
                              "schreier-trees",
                              "shallow-schreier-trees"};
 
-  VariantOptionSet bsgs_options{"dont_check_altsym",
+  VariantOptionSet bsgs_options{"dont_check_sym",
                                 "dont_reduce_gens",
                                 "dont_use_known_order",
                                 "dont_reduce_arch_graph"};
@@ -119,8 +119,8 @@ mpsym::internal::BSGSOptions bsgs_options_mpsym(ProfileOptions const &options)
   else
     throw std::logic_error("unreachable");
 
-  if (options.bsgs_options.is_set("dont_check_altsym"))
-    bsgs_options.check_altsym = false;
+  if (options.bsgs_options.is_set("dont_check_sym"))
+    bsgs_options.check_sym = false;
 
   if (options.bsgs_options.is_set("dont_reduce_gens"))
     bsgs_options.reduce_gens = false;
