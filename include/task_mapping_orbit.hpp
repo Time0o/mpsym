@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cassert>
 #include <functional>
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -18,22 +19,33 @@ namespace mpsym
 
 class TMO
 {
+  class IterationState
+  {
+  public:
+    IterationState(TMO const *orbit)
+    : _generators(&orbit->_generators),
+      _unprocessed{orbit->_root}
+    { current = _unprocessed.begin(); }
+
+    std::unordered_set<TaskMapping>::iterator current;
+
+    void advance();
+    bool exhausted() const;
+
+  private:
+    internal::PermSet const *_generators;
+    std::unordered_set<TaskMapping> _unprocessed, _processed;
+  };
+
 public:
   using value_type = TaskMapping;
   using const_reference = TaskMapping const &;
 
-  class const_iterator
-  : public util::Iterator<const_iterator, TaskMapping const>
+  class const_iterator : public util::Iterator<const_iterator, TaskMapping const>
   {
   public:
-    const_iterator()
-    : _orbit(nullptr),
-      _end(true)
-    {}
-
-    const_iterator(TMO *orbit)
-    : _orbit(orbit),
-      _end(false)
+    const_iterator(std::shared_ptr<IterationState> state = nullptr)
+    : _state(state)
     {}
 
     bool operator==(const_iterator const &rhs) const override
@@ -41,40 +53,31 @@ public:
 
   private:
     reference current() override
-    { return *_orbit->_current; }
+    { return *_state->current; }
 
     void next() override
-    { _orbit->advance(); }
+    { _state->advance(); }
 
     bool end() const
-    { return _end || _orbit->exhausted(); }
+    { return !_state || _state->exhausted(); }
 
-    TMO *_orbit;
-    bool _end;
+    std::shared_ptr<IterationState> _state;
   };
 
   TMO(TaskMapping const &mapping, internal::PermSet const &generators)
-  : _generators(generators),
-    _unprocessed{mapping},
-    _current(_unprocessed.begin())
+  : _root(mapping),
+    _generators(generators)
   {}
 
-  const_iterator begin()
-  { return const_iterator(this); }
+  const_iterator begin() const
+  { return const_iterator(std::make_shared<IterationState>(this)); }
 
-  const_iterator end()
+  const_iterator end() const
   { return const_iterator(); }
 
 private:
-  void advance();
-  bool exhausted() const;
-
+  TaskMapping _root;
   internal::PermSet _generators;
-
-  std::unordered_set<TaskMapping> _unprocessed;
-  // TODO: use perfect hashing to save space
-  std::unordered_set<TaskMapping> _processed;
-  std::unordered_set<TaskMapping>::iterator _current;
 };
 
 class TMORs

@@ -9,27 +9,27 @@
 namespace mpsym
 {
 
-void TMO::advance()
+void TMO::IterationState::advance()
 {
   if (exhausted())
     return;
 
-  auto current_copy(*_current);
-  _unprocessed.erase(_current);
+  auto current_copy(*current);
+  _unprocessed.erase(current);
 
   _processed.insert(current_copy);
 
-  for (auto const &gen : _generators) {
+  for (auto const &gen : *_generators) {
     TaskMapping next(current_copy.permuted(gen));
 
     if (_processed.find(next) == _processed.end())
       _unprocessed.insert(next);
   }
 
-  _current = _unprocessed.begin();
+  current = _unprocessed.begin();
 }
 
-bool TMO::exhausted() const
+bool TMO::IterationState::exhausted() const
 { return _unprocessed.empty(); }
 
 std::pair<bool, unsigned> TMORs::insert(TaskMapping const &mapping)
