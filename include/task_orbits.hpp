@@ -8,8 +8,8 @@
 #include <utility>
 #include <vector>
 
-#include "iterator.hpp"
 #include "task_mapping.hpp"
+#include "util.hpp"
 
 namespace mpsym
 {
@@ -19,8 +19,7 @@ class TaskOrbits
   using orbit_reprs_map = std::unordered_map<TaskMapping, unsigned>;
 
 public:
-  class const_iterator
-  : public internal::ForwardIterator<const_iterator, TaskMapping const>
+  class const_iterator : public util::Iterator<const_iterator, TaskMapping const>
   {
   public:
     const_iterator(orbit_reprs_map::const_iterator const &it)

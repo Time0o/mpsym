@@ -5,9 +5,9 @@
 #include <memory>
 #include <vector>
 
-#include "iterator.hpp"
 #include "perm.hpp"
 #include "schreier_structure.hpp"
+#include "util.hpp"
 
 namespace mpsym
 {
@@ -24,15 +24,18 @@ class SchreierGeneratorQueue
   using fo_it_type = fo_type::const_iterator;
 
 public:
-  class iterator : public ForwardIterator<iterator, Perm const>
+  using value_type = Perm;
+  using const_reference = Perm const &;
+
+  class const_iterator : public util::Iterator<const_iterator, Perm const>
   {
   public:
-    iterator()
+    const_iterator()
     : _queue(nullptr),
       _end(true)
     {}
 
-    iterator(SchreierGeneratorQueue *queue)
+    const_iterator(SchreierGeneratorQueue *queue)
     : _queue(queue),
       _end(false)
     {
@@ -40,7 +43,7 @@ public:
       _queue->mark_used();
     }
 
-    bool operator==(iterator const &rhs) const override
+    bool operator==(const_iterator const &rhs) const override
     { return end() && rhs.end(); }
 
   private:
@@ -86,8 +89,8 @@ public:
 
   void invalidate() { _valid = false; }
 
-  iterator begin() { return iterator(this); }
-  iterator end() { return iterator(); }
+  const_iterator begin() { return const_iterator(this); }
+  const_iterator end() { return const_iterator(); }
 
 private:
   Perm u_beta()

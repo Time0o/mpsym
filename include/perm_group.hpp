@@ -10,10 +10,10 @@
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include "bsgs.hpp"
-#include "iterator.hpp"
 #include "perm.hpp"
 #include "perm_set.hpp"
 #include "timeout.hpp"
+#include "util.hpp"
 
 namespace mpsym
 {
@@ -31,7 +31,10 @@ class PermGroup
   friend std::ostream &operator<<(std::ostream &os, PermGroup const &pg);
 
 public:
-  class const_iterator : public ForwardIterator<const_iterator, Perm const>
+  using value_type = Perm;
+  using const_reference = Perm const &;
+
+  class const_iterator : public util::Iterator<const_iterator, Perm const>
   {
   public:
     const_iterator() : _end(true) {};
