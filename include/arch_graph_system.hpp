@@ -10,7 +10,7 @@
 #include "perm_group.hpp"
 #include "string.hpp"
 #include "task_mapping.hpp"
-#include "task_orbits.hpp"
+#include "task_mapping_orbit.hpp"
 #include "timeout.hpp"
 
 namespace mpsym
@@ -112,6 +112,11 @@ public:
     return _automorphisms;
   }
 
+  TMO automorphisms_orbit(
+    TaskMapping const &mapping,
+    AutomorphismOptions const *options = nullptr,
+    internal::timeout::flag aborted = internal::timeout::unset());
+
   void init_repr(
     AutomorphismOptions const *options = nullptr,
     internal::timeout::flag aborted = internal::timeout::unset())
@@ -139,7 +144,7 @@ public:
 
   std::tuple<TaskMapping, bool, unsigned> repr(
     TaskMapping const &mapping,
-    TaskOrbits &orbits,
+    TMORs &orbits,
     ReprOptions const *options = nullptr,
     internal::timeout::flag aborted = internal::timeout::unset())
   {
@@ -152,10 +157,6 @@ public:
 
     return std::make_tuple(representative, ins.first, ins.second);
   }
-
-  std::vector<TaskMapping> orbit(
-    TaskMapping const &mapping,
-    internal::timeout::flag aborted = internal::timeout::unset());
 
 private:
   virtual internal::BSGS::order_type num_automorphisms_(
@@ -181,12 +182,12 @@ private:
 
   virtual TaskMapping repr_(TaskMapping const &mapping,
                             ReprOptions const *options,
-                            TaskOrbits *orbits,
+                            TMORs *orbits,
                             internal::timeout::flag aborted);
 
   static bool is_repr(TaskMapping const &tasks,
                       ReprOptions const *options,
-                      TaskOrbits *orbits)
+                      TMORs *orbits)
   {
     if (!options->match || !orbits)
       return false;
@@ -196,12 +197,12 @@ private:
 
   TaskMapping min_elem_iterate(TaskMapping const &tasks,
                                ReprOptions const *options,
-                               TaskOrbits *orbits,
+                               TMORs *orbits,
                                internal::timeout::flag aborted) const;
 
   TaskMapping min_elem_orbits(TaskMapping const &tasks,
                               ReprOptions const *options,
-                              TaskOrbits *orbits,
+                              TMORs *orbits,
                               internal::timeout::flag aborted) const;
 
   TaskMapping min_elem_local_search(TaskMapping const &tasks,

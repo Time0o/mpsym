@@ -10,7 +10,7 @@
 #include "perm_group.hpp"
 #include "perm_set.hpp"
 #include "task_mapping.hpp"
-#include "task_orbits.hpp"
+#include "task_mapping_orbit.hpp"
 
 namespace mpsym
 {
@@ -90,7 +90,7 @@ ArchGraphCluster::automorphisms_(AutomorphismOptions const *options,
 TaskMapping
 ArchGraphCluster::repr_(TaskMapping const &mapping_,
                         ReprOptions const *options_,
-                        TaskOrbits *,
+                        TMORs *,
                         timeout::flag aborted)
 {
   auto options(ReprOptions::fill_defaults(options_));

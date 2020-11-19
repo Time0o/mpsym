@@ -15,6 +15,7 @@
 #include <vector>
 
 #include <boost/multiprecision/cpp_int.hpp>
+
 #include <nlohmann/json.hpp>
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
@@ -32,7 +33,7 @@
 #include "perm_group.hpp"
 #include "perm_set.hpp"
 #include "task_mapping.hpp"
-#include "task_orbits.hpp"
+#include "task_mapping_orbit.hpp"
 #include "timeout.hpp"
 #include "util.hpp"
 
@@ -50,7 +51,8 @@ using mpsym::ArchGraphSystem;
 using mpsym::ArchUniformSuperGraph;
 using mpsym::ReprOptions;
 using mpsym::TaskMapping;
-using mpsym::TaskOrbits;
+using mpsym::TMO;
+using mpsym::TMORs;
 
 using mpsym::internal::ArchGraphAutomorphisms;
 using mpsym::internal::BSGS;
@@ -59,6 +61,7 @@ using mpsym::internal::Perm;
 using mpsym::internal::PermGroup;
 using mpsym::internal::PermSet;
 
+using mpsym::util::IteratorAdaptor;
 using mpsym::util::parse_perm;
 using mpsym::util::stream;
 
@@ -98,14 +101,6 @@ Sequence<T> to_sequence(py::iterator it)
   return seq;
 }
 
-template<typename U, typename T, typename FUNC>
-Sequence<U> transform_sequence(Sequence<T> const &seq, FUNC &&f)
-{
-  Sequence<U> seq_transformed(seq.size());
-  std::transform(seq.begin(), seq.end(), seq_transformed.begin(), f);
-  return seq_transformed;
-}
-
 template<typename T>
 py::tuple sequence_to_tuple(Sequence<T> const &seq)
 {
@@ -113,8 +108,9 @@ py::tuple sequence_to_tuple(Sequence<T> const &seq)
   return t;
 }
 
-template<typename T = unsigned>
-using Set = std::set<T>;
+template<typename T>
+py::tuple to_tuple(T const &obj)
+{ return sequence_to_tuple(to_sequence(obj)); }
 
 template<typename T>
 T arch_graph_json_cast(ArchGraphSystem const &self, std::string const &key)
@@ -230,11 +226,11 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                   g.add_edges(adjacencies);
 
                   if (!coloring.empty()) {
-                    g.set_partition(
-                      transform_sequence<std::vector<int>>(
-                        coloring,
-                        [](std::set<int> const &p)
-                        { return std::vector<int>(p.begin(), p.end()); }));
+                    std::vector<std::vector<int>> coloring_;
+                    for (auto const &c : coloring)
+                      coloring_.emplace_back(c.begin(), c.end());
+
+                    g.set_partition(coloring_);
                   }
 
                   // extract automorphisms
@@ -310,6 +306,19 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          },
          "timeout"_a = 0.0)
     .def("expand_automorphisms", &ArchGraphSystem::expand_automorphisms)
+    .def("orbit",
+         [&](ArchGraphSystem &self,
+             Sequence<> const &mapping,
+             double timeout)
+         {
+           return arch_graph_timeout("orbit",
+                                     timeout,
+                                     self,
+                                     &ArchGraphSystem::automorphisms_orbit,
+                                     mapping,
+                                     nullptr);
+         },
+         "mapping"_a, "timeout"_a = 0.0)
     .def("representative",
          [&](ArchGraphSystem &self, Sequence<> const &mapping, double timeout)
          {
@@ -324,18 +333,18 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                                         mapping,
                                         nullptr));
 
-           return sequence_to_tuple(to_sequence(repr));
+           return to_tuple(repr);
          },
          "mapping"_a, "timeout"_a = 0.0)
     .def("representative",
          [&](ArchGraphSystem &self,
              Sequence<> const &mapping,
-             TaskOrbits &representatives,
+             TMORs &representatives,
              double timeout)
          {
            using T = std::tuple<TaskMapping, bool, unsigned>
                      (ArchGraphSystem::*)(TaskMapping const &,
-                                          TaskOrbits &,
+                                          TMORs &,
                                           ReprOptions const *,
                                           flag);
 
@@ -353,32 +362,11 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                                 nullptr);
 
            return std::make_tuple(
-             sequence_to_tuple(to_sequence(repr)),
+             to_tuple(repr),
              orbit_new,
              orbit_index);
          },
-         "mapping"_a, "representatives"_a, "timeout"_a = 0.0)
-    .def("orbit",
-         [&](ArchGraphSystem &self,
-             Sequence<> const &mapping,
-             bool sorted,
-             double timeout)
-         {
-           auto orbit(arch_graph_timeout("orbit",
-                                         timeout,
-                                         self,
-                                         &ArchGraphSystem::orbit,
-                                         mapping));
-
-           if (sorted)
-             std::sort(orbit.begin(), orbit.end());
-
-           return transform_sequence<py::tuple>(
-             orbit,
-             [](Sequence<> const &mapping)
-             { return sequence_to_tuple(mapping); });
-         },
-         "mapping"_a, "sorted"_a = true, "timeout"_a = 0.0);
+         "mapping"_a, "representatives"_a, "timeout"_a = 0.0);
 
   // ArchGraphAutomorphisms
   py::class_<ArchGraphAutomorphisms,
@@ -499,17 +487,28 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
             ArchGraphSystem::from_json(json));
         }));
 
-  // TaskOrbits
-  py::class_<TaskOrbits>(m, "Representatives")
+  // TMO
+  py::class_<TMO>(m, "Orbit")
+    .def("__iter__",
+         [](TMO &orbit)
+         {
+           IteratorAdaptor<TMO, py::tuple> adaptor(orbit, to_tuple<TaskMapping>);
+
+           return py::make_iterator<py::return_value_policy::copy>(adaptor.begin(),
+                                                                   adaptor.end());
+         });
+
+  // TMORs
+  py::class_<TMORs>(m, "Representatives")
     .def(py::init<>())
     .def(py::self == py::self)
     .def(py::self != py::self)
-    .def("__len__", &TaskOrbits::num_orbits)
+    .def("__len__", &TMORs::num_orbits)
     .def("__iter__",
-         [](TaskOrbits const &orbits)
+         [](TMORs const &orbits)
          { return py::make_iterator(orbits.begin(), orbits.end()); })
     .def("__contains__",
-         [](TaskOrbits const &orbits, Sequence<> const &mapping)
+         [](TMORs const &orbits, Sequence<> const &mapping)
          { return orbits.is_repr(mapping); },
          "mapping"_a);
 
@@ -526,7 +525,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
              if (v.size() != max + 1)
                throw std::invalid_argument("invalid permutation");
 
-             Set<> s(v.begin(), v.end());
+             std::set<unsigned> s(v.begin(), v.end());
              if (s.size() != max + 1 || *s.begin() != 0)
                throw std::invalid_argument("invalid permutation");
 

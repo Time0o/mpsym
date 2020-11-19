@@ -15,7 +15,7 @@ namespace mpsym
 {
 
 class TaskMapping;
-class TaskOrbits;
+class TMORs;
 
 class ArchUniformSuperGraph : public ArchGraphSystem
 {
@@ -60,7 +60,7 @@ private:
 
   TaskMapping repr_(TaskMapping const &mapping_,
                     ReprOptions const *options,
-                    TaskOrbits *orbits,
+                    TMORs *orbits,
                     internal::timeout::flag aborted) override;
 
   std::shared_ptr<internal::ArchGraphAutomorphisms>

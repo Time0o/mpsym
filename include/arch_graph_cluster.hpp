@@ -82,7 +82,7 @@ private:
 
   TaskMapping repr_(TaskMapping const &mapping,
                     ReprOptions const *options,
-                    TaskOrbits *orbits,
+                    TMORs *orbits,
                     internal::timeout::flag aborted) override;
 
   std::vector<std::shared_ptr<ArchGraphSystem>> _subsystems;

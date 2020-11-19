@@ -204,7 +204,7 @@ class ArchGraphSystemTest(unittest.TestCase):
 
     def test_orbit(self):
         for orbit in [self.ag_orbit1, self.ag_orbit2]:
-            self.assertEqual(self.ag.orbit(orbit[0]), orbit)
+            self.assertCountEqual(list(self.ag.orbit(orbit[0])), orbit)
 
     def test_from_nauty(self):
         vertices_super = 4

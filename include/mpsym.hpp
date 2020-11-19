@@ -6,6 +6,6 @@
 #include "arch_graph_system.hpp"
 #include "arch_uniform_super_graph.hpp"
 #include "task_mapping.hpp"
-#include "task_orbits.hpp"
+#include "task_mapping_orbit.hpp"
 
 #endif // GUARD_MPSYM_H

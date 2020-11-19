@@ -35,6 +35,7 @@ set(SOURCE_FILES
     "perm_set.cpp"
     "pr_randomizer.cpp"
     "schreier_tree.cpp"
+    "task_mapping_orbit.cpp"
     "timeout.cpp"
     "timer.cpp")
 

@@ -24,7 +24,7 @@
 #include "perm_group.hpp"
 #include "perm_set.hpp"
 #include "task_mapping.hpp"
-#include "task_orbits.hpp"
+#include "task_mapping_orbit.hpp"
 #include "timeout.hpp"
 #include "util.hpp"
 
@@ -70,34 +70,14 @@ std::shared_ptr<ArchGraphSystem> ArchGraphSystem::expand_automorphisms() const
   throw std::logic_error("unreachable");
 }
 
-std::vector<TaskMapping> ArchGraphSystem::orbit(TaskMapping const &mapping,
-                                                timeout::flag aborted)
+TMO ArchGraphSystem::automorphisms_orbit(
+  TaskMapping const &mapping,
+  AutomorphismOptions const *options,
+  timeout::flag aborted)
 {
-  automorphisms(nullptr, aborted);
+  automorphisms(options, aborted);
 
-  std::unordered_set<TaskMapping> unprocessed, processed;
-
-  unprocessed.insert(mapping);
-
-  while (!unprocessed.empty()) {
-    if (timeout::is_set(aborted))
-      throw timeout::AbortedError("orbit");
-
-    auto it(unprocessed.begin());
-    TaskMapping current(*it);
-    unprocessed.erase(it);
-
-    processed.insert(current);
-
-    for (Perm const &gen : _automorphism_generators) {
-      TaskMapping next(current.permuted(gen));
-
-      if (processed.find(next) == processed.end())
-        unprocessed.insert(next);
-    }
-  }
-
-  return std::vector<TaskMapping>(processed.begin(), processed.end());
+  return TMO(mapping, _automorphism_generators.with_inverses());
 }
 
 bool ArchGraphSystem::automorphisms_symmetric(ReprOptions const *options)
@@ -120,7 +100,7 @@ bool ArchGraphSystem::automorphisms_symmetric(ReprOptions const *options)
 
 TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
                                    ReprOptions const *options_,
-                                   TaskOrbits *orbits,
+                                   TMORs *orbits,
                                    timeout::flag aborted)
 {
   automorphisms();
@@ -146,7 +126,7 @@ TaskMapping ArchGraphSystem::repr_(TaskMapping const &mapping,
 
 TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
                                               ReprOptions const *options,
-                                              TaskOrbits *orbits,
+                                              TMORs *orbits,
                                               timeout::flag aborted) const
 {
   TaskMapping representative(tasks);
@@ -170,7 +150,7 @@ TaskMapping ArchGraphSystem::min_elem_iterate(TaskMapping const &tasks,
 
 TaskMapping ArchGraphSystem::min_elem_orbits(TaskMapping const &tasks,
                                              ReprOptions const *options,
-                                             TaskOrbits *orbits,
+                                             TMORs *orbits,
                                              timeout::flag aborted) const
 {
   TaskMapping representative(tasks);

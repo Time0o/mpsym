@@ -11,7 +11,7 @@
 #include "perm_group.hpp"
 #include "perm_set.hpp"
 #include "task_mapping.hpp"
-#include "task_orbits.hpp"
+#include "task_mapping_orbit.hpp"
 
 namespace mpsym
 {
@@ -191,7 +191,7 @@ ArchUniformSuperGraph::reset_repr_()
 TaskMapping
 ArchUniformSuperGraph::repr_(TaskMapping const &mapping,
                              ReprOptions const *options,
-                             TaskOrbits *,
+                             TMORs *,
                              timeout::flag aborted)
 {
   TaskMapping representative(mapping);
