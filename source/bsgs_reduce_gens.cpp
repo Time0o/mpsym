@@ -4,7 +4,7 @@
 
 #include "bsgs.hpp"
 #include "dbg.hpp"
-#include "orbits.hpp"
+#include "orbit.hpp"
 #include "perm.hpp"
 #include "perm_set.hpp"
 

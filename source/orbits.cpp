@@ -4,7 +4,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "orbits.hpp"
+#include "orbit.hpp"
 #include "perm.hpp"
 #include "perm_set.hpp"
 #include "schreier_structure.hpp"

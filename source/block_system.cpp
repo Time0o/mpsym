@@ -13,7 +13,7 @@
 #include "block_system.hpp"
 #include "dbg.hpp"
 #include "dump.hpp"
-#include "orbits.hpp"
+#include "orbit.hpp"
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"

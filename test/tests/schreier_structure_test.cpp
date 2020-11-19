@@ -5,7 +5,7 @@
 #include "gmock/gmock.h"
 
 #include "explicit_transversals.hpp"
-#include "orbits.hpp"
+#include "orbit.hpp"
 #include "perm.hpp"
 #include "perm_set.hpp"
 #include "schreier_tree.hpp"

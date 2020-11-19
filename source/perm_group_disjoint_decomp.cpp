@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "dbg.hpp"
-#include "orbits.hpp"
+#include "orbit.hpp"
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"

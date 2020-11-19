@@ -1,5 +1,5 @@
-#ifndef GUARD_ORBITS_H
-#define GUARD_ORBITS_H
+#ifndef GUARD_ORBIT_H
+#define GUARD_ORBIT_H
 
 #include <algorithm>
 #include <initializer_list>
@@ -168,4 +168,4 @@ inline std::ostream &operator<<(std::ostream &os, OrbitPartition const &op)
 
 } // namespace mpsym
 
-#endif // GUARD_ORBITS_H
+#endif // GUARD_ORBIT_H

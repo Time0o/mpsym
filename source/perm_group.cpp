@@ -10,7 +10,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include "bsgs.hpp"
-#include "orbits.hpp"
+#include "orbit.hpp"
 #include "perm.hpp"
 #include "perm_group.hpp"
 #include "perm_set.hpp"

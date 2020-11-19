@@ -8,7 +8,7 @@
 #include <boost/math/special_functions/prime.hpp>
 #include <boost/multiprecision/miller_rabin.hpp>
 
-#include "orbits.hpp"
+#include "orbit.hpp"
 #include "perm.hpp"
 #include "perm_set.hpp"
 #include "pr_randomizer.hpp"
