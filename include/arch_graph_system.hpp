@@ -94,6 +94,9 @@ public:
     _automorphisms_is_symmetric_valid = false;
   }
 
+  virtual unsigned automorphisms_degree() const
+  { return num_processors(); }
+
   internal::BSGS::order_type num_automorphisms(
     AutomorphismOptions const *options = nullptr,
     internal::timeout::flag aborted = internal::timeout::unset())

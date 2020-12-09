@@ -59,6 +59,9 @@ public:
     return ss.str();
   }
 
+  unsigned automorphisms_degree() const
+  { return _automorphisms.degree(); }
+
 private:
   PermGroup automorphisms_(AutomorphismOptions const *,
                            internal::timeout::flag) override

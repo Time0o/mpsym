@@ -152,7 +152,12 @@ private:
   internal::PermGroup automorphisms_(
     AutomorphismOptions const *options,
     internal::timeout::flag aborted) override
-  { return automorphisms_nauty(options, aborted); }
+  {
+    if (num_processors() == 0u)
+      return internal::PermGroup();
+
+    return automorphisms_nauty(options, aborted);
+  }
 
   void init_repr_(AutomorphismOptions const *options,
                   internal::timeout::flag aborted) override

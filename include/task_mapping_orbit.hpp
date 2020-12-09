@@ -25,12 +25,14 @@ class TMO
 
   public:
     IterationState(TMO const *orbit)
-    : _generators(&orbit->_generators),
+    : _singular(orbit->_generators.empty()),
+      _generators(&orbit->_generators),
       _unprocessed{orbit->_root}
     {
       current = _unprocessed.begin();
 
-      init_hash(orbit->_root);
+      if (!_singular)
+        init_hash(orbit->_root);
     }
 
     std::unordered_set<TaskMapping>::iterator current;
@@ -43,6 +45,7 @@ class TMO
     hash_type perfect_hash(TaskMapping const &mapping) const;
     static hash_type container_hash_truncated(TaskMapping const &mapping);
 
+    bool _singular;
     internal::PermSet const *_generators;
 
     std::function<hash_type(TaskMapping)> _hash;
@@ -83,9 +86,14 @@ public:
   : _root(mapping),
     _generators(generators)
   {
-    assert(std::all_of(mapping.begin(),
-                       mapping.end(),
-                       [&](unsigned task){ return task < generators.degree(); }));
+#ifndef NDEBUG
+    if (!generators.empty()) {
+      assert(std::all_of(
+        mapping.begin(),
+        mapping.end(),
+        [&](unsigned task){ return task < generators.degree(); }));
+    }
+#endif
   }
 
   const_iterator begin() const

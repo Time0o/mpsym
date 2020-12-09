@@ -20,6 +20,9 @@ void TMO::IterationState::advance()
   auto current_copy(*current);
   _unprocessed.erase(current);
 
+  if (_singular)
+    return;
+
   _processed.insert(_hash(current_copy));
 
   for (auto const &gen : *_generators) {

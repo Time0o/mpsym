@@ -322,10 +322,8 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
              Sequence<> const &mapping,
              double timeout)
          {
-           unsigned autom_degree = self.automorphisms().degree();
-
            for (unsigned task : mapping) {
-             if (task >= autom_degree)
+             if (task >= self.automorphisms_degree())
                throw std::invalid_argument("task index out of range");
            }
 
