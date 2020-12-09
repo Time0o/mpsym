@@ -160,7 +160,6 @@ struct type_caster<mp::cpp_int> {
 PYBIND11_MODULE_(PYTHON_MODULE, m)
 {
   m.doc() = DESCRIPTION;
-  m.attr("__version__") = VERSION;
 
   // ArchGraphSystem
   py::class_<ArchGraphSystem,
