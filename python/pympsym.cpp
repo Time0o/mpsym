@@ -112,6 +112,18 @@ template<typename T>
 py::tuple to_tuple(T const &obj)
 { return sequence_to_tuple(to_sequence(obj)); }
 
+Perm str_to_perm(unsigned degree, std::string cycles)
+{
+  static std::regex re_perm(R"((\(\)|(\(( *\d+,)+ *\d+ *\))+))");
+
+  cycles.erase(std::remove(cycles.begin(), cycles.end(), ' ' ), cycles.end());
+
+  if (!std::regex_match(cycles, re_perm))
+    throw std::invalid_argument("invalid permutation string");
+
+  return parse_perm(degree, cycles);
+}
+
 template<typename T>
 T arch_graph_json_cast(ArchGraphSystem const &self, std::string const &key)
 {
@@ -556,16 +568,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
            "degree"_a, "cycles"_a)
     .def(py::init(
            [](unsigned degree, std::string cycles)
-           {
-             static std::regex re_perm(R"((\(\)|(\(( *\d+,)+ *\d+ *\))+))");
-
-             cycles.erase(std::remove(cycles.begin(), cycles.end(), ' ' ), cycles.end());
-
-             if (!std::regex_match(cycles, re_perm))
-               throw std::invalid_argument("invalid permutation string");
-
-             return parse_perm(degree, cycles);
-           }),
+           { return str_to_perm(degree, cycles); }),
            "degree"_a, "cycles"_a)
     .def("__eq__",
          [](Perm const &self, Perm const &other)
@@ -642,6 +645,16 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
              return PermGroup(degree, generators);
            }),
          "generators"_a)
+    .def(py::init(
+           [](unsigned degree, Sequence<std::string> const &generators_)
+           {
+             PermSet generators;
+             for (auto const &gen : generators_)
+               generators.insert(str_to_perm(degree, gen));
+
+             return PermGroup(degree, generators);
+           }),
+         "degree"_a, "generators"_a)
     .def_static("symmetric", PermGroup::symmetric, "degree"_a)
     .def_static("cyclic", PermGroup::cyclic, "degree"_a)
     .def_static("dihedral", PermGroup::dihedral, "degree"_a)
