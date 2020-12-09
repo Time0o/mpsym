@@ -140,7 +140,7 @@ if [[ "$BUILDWHEELS_SKIP_BUILD_WHEELS" != "y" ]]; then
   # Compile wheels
   echo "=== Compiling Wheels ==="
 
-  export Boost_DIR="/tmp/boost/boost_1_72_0/stage/lib/cmake"
+  export Boost_DIR="/tmp/boost/boost_$BOOST_VERSION_/stage/lib/cmake"
 
   if [[ ! -z "$BUILDWHEELS_DEBUG" ]]; then
     BUILD_EXT="build_ext debug-build=ON"
