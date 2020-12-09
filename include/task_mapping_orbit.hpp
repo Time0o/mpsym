@@ -21,11 +21,17 @@ class TMO
 {
   class IterationState
   {
+    using hash_type = uint32_t;
+
   public:
     IterationState(TMO const *orbit)
     : _generators(&orbit->_generators),
       _unprocessed{orbit->_root}
-    { current = _unprocessed.begin(); }
+    {
+      current = _unprocessed.begin();
+
+      init_hash(orbit->_root);
+    }
 
     std::unordered_set<TaskMapping>::iterator current;
 
@@ -33,8 +39,17 @@ class TMO
     bool exhausted() const;
 
   private:
+    void init_hash(TaskMapping const &root);
+    hash_type perfect_hash(TaskMapping const &mapping) const;
+    static hash_type container_hash_truncated(TaskMapping const &mapping);
+
     internal::PermSet const *_generators;
-    std::unordered_set<TaskMapping> _unprocessed, _processed;
+
+    std::function<hash_type(TaskMapping)> _hash;
+    std::unordered_map<unsigned, unsigned> _hash_support_map;
+
+    std::unordered_set<TaskMapping> _unprocessed;
+    std::unordered_set<hash_type> _processed;
   };
 
 public:
@@ -67,7 +82,11 @@ public:
   TMO(TaskMapping const &mapping, internal::PermSet const &generators)
   : _root(mapping),
     _generators(generators)
-  {}
+  {
+    assert(std::all_of(mapping.begin(),
+                       mapping.end(),
+                       [&](unsigned task){ return task < generators.degree(); }));
+  }
 
   const_iterator begin() const
   { return const_iterator(std::make_shared<IterationState>(this)); }

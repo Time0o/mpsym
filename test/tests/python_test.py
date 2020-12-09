@@ -206,6 +206,15 @@ class ArchGraphSystemTest(unittest.TestCase):
         for orbit in [self.ag_orbit1, self.ag_orbit2]:
             self.assertCountEqual(list(self.ag.orbit(orbit[0])), orbit)
 
+        def orbit_len(orb):
+            return sum(1 for _ in orb)
+
+        for n in range(3, 7):
+          Sn = mp.PermGroup.symmetric(n)
+          ag = mp.ArchGraphAutomorphisms(Sn)
+
+          self.assertEqual(orbit_len(ag.orbit(range(n))), factorial(n))
+
     def test_from_nauty(self):
         vertices_super = 4
         adj_super = {0: [1], 1: [2], 2: [3]}
