@@ -31,37 +31,32 @@ if [[ "$BUILDWHEELS_SKIP_CHECK_VERSION" != "y" ]]; then
 
   yum install -y bc
 
+  curl -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 > jq
+  chmod +x jq
+
   PACKAGE_NAME="$("$PYTHON_BIN_PROTO/python" "$SRC_DIR/setup.py" --name)"
   PACKAGE_VERSION="$("$PYTHON_BIN_PROTO/python" "$SRC_DIR/setup.py" --version)"
 
-  PYPI_PACKAGE_OUTDATED=false
+  PACKAGE_OUTDATED=false
 
   for BIN in "${PYTHON_BIN[@]}"; do
     # This tries to find the versions of the package available on PyPi in an
     # overly complicated manner (due to the fact that pip will not simply spit out
     # this information in a sane way)
 
-    PIP_INDEX_URL="https://pypi.org/simple/"
+    PYPI_JSON_URL="https://pypi.org/pypi/$PACKAGE_NAME/json"
 
-    PYPI_PACKAGE_VERSIONS="$(
-      "$BIN/pip" install --index-url "$PIP_INDEX_URL" "$PACKAGE_NAME==" 2>&1 1>/dev/null | \
-       sed '1q;d' | sed 's/.*(from versions: \(.*\)).*/\1/'
-    )"
+    NEWEST_PACKAGE_VERSION=$(curl -L -s "$PYPI_JSON_URL" | \
+                             ./jq  -r '.releases | keys | .[]' | \
+                             sort -t. -k 1,1n -k 2,2n | tail -n 1)
 
-    if [[ "$PYPI_PACKAGE_VERSIONS" = "none" ]]; then
-      PYPI_PACKAGE_OUTDATED=true
-      break
-    fi;
-
-    NEWEST_PYPI_PACKAGE_VERSION="$(echo "$PYPI_PACKAGE_VERSIONS" | sed 's/, /\n/g' | tail -n 1)"
-
-    if [[ $(bc -l <<< "$PACKAGE_VERSION > $NEWEST_PYPI_PACKAGE_VERSION") -eq 1 ]]; then
-      PYPI_PACKAGE_OUTDATED=true
+    if [[ $(bc -l <<< "$PACKAGE_VERSION > $NEWEST_PACKAGE_VERSION") -eq 1 ]]; then
+      PACKAGE_OUTDATED=true
       break
     fi
   done
 
-  if [[ "$PYPI_PACKAGE_OUTDATED" = "false" ]]; then
+  if [[ "$PACKAGE_OUTDATED" = "false" ]]; then
     echo "PyPi package up-to-date, nothing to do"
     exit 0
   else
