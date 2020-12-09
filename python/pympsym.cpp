@@ -495,7 +495,7 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
 
            return py::make_iterator<py::return_value_policy::copy>(adaptor.begin(),
                                                                    adaptor.end());
-         });
+         }, py::keep_alive<0, 1>());
 
   // TMORs
   py::class_<TMORs>(m, "Representatives")
@@ -505,7 +505,8 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
     .def("__len__", &TMORs::num_orbits)
     .def("__iter__",
          [](TMORs const &orbits)
-         { return py::make_iterator(orbits.begin(), orbits.end()); })
+         { return py::make_iterator(orbits.begin(), orbits.end()); },
+         py::keep_alive<0, 1>())
     .def("__contains__",
          [](TMORs const &orbits, Sequence<> const &mapping)
          { return orbits.is_repr(mapping); },
