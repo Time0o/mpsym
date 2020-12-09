@@ -14,7 +14,7 @@ USER_NAME="Time0o"
 REPO_NAME="mpsym"
 REPO_URL="github.com/$USER_NAME/$REPO_NAME.git"
 
-PYPI_DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
+PYPI_DOCKER_IMAGE=quay.io/pypa/manylinux2014_x86_64
 PYPI_DOCKER_SRC_DIR=/mpsym
 PYPI_DOCKER_WHEELS_DIR="$PYPI_DOCKER_SRC_DIR/wheelhouse"
 

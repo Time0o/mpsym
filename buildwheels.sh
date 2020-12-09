@@ -29,10 +29,7 @@ done
 if [[ "$BUILDWHEELS_SKIP_CHECK_VERSION" != "y" ]]; then
   echo "=== Checking Package Version ==="
 
-  yum install -y bc
-
-  curl -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 > jq
-  chmod +x jq
+  yum install -y jq bc
 
   PACKAGE_NAME="$("$PYTHON_BIN_PROTO/python" "$SRC_DIR/setup.py" --name)"
   PACKAGE_VERSION="$("$PYTHON_BIN_PROTO/python" "$SRC_DIR/setup.py" --version)"
@@ -47,8 +44,8 @@ if [[ "$BUILDWHEELS_SKIP_CHECK_VERSION" != "y" ]]; then
     PYPI_JSON_URL="https://pypi.org/pypi/$PACKAGE_NAME/json"
 
     NEWEST_PACKAGE_VERSION=$(curl -L -s "$PYPI_JSON_URL" | \
-                             ./jq  -r '.releases | keys | .[]' | \
-                             sort -t. -k 1,1n -k 2,2n | tail -n 1)
+                             jq  -r '.releases | keys | .[]' | \
+                             sort -V | tail -n 1)
 
     if [[ $(bc -l <<< "$PACKAGE_VERSION > $NEWEST_PACKAGE_VERSION") -eq 1 ]]; then
       PACKAGE_OUTDATED=true
