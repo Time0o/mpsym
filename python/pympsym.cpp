@@ -763,6 +763,10 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
            return self.contains_element(p);
          },
          "perm"_a)
+    .def("__contains__",
+         [](PermGroup const &self, std::string const &p)
+         { return self.contains_element(str_to_perm(self.degree(), p)); },
+         "perm"_a)
     .def("__bool__",
          [](PermGroup const &self)
          { return !self.is_trivial(); })
