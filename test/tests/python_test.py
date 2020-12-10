@@ -200,7 +200,8 @@ class ArchGraphSystemTest(unittest.TestCase):
     def test_representative(self):
         for orbit in [self.ag_orbit1, self.ag_orbit2]:
             for mapping in orbit:
-                self.assertEqual(self.ag.representative(mapping), orbit[0])
+                for method in 'iterate', 'orbit':
+                    self.assertEqual(self.ag.representative(mapping, method=method), orbit[0])
 
     def test_orbit(self):
         for orbit in [self.ag_orbit1, self.ag_orbit2]:

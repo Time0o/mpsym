@@ -112,6 +112,29 @@ template<typename T>
 py::tuple to_tuple(T const &obj)
 { return sequence_to_tuple(to_sequence(obj)); }
 
+ReprOptions str_to_repr_options(std::string const &method)
+{
+  ReprOptions options;
+
+  if (method == "auto") {
+    options.method = ReprOptions::Method::AUTO;
+  } else if (method == "iterate") {
+    options.method = ReprOptions::Method::ITERATE;
+  } else if (method == "orbit") {
+    options.method = ReprOptions::Method::ORBITS;
+  } else if (method == "local_search_bfs") {
+    options.method = ReprOptions::Method::LOCAL_SEARCH;
+    options.variant = ReprOptions::Variant::LOCAL_SEARCH_BFS;
+  } else if (method == "local_search_dfs") {
+    options.method = ReprOptions::Method::LOCAL_SEARCH;
+    options.variant = ReprOptions::Variant::LOCAL_SEARCH_DFS;
+  } else {
+    throw std::invalid_argument("invalid 'method'");
+  }
+
+  return options;
+}
+
 Perm str_to_perm(unsigned degree, std::string cycles)
 {
   static std::regex re_perm(R"((\(\)|(\(( *\d+,)+ *\d+ *\))+))");
@@ -336,26 +359,32 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          },
          "mapping"_a, "timeout"_a = 0.0)
     .def("representative",
-         [&](ArchGraphSystem &self, Sequence<> const &mapping, double timeout)
+         [&](ArchGraphSystem &self,
+             Sequence<> const &mapping,
+             std::string const &method,
+             double timeout)
          {
            using T = TaskMapping(ArchGraphSystem::*)(TaskMapping const &,
                                                      ReprOptions const *,
                                                      flag);
+
+           auto options(str_to_repr_options(method));
 
            auto repr(arch_graph_timeout("representative",
                                         timeout,
                                         self,
                                         (T)&ArchGraphSystem::repr,
                                         mapping,
-                                        nullptr));
+                                        &options));
 
            return to_tuple(repr);
          },
-         "mapping"_a, "timeout"_a = 0.0)
+         "mapping"_a, "method"_a = "auto", "timeout"_a = 0.0)
     .def("representative",
          [&](ArchGraphSystem &self,
              Sequence<> const &mapping,
              TMORs &representatives,
+             std::string const &method,
              double timeout)
          {
            using T = std::tuple<TaskMapping, bool, unsigned>
@@ -363,6 +392,9 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                                           TMORs &,
                                           ReprOptions const *,
                                           flag);
+
+
+           auto options(str_to_repr_options(method));
 
            TaskMapping repr;
            bool orbit_new;
@@ -375,14 +407,13 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                                 (T)&ArchGraphSystem::repr,
                                 mapping,
                                 representatives,
-                                nullptr);
+                                &options);
 
-           return std::make_tuple(
-             to_tuple(repr),
-             orbit_new,
-             orbit_index);
+           return std::make_tuple(to_tuple(repr),
+                                  orbit_new,
+                                  orbit_index);
          },
-         "mapping"_a, "representatives"_a, "timeout"_a = 0.0);
+         "mapping"_a, "representatives"_a, "method"_a = "auto", "timeout"_a = 0.0);
 
   // ArchGraphAutomorphisms
   py::class_<ArchGraphAutomorphisms,
