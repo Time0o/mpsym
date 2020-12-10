@@ -452,16 +452,50 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
          &ArchGraph::add_processors,
          "n"_a, "pl"_a)
     .def("add_channel",
-         (void(ArchGraph::*)(unsigned, unsigned, std::string const &))
-         &ArchGraph::add_channel,
+         [](ArchGraph &self, unsigned pe1, unsigned pe2, std::string const &cl)
+         {
+           if (pe1 >= self.num_processors() || pe2 >= self.num_processors())
+             throw std::out_of_range("processor index out of range");
+
+           self.add_channel(pe1, pe2, cl);
+         },
          "pe1"_a, "pe2"_a, "cl"_a)
     .def("add_channels",
-         (void(ArchGraph::*)(ArchGraph::ChannelDict<std::string> const &))
-         &ArchGraph::add_channels<std::string>,
+         [](ArchGraph &self, ArchGraph::ChannelDict<std::string> const &cm)
+         {
+           for (auto const &tmp : cm) {
+             unsigned pe1 = tmp.first;
+             if (pe1 >= self.num_processors())
+               throw std::out_of_range("processor index out of range");
+
+             for (auto const &edge : tmp.second) {
+               unsigned pe2 = edge.first;
+               if (pe2 >= self.num_processors())
+                 throw std::out_of_range("processor index out of range");
+             }
+           }
+
+           self.add_channels<std::string>(cm);
+         },
          "channels"_a)
     .def("add_channels",
-         (void(ArchGraph::*)(ArchGraph::ChannelDict<> const &, std::string const &))
-         &ArchGraph::add_channels<std::string const &>,
+         [](ArchGraph &self,
+            ArchGraph::ChannelDict<> const &cm,
+            std::string const &ct)
+         {
+           for (auto const &tmp : cm) {
+             unsigned pe1 = tmp.first;
+             if (pe1 >= self.num_processors())
+               throw std::out_of_range("processor index out of range");
+
+             for (unsigned pe2 : tmp.second) {
+               if (pe2 >= self.num_processors())
+                 throw std::out_of_range("processor index out of range");
+             }
+           }
+
+           self.add_channels(cm, ct);
+         },
          "channels"_a, "ct"_a)
     .def("fully_connect",
          (void(ArchGraph::*)(std::string const &))
