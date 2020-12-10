@@ -47,7 +47,6 @@ struct ReprOptions
   bool match = true;
   bool optimize_symmetric = true;
 
-  bool local_search_invert_generators = false;
   unsigned local_search_append_generators = 0u;
   unsigned local_search_sa_iterations = 100u;
   double local_search_sa_T_init = 1.0;
@@ -108,7 +107,7 @@ public:
   {
     if (!automorphisms_ready()) {
       _automorphisms = automorphisms_(options, aborted);
-      _automorphism_generators = _automorphisms.generators();
+      _automorphism_generators = _automorphisms.generators().with_inverses();
       _automorphisms_valid = true;
     }
 

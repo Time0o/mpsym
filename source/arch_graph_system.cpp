@@ -234,12 +234,6 @@ PermSet ArchGraphSystem::local_search_augment_gens(
 {
   auto generators(_automorphism_generators);
 
-  // append inverse generators
-  if (options->local_search_invert_generators) {
-    for (auto const &gen : _automorphisms.generators())
-      generators.insert(~gen);
-  }
-
   // append random generators
   for (unsigned i = 0u; i < options->local_search_append_generators; ++i)
     generators.insert(_automorphisms.random_element());
