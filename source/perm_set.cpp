@@ -16,6 +16,19 @@ namespace mpsym
 namespace internal
 {
 
+bool PermSet::trivial() const
+{
+  if (empty())
+    return true;
+
+  for (auto const &perm : *this) {
+    if (!perm.id())
+      return false;
+  }
+
+  return true;
+}
+
 unsigned PermSet::smallest_moved_point() const
 {
   assert(!trivial());
@@ -64,32 +77,55 @@ std::vector<unsigned> PermSet::support() const
   return sup;
 }
 
-void PermSet::make_unique()
+bool PermSet::has_inverses() const
 {
-  std::vector<Perm> unique_perms;
+  std::unordered_set<Perm> unique_elems(_elems.begin(), _elems.end());
 
-  std::unordered_set<Perm> seen;
-  for (Perm const &perm : _perms) {
-    if (seen.find(perm) != seen.end())
-      continue;
-
-    unique_perms.push_back(perm);
-    seen.insert(perm);
+  for (auto const &perm : _elems) {
+    if (unique_elems.find(~perm) == unique_elems.end())
+      return false;
   }
 
-  _perms = unique_perms;
+  return true;
+}
+
+PermSet PermSet::with_inverses() const
+{
+  if (has_inverses())
+    return *this;
+
+  PermSet ret(*this);
+  ret.insert_inverses();
+
+  return ret;
 }
 
 void PermSet::insert_inverses()
 {
-  auto perms_and_inverses(_perms);
+  auto perms_and_inverses(_elems);
 
   for (auto const &perm : *this)
     perms_and_inverses.emplace_back(~perm);
 
-  _perms = perms_and_inverses;
+  _elems = perms_and_inverses;
 
   make_unique();
+}
+
+void PermSet::make_unique()
+{
+  std::vector<Perm> unique_elems;
+
+  std::unordered_set<Perm> seen;
+  for (Perm const &perm : _elems) {
+    if (seen.find(perm) != seen.end())
+      continue;
+
+    unique_elems.push_back(perm);
+    seen.insert(perm);
+  }
+
+  _elems = unique_elems;
 }
 
 void PermSet::minimize_degree()
@@ -109,8 +145,8 @@ void PermSet::minimize_degree()
 
   for (unsigned i = 0u; i < degree(); ++i) {
     bool moved = false;
-    for (auto j = 0u; j < _perms.size(); ++j) {
-      if (_perms[j][i] != i) {
+    for (auto j = 0u; j < _elems.size(); ++j) {
+      if (_elems[j][i] != i) {
         moved_sets[j].push_back(i);
         moved = true;
       }
@@ -135,16 +171,16 @@ void PermSet::minimize_degree()
   std::vector<unsigned> id(new_degree);
   std::iota(id.begin(), id.end(), 0u);
 
-  for (unsigned i = 0u; i < _perms.size(); ++i) {
+  for (unsigned i = 0u; i < _elems.size(); ++i) {
     auto gen(id);
     for (unsigned j = 0u; j < moved_sets[i].size(); ++j) {
       unsigned x = moved_sets[i][j];
-      unsigned y = _perms[i][x];
+      unsigned y = _elems[i][x];
 
       gen[compression_mapping[x]] = compression_mapping[y];
     }
 
-    _perms[i] = Perm(gen);
+    _elems[i] = Perm(gen);
   }
 }
 

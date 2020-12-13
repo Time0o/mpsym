@@ -25,7 +25,7 @@ PrRandomizer::PrRandomizer(PermSet const &generators,
                            unsigned iterations)
 : _gens_orig(generators)
 {
-  generators.assert_not_empty();
+  assert(!generators.empty());
 
   _gens.insert(Perm(generators.degree()));
 

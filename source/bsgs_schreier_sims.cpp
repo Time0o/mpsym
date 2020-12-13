@@ -28,7 +28,7 @@ void BSGS::schreier_sims(PermSet const &generators,
   DBG(DEBUG) << "Executing Schreier Sims algorithm for:";
   DBG(DEBUG) << generators;
 
-  generators.assert_not_empty();
+  assert(!generators.empty());
 
   // initialize
   std::vector<PermSet> strong_generators;
@@ -144,7 +144,7 @@ void BSGS::schreier_sims_random(PermSet const &generators,
 {
   DBG(TRACE) << "Executing (random) Schreier Sims algorithm";
 
-  generators.assert_not_empty();
+  assert(!generators.empty());
 
   std::vector<PermSet> strong_generators;
   std::vector<Orbit> fundamental_orbits;
