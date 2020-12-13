@@ -18,16 +18,17 @@ namespace internal
 
 PartialPerm::PartialPerm(unsigned degree)
 : _pperm(degree),
+  _dom(degree),
+  _im(degree),
   _id(true)
 {
   std::iota(_pperm.begin(), _pperm.end(), 0);
-
-  _dom = _pperm;
-  _im = _pperm;
+  std::iota(_dom.begin(), _dom.end(), 0u);
+  std::iota(_im.begin(), _im.end(), 0u);
 }
 
-PartialPerm::PartialPerm(std::vector<int> const &dom,
-                         std::vector<int> const &im)
+PartialPerm::PartialPerm(std::vector<unsigned> const &dom,
+                         std::vector<unsigned> const &im)
 : _dom(dom),
   _im(im),
   _id(true)
@@ -38,15 +39,15 @@ PartialPerm::PartialPerm(std::vector<int> const &dom,
   if (_dom.empty())
     return;
 
-  int degree = *std::max_element(_dom.begin(), _dom.end()) + 1;
+  unsigned degree = *std::max_element(_dom.begin(), _dom.end()) + 1;
 
   assert(degree > 0);
 
   _pperm = std::vector<int>(degree, -1);
 
   for (auto i = 0u; i < _dom.size(); ++i) {
-    int x = _dom[i];
-    int y = _im[i];
+    unsigned x = _dom[i];
+    unsigned y = _im[i];
 
     if (_id && y != x)
       _id = false;
@@ -246,13 +247,13 @@ PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
     return *this;
   }
 
-  std::vector<int> dom_new;
-  std::vector<int> im_new;
+  std::vector<unsigned> dom_new;
+  std::vector<unsigned> im_new;
 
   _id = true;
 
-  for (int x : _dom) {
-    int y = (*this)[x];
+  for (unsigned x : _dom) {
+    int y = (*this)[static_cast<int>(x)];
 
     int z;
     if (y == -1 || y < rhs.dom_min() || y > rhs.dom_max()) {
@@ -262,8 +263,8 @@ PartialPerm& PartialPerm::operator*=(PartialPerm const &rhs)
     }
 
     if (z != -1) {
-      dom_new.push_back(x);
-      im_new.push_back(z);
+      dom_new.push_back(static_cast<unsigned>(x));
+      im_new.push_back(static_cast<unsigned>(z));
 
       if (_id && z != x)
         _id = false;
@@ -329,6 +330,18 @@ Perm PartialPerm::to_perm(unsigned degree) const
 
   return Perm(perm);
 }
+
+int PartialPerm::dom_min() const
+{ return _dom.empty() ? -1 : static_cast<int>(_dom[0]); }
+
+int PartialPerm::dom_max() const
+{ return _dom.empty() ? -1 : static_cast<int>(_dom.back()); }
+
+int PartialPerm::im_min() const
+{ return _im.empty() ? -1 : static_cast<int>(_im[0]); }
+
+int PartialPerm::im_max() const
+{ return _im.empty() ? -1 : static_cast<int>(_im.back()); }
 
 } // namespace internal
 

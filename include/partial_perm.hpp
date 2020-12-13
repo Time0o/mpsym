@@ -43,8 +43,8 @@ friend std::size_t std::hash<PartialPerm>::operator()(
 
 public:
   PartialPerm(unsigned degree = 0u);
-  PartialPerm(std::vector<int> const &dom,
-              std::vector<int> const &im);
+  PartialPerm(std::vector<unsigned> const &dom,
+              std::vector<unsigned> const &im);
   PartialPerm(std::vector<int> const &pperm);
 
   int operator[](int i) const;
@@ -56,29 +56,16 @@ public:
   static PartialPerm from_perm(Perm const &perm);
   Perm to_perm(unsigned degree) const;
 
-  std::vector<int> dom() const
-  { return _dom; }
+  std::vector<unsigned> dom() const { return _dom; }
+  int dom_min() const;
+  int dom_max() const;
 
-  int dom_min() const
-  { return _dom.empty() ? -1 : _dom[0]; }
+  std::vector<unsigned> im() const { return _im; }
+  int im_min() const;
+  int im_max() const;
 
-  int dom_max() const
-  { return _dom.empty() ? -1 : _dom.back(); }
-
-  std::vector<int> im() const
-  { return _im; }
-
-  int im_min() const
-  { return _im.empty() ? -1 : _im[0]; }
-
-  int im_max() const
-  { return _im.empty() ? -1 : _im.back(); }
-
-  bool empty() const
-  { return _pperm.empty(); }
-
-  bool id() const
-  { return _id; }
+  bool empty() const { return _pperm.empty(); }
+  bool id() const { return _id; }
 
   template<typename IT>
   PartialPerm restricted(IT first, IT last) const
@@ -115,10 +102,10 @@ public:
   template<template<typename ...> class T, typename IT>
   T<unsigned> image(IT first, IT last) const
   {
-    std::set<int> pperm_image;
+    std::set<unsigned> pperm_image;
 
     for (IT it = first; it != last; ++it) {
-      int x = *it;
+      unsigned x = *it;
 
       if (x < dom_min() || x > dom_max())
         continue;
@@ -126,14 +113,15 @@ public:
       int y = _pperm[x];
 
       if (y != -1)
-        pperm_image.insert(y);
+        pperm_image.insert(static_cast<unsigned>(y));
     }
 
-    return T<int>(pperm_image.begin(), pperm_image.end());
+    return T<unsigned>(pperm_image.begin(), pperm_image.end());
   }
 
 private:
-  std::vector<int> _pperm, _dom, _im;
+  std::vector<int> _pperm;
+  std::vector<unsigned> _dom, _im;
   bool _id;
 };
 

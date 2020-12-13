@@ -21,8 +21,8 @@ TEST(PartialPermTest, CanConstructPartialPerm)
   {
     ConstructionTest(PartialPerm pperm,
                      std::vector<int> const &expected_mapping = {},
-                     std::vector<int> const &expected_dom = {},
-                     std::vector<int> const &expected_im = {})
+                     std::vector<unsigned> const &expected_dom = {},
+                     std::vector<unsigned> const &expected_im = {})
     : pperm(pperm),
       expected_mapping(expected_mapping),
       expected_dom(expected_dom),
@@ -30,7 +30,8 @@ TEST(PartialPermTest, CanConstructPartialPerm)
     {}
 
     PartialPerm pperm;
-    std::vector<int> expected_mapping, expected_dom, expected_im;
+    std::vector<int> expected_mapping;
+    std::vector<unsigned> expected_dom, expected_im;
   };
 
   std::vector<ConstructionTest> tests {
