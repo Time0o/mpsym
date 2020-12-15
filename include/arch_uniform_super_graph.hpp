@@ -10,6 +10,7 @@
 #include "arch_graph_system.hpp"
 #include "bsgs.hpp"
 #include "perm_group.hpp"
+#include "perm_set.hpp"
 
 namespace mpsym
 {
@@ -36,6 +37,15 @@ public:
 
   unsigned num_processors() const override;
   unsigned num_channels() const override;
+
+  internal::PermSet automorphisms_generators(
+    AutomorphismOptions const *options = nullptr,
+    internal::timeout::flag aborted = internal::timeout::unset()) override
+  {
+    return internal::PermGroup::wreath_product_generators(
+      _subsystem_proto->automorphisms_generators(options, aborted),
+      _subsystem_super_graph->automorphisms_generators(options, aborted));
+  }
 
 private:
   internal::BSGS::order_type num_automorphisms_(

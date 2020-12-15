@@ -114,6 +114,15 @@ public:
     return _automorphisms;
   }
 
+  virtual internal::PermSet automorphisms_generators(
+    AutomorphismOptions const *options = nullptr,
+    internal::timeout::flag aborted = internal::timeout::unset())
+  {
+    automorphisms(options, aborted);
+
+    return _automorphism_generators;
+  }
+
   TMO automorphisms_orbit(
     TaskMapping const &mapping,
     AutomorphismOptions const *options = nullptr,

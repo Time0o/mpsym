@@ -329,6 +329,19 @@ PYBIND11_MODULE_(PYTHON_MODULE, m)
                                      nullptr);
          },
          "timeout"_a = 0.0)
+    .def("automorphisms_generators",
+         [](ArchGraphSystem &self, double timeout)
+         {
+           auto generators(arch_graph_timeout(
+             "automorphisms_generators",
+             timeout,
+             self,
+             &ArchGraphSystem::automorphisms_generators,
+             nullptr));
+
+           return Sequence<Perm>(generators.begin(), generators.end());
+         },
+         "timeout"_a = 0.0)
     .def("automorphisms",
          [](ArchGraphSystem &self, double timeout)
          {

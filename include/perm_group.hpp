@@ -125,6 +125,9 @@ public:
     return dp_order;
   }
 
+  static PermSet wreath_product_generators(PermGroup const &lhs,
+                                           PermGroup const &rhs);
+
   static PermGroup wreath_product(PermGroup const &lhs,
                                   PermGroup const &rhs,
                                   BSGSOptions const *bsgs_options = nullptr,

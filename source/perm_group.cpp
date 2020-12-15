@@ -114,25 +114,18 @@ PermGroup PermGroup::dihedral(unsigned degree)
   return PermGroup(degree / 2u, {Perm(rotation), Perm(reflection)});
 }
 
-PermGroup PermGroup::wreath_product(PermGroup const &lhs,
-                                    PermGroup const &rhs,
-                                    BSGSOptions const *bsgs_options_,
-                                    timeout::flag aborted)
+PermSet PermGroup::wreath_product_generators(PermGroup const &lhs,
+                                             PermGroup const &rhs)
 {
-  // degree of wreath product
   unsigned wp_degree = lhs.degree() * rhs.degree();
 
-  // order of wreath product
-  auto wp_order(wreath_product_order(lhs, rhs));
-
-  // determine generators of wreath product
   auto lhs_gens(lhs.generators());
   auto rhs_gens(rhs.generators());
 
   PermSet wp_generators;
 
   if (lhs.is_trivial() && rhs.is_trivial()) {
-    return PermGroup(wp_degree);
+    return {};
 
   } else if (rhs.is_trivial()) {
     wp_generators.resize(lhs_gens.size(), Perm(wp_degree));
@@ -171,6 +164,26 @@ PermGroup PermGroup::wreath_product(PermGroup const &lhs,
       wp_generators.emplace(wp_degree, shifted_cycles);
     }
   }
+
+  return wp_generators;
+}
+
+PermGroup PermGroup::wreath_product(PermGroup const &lhs,
+                                    PermGroup const &rhs,
+                                    BSGSOptions const *bsgs_options_,
+                                    timeout::flag aborted)
+{
+  // degree of wreath product
+  unsigned wp_degree = lhs.degree() * rhs.degree();
+
+  // generators of wreath product
+  auto wp_generators(wreath_product_generators(lhs, rhs));
+
+  if (wp_generators.empty())
+    return PermGroup(wp_degree);
+
+  // order of wreath product
+  auto wp_order(wreath_product_order(lhs, rhs));
 
   // construct wreath product
   auto bsgs_options(BSGSOptions::fill_defaults(bsgs_options_));
