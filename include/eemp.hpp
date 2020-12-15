@@ -1,10 +1,12 @@
-#if 0
 #ifndef GUARD_EEMP_H
 #define GUARD_EEMP_H
 
 #include <ostream>
 #include <utility>
 #include <vector>
+
+#include "partial_perm.hpp"
+#include "partial_perm_set.hpp"
 
 namespace mpsym
 {
@@ -18,47 +20,54 @@ class PermGroup;
 namespace eemp
 {
 
-struct SchreierTree {
-  std::vector<std::pair<unsigned, unsigned>> data;
+using Node = std::vector<unsigned>;
+
+using Component = std::vector<Node>;
+
+struct SchreierTree
+{ std::vector<std::pair<unsigned, unsigned>> data; };
+
+struct OrbitGraph
+{ std::vector<std::vector<unsigned>> data; };
+
+struct Sccs
+{
+  std::vector<unsigned> data;
+  std::vector<std::vector<unsigned>> data_expanded() const;
 };
 
-struct OrbitGraph {
-  std::vector<std::vector<unsigned>> data;
-};
+Component action_component(Node const &alpha,
+                           PartialPermSet const &generators,
+                           SchreierTree &schreier_tree,
+                           OrbitGraph &orbit_graph);
 
-std::vector<std::vector<unsigned>> action_component(
-  std::vector<unsigned> const &alpha,
-  std::vector<PartialPerm> const &generators, unsigned dom_max,
-  SchreierTree &schreier_tree, OrbitGraph &orbit_graph);
+Sccs strongly_connected_components(OrbitGraph const &orbit_graph);
 
-std::pair<unsigned, std::vector<unsigned>> strongly_connected_components(
-  OrbitGraph const &orbit_graph);
+// TODO: parameters???
+SchreierTree spanning_tree(OrbitGraph const &orbit_graph,
+                           Sccs const &sccs,
+                           unsigned scc);
 
-SchreierTree scc_spanning_tree(
-  unsigned i, OrbitGraph const &orbit_graph,
-  std::vector<unsigned> const &scc);
+PartialPerm schreier_trace(PartialPermSet const &generators,
+                           SchreierTree const &schreier_tree,
+                           unsigned from,
+                           unsigned to);
 
-PartialPerm schreier_trace(
-  unsigned x, SchreierTree const &schreier_tree,
-  std::vector<PartialPerm> const &generators, unsigned dom_max,
-  unsigned target = 0u);
-
-PermGroup schreier_generators(
-  unsigned i, std::vector<PartialPerm> const &generators, unsigned dom_max,
-  std::vector<std::vector<unsigned>> const &action_component,
-  SchreierTree const &schreier_tree, OrbitGraph const &orbit_graph,
-  std::vector<unsigned> const &sccs);
-
-std::vector<PartialPerm> r_class_representatives(
-  SchreierTree const &schreier_tree,
-  std::vector<PartialPerm> const &generators);
-
-std::vector<std::vector<unsigned>> expand_partition(
-  std::vector<unsigned> partition);
+//PermGroup schreier_generators(
+//  unsigned i, std::vector<PartialPerm> const &generators, unsigned dom_max,
+//  std::vector<std::vector<unsigned>> const &action_component,
+//  SchreierTree const &schreier_tree, OrbitGraph const &orbit_graph,
+//  std::vector<unsigned> const &sccs);
+//
+//std::vector<PartialPerm> r_class_representatives(
+//  SchreierTree const &schreier_tree,
+//  std::vector<PartialPerm> const &generators);
 
 std::ostream &operator<<(std::ostream &os, SchreierTree const &schreier_tree);
 
 std::ostream &operator<<(std::ostream &os, OrbitGraph const &orbit_graph);
+
+std::ostream &operator<<(std::ostream &os, Sccs const &sccs);
 
 } // namespace eemp
 
@@ -67,4 +76,3 @@ std::ostream &operator<<(std::ostream &os, OrbitGraph const &orbit_graph);
 } // namespace mpsym
 
 #endif // GUARD_EEMP_H
-#endif

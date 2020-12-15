@@ -2,6 +2,8 @@
 #define GUARD_HASH_H
 
 #include <iterator>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace mpsym
 {
@@ -25,6 +27,12 @@ struct ContainerHash
   std::size_t operator()(T const &c) const
   { return util::container_hash(c.begin(), c.end()); }
 };
+
+template<typename T>
+using ContainerSet = std::unordered_set<T, ContainerHash<T>>;
+
+template<typename T, typename U>
+using ContainerMap = std::unordered_map<T, U, ContainerHash<T>>;
 
 } // namespace util
 
