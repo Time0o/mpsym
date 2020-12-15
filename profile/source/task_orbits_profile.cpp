@@ -270,9 +270,6 @@ mpsym::ReprOptions map_tasks_mpsym_repr_options(
     else if (options.repr_variant.is("local_search_sa_linear"))
       repr_options.variant = ReprOptions::Variant::LOCAL_SEARCH_SA_LINEAR;
 
-    repr_options.local_search_invert_generators =
-      options.repr_local_search_invert_generators;
-
     repr_options.local_search_append_generators =
       options.repr_local_search_append_generators;
 
@@ -299,14 +296,14 @@ mpsym::ReprOptions map_tasks_mpsym_repr_options(
   return repr_options;
 }
 
-mpsym::TaskOrbits map_tasks_mpsym(
+mpsym::TMORs map_tasks_mpsym(
   std::shared_ptr<mpsym::ArchGraphSystem> ags,
   mpsym::TaskMappingVector const &task_mappings,
   mpsym::ReprOptions const &repr_options,
   ProfileOptions const &options)
 {
   using mpsym::ArchGraphSystem;
-  using mpsym::TaskOrbits;
+  using mpsym::TMORs;
   using mpsym::internal::ArchGraphAutomorphisms;
 
   if (options.verbosity > 0)
@@ -317,7 +314,7 @@ mpsym::TaskOrbits map_tasks_mpsym(
   if (options.verbosity > 0)
     debug("Automorphism group has size", ags->num_automorphisms());
 
-  TaskOrbits task_orbits;
+  TMORs task_orbits;
   for (auto i = 0u; i < task_mappings.size(); ++i) {
     if (options.verbosity > 0)
       debug_progress("Mapping task", i + 1u, "of", task_mappings.size());
@@ -331,10 +328,10 @@ mpsym::TaskOrbits map_tasks_mpsym(
 void map_tasks_gap_wrapper(gap::PermGroup const &automorphisms,
                            gap::TaskMappingVector const &task_mappings,
                            ProfileOptions const &options,
-                           mpsym::TaskOrbits *task_orbits,
+                           mpsym::TMORs *task_orbits,
                            std::vector<double> *ts)
 {
-  using mpsym::TaskOrbits;
+  using mpsym::TMORs;
 
   // run gap script
 
@@ -367,10 +364,10 @@ void map_tasks_gap_wrapper(gap::PermGroup const &automorphisms,
 void map_tasks_mpsym_wrapper(std::shared_ptr<mpsym::ArchGraphSystem> ags,
                              mpsym::TaskMappingVector const &task_mappings,
                              ProfileOptions const &options,
-                             mpsym::TaskOrbits *task_orbits,
+                             mpsym::TMORs *task_orbits,
                              std::vector<double> *ts)
 {
-  using mpsym::TaskOrbits;
+  using mpsym::TMORs;
 
   auto repr_options(map_tasks_mpsym_repr_options(options));
 
@@ -393,8 +390,8 @@ void map_tasks_mpsym_wrapper(std::shared_ptr<mpsym::ArchGraphSystem> ags,
   }
 }
 
-void check_accuracy(mpsym::TaskOrbits const &task_orbits_actual,
-                    mpsym::TaskOrbits const &task_orbits_check,
+void check_accuracy(mpsym::TMORs const &task_orbits_actual,
+                    mpsym::TMORs const &task_orbits_check,
                     ProfileOptions const &options)
 {
   using mpsym::TaskMapping;
@@ -455,7 +452,7 @@ void run(std::shared_ptr<mpsym::ArchGraphSystem> ags,
 {
   using namespace std::placeholders;
 
-  using mpsym::TaskOrbits;
+  using mpsym::TMORs;
 
   std::vector<double> ts;
 
@@ -477,7 +474,7 @@ void run(std::shared_ptr<mpsym::ArchGraphSystem> ags,
     run_gap(ags->to_gap(), options, nullptr, &ts);
 
   } else if (options.library.is("mpsym")) {
-    TaskOrbits task_orbits, task_orbits_check;
+    TMORs task_orbits, task_orbits_check;
 
     run_mpsym(ags, options, &task_orbits, &ts);
 
@@ -569,25 +566,24 @@ int main(int argc, char **argv)
     {"implementation",                      required_argument, 0,       'i'},
     {"repr-method",                         required_argument, 0,       'm'},
     {"repr-variant",                        required_argument, 0,        1 },
-    {"repr-local-search-invert-generators", no_argument,       0,        2 },
-    {"repr-local-search-append-generators", required_argument, 0,        3 },
-    {"repr-local-search-sa-iterations",     required_argument, 0,        4 },
-    {"repr-local-search-sa-T-init",         required_argument, 0,        5 },
-    {"repr-options",                        required_argument, 0,        6 },
+    {"repr-local-search-append-generators", required_argument, 0,        2 },
+    {"repr-local-search-sa-iterations",     required_argument, 0,        3 },
+    {"repr-local-search-sa-T-init",         required_argument, 0,        4 },
+    {"repr-options",                        required_argument, 0,        5 },
     {"groups",                              required_argument, 0,       'g'},
     {"arch-graph",                          required_argument, 0,       'a'},
-    {"arch-graph-args",                     required_argument, 0,        7 },
-    {"dont-decompose-arch-graph",           no_argument, 0,              8 },
+    {"arch-graph-args",                     required_argument, 0,        6 },
+    {"dont-decompose-arch-graph",           no_argument, 0,              7 },
     {"task-mappings",                       required_argument, 0,       't'},
     {"task-mappings-limit",                 required_argument, 0,       'l'},
     {"num-runs",                            required_argument, 0,       'r'},
-    {"num-discarded-runs",                  required_argument, 0,        9 },
-    {"summarize-runs",                      required_argument, 0,        10},
+    {"num-discarded-runs",                  required_argument, 0,        8 },
+    {"summarize-runs",                      required_argument, 0,        9 },
     {"check-accuracy-gap",                  no_argument,       0,       'c'},
-    {"check-accuracy-mpsym",                no_argument,       0,        11},
+    {"check-accuracy-mpsym",                no_argument,       0,        10},
     {"verbose",                             no_argument,       0,       'v'},
-    {"compile-gap",                         no_argument,       0,        12},
-    {"show-gap-errors",                     no_argument,       0,        13},
+    {"compile-gap",                         no_argument,       0,        11},
+    {"show-gap-errors",                     no_argument,       0,        12},
     {nullptr,                               0,                 nullptr,  0 }
   };
 
@@ -616,18 +612,15 @@ int main(int argc, char **argv)
         options.repr_variant.set(optarg);
         break;
       case 2:
-        options.repr_local_search_invert_generators = true;
-        break;
-      case 3:
         options.repr_local_search_append_generators = stox<unsigned>(optarg);
         break;
-      case 4:
+      case 3:
         options.repr_local_search_sa_iterations = stox<unsigned>(optarg);
         break;
-      case 5:
+      case 4:
         options.repr_local_search_sa_T_init = stof<double>(optarg);
         break;
-      case 6:
+      case 5:
         foreach_option(optarg,
                        [&](std::string const &option)
                        { options.repr_options.set(option.c_str()); });
@@ -640,12 +633,12 @@ int main(int argc, char **argv)
         OPEN_STREAM(automorphisms_stream, optarg);
         options.arch_graph_input = true;
         break;
-      case 7:
+      case 6:
         foreach_option(optarg,
                        [&](std::string const &option)
                        { options.arch_graph_args.push_back(option); });
         break;
-      case 8:
+      case 7:
         options.dont_decompose_arch_graph = true;
         break;
       case 't':
@@ -657,26 +650,26 @@ int main(int argc, char **argv)
       case 'r':
         options.num_runs = stox<unsigned>(optarg);
         break;
-      case 9:
+      case 8:
         options.num_discarded_runs = stox<unsigned>(optarg);
         break;
-      case 10:
+      case 9:
         options.summarize_runs = true;
         break;
       case 'c':
         options.check_accuracy_gap = true;
         break;
-      case 11:
+      case 10:
         options.check_accuracy_mpsym = true;
         break;
       case 'v':
         ++options.verbosity;
         TIMER_ENABLE();
         break;
-      case 12:
+      case 11:
         options.compile_gap = true;
         break;
-      case 13:
+      case 12:
         options.show_gap_errors = true;
         break;
       default:
