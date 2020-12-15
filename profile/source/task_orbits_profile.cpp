@@ -197,13 +197,6 @@ std::string map_tasks_gap(ProfileOptions const &options)
 
   ss << "if IsTrivial(automorphisms) then\n";
   ss << "  Print(\"WARNING: Automorphism group is trivial!\\n\");\n";
-  ss << "else\n";
-  if (options.verbosity > 0)
-    ss << "  Print(\"DEBUG: Constructing BSGS\\n\");\n";
-  ss << "  StabChain(automorphisms);\n";
-  if (options.verbosity > 0)
-    ss << "  Print(\"DEBUG: Automorphism group has size \", "
-          "        Size(automorphisms), \"\\n\");\n";
   ss << "fi;\n";
 
   ss << "orbit_representatives:=[];\n";
@@ -309,8 +302,6 @@ mpsym::TMORs map_tasks_mpsym(
   if (options.verbosity > 0)
     debug("Constructing BSGS");
 
-  ags->init_repr();
-
   if (options.verbosity > 0)
     debug("Automorphism group has size", ags->num_automorphisms());
 
@@ -335,7 +326,20 @@ void map_tasks_gap_wrapper(gap::PermGroup const &automorphisms,
 
   // run gap script
 
-  auto gap_automorphisms("automorphisms:=" + automorphisms + ";");
+  std::stringstream ss;
+
+  ss << "automorphisms:=" << automorphisms << ";\n";
+
+  if (options.verbosity > 0)
+    ss << "Print(\"DEBUG: Constructing BSGS\\n\");\n";
+
+  ss << "StabChain(automorphisms);\n";
+
+  if (options.verbosity > 0)
+    ss << "Print(\"DEBUG: Automorphism group has size \", "
+          "      Size(automorphisms), \"\\n\");\n";
+
+  auto gap_automorphisms(ss.str());
   auto gap_task_mappings("task_mappings:=[\n" + task_mappings + "\n];");
   auto gap_script(map_tasks_gap(options));
 
@@ -370,6 +374,8 @@ void map_tasks_mpsym_wrapper(std::shared_ptr<mpsym::ArchGraphSystem> ags,
   using mpsym::TMORs;
 
   auto repr_options(map_tasks_mpsym_repr_options(options));
+
+  ags->init_repr();
 
   *task_orbits = run_cpp(
     [&]{ return map_tasks_mpsym(ags, task_mappings, repr_options, options); },
