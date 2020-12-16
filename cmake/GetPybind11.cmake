@@ -6,7 +6,7 @@ include(ExternalProject)
 
 ExternalProject_Add(pybind11
   GIT_REPOSITORY    "https://github.com/pybind/pybind11.git"
-  GIT_TAG           "master"
+  GIT_TAG           "v2.6.1"
   SOURCE_DIR        "${PYBIND11_SRC_DIR}"
   BINARY_DIR        "${PYBIND11_BIN_DIR}"
   CONFIGURE_COMMAND ""
