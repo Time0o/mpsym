@@ -59,7 +59,6 @@ class CMakeBuild(build_ext):
             '-DLINK_STATIC=ON',
             '-DPYTHON_BINDINGS=ON',
             '-DPYTHON_LIBRARY_OUTPUT_DIRECTORY={}'.format(extdir),
-            '-DPYTHON_NO_SETUP_PY=ON',
             '-DPYTHON_EXECUTABLE=' + sys.executable,
             '-DLUA_EMBED=ON'
         ]
