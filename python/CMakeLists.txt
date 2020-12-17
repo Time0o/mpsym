@@ -5,7 +5,7 @@ include_directories("${MPSYM_INCLUDE_DIR}"
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
 
-pybind11_add_module("${PYTHON_MODULE}" "pympsym.cpp")
+pybind11_add_module("${PYTHON_MODULE}" "_mpsym.cpp")
 
 target_link_libraries("${PYTHON_MODULE}"
                       PRIVATE "${MPSYM_LIB}"
