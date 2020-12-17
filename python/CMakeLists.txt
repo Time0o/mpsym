@@ -15,13 +15,3 @@ if(PYTHON_LIBRARY_OUTPUT_DIRECTORY)
   set_target_properties("${PYTHON_MODULE}" PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${PYTHON_LIBRARY_OUTPUT_DIRECTORY}")
 endif()
-
-if(NOT PYTHON_NO_SETUP_PY AND CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
-  configure_file("${PYTHON_SETUP_PY_IN}" "${PYTHON_SETUP_PY_OUT}")
-
-  install(CODE "message(STATUS \"Installing Python module\")
-                execute_process(COMMAND ${PIP_EXECUTABLE} install --force .
-                                WORKING_DIRECTORY ${PYTHON_BIN_DIR}
-                                OUTPUT_QUIET
-                                ERROR_QUIET)")
-endif()
