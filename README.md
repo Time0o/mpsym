@@ -54,7 +54,7 @@ represent direct wired/wireless links, shared memory etc.). We can represent
 this architecture by the following _architecture graph_:
 
 <p align="center">
-  <img src="./img/svg/example_1.svg" />
+  <img src="./.img/svg/example_1.svg" />
 </p>
 
 Every vertex corresponds to a processing element and each edge corresponds to a
@@ -67,7 +67,7 @@ Assuming that we don't wish to map both of them to the same processing element,
 there are twelve distinct ways of doing so:
 
 <p align="center">
-  <img src="./img/svg/example_2.svg" />
+  <img src="./.img/svg/example_2.svg" />
 </p>
 
 We refer to this set of all possible mappings for a given set of tasks as the
@@ -75,7 +75,7 @@ _full mapping space_. MPsym is able to (implicitly) partition the full mapping
 space into sets of mappings equivalent by symmetry:
 
 <p align="center">
-  <img src="./img/svg/example_3.svg" />
+  <img src="./.img/svg/example_3.svg" />
 </p>
 
 We refer to such sets of mappings equivalent by symmetry as _orbits_. MPsym
