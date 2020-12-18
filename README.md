@@ -21,6 +21,10 @@ status](https://codecov.io/gh/Time0o/mpsym/branch/master/graph/badge.svg)](https
   - [Orbits and Representatives](#orbits-and-representatives)
   - [Automorphism Groups](#automorphism-groups)
 - [Limitations](#limitations)
+- [Developer Notes](#developer-notes)
+  - [Main Project Structure](#main-project-structure)
+  - [Profiling](#profiling)
+  - [Continuous Integration](#continuous-integration)
 - [References](#references)
 
 ## Introduction
@@ -495,6 +499,98 @@ permutation groups:
 * MPsym also contains code for dealing with _partial symmetries_ derived from
   [[5]](#5), however, this is currently broken due to both technical and
   theoretical problems.
+
+## Developer Notes
+
+### Main Project Structure
+
+The `include` and `source` directories contain the main C++ code which can be
+compiled into a shared object (or static library if the `LINK_STATIC` CMake
+flag is set). The C++ code has four dependencies:
+
+* `Boost`
+* `Lua`
+* `nauty`
+* `nlohmann/json`
+
+The former two must already be installed on your system. The latter two are
+automatically downloaded during the CMake configuration step. `nauty` is
+compiled into a separate shared object (or static library), see
+`nauty/CMakeLists.txt`.
+
+The `lua` directory contains the `mpsym.lua` Lua module which can be used to
+construct Lua architecture graph description files. When trying to parse these
+files from MPsym, `mpsym.lua` must thus be made available via the `LUA_PATH`
+environment variable, i.e. by setting:
+
+```bash
+export LUA_PATH=$LUA_PATH;$(readlink -f mpsym/lua/?.lua)
+```
+
+Alternatively, you can set the `LUA_EMBED` CMake flag to embed `mpsym.lua` into
+the MPsym shared object/static library (which is arguably a weird thing to do
+but quite handy in practice).
+
+The `test/tests` directory contains C++ unit tests. these are built by CMake
+if `-DCMAKE_BUILD_TYPE=Debug` is specified. The tests use the `Googletest`
+framework which is automatically downloaded during the CMake configuration step.
+
+The `python` directory contains Python binding code and tests. It has the
+following structure:
+
+```
+python/
+├── setup.py
+├── mpsym
+│   ├── __init__.py
+│   └── _mpsym_tests.py
+└── source
+    ├── CMakeLists.txt
+    └── _mpsym.cpp
+```
+
+`python/mpsym` is the binding module directory. `python/_mpsym.cpp` contains
+[pybind11](https://github.com/pybind/pybind11) wrapper code for MPsym's public
+C++ interface. When the `PYTHON_BINDINGS` CMake flag is set, a corresponding
+shared object is created under `python/mpsym/_mpsym.*.so`. `_mpsym_tests.py`
+contains a number of unit tests. The `mpsym` binding module loads both the
+module created via pybind11 and `_mpsym_tests.py` in its `__init__.py`. The
+latter can be run by invoking `mpsym.test(verbosity=...)`, a return value of
+`0` indicates success.
+
+If you don't care about the C++ interface, you can directly install the binding
+module to your system via `python setup.py install --user`.
+
+### Profiling
+
+Besides `Release` and `Debug`, a third build mode, `Profile`, is also
+supported.  In this mode, the programs under `profile/source` are compiled.
+They can be used to profile the runtime of the Schreier-Sims algorithm as
+implemented by MPsym, as well as the various canonical representative
+algorithms. These programs implement `--help` flags that should more or less
+explain how to use them. Some related example architecture graphs and scripts
+can be found [here](https://github.com/Time0o/mpsym_experiments).
+
+### Deploying
+
+Running `deploy.sh` will create test coverage data and Doxygen documentation
+and will upload these to Codecov and GitHub pages respectively. Of course you
+shouldn't be able to do this unless you're me :o).
+
+### Continuous Integration
+
+Previously, MPsym used Travis for CI. Since Travis is unfortunately no longer
+free for FOSS projects, GitHub Actions are now used instead. Take a look at
+`.github/workflows/workflow.yml` for details. On every commit and pull request
+to the master branch, MPsym is built and tested inside a Ubuntu/macOS image
+using recent versions of gcc/clang.
+
+Previously, Travis also took care of deployment. To save on GitHub Action
+credits, coverage and documentation must now be deployed manually. PyPi wheels
+are still built automatically (for Linux and macOS), but now in a [separate
+repository](https://github.com/Time0o/mpsym_wheels) that uses
+[multibuild](https://github.com/matthew-brett/multibuild) (currently a work in
+progress).
 
 ## References
 
