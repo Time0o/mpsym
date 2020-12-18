@@ -3,6 +3,9 @@ import sys as _sys
 import unittest as _unittest
 
 from ._mpsym import *
+from ._mpsym import __version__
+from ._mpsym import __doc__
+
 from . import _mpsym_tests
 
 

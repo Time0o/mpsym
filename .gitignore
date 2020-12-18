@@ -1,4 +1,9 @@
 build
+
 lint/*
 !lint/.gitkeep
-test/tests/__pycache__
+
+python/dist
+python/mpsym.egg-info
+python/mpsym/_mpsym.*.so
+python/mpsym/__pycache__

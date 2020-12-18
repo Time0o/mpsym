@@ -58,7 +58,7 @@ class CMakeBuild(build_ext):
             '-DIGNORE_INSTALL_PREFIX=ON',
             '-DLINK_STATIC=ON',
             '-DPYTHON_BINDINGS=ON',
-            '-DPYTHON_LIBRARY_OUTPUT_DIRECTORY={}'.format(extdir),
+            '-DPYTHON_MODULE_INTERNAL_OUT_DIR={}'.format(extdir),
             '-DPYTHON_EXECUTABLE=' + sys.executable,
             '-DLUA_EMBED=ON'
         ]
@@ -88,7 +88,7 @@ setup(
     author_email="timonicolai@arcor.de",
     license="MIT",
     cmdclass=dict(build_ext=CMakeBuild),
-    ext_modules=[CMakeExtension('mpsym._mpsym')],
+    ext_modules=[CMakeExtension('mpsym._mpsym', '..')],
     packages=['mpsym'],
     setup_requires=['wheel'],
     zip_safe=False
