@@ -37,4 +37,4 @@ def test(verbosity=-1):
     else:
         result = run_tests(verbosity=verbosity)
 
-    return result.wasSuccessful()
+    return 0 if result.wasSuccessful() else 1

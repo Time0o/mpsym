@@ -34,3 +34,17 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
 
   target_link_libraries("${TEST_PROG}" "${MPSYM_LIB}" "${GTEST_GMOCK_MAIN}")
 endforeach()
+
+# Python
+if(PYTHON_BINDINGS)
+  add_test(
+    NAME python
+    COMMAND "${PYTHON_EXECUTABLE}" -c "import sys; import mpsym; sys.exit(mpsym.test())"
+    WORKING_DIRECTORY "${PYTHON_DIR}"
+  )
+
+  set_tests_properties(
+    python
+    PROPERTIES ENVIRONMENT "LUA_PATH=${LUA_SRC_DIR}/?.lua;$ENV{LUA_PATH}"
+  )
+endif()
