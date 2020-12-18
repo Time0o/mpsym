@@ -39,7 +39,7 @@ public:
     return "Group(" + generators_str + ")";
   }
 
-  std::string to_json() const
+  std::string to_json() const override
   {
     auto bsgs(_automorphisms.bsgs());
 
@@ -59,7 +59,7 @@ public:
     return ss.str();
   }
 
-  unsigned automorphisms_degree() const
+  unsigned automorphisms_degree() const override
   { return _automorphisms.degree(); }
 
 private:
