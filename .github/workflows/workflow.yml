@@ -1,0 +1,19 @@
+name: build and run tests
+on:
+  push:
+    branches: [ master ]
+  pull_requests:
+    branches: [ master ]
+jobs:
+  # TODO: Python tests
+  # TODO: Deploy
+  build-and-test:
+    runs-on: ubuntu-20.04
+    # TODO: Boost 1.72, Lua
+    steps:
+      - name: install-dependencies
+        run: sudo apt-get update && sudo apt-get install -yq libboost1.71-dev
+      - name: build-mpsym
+        run: mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=ON -DNO_COVERAGE=ON
+      - name: test-mpsym
+        run: make test
