@@ -58,8 +58,7 @@ class CMakeBuild(build_ext):
             '-DIGNORE_INSTALL_PREFIX=ON',
             '-DLINK_STATIC=ON',
             '-DPYTHON_BINDINGS=ON',
-            '-DPYTHON_LIBRARY_OUTPUT_DIRECTORY={}'.format(extdir),
-            '-DPYTHON_NO_SETUP_PY=ON',
+            '-DPYTHON_MODULE_INTERNAL_OUT_DIR={}'.format(extdir),
             '-DPYTHON_EXECUTABLE=' + sys.executable,
             '-DLUA_EMBED=ON'
         ]
@@ -80,7 +79,7 @@ class CMakeBuild(build_ext):
         subprocess.check_call(cmake_build_cmd, cwd=self.build_temp)
 
 setup(
-    name='pympsym',
+    name='mpsym',
     version='0.5',
     description="MPSoC Symmetry Reduction",
     long_description="mpsym is a C++/Lua/Python library that makes it possible to determine whether mappings of computational tasks to multiprocessor systems are equivalent by symmetry. It can also potentially be used to solve more general graph symmetry problems.",
@@ -89,7 +88,8 @@ setup(
     author_email="timonicolai@arcor.de",
     license="MIT",
     cmdclass=dict(build_ext=CMakeBuild),
-    ext_modules=[CMakeExtension('mpsym')],
+    ext_modules=[CMakeExtension('mpsym._mpsym', '..')],
+    packages=['mpsym'],
     setup_requires=['wheel'],
     zip_safe=False
 )

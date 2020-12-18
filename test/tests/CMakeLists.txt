@@ -39,12 +39,12 @@ endforeach()
 if(PYTHON_BINDINGS)
   add_test(
     NAME python
-    COMMAND ${CMAKE_COMMAND} -E env "LUA_PATH=${LUA_SRC_DIR}/?.lua;$ENV{LUA_PATH}" "${PYTHON_EXECUTABLE}" -m pytest python_test.py
-    WORKING_DIRECTORY "${MPSYM_TEST_TESTS_DIR}"
+    COMMAND "${PYTHON_EXECUTABLE}" -c "import sys; import mpsym; sys.exit(mpsym.test())"
+    WORKING_DIRECTORY "${PYTHON_DIR}"
   )
 
   set_tests_properties(
     python
-    PROPERTIES ENVIRONMENT "PYTHONPATH=${PYTHON_BIN_DIR}:$ENV{PYTHONPATH}"
+    PROPERTIES ENVIRONMENT "LUA_PATH=${LUA_SRC_DIR}/?.lua;$ENV{LUA_PATH}"
   )
 endif()

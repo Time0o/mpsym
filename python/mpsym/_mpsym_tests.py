@@ -6,7 +6,7 @@ from math import factorial
 from random import sample
 from textwrap import dedent
 
-import pympsym as mp
+import mpsym as mp
 
 
 def cyclically_connect(self, ct, start=0, end=None, directed=True):
@@ -555,7 +555,3 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
         for mapping in permutations(id_mapping):
             self.assertEqual(ag.representative(mapping),
                              ag_automs_graph.representative(mapping))
-
-
-if __name__ == '__main__':
-    unittest.main()

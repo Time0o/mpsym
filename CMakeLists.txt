@@ -117,11 +117,11 @@ set(LUA_ROCKSPEC_IN "${LUA_SRC_DIR}/${LUA_MODULE}.rockspec.in")
 set(LUA_ROCKSPEC_OUT "${LUA_BIN_DIR}/${LUA_MODULE}-${CMAKE_PROJECT_VERSION}-1.rockspec")
 
 # Python
-set(PYTHON_SRC_DIR "${CMAKE_SOURCE_DIR}/python")
-set(PYTHON_BIN_DIR "${CMAKE_BINARY_DIR}/python")
-set(PYTHON_SETUP_PY_IN "${PYTHON_SRC_DIR}/setup.py.in")
-set(PYTHON_SETUP_PY_OUT "${PYTHON_BIN_DIR}/setup.py")
-set(PYTHON_MODULE "py${CMAKE_PROJECT_NAME}")
+set(PYTHON_DIR "${CMAKE_SOURCE_DIR}/python")
+set(PYTHON_MODULE "${CMAKE_PROJECT_NAME}")
+set(PYTHON_MODULE_INTERNAL "_${PYTHON_MODULE}")
+set(PYTHON_MODULE_DIR "${PYTHON_DIR}/${PYTHON_MODULE}")
+set(PYTHON_SRC_DIR "${PYTHON_DIR}/source")
 
 # Doxygen
 set(DOC_DOXYGEN_IN_DIR "${CMAKE_SOURCE_DIR}/doxygen")
@@ -134,8 +134,9 @@ set(DOC_DOXYGEN_INDEX_HTML "${DOC_DOXYGEN_OUT_DIR}/html/index.html")
 ################################################################################
 
 add_definitions(
-  -DPYTHON_MODULE=${PYTHON_MODULE}
-  -DDESCRIPTION="${CMAKE_PROJECT_DESCRIPTION}"
+  -DPYTHON_MODULE_INTERNAL=${PYTHON_MODULE_INTERNAL}
+  -DPYTHON_VERSION="${CMAKE_PROJECT_VERSION}"
+  -DPYTHON_DESCRIPTION="${CMAKE_PROJECT_DESCRIPTION}"
 )
 
 
@@ -221,14 +222,6 @@ if(PYTHON_BINDINGS)
                        WORK_DIR "${PYBIND11_DOWNLOAD_DIR}"
                        SRC_DIR "${PYBIND11_SRC_DIR}"
                        BIN_DIR "${PYBIND11_BIN_DIR}")
-
-  # pip
-  if(NOT PYTHON_NO_SETUP_PY AND CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_RELEASE}")
-    find_program(PIP_EXECUTABLE pip3)
-    if(NOT PIP_EXECUTABLE)
-      message(FATAL_ERROR "pip not found")
-    endif()
-  endif()
 endif()
 
 
@@ -237,7 +230,7 @@ endif()
 ################################################################################
 
 if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}")
-  if (NOT NO_COVERAGE)
+  if (COVERAGE)
     # Coverage
     message(STATUS "Configuring coverage data generation...")
 
