@@ -1,53 +1,49 @@
 #!/bin/bash
 
-set -e
-set -x
-
-if [ -z "$DEPLOY" ]; then
-  exit 0
-fi
-
 AUTHOR="Timo Nicolai"
 AUTHOR_EMAIL="timonicolai@arcor.de"
 
 USER_NAME="Time0o"
 REPO_NAME="mpsym"
-REPO_URL="github.com/$USER_NAME/$REPO_NAME.git"
+REPO_URL="https://github.com/$USER_NAME/$REPO_NAME.git"
 
 # upload coverage data
-echo "Uploading coverage data..."
-mkdir gcov
-cd gcov
-gcov ../source/CMakeFiles/**/*
-bash <(curl -s https://codecov.io/bash)
-cd ..
 
-# release build
-echo "Preparing release build..."
-rm -rf *
-cmake -DCMAKE_BUILD_TYPE=Release -DNO_INSTALL=ON -DBUILD_DOC=ON ..
+if [ -z "$CODECOV_TOKEN" ]; then
+  echo >&2 "CODECOV_TOKEN must be set"
+  exit 1
+fi
 
-# deploy documentation
-echo "Deploying documentation..."
-make doc
+mkdir -p build_coverage
+(
+  cd build_coverage
+  cmake .. -DCMAKE_BUILD_TYPE=Debug -DPYTHON_BINDINGS=ON -DCOVERAGE=ON
+  make -j $(nproc)
+  make test
 
-echo "Cloning gh-pages branch..."
-git clone -b gh-pages "https://$REPO_URL"
+  mkdir -p gcov
+  (
+    cd gcov
+    echo "Generating coverage data"
+    gcov ../source/CMakeFiles/**/* > gcov.log 2> gcov.err
+    echo "Uploading coverage data"
+    bash <(curl -s https://codecov.io/bash) > codecov.log 2> codecov.err
+  )
+)
 
-cd "$REPO_NAME"
-
-echo "Configuring git..."
-git config push.default simple
-git config user.name "$AUTHOR"
-git config user.name "$AUTHOR_EMAIL"
-
-if [ -d ../doxygen/html ] && [ -f ../doxygen/html/index.html ]; then
+# upload documentation
+mkdir -p build_documentation
+(
+  cd build_documentation
+  cmake .. -DCMAKE_BUILD_TYPE=Release -DNO_INSTALL=ON -DBUILD_DOC=ON
+  make -j $(nproc)
+  make doc
+  echo "Cloning gh-pages branch..."
+  git clone -b gh-pages "$REPO_URL"
+  cd "$REPO_NAME"
   echo "Pushing documentation..."
   cp -r ../doxygen/html/* .
   git add .
-  git commit --amend -m "Deploy documentation, current commit is $TRAVIS_COMMIT"
-  git push --force "https://$REPO_TOKEN@$REPO_URL" > /dev/null 2>&1
-else
-  echo "Failed to find generated documentation" >&2
-  exit 1
-fi
+  git commit --amend -m "Deploy documentation, current commit is $(git rev-parse HEAD)"
+  git push --force "$REPO_URL" > /dev/null 2>&1
+)

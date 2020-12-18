@@ -230,7 +230,7 @@ endif()
 ################################################################################
 
 if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_DEBUG}")
-  if (NOT NO_COVERAGE)
+  if (COVERAGE)
     # Coverage
     message(STATUS "Configuring coverage data generation...")
 
