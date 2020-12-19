@@ -79,21 +79,6 @@ class CMakeBuild(build_ext):
         subprocess.check_call(cmake_build_cmd, cwd=self.build_temp)
 
 
-# Hack that enables us to run both 'python setup.py install' and 'pip install .'
-# from this directory. Without this, we would not be able to locate this repo's
-# root directory from the temporary build directory created by pip.
-
-builddir = os.path.basename(os.path.dirname(sys.argv[0]))
-
-if builddir.startswith('pip-req-build'):
-    if os.environ.get('TMPDIR') != '.':
-        raise ValueError("For technical reasonds, TMPDIR must be set to '.' when building with pip")
-
-    sourcedir = '../..'
-else:
-    sourcedir = '..'
-
-
 setup(
     name='mpsym',
     version='0.5',
@@ -104,7 +89,8 @@ setup(
     author_email="timonicolai@arcor.de",
     license="MIT",
     cmdclass=dict(build_ext=CMakeBuild),
-    ext_modules=[CMakeExtension('mpsym._mpsym', sourcedir)],
+    ext_modules=[CMakeExtension('mpsym._mpsym', '.')],
+    package_dir={'': 'python'},
     packages=['mpsym'],
     setup_requires=['wheel'],
     zip_safe=False
