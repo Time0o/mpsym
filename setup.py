@@ -63,6 +63,15 @@ class CMakeBuild(build_ext):
             '-DLUA_EMBED=ON'
         ]
 
+        CC = os.environ.get('CC')
+        CXX = os.environ.get('CXX')
+
+        if CC is not None:
+            cmake_cmd.append('-DCMAKE_C_COMPILER={}'.format(CC))
+
+        if CXX is not None:
+            cmake_cmd.append('-DCMAKE_CXX_COMPILER={}'.format(CXX))
+
         if self.cmake_extra_opts is not None:
             cmake_cmd += self.cmake_extra_opts.split()
 
