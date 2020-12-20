@@ -33,6 +33,6 @@ jobs:
           -DCMAKE_C_COMPILER=${{ matrix.CC }}
           -DCMAKE_CXX_COMPILER=${{ matrix.CXX }}
       - name: cmake-build
-        run: cd build && make -j$(nproc)
+        run: cd build && make -j 2
       - name: run-tests
         run: cd build && make test # don't use test_memcheck here to save build time
