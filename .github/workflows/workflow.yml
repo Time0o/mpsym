@@ -30,6 +30,8 @@ jobs:
           mkdir build && cd build &&
           cmake ..
           -DCMAKE_BUILD_TYPE=Debug
+          -DPYTHON_BINDINGS=ON
+          -DPYTHON_EXECUTABLE=$(which python3)
           -DCMAKE_C_COMPILER=${{ matrix.CC }}
           -DCMAKE_CXX_COMPILER=${{ matrix.CXX }}
       - name: cmake-build
