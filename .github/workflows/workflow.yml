@@ -1,21 +1,21 @@
 name: build and run tests
 on:
   push:
-    branches: [ master ]
+    branches: [ master, wheels ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, wheels ]
 
 jobs:
   build-and-test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [macos-latest] #[ubuntu-latest, macos-latest]
         include:
-        - os: ubuntu-latest
-          INSTALL_DEPS: sudo apt-get install -yq libboost-dev libboost-graph-dev lua5.3 liblua5.3-dev
-          CC: gcc
-          CXX: g++
+#        - os: ubuntu-latest
+#          INSTALL_DEPS: sudo apt-get install -yq libboost-dev libboost-graph-dev lua5.3 liblua5.3-dev
+#          CC: gcc
+#          CXX: g++
         - os: macos-latest
           INSTALL_DEPS: brew install boost lua
           CC: clang
@@ -30,9 +30,11 @@ jobs:
           cmake ..
           -DCMAKE_BUILD_TYPE=Debug
           -DNO_COVERAGE=ON
+          -DPYTHON_BINDINGS=ON
+          -DPYTHON_EXECUTABLE=$(which python3)
           -DCMAKE_C_COMPILER=${{ matrix.CC }}
           -DCMAKE_CXX_COMPILER=${{ matrix.CXX }}
       - name: cmake-build
-        run: cd build && make -j$(nproc)
+        run: cd build && make VERBOSE=1
       - name: run-tests
         run: cd build && make test # don't use test_memcheck here to save build time
