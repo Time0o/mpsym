@@ -9,6 +9,7 @@ status](https://codecov.io/gh/Time0o/mpsym/branch/master/graph/badge.svg)](https
 
 ## Contents
 
+- [TL;DR](#tl;dr)
 - [Introduction](#introduction)
 - [A Motivating Example](#a-motivating-example)
 - [How It Works](#how-it-works)
@@ -26,6 +27,13 @@ status](https://codecov.io/gh/Time0o/mpsym/branch/master/graph/badge.svg)](https
   - [Profiling](#profiling)
   - [Continuous Integration](#continuous-integration)
 - [References](#references)
+
+## TL;DR
+
+If you are already familiar with what MPsym is and how it works, just run `pip
+install mpsym` and read through the ["Defining Architecture
+Graphs"](#definining-architecture-graphs) and ["Orbits and
+Representatives"](#orbits-and-representatives) examples.
 
 ## Introduction
 
@@ -115,45 +123,42 @@ for large but highly symmetrical architectures.
 ## Installation
 
 This section explains how to install MPsym to your system. Note that MPsym
-currently only runs on Linux. It should in principle be possible to build it on
-non-Linux systems but this is currently either untested or simply not  yet
+currently only runs on Linux and macOS. It should in principle be possible to
+build it on other systems but this is either untested or simply not yet
 supported by the build system.
 
 ### Via pip
 
 If you only plan on calling MPsym from Python, then the easiest way to install
-it is via `pip install pympsym`. This requires `Python >= 3.6` and `pip >= 19.3`.
+it is via `pip install mpsym`. This requires `Python >= 3.6` and `pip >= 19.3`.
+
+Alternatively you can run "pip install git+https://github.com/Time0o/mpsym.git"
+to directly install the latest version of MPsym.
 
 ### From Source
 
-If you plan to install MPsym from source you will need the following installed
-on your system:
+If you want to call MPsym from C++, you need to directly build MPsym using
+CMake. For this you will need the following installed on your system:
 
 * `CMake >= 3.6`
-* `Boost >= 1.72.0`
-* `Lua >= 5.2.0`
+* `Boost` (dev headers + graph libs), tested with version `1.75.0`
+* `Lua` (dev headers), tested with version `5.3.0`
 * `LuaRocks`
 
-If you only plan on calling MPsym from Python simply run `pip install .` or
-`pip install --user .`.
-
-If you want to call MPsym from C++, you need to directly build MPsym using
-CMake. Run the following from the root of this repository:
+Run these commands from the root of this repository:
 
 ```
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
 make -j $(nproc)
 ```
+
 Afterwards, run `make install` to install the C++ header files and shared
 objects as well as the `mpsym` Lua rock to your system. If you do not want to
 install the Lua rock you can pass `-DLUA_EMBED=ON` to CMake to embed the
 `mpsym` Lua module into a shared object. If you do not want to use Lua
 [architecture graph configuration files](#defining-architecture-files) at all,
 you can instead pass `DLUA_NO_ROCK=ON` to CMake.
-
-You can also pass `-DPYTHON_BINDINGS=ON` to CMake to additionally install the
-Python bindings without separately invoking `pip`.
 
 ## Examples
 
@@ -236,17 +241,17 @@ return mpsym.ArchGraph:create{
 We can parse a Lua configuration file in Python as follows:
 
 ```python
-import pympsym
+import mpsym
 
-ag = pympsym.ArchGraphSystem.from_lua_file('arch_graph.lua')
+ag = mpsym.ArchGraphSystem.from_lua_file('arch_graph.lua')
 ```
 
 We can also explicitly construct architecture graphs, e.g.:
 
 ```python
-import pympsym
+import mpsym
 
-ag = pympsym.ArchGraph()
+ag = mpsym.ArchGraph()
 
 ag.add_processors(4, 'P')
 
@@ -290,15 +295,15 @@ return mpsym.ArchUniformSuperGraph:create{
 This also works in Python:
 
 ```python
-import pympsym
+import mpsym
 
-ag_super = pympsym.ArchGraph()
+ag_super = mpsym.ArchGraph()
 # ... build super graph
 
-ag_proto = pympsym.ArchGraph()
+ag_proto = mpsym.ArchGraph()
 # ... build proto graph
 
-ag = pympsym.ArchUniformSuperGraph(ag_super, ag_proto)
+ag = mpsym.ArchUniformSuperGraph(ag_super, ag_proto)
 ```
 
 Both `ArchGraph` and `ArchUniformSuperGraph` are subclasses of the abstract
@@ -319,7 +324,7 @@ graph from a JSON file.
 ```python
 >>> ag.to_json()
 '{"automorphisms": [4,[1, 0],["(0, 1)(2, 3)", "(0, 3)", "(1, 2)"]]}'
->>> ag = pympsym.ArchGraphSystem.from_json(...)
+>>> ag = mpsym.ArchGraphSystem.from_json(...)
 ```
 
 ### Initializing Architecture Graphs
@@ -397,7 +402,7 @@ whether or not the representative has not been encountered before and the
 integer uniquely identifies the orbit which the representative belongs to.
 
 ```python
->>> representatives = pympsym.Representatives
+>>> representatives = mpsym.Representatives
 >>> ag.representative((0, 1), representatives)
 ((0, 1), True, 0)
 >>> ag.representative((0, 2), representatives)
@@ -474,17 +479,17 @@ when the automorphism group of an architecture is known ahead of time and there
 is thus no need to let MPsym determine it:
 
 ```python
->>> pg = pympsym.PermGroup(5, ['(0, 1)', '(3, 4)'])
->>> ag = pympsym.ArchGraphAutomorphisms(pg)
+>>> pg = mpsym.PermGroup(5, ['(0, 1)', '(3, 4)'])
+>>> ag = mpsym.ArchGraphAutomorphisms(pg)
 ```
 
 A number of convenience methods are available to construct and combine common
 permutation groups:
 
 ```python
->>> pg1 = pympsym.PermGroup.symmetric(5)            # S_5
->>> pg2 = pympsym.PermGroup.cyclic(10)              # C_10
->>> pg = pympsym.PermGroup.direct_product(pg1, pg2) # S_5 x C_10
+>>> pg1 = mpsym.PermGroup.symmetric(5)            # S_5
+>>> pg2 = mpsym.PermGroup.cyclic(10)              # C_10
+>>> pg = mpsym.PermGroup.direct_product(pg1, pg2) # S_5 x C_10
 ```
 
 ## Limitations
@@ -589,8 +594,7 @@ Previously, Travis also took care of deployment. To save on GitHub Action
 credits, coverage and documentation must now be deployed manually. PyPi wheels
 are still built automatically (for Linux and macOS), but now in a [separate
 repository](https://github.com/Time0o/mpsym_wheels) that uses
-[multibuild](https://github.com/matthew-brett/multibuild) (currently a work in
-progress).
+[cibuildwheel](https://github.com/joerick/cibuildwheel).
 
 ## References
 
