@@ -11,7 +11,7 @@ function(add_external_project)
 
   message(STATUS "Processing ${Arg_CONFIG_FILE}")
 
-  set(MESSAGE_QUIET ON)
+  #set(MESSAGE_QUIET ON)
 
   configure_file("${Arg_CONFIG_FILE}" "${Arg_WORK_DIR}/CMakeLists.txt")
 
@@ -19,12 +19,12 @@ function(add_external_project)
     COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
     RESULT_VARIABLE result
     WORKING_DIRECTORY "${Arg_WORK_DIR}"
-    OUTPUT_QUIET
-    ERROR_QUIET
+#    OUTPUT_QUIET
+#    ERROR_QUIET
   )
 
   if(result)
-    unset(MESSAGE_QUIET)
+    #unset(MESSAGE_QUIET)
     message(FATAL_ERROR "CMake step for ${Arg_NAME} failed")
   endif()
 
@@ -32,12 +32,12 @@ function(add_external_project)
     COMMAND "${CMAKE_COMMAND}" --build .
     RESULT_VARIABLE result
     WORKING_DIRECTORY "${Arg_WORK_DIR}"
-    OUTPUT_QUIET
-    ERROR_QUIET
+#    OUTPUT_QUIET
+#    ERROR_QUIET
   )
 
   if(result)
-    unset(MESSAGE_QUIET)
+    #unset(MESSAGE_QUIET)
     message(FATAL_ERROR "Build step for ${Arg_NAME} failed")
   endif()
 
@@ -45,5 +45,5 @@ function(add_external_project)
     add_subdirectory("${Arg_SRC_DIR}" "${Arg_BIN_DIR}" EXCLUDE_FROM_ALL)
   endif()
 
-  unset(MESSAGE_QUIET)
+  #unset(MESSAGE_QUIET)
 endfunction()
