@@ -13,11 +13,12 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         include:
         - os: ubuntu-latest
+          # TODO: should use Boost 1.75.0
           INSTALL_DEPS: sudo apt-get install -yq libboost-dev libboost-graph-dev lua5.3 liblua5.3-dev
           CC: gcc
           CXX: g++
         - os: macos-latest
-          INSTALL_DEPS: brew install boost lua
+          INSTALL_DEPS: brew install boost@1.75 lua@5.3 && brew link --force lua@5.3
           CC: clang
           CXX: clang++
     steps:
