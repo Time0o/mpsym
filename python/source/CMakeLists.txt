@@ -3,6 +3,13 @@ cmake_minimum_required(VERSION 3.6)
 include_directories("${MPSYM_INCLUDE_DIR}"
                     "${Boost_INCLUDE_DIRS}")
 
+if("${CMAKE_SYSTEM_NAME}" MATCHES "Darwin")
+  link_directories("${BOOST_LIBRARY_DIRS}"
+                   "/usr/local/opt/icu4c/lib")
+else()
+  link_directories("${BOOST_LIBRARY_DIRS}")
+endif()
+
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
 
 pybind11_add_module("${PYTHON_MODULE_INTERNAL}" "_mpsym.cpp")
