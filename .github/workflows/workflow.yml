@@ -30,7 +30,6 @@ jobs:
           mkdir build && cd build &&
           cmake ..
           -DCMAKE_BUILD_TYPE=Debug
-          -DNO_COVERAGE=ON
           -DCMAKE_C_COMPILER=${{ matrix.CC }}
           -DCMAKE_CXX_COMPILER=${{ matrix.CXX }}
       - name: cmake-build
