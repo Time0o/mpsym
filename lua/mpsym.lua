@@ -419,8 +419,8 @@ function fully_connected_channels(processors, ctype)
   local channels = {}
 
   for i = 1,#processors do
-    for j = 1,#processors do
-      insert_channel(channels, processors[i][1], processors[j][1], ctype)
+    for j = i+1,#processors do
+      insert_channel(channels, processors[i][1], processors[j][1], ctype, false)
     end
   end
 
@@ -432,14 +432,14 @@ function fully_cross_connected_channels(processors1, processors2, ctype)
 
   for i = 1,#processors1 do
     for j = 1,#processors2 do
-      insert_channel(channels, processors1[i][1], processors2[j][1], ctype)
+      insert_channel(channels, processors1[i][1], processors2[j][1], ctype, false)
     end
   end
 
   return channels
 end
 
-function grid_channels(processors, ctype, height, width, directed)
+function grid_channels(processors, ctype, height, width)
   local channels = {}
 
   if width == nil and height == nil then
@@ -475,12 +475,12 @@ function grid_channels(processors, ctype, height, width, directed)
 
       -- horizontal channels
       if j < width then
-        insert_channel(channels, processors[k][1], processors[k + 1][1], ctype, directed)
+        insert_channel(channels, processors[k][1], processors[k + 1][1], ctype, false)
       end
 
       -- vertical channels
       if i < height then
-        insert_channel(channels, processors[k][1], processors[k + width][1], ctype, directed)
+        insert_channel(channels, processors[k][1], processors[k + width][1], ctype, false)
       end
     end
   end
