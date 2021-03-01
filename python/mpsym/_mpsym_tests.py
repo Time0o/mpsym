@@ -507,6 +507,108 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
         for mapping, representative in representatives:
             self.assertEqual(ag.representative(mapping), representative)
 
+    def test_kalray_automorphisms(self):
+        def kalray_like_lua(naive,
+                            num_processors,
+                            num_clusters,
+                            cross_connected=False,
+                            directed=False):
+
+            shared = dedent(
+                f"""
+                local mpsym = require 'mpsym'
+
+                local NUM_PROCESSORS = {num_processors}
+                local NUM_CLUSTERS = {num_clusters}
+
+                local CROSS_CONNECTED = {'true' if cross_connected else 'false'}
+
+                local DIRECTED = {'true' if directed else 'false'}
+                """
+            )
+
+            if naive:
+                return shared + dedent(
+                    """
+                    local processors = {}
+                    local channels = {}
+
+                    local socs = {}
+
+                    for i = 1,NUM_CLUSTERS do
+                      local cluster_processors = mpsym.combine_processors(
+                        mpsym.identical_processors(NUM_PROCESSORS, 'P'), {NUM_PROCESSORS + 1, 'PS'})
+
+                      socs[i] = mpsym.append_processors(processors, cluster_processors)
+                    end
+
+                    for i = 1,NUM_CLUSTERS do
+                      mpsym.append_channels(channels, mpsym.fully_connected_channels(socs[i], 'shared memory'))
+                    end
+
+                    if CROSS_CONNECTED then
+                        for i = 1,NUM_CLUSTERS do
+                          for j = i+1,NUM_CLUSTERS do
+                            mpsym.append_channels(channels, mpsym.fully_cross_connected_channels(socs[i], socs[j], 'C'))
+                          end
+                        end
+                    else
+                        mpsym.append_channels(channels, mpsym.fully_connected_channels(processors, 'C'))
+                    end
+
+                    return mpsym.ArchGraph:create{
+                      directed = DIRECTED,
+                      processors = processors,
+                      channels = channels
+                    }
+                    """
+                )
+            else:
+                return shared + dedent(
+                    """
+                    local super_graph_clusters = mpsym.identical_clusters(NUM_CLUSTERS, 'SoC')
+                    local super_graph_channels = mpsym.fully_connected_channels(super_graph_clusters, 'C')
+
+                    local proto_processors = mpsym.combine_processors(
+                        mpsym.identical_processors(NUM_PROCESSORS, 'P'), {NUM_PROCESSORS + 1, 'PS'})
+                    local proto_channels = mpsym.fully_connected_channels(proto_processors, 'shared memory')
+
+                    return mpsym.ArchUniformSuperGraph:create{
+                      super_graph = mpsym.ArchGraph:create{
+                        directed = false,
+                        clusters = super_graph_clusters,
+                        channels = super_graph_channels
+                      },
+                      proto = mpsym.ArchGraph:create{
+                        directed = DIRECTED,
+                        processors = proto_processors,
+                        channels = proto_channels
+                      }
+                    }
+                    """
+                )
+
+        def kalray_like(**kwargs):
+            return mp.ArchGraphSystem.from_lua(
+                kalray_like_lua(num_processors=8, num_clusters=5, **kwargs))
+
+        kalray_like_variants = [
+            {'naive': False, 'directed': False},
+            {'naive': False, 'directed': True},
+            {'naive': True, 'cross_connected': True, 'directed': False},
+            {'naive': True, 'cross_connected': False, 'directed': False},
+            {'naive': True, 'cross_connected': True, 'directed': True},
+            {'naive': True, 'cross_connected': False, 'directed': True}
+        ]
+
+        kalray_num_automorphisms = set()
+
+        for kwargs in kalray_like_variants:
+            kalray = kalray_like(**kwargs)
+            kalray_num_automorphisms.add(kalray.num_automorphisms())
+
+        self.assertEqual(len(kalray_num_automorphisms), 1)
+
     def _test_ag_generator(self, make_ag, connections, num_automorphisms):
         for fs in permutations(connections):
             ag = make_ag()
