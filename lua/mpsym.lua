@@ -362,6 +362,34 @@ function identical_processors(num, ptype)
   return processors
 end
 
+function combine_processors(...)
+  local arg = {...}
+
+  local processors = {}
+
+  for i = 1,#arg do
+    local p = arg[i]
+
+    if is_processor(p) then
+      table.insert(processors, p)
+    else
+      if not is_array(p) then
+        error("argument " .. i .. " is not an array of processors")
+      end
+
+      for i, p_ in ipairs(p) do
+        if not is_processor(p_) then
+          error("argument " .. i .. " is not an array of processors")
+        end
+
+        table.insert(processors, p_)
+      end
+    end
+  end
+
+  return processors
+end
+
 function append_processors(old_processors, new_processors)
   local num_old_processors = #old_processors
   local new_processors_shifted = {}
@@ -523,7 +551,9 @@ return {
   ArchUniformSuperGraph = ArchUniformSuperGraph,
   identical_processors = identical_processors,
   identical_clusters = identical_processors,
+  combine_processors = combine_processors,
   append_processors = append_processors,
+  combine_clusters = combine_processors,
   append_clusters = append_processors,
   linear_channels = linear_channels,
   cyclic_channels = cyclic_channels,
