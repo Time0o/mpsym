@@ -59,9 +59,13 @@ endif()
 
 if(LINK_STATIC)
   add_library("${MPSYM_LIB}" STATIC ${SOURCE_FILES})
+
+  set_default_target_properties(TARGET "${MPSYM_LIB}")
   set_property(TARGET "${MPSYM_LIB}" PROPERTY POSITION_INDEPENDENT_CODE ON)
 else()
   add_library("${MPSYM_LIB}" SHARED ${SOURCE_FILES})
+
+  set_default_target_properties(TARGET "${MPSYM_LIB}")
 endif()
 
 target_link_libraries("${MPSYM_LIB}"

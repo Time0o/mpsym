@@ -18,7 +18,6 @@ foreach(PROFILE_SOURCE ${PROFILE_SOURCES})
 
   target_link_libraries("${PROFILE_PROG}" "${MPSYM_LIB}")
 
-  set_target_properties("${PROFILE_PROG}" PROPERTIES
-    CXX_STANDARD 17
-  )
+  set_default_target_properties(TARGET "${PROFILE_PROG}")
+  set_target_properties("${PROFILE_PROG}" PROPERTIES CXX_STANDARD 17)
 endforeach()

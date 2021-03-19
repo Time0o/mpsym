@@ -139,6 +139,27 @@ add_definitions(
   -DPYTHON_DESCRIPTION="${CMAKE_PROJECT_DESCRIPTION}"
 )
 
+################################################################################
+# CMake Functions
+################################################################################
+
+set(MAIN_COMPILER_FLAGS "-Wall -Wextra -pedantic")
+set(MAIN_LINK_FLAGS "")
+
+function(set_default_target_properties)
+  set(options NONE)
+  set(args TARGET)
+  cmake_parse_arguments(Arg "${options}" "${args}" "" "${ARGN}")
+
+  set_target_properties("${Arg_TARGET}" PROPERTIES
+    LINKER_LANGUAGE CXX
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED ON
+    COMPILE_FLAGS "${MAIN_COMPILER_FLAGS}"
+    LINK_FLAGS "${MAIN_LINK_FLAGS}"
+  )
+endfunction()
+
 
 ################################################################################
 # External Dependencies
@@ -269,6 +290,8 @@ endif()
 ################################################################################
 
 if(CMAKE_BUILD_TYPE STREQUAL "${CMAKE_BUILD_TYPE_PROFILE}")
+  set(MAIN_COMPILER_FLAGS "${MAIN_COMPILER_FLAGS} -g -O2 -DNDEBUG")
+
   add_subdirectory("${MPSYM_PROFILE_SRC_DIR}")
 endif()
 

@@ -32,6 +32,8 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
 
   add_executable("${TEST_PROG}" "${TEST_SOURCE}" "${TEST_UTILITY}")
 
+  set_default_target_properties(TARGET "${TEST_PROG}")
+
   target_link_libraries("${TEST_PROG}" "${MPSYM_LIB}" "${GTEST_GMOCK_MAIN}")
 endforeach()
 
