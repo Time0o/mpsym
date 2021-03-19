@@ -590,7 +590,7 @@ class ArchGraphSystemBugFixTest(unittest.TestCase):
 
         def kalray_like(**kwargs):
             return mp.ArchGraphSystem.from_lua(
-                kalray_like_lua(num_processors=8, num_clusters=5, **kwargs))
+                kalray_like_lua(num_processors=6, num_clusters=4, **kwargs))
 
         kalray_like_variants = [
             {'naive': False, 'directed': False},
