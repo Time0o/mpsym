@@ -15,7 +15,7 @@
 #include "arch_graph_system.hpp"
 #include "dump.hpp"
 #include "task_mapping.hpp"
-#include "task_orbits.hpp"
+#include "task_mapping_orbit.hpp"
 #include "timer.hpp"
 
 #include "profile_args.hpp"
