@@ -5,6 +5,10 @@
 [![Coverage
 status](https://codecov.io/gh/Time0o/mpsym/branch/master/graph/badge.svg)](https://codecov.io/gh/Time0o/mpsym?branch=master)
 
+<p align="center">
+  <img src="image.png">
+</p>
+
 # MPsym - Multiprocessor System  Symmetry Reduction
 
 ## Contents
