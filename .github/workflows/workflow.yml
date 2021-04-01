@@ -10,16 +10,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
         include:
         - os: ubuntu-latest
           INSTALL_DEPS: sudo apt-get install -yq libboost-dev libboost-graph-dev lua5.3 liblua5.3-dev
           CC: gcc
           CXX: g++
-        - os: macos-latest
-          INSTALL_DEPS: brew install boost lua
-          CC: clang
-          CXX: clang++
     steps:
       - uses: actions/checkout@v2
       - name: install-dependencies
