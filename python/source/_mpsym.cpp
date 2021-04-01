@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <chrono>
+#include <cstring>
 #include <functional>
 #include <map>
 #include <memory>
@@ -183,7 +184,16 @@ struct type_caster<mp::cpp_int> {
   PYBIND11_TYPE_CASTER(mp::cpp_int, _("cpp_int"));
 
   static handle cast(mp::cpp_int const &src, return_value_policy, handle)
-  { return PyLong_FromString(stream(src).c_str(), nullptr, 10); }
+  {
+    auto str(stream(src));
+
+    char *c_str = new char[str.size() + 1];
+    std::strcpy(c_str, str.c_str());
+
+    return PyLong_FromString(c_str, nullptr, 10);
+
+    delete[] c_str;
+  }
 };
 
 } // namespace detail

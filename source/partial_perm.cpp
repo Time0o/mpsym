@@ -93,7 +93,7 @@ PartialPerm::PartialPerm(std::vector<int> const &pperm)
 
 int PartialPerm::operator[](int i) const
 {
-  assert(i < _pperm.size());
+  assert(static_cast<decltype(_pperm.size())>(i) < _pperm.size());
   return _pperm[i];
 }
 

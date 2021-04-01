@@ -80,11 +80,12 @@ ArchGraphCluster::automorphisms_(AutomorphismOptions const *options,
 
   std::vector<PermGroup> automorphisms(_subsystems.size());
   for (auto i = 0u; i < _subsystems.size(); ++i)
-    automorphisms[i] = _subsystems[i]->automorphisms(options);
+    automorphisms[i] = _subsystems[i]->automorphisms(options, aborted);
 
   return PermGroup::direct_product(automorphisms.begin(),
                                    automorphisms.end(),
-                                   options);
+                                   options,
+                                   aborted);
 }
 
 TaskMapping

@@ -103,7 +103,7 @@ private:
 
 inline std::ostream &operator<<(std::ostream &os, Orbit const &orbit)
 {
-  os << DUMP_CUSTOM(orbit._elements);
+  os << DUMP_CUSTOM(orbit._elements, "{}");
   return os;
 }
 

@@ -35,9 +35,11 @@ unsigned PermSet::largest_moved_point() const
   assert(!trivial());
 
   for (int lmp = static_cast<int>(degree() - 1u); lmp >= 0; --lmp) {
+    unsigned lmp_ = static_cast<unsigned>(lmp);
+
     for (auto const &perm : *this) {
-      if (perm[lmp] != lmp)
-        return lmp;
+      if (perm[lmp_] != lmp_)
+        return lmp_;
     }
   }
 

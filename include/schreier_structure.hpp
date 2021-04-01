@@ -14,8 +14,9 @@ class Perm;
 class PermSet;
 class SchreierStructure;
 
-struct SchreierStructure
+class SchreierStructure
 {
+public:
   friend std::ostream &operator<<(std::ostream &os, SchreierStructure const &ss);
 
   virtual ~SchreierStructure() = default;
